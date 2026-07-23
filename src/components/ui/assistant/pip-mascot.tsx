@@ -9,7 +9,7 @@ type PipStatus = 'idle' | 'thinking' | 'error';
 interface PipMascotProps {
   variant?: PipVariant;
   status?: PipStatus;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   errorMessage?: string;
   className?: string;
 }
@@ -20,7 +20,7 @@ interface FaceColors {
   featureAlt: string;
 }
 
-const SIZES = { sm: 64, md: 96, lg: 128 };
+const SIZES = { sm: 64, md: 96, lg: 128, xl: 200 };
 
 export default function PipMascot({ variant = 'classic', status = 'idle', size = 'md', errorMessage, className = '' }: PipMascotProps) {
   const { resolvedTheme } = useTheme();

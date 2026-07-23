@@ -57,6 +57,20 @@ export default function LandingPage() {
     const containerRef = useRef<HTMLDivElement>(null);
     const zoomRef = useRef<HTMLDivElement>(null);
 
+    const pipVariants = ['cyber', 'smart', 'classic', 'cool', 'shocked', 'spicy', 'lovely', 'sleepy'] as const;
+    type PipVariant = typeof pipVariants[number];
+    const [pipVariant, setPipVariant] = useState<PipVariant>('cyber');
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setPipVariant(prev => {
+                const idx = pipVariants.indexOf(prev);
+                return pipVariants[(idx + 1) % pipVariants.length];
+            });
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
     useEffect(() => {
         fetch('/api/auth/session')
             .then(res => {
@@ -681,7 +695,17 @@ export default function LandingPage() {
                         >
                             <div className="relative">
                                 <div className="absolute inset-0 bg-emerald-500/20 blur-[60px] rounded-full scale-150" />
-                                <PipMascot variant="cyber" status="idle" size="lg" />
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={pipVariant}
+                                        initial={{ scale: 0.85, opacity: 0, rotateY: 90 }}
+                                        animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+                                        exit={{ scale: 0.85, opacity: 0, rotateY: -90 }}
+                                        transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
+                                    >
+                                        <PipMascot variant={pipVariant} status="idle" size="xl" />
+                                    </motion.div>
+                                </AnimatePresence>
                             </div>
                             <div className="mt-6 text-center space-y-1">
                                 <p className="text-lg font-bold text-white font-sora tracking-tight">Pip</p>
