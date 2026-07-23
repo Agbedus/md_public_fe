@@ -18,5 +18,7 @@ export default async function TasksPage() {
         users={users}
         projects={projects}
         currentUserId={session?.user?.id}
+        currentUserRoles={session?.user?.roles || []}
+        orgRole={session?.user?.orgRole}
     />;
 }

@@ -30,9 +30,10 @@ interface KanbanCardProps {
   columns: Array<keyof typeof statusMapping>;
   onMove: (task: Task, status: Task["status"]) => Promise<void>;
   onDelete: (task: Task) => Promise<void>;
+  canManage?: boolean;
 }
 
-export default function KanbanCard({ task, users, user: currentUser, projects, columns, onMove, onDelete }: KanbanCardProps) {
+export default function KanbanCard({ task, users, user: currentUser, projects, columns, onMove, onDelete, canManage }: KanbanCardProps) {
   const { startTimer, activeTask } = useTaskTimer();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(task.id) });
   const style = {
@@ -126,6 +127,7 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
                 <FiPlay className={`h-3.5 w-3.5 ${activeTask?.id === task.id ? 'fill-current' : ''}`} />
               </button>
             )}
+            {canManage && (
             <button
               onClick={(e) => { e.stopPropagation(); void onDelete(task); }}
               className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
@@ -133,6 +135,7 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
             >
               <FiTrash2 className="h-3.5 w-3.5" />
             </button>
+            )}
           </div>
         </div>
 

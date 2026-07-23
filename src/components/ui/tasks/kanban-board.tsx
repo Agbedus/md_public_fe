@@ -23,6 +23,7 @@ interface KanbanBoardProps {
   projects: Project[];
   updateTask: (formData: FormData) => Promise<{ success: boolean; error?: string } | undefined>;
   deleteTask: (formData: FormData) => Promise<{ success: boolean; error?: string } | undefined>;
+  canManage?: boolean;
 }
 
 interface ColumnProps {
@@ -36,9 +37,10 @@ interface ColumnProps {
   onDelete: (task: Task) => Promise<void>;
   highlightedIds: Record<string, boolean>;
   flash: boolean;
+  canManage?: boolean;
 }
 
-function Column({ col, items, users, user, projects, columns, onMove, onDelete, highlightedIds, flash }: ColumnProps) {
+function Column({ col, items, users, user, projects, columns, onMove, onDelete, highlightedIds, flash, canManage }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: col });
   return (
     <div
@@ -90,6 +92,7 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
                 columns={columns}
                 onMove={onMove}
                 onDelete={onDelete}
+                canManage={canManage}
               />
             </div>
           ))}
@@ -109,7 +112,7 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
   );
 }
 
-export default function KanbanBoard({ tasks = [], users, user, projects, updateTask, deleteTask }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks = [], users, user, projects, updateTask, deleteTask, canManage }: KanbanBoardProps) {
   const columns = useMemo(() => Object.keys(statusMapping) as Array<keyof typeof statusMapping>, []);
 
   const [grouped, setGrouped] = useState<Record<string, Task[]>>({});
@@ -208,12 +211,14 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
                 col={col}
                 items={grouped[col] ?? []}
                 users={users}
+                user={user}
                 projects={projects}
                 columns={columns}
                 onMove={moveTo}
                 onDelete={handleDelete}
                 highlightedIds={highlightedIds}
                 flash={flashCol === col}
+                canManage={canManage}
               />
             </div>
           ))}

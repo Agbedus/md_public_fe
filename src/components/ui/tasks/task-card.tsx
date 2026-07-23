@@ -33,6 +33,7 @@ interface TaskCardProps {
     isNew?: boolean;
     onEdit?: () => void;
     onCancel?: () => void;
+    canManage?: boolean;
 }
 
 const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({ 
@@ -46,7 +47,8 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
     isEditing = false,
     isNew = false,
     onEdit = () => {},
-    onCancel = () => {}
+    onCancel = () => {},
+    canManage = false
 }, ref) => {
     const { startTimer, activeTask } = useTaskTimer();
     const confirm = useConfirm();
@@ -496,6 +498,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 <FiPlay className={`w-3.5 h-3.5 ${activeTask?.id === task.id ? 'fill-current' : ''}`} />
               </button>
             )}
+            {canManage && (
             <button
                 type="button"
                 onClick={onEdit}
@@ -505,6 +508,8 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
             >
                 <FiEdit2 className="w-3.5 h-3.5" />
             </button>
+            )}
+            {canManage && (
             <button 
                 type="button" 
                 disabled={task.id < 0 || isDeleting}
@@ -540,6 +545,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
             >
                 {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-rose-500"></div> : <FiTrash2 className="w-3.5 h-3.5" />}
             </button>
+            )}
           </div>
         </td>
       </motion.tr>

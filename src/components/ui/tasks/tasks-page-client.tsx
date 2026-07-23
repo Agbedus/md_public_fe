@@ -16,6 +16,7 @@ import { toast } from '@/lib/toast';
 import { CustomDatePicker } from '@/components/ui/inputs/custom-date-picker';
 import { format } from 'date-fns';
 import { createOptimisticTask, updateOptimisticTask } from '@/lib/optimistic-utils';
+import { canManageTask } from '@/lib/task-auth';
 
 type ViewMode = 'table' | 'kanban';
 
@@ -36,13 +37,17 @@ export default function TasksPageClient({
     users: initialUsers = [], 
     projects: initialProjects = [], 
     projectId, 
-    currentUserId 
+    currentUserId,
+    currentUserRoles = [],
+    orgRole,
 }: { 
     allTasks?: Task[], 
     users?: User[], 
     projects?: Project[], 
     projectId?: number, 
-    currentUserId?: string 
+    currentUserId?: string,
+    currentUserRoles?: string[],
+    orgRole?: string,
 }) {
     const confirm = useConfirm();
     const [tableTab, setTableTab] = useState<'active' | 'done'>('active');
@@ -63,6 +68,14 @@ export default function TasksPageClient({
     // Background data
     const { users } = useUsers(initialUsers);
     const { projects } = useProjects({ initialProjects });
+
+    const currentUser = useMemo(() => {
+        const u = users.find((u: User) => u.id === currentUserId);
+        if (!u) return undefined;
+        return { ...u, roles: currentUserRoles, orgRole };
+    }, [users, currentUserId, currentUserRoles, orgRole]);
+
+    const canManage = useMemo(() => canManageTask(currentUserRoles, orgRole), [currentUserRoles, orgRole]);
 
     // SWR Hook
     const { 
@@ -520,10 +533,11 @@ export default function TasksPageClient({
                 <KanbanBoard
                     tasks={filteredTasks}
                     users={users}
-                    user={users.find((u: User) => u.id === currentUserId)}
+                    user={currentUser}
                     projects={projects}
                     updateTask={handleUpdate}
                     deleteTask={handleDelete}
+                    canManage={canManage}
                 />
             ) : (
                 <div className="flex flex-col gap-6">
@@ -570,7 +584,7 @@ export default function TasksPageClient({
                                             <TaskCard
                                                 key={task.id}
                                                 task={task}
-                                                user={users.find((u: User) => u.id === currentUserId)}
+                                                user={currentUser}
                                                 users={users}
                                                 projects={projects}
                                                 updateTask={handleUpdate}
@@ -579,6 +593,7 @@ export default function TasksPageClient({
                                                 isNew={newTaskIds.has(task.id)}
                                                 onEdit={() => setEditingTaskId(task.id)}
                                                 onCancel={() => setEditingTaskId(null)}
+                                                canManage={canManage}
                                             />
                                         ))}
 
