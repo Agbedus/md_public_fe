@@ -135,9 +135,10 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
   const [copied, setCopied] = useState(false);
   const handleCopyInvite = () => {
     if (!inviteCode) return;
-    navigator.clipboard.writeText(inviteCode);
+    const origin = window.location.origin;
+    navigator.clipboard.writeText(`${origin}/invite?code=${inviteCode}`);
     setCopied(true);
-    toast.success('Invite code copied');
+    toast.success('Invite link copied');
     setTimeout(() => setCopied(false), 2000);
   };
 
