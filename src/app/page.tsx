@@ -904,7 +904,7 @@ export default function LandingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto pt-10 text-left items-stretch">
                         {[
                             { name: "Starter", price: "0", desc: "For small teams getting started with operational command.", features: ["Up to 10 team members", "Geo-fenced attendance", "Task & project management", "Basic Pip AI access"] },
-                            { name: "Professional", price: billingCycle === 'Monthly' ? '29' : '19', desc: "For growing teams needing advanced features and AI insights.", features: ["Unlimited team members", "Advanced Pip AI reports", "Custom geo-fence zones", "Priority support"], popular: true },
+                            { name: "Professional", price: "15", desc: "For growing teams needing advanced features and AI insights.", features: ["Unlimited team members", "Advanced Pip AI reports", "Custom geo-fence zones", "Priority support"], popular: true },
                             { name: "Enterprise", price: "Custom", desc: "For organizations requiring dedicated infrastructure and SLAs.", features: ["Self-hosted deployment", "Custom AI model training", "Dedicated compliance", "24/7 support SLA"] }
                         ].map((tier, idx) => (
                             <motion.div
