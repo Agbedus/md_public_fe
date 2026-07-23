@@ -1,0 +1,279 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* ── Astryx design system ──────────────────────────────────────────── */
+/* Pre-built CSS with @scope isolation — only affects [data-astryx-theme] elements */
+@import "@astryxdesign/core/astryx.css";
+@import "@astryxdesign/theme-neutral/theme.css";
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.5); opacity: 0.5; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 3s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+
+/* ── Tailwind theme token bridge ────────────────────────────────── */
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-sora: var(--font-sora-sans);
+  --font-dm-sans: var(--font-dm-sans);
+
+  /* Map CSS variables → Tailwind utilities */
+  --color-background:   var(--background);
+  --color-foreground:   var(--foreground);
+  --color-card:         var(--card-bg);
+  --color-card-border:  var(--card-border);
+  --color-sidebar:      var(--sidebar-bg);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-border-subtle: var(--border-subtle);
+  --color-input-bg:     var(--input-bg);
+  --color-text-muted:   var(--text-muted);
+  --color-text-secondary: var(--text-secondary);
+  
+  --color-skeleton-bg:     var(--skeleton-bg);
+  --color-skeleton-shimmer: var(--skeleton-shimmer);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+@keyframes spinner {
+  0%   { opacity: 1; }
+  100% { opacity: 0.15; }
+}
+
+/* ── Shared pastel palette (theme-agnostic) ────────────────────── */
+:root {
+  --pastel-indigo:   #818cf8;
+  --pastel-emerald:  #34d399;
+  --pastel-blue:     #60a5fa;
+  --pastel-purple:   #c084fc;
+  --pastel-rose:     #fb7185;
+  --pastel-amber:    #fbbf24;
+  --pastel-teal:     #2dd4bf;
+}
+
+/* ── Light theme ───────────────────────────────────────────────── */
+/* Body: pure white. Cards: white. Borders: slate-200. */
+.light {
+  color-scheme: light;
+
+  /* Page */
+  --background:       #ffffff;   /* clean white */
+  --foreground:       #0f172a;   /* slate-900 — primary text */
+  --text-secondary:   #1e293b;   /* slate-800 — higher contrast secondary text */
+  --text-muted:       #475569;   /* slate-600 — higher contrast muted text */
+
+  /* Cards / elevated containers */
+  --card-bg:          #ffffff;
+  --card-border:      #f1f5f9;   /* slate-100 — very subtle border for white-on-white */
+
+  /* Sidebar */
+  --sidebar-bg:       #ffffff;
+  --sidebar-border:   #f1f5f9;
+
+  /* Generic borders & inputs */
+  --border-subtle:    #f1f5f9;
+  --input-bg:         #f1f5f9;   /* light silver-blue (slate-100) */
+
+  /* Charts & Tooltips */
+  --chart-grid:       rgba(0, 0, 0, 0.03);
+  --chart-axis:       #64748b;   /* slate-500 */
+  --tooltip-bg:       rgba(255, 255, 255, 0.95);
+  --tooltip-border:   rgba(0, 0, 0, 0.05);
+  --glass-bg:         rgba(255, 255, 255, 0.85);
+  --glass-border:     rgba(0, 0, 0, 0.05);
+
+  /* Toast */
+  --toast-bg:         rgba(255, 255, 255, 0.98);
+  --toast-text:       #1e293b;   /* slate-800 */
+  --toast-border:     rgba(0, 0, 0, 0.05);
+
+  /* Skeleton */
+  --skeleton-bg:      #f1f5f9;                 /* silver base (slate-100) */
+  --skeleton-shimmer: rgba(255, 255, 255, 0.7);
+
+  /* Shadow Overrides for Light Mode - Slightly more visible for contrast on white background */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+  
+  /* Custom shadow token for components using arbitrary values */
+  --shadow-extra: 0 20px 50px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.06);
+}
+
+/* ── Dark theme ────────────────────────────────────────────────── */
+/* Body: near-black (#09090b). Cards: zinc-900 (#18181b). Borders: white/8. */
+.dark {
+  color-scheme: dark;
+
+  /* Page */
+  --background:       #09090b;   /* zinc-950 */
+  --foreground:       #fafafa;   /* near-white */
+  --text-secondary:   #a1a1aa;   /* zinc-400 */
+  --text-muted:       #71717a;   /* zinc-500 */
+
+  /* Cards / elevated containers */
+  --card-bg:          rgba(24, 24, 27, 0.4);   /* zinc-900 at 40% opacity */
+  --card-border:      rgba(255, 255, 255, 0.08);
+
+  /* Sidebar */
+  --sidebar-bg:       #09090b;
+  --sidebar-border:   rgba(255, 255, 255, 0.08);
+
+  /* Generic borders & inputs */
+  --border-subtle:    rgba(255, 255, 255, 0.08);
+  --input-bg:         #27272a;   /* zinc-800 */
+
+  /* Charts & Tooltips */
+  --chart-grid:       rgba(255, 255, 255, 0.05);
+  --chart-axis:       #94a3b8;   /* slate-400 */
+  --tooltip-bg:       rgba(15, 23, 42, 0.9);
+  --tooltip-border:   rgba(255, 255, 255, 0.1);
+  --glass-bg:         rgba(24, 24, 27, 0.4);
+  --glass-border:     rgba(255, 255, 255, 0.08);
+
+  /* Toast */
+  --toast-bg:         rgba(24, 24, 27, 0.9);
+  --toast-text:       #a1a1aa;   /* zinc-400 */
+  --toast-border:     rgba(255, 255, 255, 0.08);
+
+  /* Skeleton */
+  --skeleton-bg:      rgba(255, 255, 255, 0.03);
+  --skeleton-shimmer: rgba(255, 255, 255, 0.08);
+
+  /* Shadow Values for Dark Mode - Reinstating depth */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+  /* Custom shadow tokens for components using arbitrary values */
+  --shadow-extra: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-dm-sans), Arial, Helvetica, sans-serif;
+}
+
+/* ── Light Mode Form Inputs Premium Styling ────────────────────── */
+.light input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+.light select,
+.light textarea {
+  background-color: var(--input-bg) !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  color: var(--foreground) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.light input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):focus,
+.light select:focus,
+.light textarea:focus {
+  background-color: #ffffff !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { display: none; }
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── Custom utilities ──────────────────────────────────────────── */
+.font-numbers {
+  font-family: var(--font-space-grotesk), sans-serif;
+}
+
+/* Glass card — works in dark only, degrades gracefully in light */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Sidebar glass: same token, different opacity tweak */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+}
+
+.noise {
+  position: relative;
+}
+.noise::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bg-logo-gradient {
+  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+}
+.bg-logo-gradient-light {
+  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+}
+
+.gradient-border-button {
+  position: relative;
+  background: var(--card-bg);
+  color: var(--foreground);
+  transition: all 0.3s ease;
+}
+.gradient-border-button::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(to right, #6366f1, #10b981);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+.gradient-border-button:hover::before { opacity: 1; }
+
+.tracking-tightest {
+  letter-spacing: -0.05em;
+}
+
+/* ── New task glow (realtime creation) ──────────────────────────── */
+@keyframes new-task-fade {
+  0% {
+    box-shadow: inset 3px 0 0 0 var(--pastel-emerald);
+    background-color: rgba(52, 211, 153, 0.04);
+  }
+  70% {
+    box-shadow: inset 3px 0 0 0 var(--pastel-emerald);
+    background-color: rgba(52, 211, 153, 0.04);
+  }
+  100% {
+    box-shadow: inset 3px 0 0 0 transparent;
+    background-color: transparent;
+  }
+}
+
+.new-task-glow {
+  animation: new-task-fade 7s ease-out forwards;
+}
