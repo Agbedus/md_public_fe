@@ -1,5 +1,7 @@
 'use client';
 
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import RegisterForm from '@/components/ui/register-form';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -25,11 +27,13 @@ const item = {
   },
 };
 
-export default async function RegisterPage(props: {
-  searchParams?: Promise<{ invite?: string; org?: string }>;
-}) {
-  const params = await props.searchParams;
-  const initialInvite = params?.invite ?? null;
+// This is a Client Component (it uses framer-motion), so it cannot be `async`
+// and `searchParams` is not a promise here. Query params are read client-side
+// with `useSearchParams`, which Next requires to sit under a Suspense boundary
+// (see the default export below).
+function RegisterView() {
+  const searchParams = useSearchParams();
+  const initialInvite = searchParams.get('invite');
   return (
     <main className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background isolate">
       <div className="absolute inset-0 pointer-events-none -z-10">
@@ -88,5 +92,13 @@ export default async function RegisterPage(props: {
         </motion.div>
       </motion.div>
     </main>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterView />
+    </Suspense>
   );
 }

@@ -77,8 +77,8 @@ export const CookiePopup = () => {
                                     <FiShield className="text-indigo-400 text-lg" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Privacy Preference</h3>
-                                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-tight">Compliance Shield v1.0</p>
+                                    <h3 className="text-base font-semibold text-foreground tracking-tight">Cookies</h3>
+                                    <p className="text-xs text-text-muted">Your choice, saved on this device</p>
                                 </div>
                             </div>
                             <button 
@@ -91,13 +91,13 @@ export const CookiePopup = () => {
 
                         {!showSettings ? (
                             <>
-                                <p className="text-xs text-text-secondary leading-relaxed font-bold">
-                                    We use cookies to enhance your executive oversight experience, analyze mission-critical traffic, and provide secure authentication. By clicking &quot;Accept All&quot;, you consent to our use of all cookies. 
+                                <p className="text-sm text-text-secondary leading-relaxed">
+                                    We use cookies to keep you signed in and to understand how the product is used. Choose &quot;Accept all&quot; to allow them, or keep only what the app needs to run. 
                                     <button 
                                         onClick={() => setShowSettings(true)}
                                         className="text-indigo-500 dark:text-indigo-400 hover:underline ml-1 font-black"
                                     >
-                                        Customize Preferences
+                                        Customise
                                     </button>
                                 </p>
 
@@ -106,13 +106,13 @@ export const CookiePopup = () => {
                                         onClick={handleAcceptAll}
                                         className="flex-1 bg-foreground text-background px-6 py-3 rounded-2xl text-xs font-bold hover:bg-foreground/90 transition-all flex items-center justify-center gap-2 active:scale-95"
                                     >
-                                        <FiCheck className="text-lg" /> Accept All
+                                        <FiCheck className="text-lg" /> Accept all
                                     </button>
                                     <button
                                         onClick={() => savePrefs("declined", { essential: true, analytics: false, personalization: false })}
                                         className="px-6 py-3 rounded-2xl text-xs font-bold text-text-muted hover:bg-foreground/[0.05] transition-all border border-transparent hover:border-card-border"
                                     >
-                                        Essential Only
+                                        Essential only
                                     </button>
                                 </div>
                             </>

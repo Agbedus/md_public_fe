@@ -33,7 +33,7 @@ import {
     FiTrendingUp,
     FiAward
 } from 'react-icons/fi';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PipMascot from '@/components/ui/assistant/pip-mascot';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
@@ -48,11 +48,28 @@ export default function LandingPage() {
     const [billingCycle, setBillingCycle] = useState('Monthly');
     const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
-    const fadeIn = {
-        initial: { opacity: 0, y: 15 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] as const }
-    };
+    const reduceMotion = useReducedMotion();
+
+    // Entry motion carries hierarchy: the eye lands on the headline, then the
+    // subtext, then the CTAs. Under reduced motion it collapses to a plain
+    // render rather than animating anything.
+    const fadeIn = reduceMotion
+        ? { initial: false as const, animate: { opacity: 1, y: 0 } }
+        : {
+            initial: { opacity: 0, y: 15 },
+            animate: { opacity: 1, y: 0 },
+            transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] as const }
+        };
+
+    // Scroll reveal for section content below the fold.
+    const revealOnScroll = reduceMotion
+        ? {}
+        : {
+            initial: { opacity: 0, y: 24 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true, amount: 0.25 },
+            transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }
+        };
 
     const containerRef = useRef<HTMLDivElement>(null);
     const zoomRef = useRef<HTMLDivElement>(null);
@@ -91,11 +108,20 @@ export default function LandingPage() {
     }, []);
 
     useLayoutEffect(() => {
+        // The pinned zoom is the one scroll hijack on this page. It earns its
+        // place by walking through the product surfaces in sequence, but it must
+        // not run for people who have asked for less motion.
+        if (reduceMotion) return;
+
         const ctx = gsap.context(() => {
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: containerRef.current,
-                    start: "center center",
+                    // The nav is a fixed pill occupying ~76px from the top of the
+                    // viewport. Pinning at "top top" parked the showcase flush
+                    // against the viewport edge, so its top slid underneath the
+                    // nav. Offsetting the pin start leaves a clear gap below it.
+                    start: "top top+=96",
                     end: "+=300%",
                     scrub: 0.5,
                     pin: true,
@@ -104,13 +130,21 @@ export default function LandingPage() {
                 }
             });
 
-            tl.to(zoomRef.current, {
-                maxWidth: '100%',
-                width: '100%',
-                padding: '0 2rem',
-                duration: 1,
-                ease: "power2.inOut"
-            });
+            // Zoom IN as the section is scrolled past: the showcase starts a touch
+            // back and pushes toward the viewer. The previous version widened the
+            // frame from max-w-5xl out to 100%, which reads as pulling back rather
+            // than moving closer. The hero section clips overflow, so the scale-up
+            // crops into the frame instead of spilling sideways.
+            // Growing from the top edge rather than the centre keeps the top of the
+            // showcase parked below the nav. With a centre origin the element
+            // expanded upward as well, which is what pushed it back under the nav.
+            tl.fromTo(zoomRef.current,
+                { scale: 0.94, transformOrigin: "center top" },
+                // Capped so the frame still fits the viewport at full zoom: with the
+                // top parked ~147px down, anything past ~1.10 pushes the bottom of
+                // the showcase off-screen.
+                { scale: 1.08, duration: 1, ease: "power2.inOut", transformOrigin: "center top" }
+            );
 
             const screens = ['Dashboard', 'Tasks', 'Notes', 'Users', 'Time Off'];
             screens.forEach((screen, index) => {
@@ -125,10 +159,10 @@ export default function LandingPage() {
             });
 
             tl.to({}, { duration: 0.5 });
-            
+
         }, containerRef);
         return () => ctx.revert();
-    }, []);
+    }, [reduceMotion]);
 
     const faqs = [
         {
@@ -137,11 +171,11 @@ export default function LandingPage() {
         },
         {
             q: "How does attendance geo-fencing work?",
-            a: "Admins define office perimeters as geo-fenced zones with configurable radiuses. When team members clock in via the mobile web app, GPS coordinates are cross-referenced against the defined boundaries. Three zones — In Office (green), Grace (amber), and Out of Range (red) — determine attendance status automatically."
+            a: "Admins define office perimeters as geo-fenced zones with configurable radiuses. When team members clock in via the mobile web app, GPS coordinates are cross-referenced against the defined boundaries. Three zones (In Office, Grace, and Out of Range) determine attendance status automatically."
         },
         {
             q: "What can Pip AI do for my team?",
-            a: "Pip generates monthly productivity reports, answers operational questions, analyzes task completion rates, identifies bottlenecks, and provides proactive recommendations — all through natural conversation. Powered by NVIDIA NIM (Minimax-M3) with enterprise-grade encryption."
+            a: "Pip generates monthly productivity reports, answers operational questions, analyzes task completion rates, identifies bottlenecks, and provides proactive recommendations, all through natural conversation. Powered by NVIDIA NIM (Minimax-M3) with enterprise-grade encryption."
         },
         {
             q: "How is data sync secured across devices?",
@@ -191,17 +225,17 @@ export default function LandingPage() {
                             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                                 <Link 
                                     href="/login"
-                                    className="px-5 py-2 rounded-full border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.05] transition-all duration-300 text-[10px] font-bold uppercase tracking-wider"
+                                    className="px-5 py-2 rounded-full border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.05] transition-all duration-300 text-sm font-semibold tracking-tight"
                                 >
-                                    Sign In
+                                    Sign in
                                 </Link>
                             </motion.div>
                             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                                 <Link 
                                     href="/register"
-                                    className="px-5 py-2 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/20 text-white hover:bg-white/[0.12] hover:border-white/30 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                                    className="px-5 py-2 rounded-full bg-emerald-400 text-[#07090c] hover:bg-emerald-300 transition-colors duration-200 text-sm font-semibold tracking-tight"
                                 >
-                                    Get Started
+                                    Get started
                                 </Link>
                             </motion.div>
                         </div>
@@ -229,63 +263,62 @@ export default function LandingPage() {
                             <Link href="#features" onClick={() => setMobileMenuOpen(false)} className="text-zinc-400 hover:text-white transition-colors py-2 border-b border-white/5 text-left">Features</Link>
                             <Link href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-zinc-400 hover:text-white transition-colors py-2 border-b border-white/5 text-left">How It Works</Link>
                             <Link href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-zinc-400 hover:text-white transition-colors py-2 border-b border-white/5 text-left">Pricing</Link>
-                            <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="mt-2 w-full text-center px-4 py-3 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/20 text-white font-bold text-xs uppercase tracking-wider block shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">Get Started</Link>
-                            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full text-center px-4 py-3 rounded-full border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.05] font-bold text-xs uppercase tracking-wider block">Sign In</Link>
+                            <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="mt-2 w-full text-center px-4 py-3 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/20 text-white text-sm font-semibold tracking-tight block shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">Get started</Link>
+                            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="w-full text-center px-4 py-3 rounded-full border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.05] text-sm font-semibold tracking-tight block">Sign in</Link>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </nav>
 
             {/* Hero */}
-            <section className="relative pt-44 pb-20 px-6 overflow-hidden">
-                <div className="max-w-7xl mx-auto text-center space-y-10">
-                    <motion.div 
-                        {...fadeIn}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 text-emerald-300 text-[9px] font-bold uppercase tracking-[0.3em] font-sora"
-                    >
-                        <FiZap size={12} />
-                        Live — Production Ready
-                    </motion.div>
-
-                    <motion.h1 
-                        {...fadeIn}
-                        transition={{ delay: 0.1 }}
-                        className="text-5xl md:text-[10rem] font-bold tracking-tightest leading-[0.92] text-white font-sora"
-                    >
-                        Strategic <br />
-                        <span className="bg-gradient-to-r from-emerald-200 via-teal-200 to-emerald-300 bg-clip-text text-transparent">
-                            Command Center
+            {/* The nav is a fixed pill: pt-6 (24px) + py-3 pill + ~30px content,
+                so it occupies roughly 78px from the top of the viewport. The hero
+                padding clears that and then adds real breathing room, rather than
+                starting immediately underneath it. */}
+            <section className="relative pt-40 md:pt-48 lg:pt-52 pb-20 px-6 overflow-hidden">
+                <div className="max-w-6xl mx-auto text-center space-y-8">
+                    {/* The Astryx reset that ships ahead of Tailwind's utility layer
+                        overrides font-size on h1-h6, so `text-*` utilities placed
+                        directly on a heading element are ignored (an h1 with
+                        `text-5xl` still computes to the 24px UA size). Putting the
+                        type utilities on an inner span keeps the semantic <h1> and
+                        lets the size actually apply. */}
+                    <motion.h1 {...fadeIn} className="font-sora">
+                        <span className="block text-5xl leading-[1.05] font-bold tracking-tight text-white">
+                            Run your team
+                            <br />
+                            from one place.
                         </span>
                     </motion.h1>
 
-                    <motion.p 
+                    <motion.p
                         {...fadeIn}
-                        transition={{ delay: 0.2 }}
-                        className="max-w-2xl mx-auto text-zinc-400 text-base md:text-lg leading-relaxed font-dm-sans"
+                        transition={{ delay: 0.1 }}
+                        className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg leading-relaxed font-dm-sans"
                     >
-                        GPS-verified attendance, AI-powered insights, and full team orchestration —
-                        one command center for operations that matter.
+                        Attendance, projects, tasks and time off in one workspace,
+                        built for how teams actually work day to day.
                     </motion.p>
 
-                    <motion.div 
+                    <motion.div
                         {...fadeIn}
-                        transition={{ delay: 0.3 }}
-                        className="flex flex-col md:flex-row items-center justify-center gap-6 pt-4"
+                        transition={{ delay: 0.2 }}
+                        className="flex flex-col md:flex-row items-center justify-center gap-4 pt-2"
                     >
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
                             <Link 
                                 href="/register"
-                                className="w-full md:w-auto px-10 py-5 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/20 text-white hover:bg-white/[0.12] hover:border-white/30 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-3 group transition-all duration-300 shadow-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                                className="w-full md:w-auto px-8 py-4 rounded-full bg-emerald-400 text-[#07090c] hover:bg-emerald-300 text-sm font-semibold tracking-tight flex items-center justify-center gap-2 group transition-colors duration-200 active:scale-[0.98]"
                             >
-                                Create Your Account <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                                Create your account <FiArrowRight className="group-hover:translate-x-0.5 transition-transform" />
                             </Link>
                         </motion.div>
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
                             <Link 
                                 href="/login" 
-                                className="w-full md:w-auto px-10 py-5 rounded-full border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.05] text-xs font-bold uppercase tracking-widest transition-all duration-300"
+                                className="w-full md:w-auto px-8 py-4 rounded-full border border-white/15 text-zinc-300 hover:text-white hover:border-white/30 hover:bg-white/[0.04] text-sm font-semibold tracking-tight transition-colors duration-200 active:scale-[0.98]"
                             >
-                                Sign In
+                                Sign in
                             </Link>
                         </motion.div>
                     </motion.div>
@@ -343,18 +376,6 @@ export default function LandingPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="absolute -top-6 -right-6 p-4 rounded-2xl bg-[#13161b]/80 backdrop-blur-md border border-white/[0.08] shadow-lg z-20 hidden md:block shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 font-sora">System Live</span>
-                                </div>
-                            </div>
-                            <div className="absolute -bottom-6 -left-6 p-4 rounded-2xl bg-[#13161b]/80 backdrop-blur-md border border-white/[0.08] shadow-lg z-20 hidden md:block shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                                <div className="flex items-center gap-3">
-                                    <FiShield className="text-emerald-400" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 font-sora">End-to-End Encrypted</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -364,10 +385,10 @@ export default function LandingPage() {
             <section className="py-20 px-6 border-t border-white/[0.04] bg-[#090a0c]/50">
                 <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
                     {[
-                        { value: "Real-time", label: "Attendance Tracking" },
-                        { value: "AI-Powered", label: "Assistant (Pip)" },
-                        { value: "Multi-zone", label: "Geo-fencing" },
-                        { value: "Role-based", label: "Access Control" },
+                        { value: "Attendance tracking", label: "Live, GPS verified" },
+                        { value: "Pip assistant", label: "Answers in plain language" },
+                        { value: "Geo-fencing", label: "Up to three zones per office" },
+                        { value: "Access control", label: "Owner, admin, member, client" },
                     ].map((stat, i) => (
                         <motion.div
                             key={i}
@@ -377,8 +398,8 @@ export default function LandingPage() {
                             transition={{ delay: i * 0.1 }}
                             className="text-center space-y-1"
                         >
-                            <p className="text-xl md:text-2xl font-bold text-white font-sora tracking-tight">{stat.value}</p>
-                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{stat.label}</p>
+                            <p className="text-lg md:text-xl font-semibold text-white font-sora tracking-tight">{stat.value}</p>
+                            <p className="text-sm text-zinc-500 font-dm-sans">{stat.label}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -395,17 +416,13 @@ export default function LandingPage() {
                         viewport={{ once: true }}
                         className="max-w-3xl space-y-6 mb-20"
                     >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 text-[10px] font-bold uppercase tracking-widest font-sora">
-                            <FiMapPin size={12} />
-                            Geo-Fencing V2
-                        </div>
-                        <h2 className="text-4xl md:text-7xl font-bold tracking-tightest leading-[0.95] text-white font-sora">
-                            Attendance,<br />
-                            <span className="bg-gradient-to-r from-emerald-300 via-teal-300 to-emerald-400 bg-clip-text text-transparent">Geographically Precise</span>
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-bold tracking-tight leading-[1.02] text-white font-sora">
+                            Attendance that<br />
+                            <span className="text-emerald-300">checks itself.</span>
                         </h2>
                         <p className="text-zinc-400 text-lg leading-relaxed font-dm-sans max-w-2xl">
                             Define office perimeters as geo-fenced zones. Team members clock in with automatic GPS validation.
-                            Three concentric zones determine attendance status — no manual entry, no disputes.
+                            Three concentric zones set attendance status automatically, so there is no manual entry and nothing to dispute.
                         </p>
                     </motion.div>
 
@@ -629,7 +646,7 @@ export default function LandingPage() {
                                     {
                                         icon: <FiTarget size={18} />,
                                         title: "Precision Geo-Fencing",
-                                        desc: "Define up to three concentric zones — In Office (green), Grace Period (amber), and Out of Range (red). Radiuses are fully configurable per office location."
+                                        desc: "Define up to three concentric zones: In Office, Grace Period, and Out of Range. Radiuses are configurable per office location."
                                     },
                                     {
                                         icon: <FiNavigation size={18} />,
@@ -639,7 +656,7 @@ export default function LandingPage() {
                                     {
                                         icon: <FiActivity size={18} />,
                                         title: "Real-time Attendance Map",
-                                        desc: "View all team members on a live map with color-coded markers. See who's in the office, who's working remotely, and who's off-grid — all updated in real-time."
+                                        desc: "View all team members on a live map with color-coded markers. See who's in the office, who's working remotely, and who has not checked in, updated in real time."
                                     },
                                     {
                                         icon: <FiClock size={18} />,
@@ -682,9 +699,9 @@ export default function LandingPage() {
                         viewport={{ once: true }}
                         className="max-w-3xl space-y-6 mb-20"
                     >
-                        <h2 className="text-4xl md:text-7xl font-bold tracking-tightest leading-[0.95] text-white font-sora">
-                            Meet Pip, Your<br />
-                            <span className="bg-gradient-to-r from-indigo-200 via-emerald-200 to-teal-300 bg-clip-text text-transparent">Command Co-Pilot</span>
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-bold tracking-tight leading-[1.02] text-white font-sora">
+                            Ask Pip what your<br />
+                            <span className="text-emerald-300">team is working on.</span>
                         </h2>
                     </motion.div>
 
@@ -712,7 +729,7 @@ export default function LandingPage() {
                             </div>
                             <div className="mt-6 text-center space-y-1">
                                 <p className="text-lg font-bold text-white font-sora tracking-tight">Pip</p>
-                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">AI Command Co-Pilot</p>
+                                <p className="text-sm text-zinc-500 font-dm-sans">Built-in AI assistant</p>
                             </div>
                         </motion.div>
 
@@ -726,7 +743,7 @@ export default function LandingPage() {
                             <div className="space-y-5">
                                 <p className="text-zinc-400 text-lg leading-relaxed font-dm-sans">
                                     Pip is an intelligent AI assistant purpose-built for operational command. 
-                                    Powered by <span className="text-white font-bold">NVIDIA NIM (Minimax-M3)</span>, Pip understands your organization&apos;s data and delivers actionable insights through natural conversation — no complex queries, no training required.
+                                    Powered by <span className="text-white font-bold">NVIDIA NIM (Minimax-M3)</span>, Pip understands your organization&apos;s data and answers questions in plain language, so nobody needs to learn a query syntax.
                                 </p>
                             </div>
 
@@ -741,7 +758,7 @@ export default function LandingPage() {
                                     {
                                         icon: <FiActivity size={16} />,
                                         title: "Proactive Intelligence",
-                                        desc: "Pip doesn't just answer — it alerts. Get notified of bottlenecks, overdue tasks, attendance anomalies, and project risks before they become problems.",
+                                        desc: "Pip does not wait to be asked. Get notified of bottlenecks, overdue tasks, attendance anomalies, and project risks before they become problems.",
                                         color: "text-emerald-300", bg: "bg-emerald-400/10", border: "border-emerald-400/20"
                                     },
                                     {
@@ -795,14 +812,14 @@ export default function LandingPage() {
                     <div className="max-w-3xl mx-auto text-center space-y-6">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 text-[10px] font-bold uppercase tracking-widest font-sora">
                             <FiLayers size={12} />
-                            Full Ecosystem
+                            One workspace
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tightest leading-[0.95] text-white font-sora">Everything Else <br className="md:hidden" /> You Need</h2>
-                        <p className="text-zinc-400 text-base leading-relaxed font-dm-sans max-w-xl mx-auto">A complete ecosystem for managing your organization — no tool sprawl.</p>
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] text-white font-sora">Everything else<br className="md:hidden" /> your team needs</h2>
+                        <p className="text-zinc-400 text-base leading-relaxed font-dm-sans max-w-xl mx-auto">Everything your organisation runs on, without stitching five tools together.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-min">
-                        {/* Hero Card — Task & Project Management (2x2) */}
+                        {/* Hero Card: Task & Project Management (2x2) */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -817,7 +834,7 @@ export default function LandingPage() {
                                     <h4 className="text-base font-bold text-white font-sora">Task & Project Management</h4>
                                 </div>
                             </div>
-                            <p className="text-sm text-zinc-400 leading-relaxed font-dm-sans">Kanban boards, deep-work timers, task dependencies, and role-based project dashboards — the operational backbone of your command center.</p>
+                            <p className="text-sm text-zinc-400 leading-relaxed font-dm-sans">Kanban boards, deep-work timers, task dependencies, and role-based project dashboards for the work your team delivers.</p>
                         </motion.div>
 
                         {/* Calendar & Time Off */}
@@ -865,7 +882,7 @@ export default function LandingPage() {
                             <p className="text-xs text-zinc-500 leading-relaxed font-dm-sans">Built-in Pomodoro timer, task-level time billing, and productivity analytics per team member.</p>
                         </motion.div>
 
-                        {/* Smart Notes & Wiki — wide */}
+                        {/* Smart Notes & Wiki: wide */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -879,7 +896,7 @@ export default function LandingPage() {
                                 </div>
                                 <h4 className="text-sm font-bold text-white font-sora">Smart Notes & Wiki</h4>
                             </div>
-                            <p className="text-sm text-zinc-400 leading-relaxed font-dm-sans">Rich text notes with slash commands, organization wiki, and real-time collaborative editing — knowledge that compounds.</p>
+                            <p className="text-sm text-zinc-400 leading-relaxed font-dm-sans">Rich text notes with slash commands, organization wiki, and real-time collaborative editing, so what your team learns stays findable.</p>
                         </motion.div>
 
                         {/* Announcements & Notifications */}
@@ -927,7 +944,7 @@ export default function LandingPage() {
                             <p className="text-xs text-zinc-500 leading-relaxed font-dm-sans">Distraction-free deep work sessions with Pomodoro integration and progress tracking.</p>
                         </motion.div>
 
-                        {/* Role-Based Access — full width */}
+                        {/* Role-Based Access: full width */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -955,18 +972,15 @@ export default function LandingPage() {
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/3 blur-[100px] rounded-full pointer-events-none -z-10" />
                 <div className="max-w-7xl mx-auto space-y-16">
                     <div className="max-w-3xl mx-auto text-center space-y-6">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 text-[10px] font-bold uppercase tracking-widest font-sora">
-                            Three Simple Steps
-                        </div>
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tightest leading-tight text-white font-sora">From Zero to Fully Operational</h2>
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] text-white font-sora">Up and running in three steps</h2>
                         <p className="text-zinc-400 text-base leading-relaxed font-dm-sans max-w-xl mx-auto">Get your team up and running in minutes, not days.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                         {[
                             { step: "01", icon: <FiStar size={24} />, title: "Create Your Organization", desc: "Sign up and set up your organization in seconds. Define your company name, configure working hours, and set up office locations with geo-fenced boundaries.", color: "text-emerald-300", bg: "bg-emerald-400/10", border: "border-emerald-400/20" },
-                            { step: "02", icon: <FiUsers size={24} />, title: "Invite Your Team", desc: "Invite members via email or share your unique invite code. Assign roles — Owner, Admin, Member, or Client — and let team members join with a single click.", color: "text-emerald-300", bg: "bg-emerald-400/10", border: "border-emerald-400/20" },
-                            { step: "03", icon: <FiZap size={24} />, title: "Start Commanding", desc: "Go live immediately. Track attendance, assign tasks, generate AI reports with Pip, manage projects, and orchestrate your entire operation from one place.", color: "text-emerald-300", bg: "bg-emerald-400/10", border: "border-emerald-400/20" }
+                            { step: "02", icon: <FiUsers size={24} />, title: "Invite Your Team", desc: "Invite members via email or share your unique invite code. Assign roles (Owner, Admin, Member, or Client) and let people join with a single click.", color: "text-emerald-300", bg: "bg-emerald-400/10", border: "border-emerald-400/20" },
+                            { step: "03", icon: <FiZap size={24} />, title: "Get to work", desc: "Track attendance, assign tasks, manage projects, and pull reports from Pip. Everything runs from the same workspace.", color: "text-emerald-300", bg: "bg-emerald-400/10", border: "border-emerald-400/20" }
                         ].map((step, i) => (
                             <motion.div
                                 key={i}
@@ -987,7 +1001,7 @@ export default function LandingPage() {
                     </div>
 
                     <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center pt-8">
-                        <Link href="/register" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/20 text-white hover:bg-white/[0.12] hover:border-white/30 text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                        <Link href="/register" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-emerald-400 text-[#07090c] hover:bg-emerald-300 text-sm font-semibold tracking-tight transition-colors duration-200 active:scale-[0.98]">
                             Get Started Now <FiArrowRight />
                         </Link>
                     </motion.div>
@@ -1032,9 +1046,8 @@ export default function LandingPage() {
                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/3 blur-[120px] rounded-full pointer-events-none -z-10" />
                 <div className="max-w-7xl mx-auto space-y-16 text-center">
                     <div className="space-y-6 max-w-3xl mx-auto text-center">
-                        <span className="text-emerald-300 text-[10px] font-bold uppercase tracking-[0.4em] mb-2 block font-sora">Simple Scale</span>
-                        <h2 className="text-4xl md:text-6xl font-bold tracking-tightest leading-tight text-white font-sora">Transparent Plans for Any Scale</h2>
-                        <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-dm-sans">Start free. Scale as you grow.</p>
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] text-white font-sora">Simple, transparent pricing</h2>
+                        <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-dm-sans">Start free. Add people as the team grows.</p>
                     </div>
 
                     <div className="relative flex items-center bg-white/[0.03] border border-white/[0.08] rounded-full p-1 w-fit mx-auto z-10">
@@ -1042,7 +1055,7 @@ export default function LandingPage() {
                             <button
                                 key={cycle}
                                 onClick={() => setBillingCycle(cycle)}
-                                className="px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest relative z-30 transition-all font-sora"
+                                className="px-5 py-2 rounded-full text-sm font-semibold tracking-tight relative z-30 transition-all font-sora"
                                 style={{ color: billingCycle === cycle ? '#09090b' : '#71717a' }}
                             >
                                 {billingCycle === cycle && <motion.div layoutId="billing-pill" className="absolute inset-0 bg-white rounded-full -z-10" transition={{ type: "spring", stiffness: 380, damping: 30 }} />}
@@ -1063,7 +1076,7 @@ export default function LandingPage() {
                                 transition={{ duration: 0.3 }}
                                 className={`p-8 rounded-[2.5rem] border flex flex-col justify-between relative group ${tier.popular ? 'border-emerald-500/40 bg-emerald-500/[0.04] shadow-xl shadow-emerald-500/5 hover:border-emerald-400/60' : 'border-white/[0.06] bg-white/[0.015] hover:border-white/[0.12] hover:bg-white/[0.025]'}`}
                             >
-                                {tier.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-white/[0.12] backdrop-blur-sm border border-white/20 text-white text-[8px] font-bold uppercase tracking-widest font-sora shadow-md">Most Popular</div>}
+                                {tier.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-white/[0.12] backdrop-blur-sm border border-white/20 text-white text-xs font-semibold tracking-tight font-sora shadow-md">Most popular</div>}
                                 <div className="space-y-8 flex-1 flex flex-col justify-between">
                                     <div className="space-y-6">
                                         <div className="space-y-2">
@@ -1090,7 +1103,7 @@ export default function LandingPage() {
                                     </ul>
                                 </div>
                                 <div className="pt-8 mt-auto">
-                                    <Link href="/register" className={`w-full text-center py-4 rounded-full text-[10px] font-bold uppercase tracking-wider block transition-all duration-300 font-sora ${tier.popular ? 'bg-white/[0.07] backdrop-blur-sm border border-white/20 text-white hover:bg-white/[0.12] hover:border-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' : 'border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.05]'}`}>Get Started</Link>
+                                    <Link href="/register" className={`w-full text-center py-4 rounded-full text-sm font-semibold tracking-tight block transition-colors duration-200 font-sora ${tier.popular ? 'bg-emerald-400 text-[#07090c] hover:bg-emerald-300' : 'border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/20 hover:bg-white/[0.05]'}`}>Get started</Link>
                                 </div>
                             </motion.div>
                         ))}
@@ -1103,7 +1116,7 @@ export default function LandingPage() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-emerald-500/3 blur-[120px] rounded-full pointer-events-none -z-10" />
                 <div className="max-w-4xl mx-auto space-y-16">
                     <div className="space-y-6 text-center">
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tightest leading-tight text-white font-sora">Frequently Asked Questions</h2>
+                        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] text-white font-sora">Questions, answered</h2>
                         <p className="text-zinc-500 text-sm leading-relaxed max-w-xl mx-auto font-dm-sans">Everything you need to know about the platform, security, and getting started.</p>
                     </div>
 
@@ -1113,7 +1126,7 @@ export default function LandingPage() {
                                 <button onClick={() => setActiveFaq(activeFaq === index ? null : index)} className="w-full px-8 py-6 flex items-center justify-between text-left group">
                                     <div className="flex items-center gap-4">
                                         <FiHelpCircle className="text-zinc-500 group-hover:text-emerald-300 transition-colors" />
-                                        <span className="text-sm font-bold text-white/90 uppercase tracking-tightest font-sora group-hover:text-white transition-colors">{faq.q}</span>
+                                        <span className="text-base md:text-lg font-semibold text-white/90 tracking-tight font-sora group-hover:text-white transition-colors text-left">{faq.q}</span>
                                     </div>
                                     <motion.div animate={{ rotate: activeFaq === index ? 180 : 0 }} transition={{ duration: 0.2 }}>
                                         <FiChevronDown className="text-zinc-500 group-hover:text-white transition-colors" />
@@ -1139,7 +1152,7 @@ export default function LandingPage() {
                     <h2 className="text-4xl md:text-8xl font-bold tracking-tightest leading-[0.95] text-white font-sora">Take Control of <br /> Your Operations</h2>
                     <p className="text-zinc-500 text-lg max-w-2xl mx-auto leading-relaxed font-dm-sans">Create your organization, invite your team, and start commanding in minutes. No credit card required.</p>
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Link href="/register" className="inline-flex items-center gap-3 px-10 py-5 rounded-full bg-white/[0.07] backdrop-blur-sm border border-white/20 text-white hover:bg-white/[0.12] hover:border-white/30 text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                        <Link href="/register" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-emerald-400 text-[#07090c] hover:bg-emerald-300 text-sm font-semibold tracking-tight transition-colors duration-200 active:scale-[0.98]">
                             Create Your Account <FiArrowRight />
                         </Link>
                     </motion.div>
@@ -1160,23 +1173,23 @@ export default function LandingPage() {
                                 <Image src="/logo.svg" alt="MD Logo" width={28} height={28} />
                                 <span className="text-xl font-bold tracking-tightest font-sora">MD<span className="text-emerald-400">Dash</span></span>
                             </Link>
-                            <p className="text-zinc-500 text-sm max-w-xs leading-relaxed font-dm-sans">The strategic command center for high-level management and precise operational execution.</p>
+                            <p className="text-zinc-500 text-sm max-w-xs leading-relaxed font-dm-sans">One workspace for attendance, projects, people and everything in between.</p>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-16 font-sora text-[11px] font-bold uppercase tracking-widest">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-16 font-sora text-sm">
                             <div className="space-y-4">
                                 <h4 className="text-white">Platform</h4>
-                                <ul className="space-y-2 text-zinc-500 font-bold uppercase tracking-widest">
+                                <ul className="space-y-2 text-zinc-500">
                                     <li><Link href="#attendance" className="hover:text-emerald-300 transition-colors">Attendance</Link></li>
                                     <li><Link href="#pip-ai" className="hover:text-emerald-300 transition-colors">Pip AI</Link></li>
                                     <li><Link href="#features" className="hover:text-emerald-300 transition-colors">Features</Link></li>
                                     <li><Link href="#how-it-works" className="hover:text-emerald-300 transition-colors">How It Works</Link></li>
                                     <li><Link href="#pricing" className="hover:text-emerald-300 transition-colors">Pricing</Link></li>
-                                    <li><Link href="/login" className="hover:text-emerald-300 transition-colors">Sign In</Link></li>
+                                    <li><Link href="/login" className="hover:text-emerald-300 transition-colors">Sign in</Link></li>
                                 </ul>
                             </div>
                             <div className="space-y-4">
                                 <h4 className="text-white">Compliance</h4>
-                                <ul className="space-y-2 text-zinc-500 font-bold uppercase tracking-widest">
+                                <ul className="space-y-2 text-zinc-500">
                                     <li><Link href="/privacy" className="hover:text-emerald-300 transition-colors">Privacy Policy</Link></li>
                                     <li><Link href="/terms" className="hover:text-emerald-300 transition-colors">Terms of Service</Link></li>
                                     <li><button onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-settings'))} className="hover:text-emerald-300 transition-colors text-left">Cookie Settings</button></li>
@@ -1184,7 +1197,7 @@ export default function LandingPage() {
                             </div>
                             <div className="space-y-4">
                                 <h4 className="text-white">Connect</h4>
-                                <ul className="space-y-2 text-zinc-500 font-bold uppercase tracking-widest">
+                                <ul className="space-y-2 text-zinc-500">
                                     <li><Link href="mailto:intelligence@md-dash.com" className="hover:text-emerald-300 transition-colors">Contact</Link></li>
                                     <li><Link href="#" className="hover:text-emerald-300 transition-colors">LinkedIn</Link></li>
                                     <li><Link href="#" className="hover:text-emerald-300 transition-colors">X / Twitter</Link></li>
@@ -1192,7 +1205,7 @@ export default function LandingPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="pt-8 border-t border-white/[0.04] flex flex-col md:flex-row items-center justify-between gap-4 text-[9px] font-bold uppercase tracking-widest text-zinc-600 font-sora">
+                    <div className="pt-8 border-t border-white/[0.04] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600 font-sora">
                         <span>© 2026 MD-DASH. ALL RIGHTS RESERVED.</span>
                         <div className="flex gap-6 text-zinc-500">
                             <span className="text-emerald-400/50">SYSTEM STATUS: OPTIMAL</span>
