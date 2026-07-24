@@ -8,6 +8,7 @@ import { getNotes } from '@/app/(dashboard)/[orgSlug]/notes/actions';
 import { Project } from '@/types/project';
 import { Task } from '@/types/task';
 import { auth } from '@/auth';
+import { canManageOrg } from '@/lib/org-permissions';
 
 export default async function ProjectsPage() {
   const [session, allProjects, allUsers, allTasks, allNotes] = await Promise.all([
@@ -18,7 +19,11 @@ export default async function ProjectsPage() {
     getNotes(),
   ]);
 
-  const hasClientAccess = session?.user?.roles?.some(r => r === 'manager' || r === 'super_admin');
+  // Clients are org-scoped: org OWNER/ADMIN see them, as do global managers.
+  const hasClientAccess = canManageOrg({
+    roles: session?.user?.roles,
+    orgRole: session?.user?.orgRole,
+  });
   const allClients = hasClientAccess ? await getClients() : [];
   
   // Link tasks to projects

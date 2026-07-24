@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
@@ -184,8 +185,10 @@ export async function createProject(formData: FormData): Promise<ActionResult> {
             return { success: false, error: "Failed to create project" };
         }
 
-        revalidatePath('/projects');
-        revalidateTag('projects', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/projects', 'page');
+            revalidateTag('projects', 'max');
+        }, 'projects mutation');
         return { success: true };
     } catch (error) {
         console.error("Error creating project:", error);
@@ -263,8 +266,10 @@ export async function updateProject(formData: FormData): Promise<ActionResult> {
             return { success: false, error: `Failed to update project: ${errorText}` };
         }
 
-        revalidatePath('/projects');
-        revalidateTag('projects', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/projects', 'page');
+            revalidateTag('projects', 'max');
+        }, 'projects mutation');
         return { success: true };
     } catch (error) {
         console.error("Error updating project:", error);
@@ -295,9 +300,11 @@ export async function deleteProject(formData: FormData): Promise<ActionResult> {
             return { success: false, error: "Failed to delete project" };
         }
 
-        revalidatePath('/projects');
-        revalidateTag('projects', 'max');
-        revalidateTag('tasks', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/projects', 'page');
+            revalidateTag('projects', 'max');
+            revalidateTag('tasks', 'max');
+        }, 'projects mutation');
         return { success: true };
     } catch (error) {
         console.error("Error deleting project:", error);

@@ -14,9 +14,9 @@ export default function PrivacyPage() {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-300 font-inter selection:bg-indigo-500/30 selection:text-white noise">
+        <div className="min-h-screen bg-[#090a0c] text-zinc-300 font-inter selection:bg-indigo-500/30 selection:text-white noise">
             {/* Top Navigation */}
-            <nav className="fixed top-0 w-full z-50 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
+            <nav className="fixed top-0 w-full z-50 bg-[#090a0c]/80 backdrop-blur-md border-b border-white/5">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <Image src="/logo.svg" alt="MD Logo" width={32} height={32} />
@@ -239,7 +239,7 @@ export default function PrivacyPage() {
                 </div>
             </main>
 
-            <footer className="py-20 border-t border-white/5 bg-zinc-950/50">
+            <footer className="py-20 border-t border-white/5 bg-[#090a0c]/50">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 text-[10px] font-bold uppercase tracking-widest text-zinc-600">
                     <div className="flex items-center gap-8">
                         <span>© 2026 MD-Dash</span>

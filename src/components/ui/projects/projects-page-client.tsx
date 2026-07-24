@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useOptimistic, useMemo, useTransition } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Project } from '@/types/project';
 import { User } from '@/types/user';
 import { Client } from '@/types/client';
@@ -16,6 +16,7 @@ import { Sparkline } from "@/components/ui/sparkline";
 import { subDays, isSameDay } from 'date-fns';
 import { useProjects } from '@/hooks/use-projects';
 import { createOptimisticProject, updateOptimisticProject } from '@/lib/optimistic-utils';
+import { optimisticListRevalidate } from '@/lib/optimistic-swr';
 import { toast } from '@/lib/toast';
 import { useConfirm } from '@/providers/confirmation-provider';
 
@@ -50,7 +51,6 @@ export default function ProjectsPageClient({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   // SWR Hooks for background sync
   const { projects: serverProjects, mutate, isLoading: projectsLoading } = useProjects({ initialProjects });
@@ -63,22 +63,9 @@ export default function ProjectsPageClient({
   // Only show skeleton if we have no data and are loading
   const isLoading = projectsLoading && serverProjects.length === 0;
 
-  // Optimistic UI
-  const [optimisticProjects, addOptimisticProject] = useOptimistic(
-    serverProjects,
-    (state: Project[], action: { type: 'add' | 'update' | 'delete', project: Project }) => {
-      switch (action.type) {
-        case 'add':
-          return [action.project, ...state];
-        case 'update':
-          return state.map(p => p.id === action.project.id ? action.project : p);
-        case 'delete':
-          return state.filter(p => p.id !== action.project.id);
-        default:
-          return state;
-      }
-    }
-  );
+  // Optimistic UI is driven by SWR's `optimisticData` in the handlers below, so
+  // the rendered list is simply whatever SWR currently holds.
+  const optimisticProjects = serverProjects;
 
   // Combine projects with their tasks for accurate completion tracking
   const projectsWithTasks = useMemo(() => {
@@ -134,26 +121,21 @@ export default function ProjectsPageClient({
 
   const handleCreate = async (formData: FormData) => {
     const newProject = createOptimisticProject(formData);
-    
-    startTransition(() => {
-      addOptimisticProject({ type: 'add', project: newProject });
-    });
-    
     setIsCreating(true);
     setIsCreateModalOpen(false);
-    
+
     try {
-      const result = await createProject(formData);
-      if (result && 'error' in result) {
-        toast.error(result.error || "Failed to create project");
-        mutate(); // Revert
-      } else {
-        toast.success("Project initiated successfully");
-        mutate(); // Sync with server
-      }
+      await mutate(
+        async () => {
+          const result = await createProject(formData);
+          if (!result?.success) throw new Error(result?.error || 'Failed to create project');
+          return undefined;
+        },
+        optimisticListRevalidate<Project>(list => [newProject, ...list]),
+      );
+      toast.success('Project initiated successfully');
     } catch (e) {
-      toast.error("An unexpected error occurred");
-      mutate();
+      toast.error(e instanceof Error ? e.message : 'An unexpected error occurred');
     } finally {
       setIsCreating(false);
     }
@@ -163,28 +145,25 @@ export default function ProjectsPageClient({
     if (!editingProject) return;
     const id = editingProject.id;
     formData.set('id', id.toString());
-    
+
     const updatedProject = updateOptimisticProject(editingProject, formData);
-    
-    startTransition(() => {
-      addOptimisticProject({ type: 'update', project: updatedProject });
-    });
-    
     setIsUpdating(true);
     setEditingProject(null);
-    
+
     try {
-      const result = await updateProject(formData);
-      if (result && 'error' in result) {
-        toast.error(result.error || "Failed to update project");
-        mutate();
-      } else {
-        toast.success("Project updated");
-        mutate();
-      }
+      await mutate(
+        async () => {
+          const result = await updateProject(formData);
+          if (!result?.success) throw new Error(result?.error || 'Failed to update project');
+          return undefined;
+        },
+        optimisticListRevalidate<Project>(list =>
+          list.map(p => (p.id === id ? updatedProject : p)),
+        ),
+      );
+      toast.success('Project updated');
     } catch (e) {
-      toast.error("Failed to update project");
-      mutate();
+      toast.error(e instanceof Error ? e.message : 'Failed to update project');
     } finally {
       setIsUpdating(false);
     }
@@ -199,19 +178,22 @@ export default function ProjectsPageClient({
     });
 
     if (confirmed) {
-      startTransition(() => {
-        addOptimisticProject({ type: 'delete', project });
-      });
-      
       try {
-        const formData = new FormData();
-        formData.set('id', project.id.toString());
-        await deleteProject(formData);
-        toast.success("Project deleted");
-        mutate();
+        await mutate(
+          async () => {
+            const formData = new FormData();
+            formData.set('id', project.id.toString());
+            const result = await deleteProject(formData);
+            // Previously the result was discarded, so a rejected delete still
+            // reported success and the row silently came back on next fetch.
+            if (!result?.success) throw new Error(result?.error || 'Failed to delete project');
+            return undefined;
+          },
+          optimisticListRevalidate<Project>(list => list.filter(p => p.id !== project.id)),
+        );
+        toast.success('Project deleted');
       } catch (e) {
-        toast.error("Failed to delete project");
-        mutate();
+        toast.error(e instanceof Error ? e.message : 'Failed to delete project');
       }
     }
   };

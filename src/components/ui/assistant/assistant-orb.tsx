@@ -6,6 +6,7 @@ import { FiSend, FiMaximize2, FiChevronDown, FiX, FiSquare } from 'react-icons/f
 import { useRouter, usePathname } from 'next/navigation';
 import ChatBubble from './ChatBubble';
 import PipMascot from './pip-mascot';
+import { useOrgPath } from '@/hooks/use-org-slug';
 
 interface Message {
   id?: number;
@@ -35,6 +36,7 @@ export default function AssistantOrb() {
   const [pipVariantIdx, setPipVariantIdx] = useState(0);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const router = useRouter();
+  const orgPath = useOrgPath();
   const pathname = usePathname();
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -179,7 +181,7 @@ export default function AssistantOrb() {
     if (messages.length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
     }
-    router.push('/assistant');
+    router.push(orgPath('/assistant'));
   };
 
   const handleCloseChat = () => {

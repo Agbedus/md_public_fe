@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse } from '@/lib/server-auth';
 import { revalidatePath } from 'next/cache';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 import type { TimeOffRequest } from '@/types/time-off';
 import type { ActionResult } from '@/types/api';
 
@@ -60,7 +61,9 @@ export async function createTimeOffRequest(formData: FormData): Promise<ActionRe
             return { success: false, error: `API Error ${response.status}: ${errorText}` };
         }
 
-        revalidatePath('/calendar');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/calendar', 'page');
+        }, 'time-off mutation');
         return { success: true };
     } catch (error) {
         console.error("Error creating time-off request:", error);
@@ -87,7 +90,9 @@ export async function approveTimeOffRequest(requestId: number): Promise<ActionRe
             return { success: false, error: `API Error ${response.status}: ${errorText}` };
         }
 
-        revalidatePath('/calendar');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/calendar', 'page');
+        }, 'time-off mutation');
         return { success: true };
     } catch (error) {
         console.error("Error approving time-off request:", error);
@@ -114,7 +119,9 @@ export async function rejectTimeOffRequest(requestId: number): Promise<ActionRes
             return { success: false, error: `API Error ${response.status}: ${errorText}` };
         }
 
-        revalidatePath('/calendar');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/calendar', 'page');
+        }, 'time-off mutation');
         return { success: true };
     } catch (error) {
         console.error("Error rejecting time-off request:", error);
@@ -140,7 +147,9 @@ export async function deleteTimeOffRequest(requestId: number): Promise<ActionRes
             return { success: false, error: `API Error ${response.status}` };
         }
 
-        revalidatePath('/calendar');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/calendar', 'page');
+        }, 'time-off mutation');
         return { success: true };
     } catch (error) {
         console.error("Error deleting time-off request:", error);

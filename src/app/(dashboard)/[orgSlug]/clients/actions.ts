@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 import { cache } from 'react';
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
@@ -89,8 +90,10 @@ export async function createClient(formData: FormData): Promise<ActionResult> {
             return { success: false, error: "Failed to create client" };
         }
 
-        revalidatePath('/clients');
-        revalidateTag('clients', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/clients', 'page');
+            revalidateTag('clients', 'max');
+        }, 'clients mutation');
         return { success: true };
     } catch (error) {
         console.error("Error creating client:", error);
@@ -130,8 +133,10 @@ export async function updateClient(formData: FormData): Promise<ActionResult> {
             return { success: false, error: "Failed to update client" };
         }
 
-        revalidatePath('/clients');
-        revalidateTag('clients', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/clients', 'page');
+            revalidateTag('clients', 'max');
+        }, 'clients mutation');
         return { success: true };
     } catch (error) {
         console.error("Error updating client:", error);
@@ -163,8 +168,10 @@ export async function deleteClient(formData: FormData): Promise<ActionResult> {
             return { success: false, error: "Failed to delete client" };
         }
 
-        revalidatePath('/clients');
-        revalidateTag('clients', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/clients', 'page');
+            revalidateTag('clients', 'max');
+        }, 'clients mutation');
         return { success: true };
     } catch (error) {
         console.error("Error deleting client:", error);

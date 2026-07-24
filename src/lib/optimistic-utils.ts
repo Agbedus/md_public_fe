@@ -22,7 +22,7 @@ export function createOptimisticTask(formData: FormData, users: User[]): Task {
       if (!idsJson) return [];
       try {
         const ids = JSON.parse(idsJson);
-        return users.filter((u) => ids.includes(u.id)).map((user) => ({ user }));
+        return users.filter((u) => ids.some((id: any) => String(id) === String(u.id))).map((user) => ({ user }));
       } catch {
         return [];
       }
@@ -57,7 +57,7 @@ export function updateOptimisticTask(existingTask: Task, formData: FormData, use
       if (!idsJson) return existingTask.assignees;
       try {
         const ids = JSON.parse(idsJson);
-        return users.filter((u) => ids.includes(u.id)).map((user) => ({ user }));
+        return users.filter((u) => ids.some((id: any) => String(id) === String(u.id))).map((user) => ({ user }));
       } catch {
         return existingTask.assignees;
       }

@@ -33,7 +33,7 @@ interface ColumnProps {
   user?: User;
   projects: Project[];
   columns: Array<keyof typeof statusMapping>;
-  onMove: (task: Task, status: Task["status"]) => Promise<void>;
+  onMove: (task: Task, status: Task["status"]) => Promise<{ success: boolean; error?: string } | undefined>;
   onDelete: (task: Task) => Promise<void>;
   highlightedIds: Record<string, boolean>;
   flash: boolean;
@@ -116,15 +116,19 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
   const columns = useMemo(() => Object.keys(statusMapping) as Array<keyof typeof statusMapping>, []);
 
   const [grouped, setGrouped] = useState<Record<string, Task[]>>({});
-  const [lastTasks, setLastTasks] = useState<Task[]>([]);
 
-  if (tasks !== lastTasks) {
+  useEffect(() => {
     const next: Record<string, Task[]> = {};
-    (Object.keys(statusMapping) as Array<keyof typeof statusMapping>).forEach((c) => (next[c] = []));
-    tasks.forEach((t) => next[t.status].push(t));
+    columns.forEach((c) => (next[c] = []));
+    tasks.forEach((t) => {
+      if (next[t.status]) {
+        next[t.status].push(t);
+      } else {
+        next['TODO'].push(t);
+      }
+    });
     setGrouped(next);
-    setLastTasks(tasks);
-  }
+  }, [tasks, columns]);
 
   const [highlightedIds, setHighlightedIds] = useState<Record<string, boolean>>({});
   const [flashCol, setFlashCol] = useState<keyof typeof statusMapping | null>(null);
@@ -143,18 +147,17 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
     const idStr = String(id);
     if ((Object.keys(statusMapping) as string[]).includes(idStr)) return idStr as keyof typeof statusMapping;
     for (const col of columns) {
-      if (grouped[col].some((t) => String(t.id) === idStr)) return col;
+      if (grouped[col]?.some((t) => String(t.id) === idStr)) return col;
     }
     return null;
   };
 
   const moveTo = async (task: Task, status: Task["status"]) => {
-    if (task.status === status) return;
+    if (task.status === status) return { success: true };
     const fd = new FormData();
     fd.append("id", String(task.id));
     fd.append("status", status);
-    // We can await this, but DND usually doesn't need the return value immediately
-    await updateTask(fd);
+    return await updateTask(fd);
   };
 
   const handleDelete = async (task: Task) => {
@@ -174,14 +177,14 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
     if (!fromCol || !toCol) return;
     if (fromCol === toCol) return; // keep ordering as-is for now
 
-    const activeTask = grouped[fromCol].find((t) => String(t.id) === String(activeId));
+    const activeTask = grouped[fromCol]?.find((t) => String(t.id) === String(activeId));
     if (!activeTask) return;
 
     // Optimistic local move to end of target column
     setGrouped((prev) => {
       const next = { ...prev };
-      next[fromCol] = prev[fromCol].filter((t) => String(t.id) !== String(activeId));
-      next[toCol] = [...prev[toCol], { ...activeTask, status: toCol as Task["status"] }];
+      next[fromCol] = (prev[fromCol] || []).filter((t) => String(t.id) !== String(activeId));
+      next[toCol] = [...(prev[toCol] || []), { ...activeTask, status: toCol as Task["status"] }];
       return next;
     });
 
@@ -198,7 +201,16 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
     }, 900);
 
     // Persist status change
-    await moveTo(activeTask, toCol as Task["status"]);
+    const res = await moveTo(activeTask, toCol as Task["status"]);
+    if (res && !res.success) {
+      // Revert move if failed
+      setGrouped((prev) => {
+        const next = { ...prev };
+        next[toCol] = (prev[toCol] || []).filter((t) => String(t.id) !== String(activeId));
+        next[fromCol] = [...(prev[fromCol] || []), activeTask];
+        return next;
+      });
+    }
   };
 
   return (

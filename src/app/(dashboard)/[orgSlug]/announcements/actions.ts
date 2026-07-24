@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse } from '@/lib/server-auth';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 import { Announcement, AnnouncementCreate, AnnouncementUpdate } from '@/types/announcement';
 import type { ActionResult } from '@/types/api';
 
@@ -53,7 +54,9 @@ export async function createAnnouncement(data: AnnouncementCreate): Promise<Acti
             return { success: false, error: "Failed to create announcement" };
         }
 
-        revalidateTag('announcements', 'max');
+        safeRevalidate(() => {
+            revalidateTag('announcements', 'max');
+        }, 'announcements mutation');
         return { success: true, data: await response.json() as Announcement };
     } catch (error) {
         console.error("Error creating announcement:", error);
@@ -81,7 +84,9 @@ export async function updateAnnouncement(id: string, data: AnnouncementUpdate): 
             return { success: false, error: "Failed to update announcement" };
         }
 
-        revalidateTag('announcements', 'max');
+        safeRevalidate(() => {
+            revalidateTag('announcements', 'max');
+        }, 'announcements mutation');
         return { success: true, data: await response.json() as Announcement };
     } catch (error) {
         console.error("Error updating announcement:", error);
@@ -107,7 +112,9 @@ export async function deleteAnnouncement(id: string): Promise<ActionResult> {
             return { success: false, error: "Failed to delete announcement" };
         }
 
-        revalidateTag('announcements', 'max');
+        safeRevalidate(() => {
+            revalidateTag('announcements', 'max');
+        }, 'announcements mutation');
         return { success: true };
     } catch (error) {
         console.error("Error deleting announcement:", error);

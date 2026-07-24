@@ -9,14 +9,20 @@ import {
 } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
 import { getUsersSafe } from '@/app/(dashboard)/[orgSlug]/users/actions';
 import AttendancePageClient from '@/components/ui/attendance/attendance-page-client';
+import { canManageOrg } from '@/lib/org-permissions';
 
 export default async function AttendancePage() {
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
 
-    const roles = session.user.roles || [];
-    const isManager = roles.some((r: string) => ['manager', 'super_admin'].includes(r));
-    const isAdmin = roles.includes('super_admin');
+    // The backend guards team attendance and office locations with
+    // OrgRoleChecker([ADMIN, OWNER]), so both flags resolve to org-manage level.
+    const canManageAttendance = canManageOrg({
+        roles: session.user.roles,
+        orgRole: session.user.orgRole,
+    });
+    const isManager = canManageAttendance;
+    const isAdmin = canManageAttendance;
 
     const [myToday, myHistory, users] = await Promise.all([
         getMyAttendanceToday(),

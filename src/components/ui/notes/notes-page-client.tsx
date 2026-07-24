@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect, useMemo, useOptimistic, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { 
     FiPlus, FiGrid, FiList, FiFileText, FiCheckSquare, 
     FiBookOpen, FiUsers, FiZap, FiLink, FiCode, FiBookmark, FiEdit3, FiCheckCircle, FiSearch, FiFolder
@@ -15,6 +15,7 @@ import NoteCard from './note-card';
 import dynamic from 'next/dynamic';
 import { useNotes } from '@/hooks/use-notes';
 import { createOptimisticNote, updateOptimisticNote } from '@/lib/optimistic-utils';
+import { optimisticListRevalidate } from '@/lib/optimistic-swr';
 import { toast } from '@/lib/toast';
 import { useConfirm } from '@/providers/confirmation-provider';
 
@@ -55,7 +56,6 @@ export default function NotesPageClient({ allNotes: initialNotes = [], currentUs
     const confirm = useConfirm();
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isPending, startTransition] = useTransition();
 
     // SWR Hook for background sync
     const { notes: serverNotes, mutate, isLoading: notesLoading } = useNotes({ initialNotes });
@@ -63,23 +63,9 @@ export default function NotesPageClient({ allNotes: initialNotes = [], currentUs
     // Only show skeleton if we have no data and are loading
     const isLoading = notesLoading && serverNotes.length === 0;
 
-    // Optimistic UI for Notes
-
-    const [optimisticNotes, addOptimisticNote] = useOptimistic(
-        serverNotes,
-        (state: Note[], action: { type: 'add' | 'update' | 'delete' | 'share', note: Note }) => {
-            switch (action.type) {
-                case 'add':
-                    return [action.note, ...state];
-                case 'update':
-                    return state.map(n => n.id === action.note.id ? action.note : n);
-                case 'delete':
-                    return state.filter(n => n.id !== action.note.id);
-                default:
-                    return state;
-            }
-        }
-    );
+    // Optimistic UI is driven by SWR's `optimisticData` in the handlers below, so
+    // the rendered list is simply whatever SWR currently holds.
+    const optimisticNotes = serverNotes;
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [filterType, setFilterType] = useState<Note['type'] | 'all'>('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -120,31 +106,37 @@ export default function NotesPageClient({ allNotes: initialNotes = [], currentUs
             if (!existing) return;
             
             const updatedNote = updateOptimisticNote(existing, formData);
-            startTransition(() => {
-                addOptimisticNote({ type: 'update', note: updatedNote });
-            });
-            
+
             try {
-                await updateNote(formData);
+                await mutate(
+                    async () => {
+                        const result = await updateNote(formData);
+                        if (!result?.success) throw new Error(result?.error || 'Failed to update note');
+                        return undefined;
+                    },
+                    optimisticListRevalidate<Note>(list =>
+                        list.map(n => (n.id === id ? updatedNote : n)),
+                    ),
+                );
                 toast.success("Note updated");
-                mutate();
             } catch (err) {
-                toast.error("Failed to update note");
-                mutate();
+                toast.error(err instanceof Error ? err.message : "Failed to update note");
             }
         } else {
             const newNote = createOptimisticNote(formData);
-            startTransition(() => {
-                addOptimisticNote({ type: 'add', note: newNote });
-            });
-            
+
             try {
-                await createNote(formData);
+                await mutate(
+                    async () => {
+                        const result = await createNote(formData);
+                        if (!result?.success) throw new Error(result?.error || 'Failed to create note');
+                        return undefined;
+                    },
+                    optimisticListRevalidate<Note>(list => [newNote, ...list]),
+                );
                 toast.success("Note created");
-                mutate();
             } catch (err) {
-                toast.error("Failed to create note");
-                mutate();
+                toast.error(err instanceof Error ? err.message : "Failed to create note");
             }
         }
     };
@@ -158,18 +150,32 @@ export default function NotesPageClient({ allNotes: initialNotes = [], currentUs
             if (formData.has('is_archived')) updatedNote.is_archived = formData.get('is_archived') === '1' ? 1 : 0;
             if (formData.has('is_favorite')) updatedNote.is_favorite = formData.get('is_favorite') === '1' ? 1 : 0;
 
-            startTransition(() => {
-                addOptimisticNote({ type: 'update', note: updatedNote });
-            });
+            try {
+                await mutate(
+                    async () => {
+                        const result = await updateNote(formData);
+                        if (!result?.success) throw new Error(result?.error || 'Update failed');
+                        return undefined;
+                    },
+                    optimisticListRevalidate<Note>(list =>
+                        list.map(n => (n.id === id ? updatedNote : n)),
+                    ),
+                );
+                return { success: true };
+            } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Update failed");
+                return { success: false, error: "Update failed" };
+            }
         }
 
         try {
-            await updateNote(formData);
-            mutate();
+            const result = await updateNote(formData);
+            if (!result?.success) throw new Error(result?.error || 'Update failed');
+            await mutate();
             return { success: true };
         } catch (err) {
-            toast.error("Update failed");
-            mutate();
+            toast.error(err instanceof Error ? err.message : "Update failed");
+            await mutate();
             return { success: false, error: "Update failed" };
         }
     };
@@ -182,9 +188,12 @@ export default function NotesPageClient({ allNotes: initialNotes = [], currentUs
         
         if (!existing) return { success: false, error: "Note not found" };
 
-        startTransition(() => {
-            addOptimisticNote({ type: 'delete', note: existing });
-        });
+        // The row has to stay hidden for the whole 5s undo window with no server
+        // call in flight, so this writes the SWR cache directly (revalidate off)
+        // rather than using an optimistic mutation, which only lasts as long as
+        // its request does.
+        await mutate(list => (list ?? []).filter(n => n.id !== id), { revalidate: false });
+
         toast.undoable(`Note "${existing.title || 'Untitled'}" deleted`, () => {
             // Undo action
             const timeoutId = pendingDeletions.current.get(id);
@@ -192,10 +201,8 @@ export default function NotesPageClient({ allNotes: initialNotes = [], currentUs
                 clearTimeout(timeoutId);
                 pendingDeletions.current.delete(id);
             }
-            // Add it back optimistically
-            startTransition(() => {
-                addOptimisticNote({ type: 'add', note: existing });
-            });
+            // Put it back where it was.
+            void mutate(list => [existing, ...(list ?? []).filter(n => n.id !== id)], { revalidate: false });
             toast.success("Note restored");
         }, { duration: 5000 });
 
@@ -203,15 +210,15 @@ export default function NotesPageClient({ allNotes: initialNotes = [], currentUs
         const timeoutId = setTimeout(async () => {
             pendingDeletions.current.delete(id);
             try {
-                await deleteNote(formData);
-                mutate();
+                const result = await deleteNote(formData);
+                if (!result?.success) throw new Error(result?.error || 'Failed to delete note');
+                return undefined;
+                await mutate();
             } catch (err) {
                 // If it fails, restore it and show error
-                startTransition(() => {
-                    addOptimisticNote({ type: 'add', note: existing });
-                });
-                toast.error("Failed to delete note permanently");
-                mutate();
+                await mutate(list => [existing, ...(list ?? []).filter(n => n.id !== id)], { revalidate: false });
+                toast.error(err instanceof Error ? err.message : "Failed to delete note permanently");
+                await mutate();
             }
         }, 5000);
 

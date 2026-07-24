@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useCallback, useEffect, useOptimistic, useTransition } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { addDays, addMonths, addWeeks, startOfDay, isWithinInterval, endOfDay } from "date-fns";
 import type { CalendarEvent, CalendarView } from "@/types/calendar";
 import Toolbar from "./Toolbar";
@@ -17,6 +17,7 @@ import { useUsers } from "@/hooks/use-users";
 import { useProjects } from "@/hooks/use-projects";
 import { useTimeOff } from "@/hooks/use-time-off";
 import { useCalendarData } from "@/hooks/use-calendar-data";
+import { canCollaborate } from "@/lib/org-permissions";
 import CalendarLoading from "@/app/(dashboard)/[orgSlug]/calendar/loading";
 import TimezoneClocks from "./TimezoneClocks";
 import type { Task } from "@/types/task";
@@ -36,13 +37,13 @@ interface CalendarProps {
   initialProjects?: Project[];
   initialTimeOff?: TimeOffRequest[];
   currentUserRoles?: string[];
+  currentUserOrgRole?: string;
 }
 
-export default function Calendar({ initialDate, initialView = "month", initialEvents, initialTasks, initialUsers, initialProjects, initialTimeOff, currentUserRoles = [] }: CalendarProps) {
+export default function Calendar({ initialDate, initialView = "month", initialEvents, initialTasks, initialUsers, initialProjects, initialTimeOff, currentUserRoles = [], currentUserOrgRole }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState<Date>(initialDate ? startOfDay(initialDate) : startOfDay(new Date()));
   const [view, setView] = useState<CalendarView>(initialView);
   const [activeFilter, setActiveFilter] = useState<'projects' | 'tasks' | 'events' | 'timeOff'>('tasks');
-  const [, startTransition] = useTransition();
 
   // Force Gantt view for Projects and Time Off - Handle this in the change handler
   const handleFilterChange = useCallback((newFilter: 'projects' | 'tasks' | 'events' | 'timeOff') => {
@@ -77,8 +78,9 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
     mutate();
   }, [mutate]);
 
-  // Can the current user request time off? (staff or above)
-  const canRequestTimeOff = currentUserRoles.some(r => ['staff', 'manager', 'super_admin'].includes(r));
+  // Requesting time off is a baseline org capability — any member and above,
+  // matching the backend's get_current_org_collaborator guard.
+  const canRequestTimeOff = canCollaborate({ roles: currentUserRoles, orgRole: currentUserOrgRole });
 
   // Combine events, tasks, projects, and time-off for the calendar
   const allEvents = useMemo(() => {
@@ -183,22 +185,21 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
     return items;
   }, [serverEvents, serverTasks, serverProjects, timeOffRequests, users, activeFilter]);
 
-  // Optimistic UI (rest of existing logic)
-  const [optimisticEvents, addOptimisticEvent] = useOptimistic(
-    allEvents,
-    (state: UICalendarEvent[], action: { type: 'add' | 'update' | 'delete', event: UICalendarEvent }) => {
-      switch (action.type) {
-        case 'add':
-          return [...state, action.event];
-        case 'update':
-          return state.map(e => e.id === action.event.id ? action.event : e);
-        case 'delete':
-          return state.filter(e => e.id !== action.event.id);
-        default:
-          return state;
-      }
-    }
+  // Optimistic writes go straight into the `calendar-data` SWR cache with
+  // revalidation off, so the change survives until the follow-up `mutateAll()`
+  // reconciles it. `useOptimistic` cannot be used here: it drops its layer the
+  // moment the transition settles, which happened before the request finished.
+  const applyOptimisticEvent = useCallback(
+    (apply: (events: any[]) => any[]) => {
+      void mutate(
+        (data: any) => ({ ...(data ?? {}), events: apply(data?.events ?? []) }),
+        { revalidate: false },
+      );
+    },
+    [mutate],
   );
+
+  const optimisticEvents = allEvents;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalStart, setModalStart] = useState<Date | null>(null);
@@ -316,7 +317,7 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
         }}
         initialStart={modalStart}
         onCreated={() => { mutateAll(); }}
-        onOptimisticAdd={(e) => startTransition(() => addOptimisticEvent({ type: 'add', event: e }))}
+        onOptimisticAdd={(e) => applyOptimisticEvent(events => [...events, e])}
       />
 
       <TimeOffModal
@@ -331,8 +332,8 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
           open={!!selectedEvent}
           onClose={() => setSelectedEvent(null)}
           onUpdated={() => { mutateAll(); }}
-          onOptimisticUpdate={(e) => startTransition(() => addOptimisticEvent({ type: 'update', event: e }))}
-          onOptimisticDelete={(e) => startTransition(() => addOptimisticEvent({ type: 'delete', event: e }))}
+          onOptimisticUpdate={(e) => applyOptimisticEvent(events => events.map(x => (String(x.id) === String(e.id) ? e : x)))}
+          onOptimisticDelete={(e) => applyOptimisticEvent(events => events.filter(x => String(x.id) !== String(e.id)))}
         />
       )}
     </div>

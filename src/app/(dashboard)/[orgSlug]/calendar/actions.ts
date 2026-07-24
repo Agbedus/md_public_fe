@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse } from '@/lib/server-auth';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 import { cache } from 'react';
 import type { CalendarEvent } from '@/types/calendar';
 import type { ActionResult } from '@/types/api';
@@ -158,8 +159,10 @@ export async function createEvent(formData: FormData): Promise<ActionResult> {
         return { success: false, error: `API Error ${response.status}: ${errorText}` };
     }
 
-    revalidatePath('/calendar');
-    revalidateTag('events', 'max');
+    safeRevalidate(() => {
+        revalidatePath('/[orgSlug]/calendar', 'page');
+        revalidateTag('events', 'max');
+    }, 'calendar mutation');
     return { success: true };
   } catch (error) {
     console.error("Error creating event:", error);
@@ -225,8 +228,10 @@ export async function updateEvent(formData: FormData): Promise<ActionResult> {
         return { success: false, error: `API Error ${response.status}: ${errorText}` };
     }
 
-    revalidatePath('/calendar');
-    revalidateTag('events', 'max');
+    safeRevalidate(() => {
+        revalidatePath('/[orgSlug]/calendar', 'page');
+        revalidateTag('events', 'max');
+    }, 'calendar mutation');
     return { success: true };
   } catch (error) {
     console.error("Error updating event:", error);
@@ -252,8 +257,10 @@ export async function deleteEvent(id: string | number): Promise<ActionResult> {
         return { success: false, error: `API Error ${response.status}` };
     }
 
-    revalidatePath('/calendar');
-    revalidateTag('events', 'max');
+    safeRevalidate(() => {
+        revalidatePath('/[orgSlug]/calendar', 'page');
+        revalidateTag('events', 'max');
+    }, 'calendar mutation');
     return { success: true };
   } catch (error) {
     console.error("Error deleting event:", error);

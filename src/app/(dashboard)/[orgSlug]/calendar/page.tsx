@@ -17,6 +17,7 @@ export default async function CalendarPage() {
         initialProjects={data.projects}
         initialTimeOff={data.timeOff}
         currentUserRoles={session?.user?.roles || []}
+        currentUserOrgRole={session?.user?.orgRole}
       />
     </div>
   );

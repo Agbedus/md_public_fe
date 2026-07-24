@@ -30,6 +30,7 @@ import { AboutModal } from "./about-modal";
 import { useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import OrgSwitcher from "./org-switcher";
+import { canManageOrg } from "@/lib/org-permissions";
 
 interface OrgBrief {
   id: string;
@@ -265,10 +266,10 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
                 {user?.roles?.includes("super_admin") && (
                   renderMenuItem({ href: "/users", icon: FiUsers, label: "System Users", color: "text-teal-400" })
                 )}
-                {(user?.roles?.some((r) => ["manager", "super_admin"].includes(r)) || ["admin", "owner"].includes(user?.orgRole || "")) && (
+                {canManageOrg({ roles: user?.roles, orgRole: user?.orgRole }) && (
                   renderMenuItem({ href: "/clients", icon: FiBriefcase, label: "Clients", color: "text-violet-400" })
                 )}
-                {(user?.roles?.includes("super_admin") || ["admin", "owner"].includes(user?.orgRole || "")) && (
+                {canManageOrg({ roles: user?.roles, orgRole: user?.orgRole }) && (
                   renderMenuItem({ href: "/time-off", icon: FiSun, label: "Time Off", color: "text-amber-400" })
                 )}
               </nav>

@@ -28,7 +28,7 @@ interface KanbanCardProps {
   user?: User;
   projects: Project[];
   columns: Array<keyof typeof statusMapping>;
-  onMove: (task: Task, status: Task["status"]) => Promise<void>;
+  onMove: (task: Task, status: Task["status"]) => Promise<{ success: boolean; error?: string } | undefined>;
   onDelete: (task: Task) => Promise<void>;
   canManage?: boolean;
 }

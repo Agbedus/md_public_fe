@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { safeRevalidate } from "@/lib/safe-revalidate";
 import { cache } from "react";
 import { auth } from "@/auth";
 import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse } from '@/lib/server-auth';
@@ -38,8 +39,10 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
       return { success: false, error: "Failed to update user" };
     }
 
-    revalidatePath("/users");
-    revalidateTag("users", "max");
+    safeRevalidate(() => {
+        revalidatePath("/[orgSlug]/users", "page");
+        revalidateTag("users", "max");
+    }, 'users mutation');
     return { success: true };
   } catch (error) {
     console.error("Error updating user:", error);
@@ -66,8 +69,10 @@ export async function deleteUser(formData: FormData): Promise<ActionResult> {
       return { success: false, error: "Failed to delete user" };
     }
 
-    revalidatePath("/users");
-    revalidateTag("users", "max");
+    safeRevalidate(() => {
+        revalidatePath("/[orgSlug]/users", "page");
+        revalidateTag("users", "max");
+    }, 'users mutation');
     return { success: true };
   } catch (error) {
     console.error("Error deleting user:", error);

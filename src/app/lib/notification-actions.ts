@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse } from '@/lib/server-auth';
 import { revalidateTag } from 'next/cache';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 import { Notification } from '@/components/ui/notifications/notification-provider';
 import type { ActionResult } from '@/types/api';
 
@@ -51,7 +52,9 @@ export async function markNotificationAsRead(id: string): Promise<ActionResult> 
             return { success: false, error: "Failed to mark as read" };
         }
 
-        revalidateTag('notifications', 'max');
+        safeRevalidate(() => {
+            revalidateTag('notifications', 'max');
+        }, 'lib mutation');
         return { success: true };
     } catch (error) {
         console.error("Error marking notification as read:", error);
@@ -75,7 +78,9 @@ export async function markAllNotificationsAsRead(): Promise<ActionResult> {
             })
         ));
 
-        revalidateTag('notifications', 'max');
+        safeRevalidate(() => {
+            revalidateTag('notifications', 'max');
+        }, 'lib mutation');
         return { success: true };
     } catch (error) {
         console.error("Error marking all notifications as read:", error);

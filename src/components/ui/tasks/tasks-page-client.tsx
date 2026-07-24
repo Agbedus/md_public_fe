@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useRef, useEffect, useCallback, useOptimistic, useMemo } from 'react';
+import { useState, useTransition, useRef, useEffect, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from "framer-motion";
 import { FiCheck, FiX, FiPlus, FiGrid, FiList, FiSearch, FiFilter, FiUser, FiClipboard } from 'react-icons/fi';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -29,10 +29,65 @@ import { useUsers } from '@/hooks/use-users';
 import { useProjects } from '@/hooks/use-projects';
 import TasksLoading from '@/app/(dashboard)/[orgSlug]/tasks/loading';
 import { useConfirm } from '@/providers/confirmation-provider';
-import { on } from '@/lib/event-bus';
+import { emit, on } from '@/lib/event-bus';
 import { trackAction } from '@/lib/recent-actions';
 
-export default function TasksPageClient({ 
+/** The snake_case task shape the API returns. */
+interface ApiTaskShape {
+    id: number;
+    name: string;
+    description: string | null;
+    status: string;
+    priority: string;
+    due_date: string | null;
+    qa_required: boolean;
+    review_required: boolean;
+    depends_on_id: number | null;
+    created_at: string;
+    updated_at: string;
+    project_id: number | null;
+    user_id?: string;
+    assignee_ids?: string[];
+    task_assignees?: Array<{ task_id: number; user_id: string | number }>;
+    assignees?: Array<{ id: string | number }>;
+    time_logs?: any[];
+    total_hours?: number;
+}
+
+/** Map an API task onto the camelCase shape the UI renders, hydrating assignees. */
+function toTask(apiTask: ApiTaskShape, users: User[]): Task {
+    const assigneeIds = (() => {
+        if (apiTask.assignee_ids?.length) return apiTask.assignee_ids;
+        if (apiTask.task_assignees?.length) return apiTask.task_assignees.map(a => String(a.user_id));
+        if (apiTask.assignees?.length) return apiTask.assignees.map(a => String(a.id));
+        return [];
+    })();
+
+    return {
+        id: apiTask.id,
+        name: apiTask.name,
+        description: apiTask.description,
+        status: apiTask.status as Task['status'],
+        priority: apiTask.priority as Task['priority'],
+        dueDate: apiTask.due_date,
+        qa_required: apiTask.qa_required,
+        review_required: apiTask.review_required,
+        depends_on_id: apiTask.depends_on_id,
+        createdAt: apiTask.created_at,
+        updatedAt: apiTask.updated_at,
+        projectId: apiTask.project_id,
+        userId: apiTask.user_id,
+        owner: users.find(u => u.id === apiTask.user_id) || undefined,
+        assignees: users
+            .filter(u => assigneeIds.some(id => String(id) === String(u.id)))
+            .map(user => ({ user })),
+        assigneeIds,
+        timeLogs: apiTask.time_logs,
+        totalHours: apiTask.total_hours,
+    };
+}
+
+export default function TasksPageClient({
     allTasks: initialTasks = [], 
     users: initialUsers = [], 
     projects: initialProjects = [], 
@@ -98,28 +153,31 @@ export default function TasksPageClient({
 
     const isLoading = tasksLoading && serverTasks.length === 0;
 
-    // Optimistic UI
-    const [optimisticTasks, addOptimisticTask] = useOptimistic(
-        serverTasks,
-        (state: Task[], action: { type: 'add' | 'update' | 'delete' | 'replace', task: Task, tempId?: number }) => {
-            switch (action.type) {
-                case 'add':
-                    return [...state, action.task];
-                case 'update':
-                    return state.map(t => t.id === action.task.id ? action.task : t);
-                case 'delete':
-                    return state.filter(t => t.id !== action.task.id);
-                case 'replace':
-                    return state.map(t => t.id === action.tempId ? action.task : t);
-                default:
-                    return state;
-            }
-        }
-    );
+    // Optimistic UI is driven by SWR's `optimisticData` in the mutation handlers
+    // below, so the rendered list is simply whatever SWR currently holds.
+    //
+    // This deliberately does not use React's `useOptimistic`: that hook drops its
+    // optimistic layer as soon as the enclosing transition settles, and it only
+    // works when the base state comes back updated from a server re-render. Here
+    // the base is an SWR cache, so the optimistic row vanished on settle and the
+    // page looked unchanged until a full browser refresh.
+    const optimisticTasks = serverTasks;
 
     // Realtime-created tasks from WebSocket (live updates)
     const [realtimeCreatedTasks, setRealtimeCreatedTasks] = useState<Task[]>([]);
     const [newTaskIds, setNewTaskIds] = useState<Set<number>>(new Set());
+
+    /** Briefly highlight a freshly created row. */
+    const flagAsNew = useCallback((id: number) => {
+        setNewTaskIds(prev => new Set(prev).add(id));
+        setTimeout(() => {
+            setNewTaskIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }, 7000);
+    }, []);
 
     // Merge realtime tasks into the display list
     const mergedTasks = useMemo(() => {
@@ -288,91 +346,63 @@ export default function TasksPageClient({
     }, [isAddingTask]);
 
     const handleCreate = async (formData: FormData) => {
-        const newTask = createOptimisticTask(formData, users);
-        startTransition(() => {
-            addOptimisticTask({ type: 'add', task: newTask });
-        });
-
-        trackAction('task', 'created');
-
+        const tempTask = createOptimisticTask(formData, users);
         setErrorMsg(null);
         setSavingCreate(true);
+        trackAction('task', 'created');
+
+        // Clear the composer immediately — the row is already on screen.
+        setIsAddingTask(false);
+        setIsDirty(false);
+        setNewAssignees([]);
+        setNewProject(projectId || null);
+        setNewQARequired(false);
+        setNewReviewRequired(false);
+        setNewDependsOn(null);
+        if (newNameRef.current) newNameRef.current.value = '';
+
+        let created: Task | null = null;
+
         try {
-            const result = await createTask(formData);
-            if (!result.success) {
-                setErrorMsg(result.error);
-                startTransition(() => {
-                    addOptimisticTask({ type: 'delete', task: newTask });
-                });
-            } else if (result.task) {
-                const apiTask = result.task;
-                const owner = users.find((u: any) => u.id === apiTask.user_id);
-                const realTask: Task = {
-                    id: apiTask.id,
-                    name: apiTask.name,
-                    description: apiTask.description,
-                    status: apiTask.status as Task['status'],
-                    priority: apiTask.priority as Task['priority'],
-                    dueDate: apiTask.due_date,
-                    qa_required: apiTask.qa_required,
-                    review_required: apiTask.review_required,
-                    depends_on_id: apiTask.depends_on_id,
-                    createdAt: apiTask.created_at,
-                    updatedAt: apiTask.updated_at,
-                    projectId: apiTask.project_id,
-                    userId: apiTask.user_id,
-                    owner: owner || undefined,
-                    assignees: [],
-                    assigneeIds: (() => {
-                        if (apiTask.assignee_ids?.length) return apiTask.assignee_ids;
-                        if (apiTask.task_assignees?.length) return apiTask.task_assignees.map(a => String(a.user_id));
-                        if (apiTask.assignees?.length) return apiTask.assignees.map(a => String(a.id));
-                        return [];
-                    })(),
-                    timeLogs: apiTask.time_logs,
-                    totalHours: apiTask.total_hours,
-                };
+            await mutate(
+                async (current: Task[][] | undefined) => {
+                    const result = await createTask(formData);
+                    if (!result.success) throw new Error(result.error);
 
-                startTransition(() => {
-                    addOptimisticTask({ type: 'replace', tempId: -1, task: realTask });
-                });
+                    const realTask = toTask(result.task, users);
+                    created = realTask;
+                    const pages = current?.length ? current : [[]];
+                    const firstPage = [
+                        realTask,
+                        ...pages[0].filter(t => t.id !== tempTask.id && t.id !== realTask.id),
+                    ];
 
-                mutate((current: Task[][] | undefined) => {
-                    if (!current) return current;
-                    return current.map(page =>
-                        page.map(t => t.id === -1 ? realTask : t)
-                    );
-                }, { revalidate: false });
+                    return [firstPage, ...pages.slice(1)];
+                },
+                {
+                    // Paint the new row before the request leaves the browser.
+                    optimisticData: (current: Task[][] | undefined) => {
+                        const pages = current?.length ? current : [[]];
+                        return [[tempTask, ...pages[0]], ...pages.slice(1)];
+                    },
+                    // The server hands back the created task, so trust it and skip
+                    // the extra round-trip that made the list feel stale.
+                    populateCache: true,
+                    revalidate: false,
+                    rollbackOnError: true,
+                },
+            );
 
-                setNewTaskIds(prev => {
-                    const next = new Set(prev);
-                    next.add(apiTask.id);
-                    return next;
-                });
-                setTimeout(() => {
-                    setNewTaskIds(prev => {
-                        const next = new Set(prev);
-                        next.delete(apiTask.id);
-                        return next;
-                    });
-                }, 7000);
-
-                toast.success('Task created successfully');
-                setIsAddingTask(false);
-                setIsDirty(false);
-                setNewAssignees([]);
-                setNewProject(projectId || null);
-                setNewQARequired(false);
-                setNewReviewRequired(false);
-                setNewDependsOn(null);
-                if (newNameRef.current) newNameRef.current.value = '';
+            // Notify sibling views once the cache already holds the real row, so
+            // their background revalidation can't race this write.
+            if (created) {
+                emit('task:created', created);
+                flagAsNew((created as Task).id);
             }
+            toast.success('Task created successfully');
         } catch (err) {
             console.error(err);
-            startTransition(() => {
-                addOptimisticTask({ type: 'delete', task: newTask });
-            });
-            setErrorMsg('Could not save the new task. Please try again.');
+            setErrorMsg(err instanceof Error ? err.message : 'Could not save the new task. Please try again.');
         } finally {
             setSavingCreate(false);
         }
@@ -383,31 +413,47 @@ export default function TasksPageClient({
     }
 
     const handleUpdate = async (formData: FormData) => {
-        // Optimistic Update
         const id = Number(formData.get('id'));
         const existingTask = optimisticTasks.find(t => t.id === id);
-        if (existingTask) {
-             const updatedTask = updateOptimisticTask(existingTask, formData, users);
-             startTransition(() => {
-                 addOptimisticTask({ type: 'update', task: updatedTask });
-             });
-        }
-
         setErrorMsg(null);
         trackAction('task', 'updated');
+
+        // Close the editor straight away — the row already shows the new values.
+        setEditingTaskId(null);
+
+        const pendingTask = existingTask
+            ? updateOptimisticTask(existingTask, formData, users)
+            : null;
+
+        let updated: Task | null = null;
+
         try {
-            const result = await updateTask(formData);
-            if (!result.success) {
-                setErrorMsg(result.error);
-                return { success: false, error: result.error };
-            } else {
-                setEditingTaskId(null);
-            }
-            mutate();
-            return { success: true };
+            await mutate(
+                async (current: Task[][] | undefined) => {
+                    const result = await updateTask(formData);
+                    if (!result.success) throw new Error(result.error);
+
+                    const realTask = toTask(result.task, users);
+                    updated = realTask;
+                    if (!current) return current;
+                    return current.map(page => page.map(t => (t.id === realTask.id ? realTask : t)));
+                },
+                {
+                    optimisticData: (current: Task[][] | undefined) => {
+                        if (!current || !pendingTask) return current ?? [];
+                        return current.map(page => page.map(t => (t.id === id ? pendingTask : t)));
+                    },
+                    populateCache: true,
+                    revalidate: false,
+                    rollbackOnError: true,
+                },
+            );
+
+            if (updated) emit('task:updated', updated);
+            return { success: true, error: '' };
         } catch (err) {
             console.error(err);
-            const msg = 'Could not update the task. Please try again.';
+            const msg = err instanceof Error ? err.message : 'Could not update the task. Please try again.';
             setErrorMsg(msg);
             return { success: false, error: msg };
         }
@@ -415,26 +461,34 @@ export default function TasksPageClient({
 
     const handleDelete = async (formData: FormData) => {
         const id = Number(formData.get('id'));
-        const task = optimisticTasks.find(t => t.id === id);
-        if (task) {
-            startTransition(() => {
-                addOptimisticTask({ type: 'delete', task });
-            });
-        }
-        
         setErrorMsg(null);
         trackAction('task', 'deleted');
+
         try {
-            const result = await deleteTask(formData);
-            if (!result.success) {
-                setErrorMsg(result.error);
-                return { success: false, error: result.error };
-            }
-            mutate();
-            return { success: true };
+            await mutate(
+                async (current: Task[][] | undefined) => {
+                    const result = await deleteTask(formData);
+                    if (!result.success) throw new Error(result.error);
+
+                    if (!current) return current;
+                    return current.map(page => page.filter(t => t.id !== id));
+                },
+                {
+                    optimisticData: (current: Task[][] | undefined) => {
+                        if (!current) return [];
+                        return current.map(page => page.filter(t => t.id !== id));
+                    },
+                    populateCache: true,
+                    revalidate: false,
+                    rollbackOnError: true,
+                },
+            );
+
+            emit('task:deleted', { id });
+            return { success: true, error: '' };
         } catch (err) {
             console.error(err);
-            const msg = 'Could not delete the task. Please try again.';
+            const msg = err instanceof Error ? err.message : 'Could not delete the task. Please try again.';
             setErrorMsg(msg);
             return { success: false, error: msg };
         }

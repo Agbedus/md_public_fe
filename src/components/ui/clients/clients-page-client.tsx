@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useOptimistic, useTransition } from 'react';
+import React, { useState } from 'react';
 import { Client } from '@/types/client';
 import { FiPlus, FiSearch, FiX, FiCheck, FiEdit2, FiTrash2, FiMail, FiGlobe, FiUser, FiGrid, FiList } from 'react-icons/fi';
 import { createClient, updateClient, deleteClient } from '@/app/(dashboard)/[orgSlug]/clients/actions';
@@ -9,6 +9,7 @@ import ClientTable from './client-table';
 import { toast } from '@/lib/toast';
 import { useClients } from '@/hooks/use-clients';
 import { createOptimisticClient, updateOptimisticClient } from '@/lib/optimistic-utils';
+import { optimisticListRevalidate } from '@/lib/optimistic-swr';
 import { useConfirm } from '@/providers/confirmation-provider';
 
 import ClientsLoading from '@/app/(dashboard)/[orgSlug]/clients/loading';
@@ -23,29 +24,15 @@ export default function ClientsPageClient({ initialClients = [] }: ClientsPageCl
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isPending, startTransition] = useTransition();
 
   // SWR Hook for background sync
   const { clients: serverClients, mutate, isLoading: clientsLoading } = useClients({ initialClients });
 
   const isLoading = clientsLoading && serverClients.length === 0;
 
-  // Optimistic UI for Clients
-  const [optimisticClients, addOptimisticClient] = useOptimistic(
-    serverClients,
-    (state: Client[], action: { type: 'add' | 'update' | 'delete', client: Client }) => {
-      switch (action.type) {
-        case 'add':
-          return [action.client, ...state];
-        case 'update':
-          return state.map(c => c.id === action.client.id ? action.client : c);
-        case 'delete':
-          return state.filter(c => c.id !== action.client.id);
-        default:
-          return state;
-      }
-    }
-  );
+  // Optimistic UI is driven by SWR's `optimisticData` in the handlers below, so
+  // the rendered list is simply whatever SWR currently holds.
+  const optimisticClients = serverClients;
 
   const filteredClients = optimisticClients.filter(client =>
     client.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -54,24 +41,20 @@ export default function ClientsPageClient({ initialClients = [] }: ClientsPageCl
 
   const handleCreate = async (formData: FormData) => {
     const newClient = createOptimisticClient(formData);
-
-    startTransition(() => {
-      addOptimisticClient({ type: 'add', client: newClient });
-    });
     setIsCreateModalOpen(false);
 
     try {
-      const result = await createClient(formData);
-      if (result && 'success' in result && result.success) {
-        toast.success("Client created successfully");
-        mutate();
-      } else {
-        toast.error((result as any)?.error || "Failed to create client");
-        mutate();
-      }
+      await mutate(
+        async () => {
+          const result = await createClient(formData);
+          if (!result?.success) throw new Error(result?.error || 'Failed to create client');
+          return undefined;
+        },
+        optimisticListRevalidate<Client>(list => [newClient, ...list]),
+      );
+      toast.success('Client created successfully');
     } catch (err) {
-      toast.error("An unexpected error occurred");
-      mutate();
+      toast.error(err instanceof Error ? err.message : 'An unexpected error occurred');
     }
   };
 
@@ -80,25 +63,23 @@ export default function ClientsPageClient({ initialClients = [] }: ClientsPageCl
     if (!editing) return;
 
     const updatedClient = updateOptimisticClient(editing, formData);
-    
-    startTransition(() => {
-      addOptimisticClient({ type: 'update', client: updatedClient });
-    });
     setEditingClient(null);
 
     try {
-      formData.set('id', editing.id);
-      const result = await updateClient(formData);
-      if (result && 'success' in result && result.success) {
-        toast.success("Client updated successfully");
-        mutate();
-      } else {
-        toast.error((result as any)?.error || "Failed to update client");
-        mutate();
-      }
+      await mutate(
+        async () => {
+          formData.set('id', editing.id);
+          const result = await updateClient(formData);
+          if (!result?.success) throw new Error(result?.error || 'Failed to update client');
+          return undefined;
+        },
+        optimisticListRevalidate<Client>(list =>
+          list.map(c => (c.id === editing.id ? updatedClient : c)),
+        ),
+      );
+      toast.success('Client updated successfully');
     } catch (err) {
-      toast.error("An unexpected error occurred");
-      mutate();
+      toast.error(err instanceof Error ? err.message : 'An unexpected error occurred');
     }
   };
 
@@ -110,25 +91,22 @@ export default function ClientsPageClient({ initialClients = [] }: ClientsPageCl
       type: 'danger'
     });
 
-    if (confirmed) {
-      startTransition(() => {
-        addOptimisticClient({ type: 'delete', client });
-      });
-      try {
-        const formData = new FormData();
-        formData.set('id', client.id);
-        const result = await deleteClient(formData);
-        if (result && 'success' in result && result.success) {
-          toast.success("Client deleted successfully");
-          mutate();
-        } else {
-          toast.error((result as any)?.error || "Failed to delete client");
-          mutate();
-        }
-      } catch (err) {
-        toast.error("An unexpected error occurred");
-        mutate();
-      }
+    if (!confirmed) return;
+
+    try {
+      await mutate(
+        async () => {
+          const formData = new FormData();
+          formData.set('id', client.id);
+          const result = await deleteClient(formData);
+          if (!result?.success) throw new Error(result?.error || 'Failed to delete client');
+          return undefined;
+        },
+        optimisticListRevalidate<Client>(list => list.filter(c => c.id !== client.id)),
+      );
+      toast.success('Client deleted successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'An unexpected error occurred');
     }
   };
 

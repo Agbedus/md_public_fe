@@ -2,6 +2,7 @@
 
 import { auth } from '@/auth';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 import type { AttendanceRecord, OfficeLocation, AttendancePolicy } from '@/types/attendance';
 import { getDistanceInMeters } from '@/lib/distance-utils';
 import { isTimeInWindow, isAfterTime, isWithinRadius } from '@/lib/attendance-utils';
@@ -203,7 +204,9 @@ export async function updateLocation(
             updated_at: null,
         };
 
-        revalidateTag('attendance-my', 'max');
+        safeRevalidate(() => {
+            revalidateTag('attendance-my', 'max');
+        }, 'attendance mutation');
         return { success: true, record };
     } catch (error) {
         console.error("Error updating location:", error);
@@ -264,7 +267,9 @@ export async function clockOutManual(force = false) {
             updated_at: null,
         };
 
-        revalidateTag('attendance-my', 'max');
+        safeRevalidate(() => {
+            revalidateTag('attendance-my', 'max');
+        }, 'attendance mutation');
         return { success: true, record };
     } catch (error) {
         console.error("Error manual clock out:", error);
@@ -402,9 +407,11 @@ export async function overrideAttendance(
             return { success: false, error: `API Error ${res.status}: ${errorText}` };
         }
 
-        revalidateTag('attendance-team', 'max');
-        revalidateTag('attendance-my', 'max');
-        revalidatePath('/attendance');
+        safeRevalidate(() => {
+            revalidateTag('attendance-team', 'max');
+            revalidateTag('attendance-my', 'max');
+            revalidatePath('/[orgSlug]/attendance', 'page');
+        }, 'attendance mutation');
         return { success: true, record: await res.json() };
     } catch (error) {
         console.error("Error overriding attendance:", error);
@@ -462,8 +469,10 @@ export async function createOfficeLocation(data: {
             return { success: false, error: `API Error ${res.status}: ${errorText}` };
         }
 
-        revalidateTag('office-locations', 'max');
-        revalidatePath('/attendance');
+        safeRevalidate(() => {
+            revalidateTag('office-locations', 'max');
+            revalidatePath('/[orgSlug]/attendance', 'page');
+        }, 'attendance mutation');
         return { success: true, location: await res.json() };
     } catch (error) {
         return { success: false, error: "Network error" };
@@ -489,8 +498,10 @@ export async function updateOfficeLocation(id: number, data: Partial<OfficeLocat
             return { success: false, error: `API Error ${res.status}: ${errorText}` };
         }
 
-        revalidateTag('office-locations', 'max');
-        revalidatePath('/attendance');
+        safeRevalidate(() => {
+            revalidateTag('office-locations', 'max');
+            revalidatePath('/[orgSlug]/attendance', 'page');
+        }, 'attendance mutation');
         return { success: true, location: await res.json() };
     } catch (error) {
         return { success: false, error: "Network error" };
@@ -541,8 +552,10 @@ export async function updateAttendancePolicy(
             return { success: false, error: `API Error ${res.status}: ${errorText}` };
         }
 
-        revalidateTag('attendance-policy', 'max');
-        revalidatePath('/attendance');
+        safeRevalidate(() => {
+            revalidateTag('attendance-policy', 'max');
+            revalidatePath('/[orgSlug]/attendance', 'page');
+        }, 'attendance mutation');
         return { success: true, policy: await res.json() };
     } catch (error) {
         return { success: false, error: "Network error" };

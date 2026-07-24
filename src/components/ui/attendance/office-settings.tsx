@@ -84,21 +84,36 @@ export default function OfficeSettings({ initialLocations }: { initialLocations:
             out_of_office_radius_meters: parseInt(form.out_of_office_radius_meters),
         };
 
+        // There is no SWR hook for office locations, so this applies the change
+        // to local state immediately and restores the previous list if the save
+        // is rejected — same instant-feedback contract as the SWR screens.
+        const previous = locations;
+
         if (selectedId === 'new') {
+            const tempId = -Date.now();
+            setLocations(prev => [...prev, { ...data, id: tempId } as OfficeLocation]);
+
             const result = await createOfficeLocation(data);
             if (result.success && result.location) {
-                toast.success('Office location created');
-                setLocations(prev => [...prev, result.location]);
+                setLocations(prev => prev.map(l => (l.id === tempId ? result.location : l)));
                 setSelectedId(result.location.id);
+                toast.success('Office location created');
             } else {
+                setLocations(previous);
                 toast.error(result.error || 'Failed to create location');
             }
         } else {
-            const result = await updateOfficeLocation(selectedId, data);
+            const id = selectedId;
+            setLocations(prev =>
+                prev.map(l => (l.id === id ? { ...l, ...data } as OfficeLocation : l)),
+            );
+
+            const result = await updateOfficeLocation(id, data);
             if (result.success && result.location) {
+                setLocations(prev => prev.map(l => (l.id === id ? result.location : l)));
                 toast.success('Office location updated');
-                setLocations(prev => prev.map(l => l.id === selectedId ? result.location : l));
             } else {
+                setLocations(previous);
                 toast.error(result.error || 'Failed to update location');
             }
         }

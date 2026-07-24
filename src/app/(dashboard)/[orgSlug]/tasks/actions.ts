@@ -7,7 +7,7 @@ import { auth } from '@/auth';
 import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse } from '@/lib/server-auth';
 import { Task } from '@/types/task';
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { cache } from 'react';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 import type { ActionResult } from '@/types/api';
 
 // Interface for what the API returns (snake_case)
@@ -43,7 +43,7 @@ interface ApiTask {
     total_hours?: number;
 }
 
-export const getTasks = cache(async function(query?: string, priority?: string, status?: string, projectId?: number, limit?: number, skip?: number): Promise<Task[]> {
+export async function getTasks(query?: string, priority?: string, status?: string, projectId?: number, limit?: number, skip?: number): Promise<Task[]> {
 
     const session = await auth();
     if (!session?.user?.accessToken) {
@@ -64,7 +64,8 @@ export const getTasks = cache(async function(query?: string, priority?: string, 
             fetch(`${API_BASE_URL}/tasks?${queryParams.toString()}`, {
                 method: 'GET',
                 headers: { ...(await getSessionHeaders())! },
-                next: { tags: ['tasks', 'projects'], revalidate: 60 }
+                cache: 'no-store',
+                next: { tags: ['tasks', 'projects'] }
             }),
             import('@/app/(dashboard)/[orgSlug]/users/actions').then(mod => mod.getUsersSafe())
         ]);
@@ -113,7 +114,7 @@ export const getTasks = cache(async function(query?: string, priority?: string, 
         console.error("Error fetching tasks:", error);
         return [];
     }
-});
+}
 
 export async function createTask(formData: FormData): Promise<{ success: true; task: ApiTask } | { success: false; error: string }> {
     const session = await auth();
@@ -161,9 +162,11 @@ export async function createTask(formData: FormData): Promise<{ success: true; t
         }
 
         const apiTask: ApiTask = await response.json();
-        revalidatePath('/tasks');
-        revalidateTag('tasks', 'max');
-        revalidateTag('projects', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/tasks', 'page');
+            revalidateTag('tasks', 'max');
+            revalidateTag('projects', 'max');
+        }, 'task mutation');
         return { success: true, task: apiTask };
     } catch (error) {
         console.error("Error creating task:", error);
@@ -239,9 +242,11 @@ export async function updateTask(formData: FormData): Promise<{ success: true; t
         }
 
         const apiTask: ApiTask = await response.json();
-        revalidatePath('/tasks');
-        revalidateTag('tasks', 'max');
-        revalidateTag('projects', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/tasks', 'page');
+            revalidateTag('tasks', 'max');
+            revalidateTag('projects', 'max');
+        }, 'task mutation');
         return { success: true, task: apiTask };
     } catch (error) {
         console.error("Error updating task:", error);
@@ -272,9 +277,11 @@ export async function deleteTask(formData: FormData): Promise<ActionResult> {
             return { success: false, error: "Failed to delete task" };
         }
 
-        revalidatePath('/tasks');
-        revalidateTag('tasks', 'max');
-        revalidateTag('projects', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/tasks', 'page');
+            revalidateTag('tasks', 'max');
+            revalidateTag('projects', 'max');
+        }, 'task mutation');
         return { success: true };
     } catch (error) {
         console.error("Error deleting task:", error);
@@ -303,9 +310,11 @@ export async function updateTaskStatus(taskId: number, status: string): Promise<
             return { success: false, error: "Failed to update task status" };
         }
 
-        revalidatePath('/tasks');
-        revalidateTag('tasks', 'max');
-        revalidateTag('projects', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/tasks', 'page');
+            revalidateTag('tasks', 'max');
+            revalidateTag('projects', 'max');
+        }, 'task mutation');
         return { success: true };
     } catch (error) {
         console.error("Error updating task status:", error);
@@ -330,7 +339,7 @@ export async function startTaskTimer(taskId: number): Promise<ActionResult<any>>
             return { success: false, error: await response.text() };
         }
         
-        revalidatePath('/tasks');
+        safeRevalidate(() => revalidatePath('/[orgSlug]/tasks', 'page'), 'task mutation');
         return { success: true, data: await response.json() };
     } catch (error) {
         return { success: false, error: "Timer start failed" };
@@ -354,7 +363,7 @@ export async function pauseTaskTimer(taskId: number): Promise<ActionResult<any>>
             return { success: false, error: await response.text() };
         }
         
-        revalidatePath('/tasks');
+        safeRevalidate(() => revalidatePath('/[orgSlug]/tasks', 'page'), 'task mutation');
         return { success: true, data: await response.json() };
     } catch (error) {
         return { success: false, error: "Timer pause failed" };
@@ -378,7 +387,7 @@ export async function stopTaskTimer(taskId: number): Promise<ActionResult<any>> 
             return { success: false, error: await response.text() };
         }
         
-        revalidatePath('/tasks');
+        safeRevalidate(() => revalidatePath('/[orgSlug]/tasks', 'page'), 'task mutation');
         return { success: true, data: await response.json() };
     } catch (error) {
         return { success: false, error: "Timer stop failed" };
@@ -405,9 +414,11 @@ export async function batchUpdateTaskStatus(taskIds: number[], status: string): 
 
         const allOk = results.every(res => res.ok);
         
-        revalidatePath('/tasks');
-        revalidateTag('tasks', 'max');
-        revalidateTag('projects', 'max');
+        safeRevalidate(() => {
+            revalidatePath('/[orgSlug]/tasks', 'page');
+            revalidateTag('tasks', 'max');
+            revalidateTag('projects', 'max');
+        }, 'task mutation');
 
         if (allOk) {
             return { success: true };

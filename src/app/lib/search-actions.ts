@@ -1,8 +1,10 @@
 'use server';
 
 import { auth } from '@/auth';
+import { cookies } from 'next/headers';
 import { getTasks } from '@/app/(dashboard)/[orgSlug]/tasks/actions';
 import { getProjects } from '@/app/(dashboard)/[orgSlug]/projects/actions';
+import { orgPath } from '@/lib/org-path';
 
 export interface SearchResult {
     id: string | number;
@@ -17,6 +19,13 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
 
     const session = await auth();
     if (!session) return [];
+
+    // Every result href must stay inside the current org's route segment,
+    // otherwise selecting a result navigates out of `[orgSlug]` and 404s.
+    const orgSlug =
+        session.user?.orgSlug ||
+        (await cookies()).get('org_slug')?.value ||
+        null;
 
     const lowerQuery = query.toLowerCase();
 
@@ -37,7 +46,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
             id: t.id,
             title: t.name,
             type: 'task',
-            href: `/tasks?id=${t.id}`,
+            href: `${orgPath(orgSlug, 'tasks')}?id=${t.id}`,
             subtitle: `Status: ${t.status}`
         });
     });
@@ -52,7 +61,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
             id: p.id,
             title: p.name,
             type: 'project',
-            href: `/projects/${p.id}`,
+            href: orgPath(orgSlug, 'projects', p.id),
             subtitle: `Key: ${p.key}`
         });
     });
@@ -74,7 +83,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
             id: w.id,
             title: w.title,
             type: 'wiki',
-            href: `/wiki#${w.id}`,
+            href: `${orgPath(orgSlug, 'wiki')}#${w.id}`,
             subtitle: 'Knowledge Base'
         });
     });

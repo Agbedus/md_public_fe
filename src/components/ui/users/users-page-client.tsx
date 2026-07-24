@@ -7,8 +7,10 @@ import { User } from '@/types/user';
 import { FiSearch, FiEdit2, FiTrash2, FiX, FiCheck, FiClock, FiChevronRight, FiSun, FiUser } from 'react-icons/fi';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useOrgSlug } from '@/hooks/use-org-slug';
-import { updateUser, deleteUser, getUsers } from '@/app/(dashboard)/[orgSlug]/users/actions';
-import { useOptimistic, useTransition } from 'react';
+import { updateUser, deleteUser } from '@/app/(dashboard)/[orgSlug]/users/actions';
+import { useUsers } from '@/hooks/use-users';
+import { optimisticListRevalidate } from '@/lib/optimistic-swr';
+import { toast } from '@/lib/toast';
 import type { TimeOffRequest } from '@/types/time-off';
 import { useConfirm } from '@/providers/confirmation-provider';
 
@@ -28,26 +30,16 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
   const confirm = useConfirm();
   const orgSlug = useOrgSlug();
   const orgPath = (path: string) => orgSlug ? `/${orgSlug}${path}` : path;
-  const [allUsers, setAllUsers] = useState<User[]>(initialUsers);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [, startTransition] = useTransition();
 
-  // Optimistic UI for Users
-  const [optimisticUsers, addOptimisticUser] = useOptimistic(
-    allUsers,
-    (state: User[], action: { type: 'update' | 'delete', user: User }) => {
-      switch (action.type) {
-        case 'update':
-          return state.map(u => u.id === action.user.id ? action.user : u);
-        case 'delete':
-          return state.filter(u => u.id !== action.user.id);
-        default:
-          return state;
-      }
-    }
-  );
-  
+  // Backed by SWR so edits sync in the background instead of refetching the
+  // whole list by hand after every save.
+  const { users, mutate } = useUsers(initialUsers);
+  const allUsers: User[] = users;
+  const optimisticUsers: User[] = allUsers;
+
+
   // Temporary state for editing
   const [editForm, setEditForm] = useState<Partial<User>>({});
 
@@ -90,29 +82,36 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
     formData.set('avatarUrl', editForm.avatarUrl || '');
     formData.set('roles', JSON.stringify(editForm.roles || []));
 
-    // Optimistic Update
+    const existing = allUsers.find(u => u.id === editingId);
+    if (!existing) return;
+
     const updatedUser: User = {
-        ...allUsers.find(u => u.id === editingId)!,
+        ...existing,
         fullName: editForm.fullName || '',
         email: editForm.email || '',
         avatarUrl: editForm.avatarUrl || '',
         roles: editForm.roles || [],
     };
-    addOptimisticUser({ type: 'update', user: updatedUser });
 
+    const id = editingId;
     setEditingId(null);
     setEditForm({});
 
     try {
-        await updateUser(formData);
-        const users = await getUsers();
-        startTransition(() => {
-            setAllUsers(users);
-        });
+        await mutate(
+            async () => {
+                const result = await updateUser(formData);
+                if (!result?.success) throw new Error(result?.error || 'Failed to update user');
+                return undefined;
+            },
+            optimisticListRevalidate<User>(list =>
+                list.map(u => (u.id === id ? updatedUser : u)),
+            ),
+        );
+        toast.success('User updated');
     } catch (err) {
         console.error(err);
-        const users = await getUsers();
-        setAllUsers(users);
+        toast.error(err instanceof Error ? err.message : 'Failed to update user');
     }
   };
 
@@ -125,19 +124,21 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
     });
 
     if (confirmed) {
-      addOptimisticUser({ type: 'delete', user });
       try {
-        const formData = new FormData();
-        formData.set('id', user.id);
-        await deleteUser(formData);
-        const users = await getUsers();
-        startTransition(() => {
-            setAllUsers(users);
-        });
+        await mutate(
+          async () => {
+            const formData = new FormData();
+            formData.set('id', user.id);
+            const result = await deleteUser(formData);
+            if (!result?.success) throw new Error(result?.error || 'Failed to delete user');
+            return undefined;
+          },
+          optimisticListRevalidate<User>(list => list.filter(u => u.id !== user.id)),
+        );
+        toast.success('User access revoked');
       } catch (err) {
         console.error(err);
-        const users = await getUsers();
-        setAllUsers(users);
+        toast.error(err instanceof Error ? err.message : 'Failed to delete user');
       }
     }
   };

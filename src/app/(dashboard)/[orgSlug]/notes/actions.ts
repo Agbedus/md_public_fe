@@ -3,6 +3,7 @@
 import { auth } from '@/auth';
 import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse } from '@/lib/server-auth';
 import { revalidatePath } from 'next/cache';
+import { safeRevalidate } from '@/lib/safe-revalidate';
 import { cache } from 'react';
 import type { Note } from '@/types/note';
 import type { ActionResult } from '@/types/api';
@@ -215,8 +216,10 @@ export async function createNote(formData: FormData): Promise<ActionResult> {
         return { success: false, error: "Failed to create note" };
     }
 
-    revalidatePath('/notes');
-    revalidateTag('notes', 'max');
+    safeRevalidate(() => {
+        revalidatePath('/[orgSlug]/notes', 'page');
+        revalidateTag('notes', 'max');
+    }, 'notes mutation');
     return { success: true };
   } catch (error) {
     console.error("Error creating note:", error);
@@ -270,8 +273,10 @@ export async function updateNote(formData: FormData): Promise<ActionResult> {
         return { success: false, error: "Failed to update note" };
     }
 
-    revalidatePath('/notes');
-    revalidateTag('notes', 'max');
+    safeRevalidate(() => {
+        revalidatePath('/[orgSlug]/notes', 'page');
+        revalidateTag('notes', 'max');
+    }, 'notes mutation');
     return { success: true };
   } catch (error) {
     console.error("Error updating note:", error);
@@ -300,8 +305,10 @@ export async function deleteNote(formData: FormData): Promise<ActionResult> {
         return { success: false, error: "Failed to delete note" };
     }
 
-    revalidatePath('/notes');
-    revalidateTag('notes', 'max');
+    safeRevalidate(() => {
+        revalidatePath('/[orgSlug]/notes', 'page');
+        revalidateTag('notes', 'max');
+    }, 'notes mutation');
     return { success: true };
   } catch (error) {
     console.error("Error deleting note:", error);
@@ -330,8 +337,10 @@ export async function toggleNoteFlag(noteId: number, field: 'is_pinned' | 'is_fa
         return { success: false, error: "Failed to update note" };
     }
 
-    revalidatePath('/notes');
-    revalidateTag('notes', 'max');
+    safeRevalidate(() => {
+        revalidatePath('/[orgSlug]/notes', 'page');
+        revalidateTag('notes', 'max');
+    }, 'notes mutation');
     return { success: true };
   } catch (error) {
     console.error("Error toggling note flag:", error);
@@ -362,8 +371,10 @@ export async function shareNote(formData: FormData): Promise<ActionResult> {
         return { success: false, error: "Failed to share note" };
     }
 
-    revalidatePath('/notes');
-    revalidateTag('notes', 'max');
+    safeRevalidate(() => {
+        revalidatePath('/[orgSlug]/notes', 'page');
+        revalidateTag('notes', 'max');
+    }, 'notes mutation');
     return { success: true };
   } catch (error) {
     console.error("Error sharing note:", error);
