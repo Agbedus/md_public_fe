@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Project } from '@/types/project';
 import { User } from '@/types/user';
 import { Client } from '@/types/client';
@@ -15,8 +15,6 @@ import { createProject, updateProject, deleteProject } from '@/app/(dashboard)/[
 import { Sparkline } from "@/components/ui/sparkline";
 import { subDays, isSameDay } from 'date-fns';
 import { useProjects } from '@/hooks/use-projects';
-import { createOptimisticProject, updateOptimisticProject } from '@/lib/optimistic-utils';
-import { optimisticListRevalidate } from '@/lib/optimistic-swr';
 import { toast } from '@/lib/toast';
 import { useConfirm } from '@/providers/confirmation-provider';
 
@@ -67,9 +65,12 @@ export default function ProjectsPageClient({
   // the rendered list is simply whatever SWR currently holds.
   const optimisticProjects = serverProjects;
 
-  // Combine projects with their tasks for accurate completion tracking
+  // Combine projects with their tasks for accurate completion tracking.
+  // `filter(Boolean)` guards against a malformed/undefined entry ever reaching
+  // the render (e.g. a transient optimistic row), so one bad item can't crash
+  // the whole list.
   const projectsWithTasks = useMemo(() => {
-    return optimisticProjects.map(project => {
+    return optimisticProjects.filter(Boolean).map(project => {
       // Find tasks for this project from the pool
       const linkedTasks = allTasks.filter(task => Number(task.projectId) === project.id);
       
@@ -111,28 +112,76 @@ export default function ProjectsPageClient({
   }, [projectsWithTasks]);
 
   const filteredProjects = useMemo(() => {
+    const q = searchQuery.toLowerCase();
     return projectsWithTasks.filter(project => {
-      const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            (project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      const name = (project.name ?? '').toLowerCase();
+      const description = (project.description ?? '').toLowerCase();
+      const matchesSearch = name.includes(q) || description.includes(q);
       const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [projectsWithTasks, searchQuery, statusFilter]);
 
+  // ── Server-response-driven mutators ─────────────────────────────────────
+  // Each one runs the server action, waits for the response, then writes the
+  // result straight into the SWR cache (revalidate: false, no refetch). No
+  // temporary/optimistic rows and no rollback: the table updates the moment the
+  // server confirms, with the server's real record. Shared by the page's own
+  // modal/card handlers AND passed to ProjectTable, so create/edit/delete
+  // update the list the same way from either view. Each throws on failure.
+  const optimisticCreate = useCallback(async (formData: FormData) => {
+    const result = await createProject(formData);
+    if (!result.success) throw new Error(result.error);
+    // Only trust the response for a direct cache write if it actually carries a
+    // saved record (a valid id). Otherwise reload the list from the server.
+    if (result.project?.id != null) {
+      const created = result.project;
+      await mutate(
+        (current: Project[] | undefined) =>
+          [created, ...(current ?? []).filter(p => p.id !== created.id)],
+        { revalidate: false },
+      );
+    } else {
+      // Degraded response with no project payload: refetch instead.
+      await mutate();
+    }
+  }, [mutate]);
+
+  const optimisticUpdate = useCallback(async (existing: Project, formData: FormData) => {
+    formData.set('id', existing.id.toString());
+    const result = await updateProject(formData);
+    if (!result.success) throw new Error(result.error);
+    if (result.project?.id != null) {
+      const updated = result.project;
+      await mutate(
+        (current: Project[] | undefined) =>
+          // Carry over already-linked tasks; the API payload does not embed them.
+          (current ?? []).map(p =>
+            p.id === existing.id ? { ...updated, tasks: p.tasks ?? [] } : p,
+          ),
+        { revalidate: false },
+      );
+    } else {
+      await mutate();
+    }
+  }, [mutate]);
+
+  const optimisticDelete = useCallback(async (project: Project) => {
+    const formData = new FormData();
+    formData.set('id', project.id.toString());
+    const result = await deleteProject(formData);
+    if (!result?.success) throw new Error(result?.error || 'Failed to delete project');
+    await mutate(
+      (current: Project[] | undefined) => (current ?? []).filter(p => p.id !== project.id),
+      { revalidate: false },
+    );
+  }, [mutate]);
+
   const handleCreate = async (formData: FormData) => {
-    const newProject = createOptimisticProject(formData);
     setIsCreating(true);
     setIsCreateModalOpen(false);
-
     try {
-      await mutate(
-        async () => {
-          const result = await createProject(formData);
-          if (!result?.success) throw new Error(result?.error || 'Failed to create project');
-          return undefined;
-        },
-        optimisticListRevalidate<Project>(list => [newProject, ...list]),
-      );
+      await optimisticCreate(formData);
       toast.success('Project initiated successfully');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'An unexpected error occurred');
@@ -143,24 +192,11 @@ export default function ProjectsPageClient({
 
   const handleUpdate = async (formData: FormData) => {
     if (!editingProject) return;
-    const id = editingProject.id;
-    formData.set('id', id.toString());
-
-    const updatedProject = updateOptimisticProject(editingProject, formData);
+    const existing = editingProject;
     setIsUpdating(true);
     setEditingProject(null);
-
     try {
-      await mutate(
-        async () => {
-          const result = await updateProject(formData);
-          if (!result?.success) throw new Error(result?.error || 'Failed to update project');
-          return undefined;
-        },
-        optimisticListRevalidate<Project>(list =>
-          list.map(p => (p.id === id ? updatedProject : p)),
-        ),
-      );
+      await optimisticUpdate(existing, formData);
       toast.success('Project updated');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to update project');
@@ -179,18 +215,7 @@ export default function ProjectsPageClient({
 
     if (confirmed) {
       try {
-        await mutate(
-          async () => {
-            const formData = new FormData();
-            formData.set('id', project.id.toString());
-            const result = await deleteProject(formData);
-            // Previously the result was discarded, so a rejected delete still
-            // reported success and the row silently came back on next fetch.
-            if (!result?.success) throw new Error(result?.error || 'Failed to delete project');
-            return undefined;
-          },
-          optimisticListRevalidate<Project>(list => list.filter(p => p.id !== project.id)),
-        );
+        await optimisticDelete(project);
         toast.success('Project deleted');
       } catch (e) {
         toast.error(e instanceof Error ? e.message : 'Failed to delete project');
@@ -401,6 +426,9 @@ export default function ProjectsPageClient({
           users={users}
           clients={clients}
           onSelectProject={setSelectedProject}
+          onCreateProject={optimisticCreate}
+          onUpdateProject={optimisticUpdate}
+          onDeleteProject={optimisticDelete}
         />
       )}
 

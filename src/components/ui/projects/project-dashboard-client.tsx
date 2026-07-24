@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Project, statusMapping, priorityMapping } from '@/types/project';
 import { Task } from '@/types/task';
 import { Note } from '@/types/note';
@@ -21,6 +21,8 @@ import TaskCard from '@/components/ui/tasks/task-card';
 import NoteCard from '@/components/ui/notes/note-card';
 import { updateTask, deleteTask } from '@/app/(dashboard)/[orgSlug]/tasks/actions';
 import { updateNote, deleteNote } from '@/app/(dashboard)/[orgSlug]/notes/actions';
+import { updateOptimisticTask, updateOptimisticNote } from '@/lib/optimistic-utils';
+import { toast } from '@/lib/toast';
 
 interface ProjectDashboardClientProps {
     project: Project;
@@ -31,17 +33,82 @@ interface ProjectDashboardClientProps {
     allProjects: Project[];
 }
 
-export default function ProjectDashboardClient({ 
-    project, 
-    tasks, 
-    notes, 
-    users, 
+export default function ProjectDashboardClient({
+    project,
+    tasks: initialTasks,
+    notes: initialNotes,
+    users,
     clients,
-    allProjects 
+    allProjects
 }: ProjectDashboardClientProps) {
     const orgSlug = useOrgSlug();
     const orgPath = (path: string) => orgSlug ? `/${orgSlug}${path}` : path;
     const [activeView, setActiveView] = useState<'overview' | 'tasks' | 'notes' | 'settings'>('overview');
+
+    // This view renders tasks and notes from server props. Holding them in local
+    // state lets edits and deletes show instantly; without it, the raw actions
+    // were called but nothing re-rendered until a full page refresh. Re-sync when
+    // the server props change (e.g. after a navigation).
+    const [tasks, setTasks] = useState<Task[]>(initialTasks);
+    const [notes, setNotes] = useState<Note[]>(initialNotes);
+    useEffect(() => { setTasks(initialTasks); }, [initialTasks]);
+    useEffect(() => { setNotes(initialNotes); }, [initialNotes]);
+
+    // Optimistic wrappers: apply the change to local state immediately, persist in
+    // the background, and roll back with an error toast only if the write fails.
+    const handleTaskUpdate = useCallback(async (formData: FormData) => {
+        const id = Number(formData.get('id'));
+        const previous = tasks;
+        const existing = tasks.find(t => t.id === id);
+        if (existing) {
+            setTasks(list => list.map(t => (t.id === id ? updateOptimisticTask(existing, formData, users) : t)));
+        }
+        const result = await updateTask(formData);
+        if (!result?.success) {
+            setTasks(previous);
+            toast.error(result?.error || 'Failed to update task');
+        }
+        return result;
+    }, [tasks, users]);
+
+    const handleTaskDelete = useCallback(async (formData: FormData) => {
+        const id = Number(formData.get('id'));
+        const previous = tasks;
+        setTasks(list => list.filter(t => t.id !== id));
+        const result = await deleteTask(formData);
+        if (!result?.success) {
+            setTasks(previous);
+            toast.error(result?.error || 'Failed to delete task');
+        }
+        return result;
+    }, [tasks]);
+
+    const handleNoteUpdate = useCallback(async (formData: FormData) => {
+        const id = Number(formData.get('id'));
+        const previous = notes;
+        const existing = notes.find(n => n.id === id);
+        if (existing) {
+            setNotes(list => list.map(n => (n.id === id ? updateOptimisticNote(existing, formData) : n)));
+        }
+        const result = await updateNote(formData);
+        if (!result?.success) {
+            setNotes(previous);
+            toast.error(result?.error || 'Failed to update note');
+        }
+        return result;
+    }, [notes]);
+
+    const handleNoteDelete = useCallback(async (formData: FormData) => {
+        const id = Number(formData.get('id'));
+        const previous = notes;
+        setNotes(list => list.filter(n => n.id !== id));
+        const result = await deleteNote(formData);
+        if (!result?.success) {
+            setNotes(previous);
+            toast.error(result?.error || 'Failed to delete note');
+        }
+        return result;
+    }, [notes]);
 
     const client = clients.find(c => c.id === project.clientId);
     const owner = users.find(u => u.id === project.ownerId);
@@ -403,8 +470,8 @@ export default function ProjectDashboardClient({
                                                     task={task}
                                                     users={users}
                                                     projects={allProjects}
-                                                    updateTask={updateTask}
-                                                    deleteTask={deleteTask}
+                                                    updateTask={handleTaskUpdate}
+                                                    deleteTask={handleTaskDelete}
                                                     hideProject={true}
                                                 />
                                             ))}
@@ -431,8 +498,8 @@ export default function ProjectDashboardClient({
                                         <div key={note.id} className="h-[300px]">
                                             <NoteCard 
                                                 note={note}
-                                                onNoteUpdate={updateNote}
-                                                onNoteDelete={deleteNote}
+                                                onNoteUpdate={handleNoteUpdate}
+                                                onNoteDelete={handleNoteDelete}
                                                 viewMode="grid"
                                                 availableUsers={users.map(u => ({ id: u.id, name: u.fullName, email: u.email, image: '' }))}
                                             />

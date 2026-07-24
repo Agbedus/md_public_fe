@@ -34,6 +34,37 @@ interface ApiProject {
     updated_at: string;
 }
 
+/** Map the API's snake_case project onto the frontend camelCase shape. */
+function mapProject(p: ApiProject): Project {
+    return {
+        id: p.id,
+        name: p.name,
+        key: p.key,
+        description: p.description,
+        status: p.status as Project['status'],
+        priority: p.priority as Project['priority'],
+        tags: p.tags ? JSON.parse(p.tags) : [],
+        ownerId: p.owner_id,
+        clientId: p.client_id,
+        startDate: p.start_date,
+        endDate: p.end_date,
+        budget: p.budget,
+        spent: p.spent,
+        currency: p.currency,
+        billingType: p.billing_type as Project['billingType'],
+        isArchived: p.is_archived,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at,
+        managers: [],
+        tasks: [],
+    };
+}
+
+/** Result shape for mutations that return the saved project. */
+type ProjectMutationResult =
+    | { success: true; project: Project }
+    | { success: false; error: string };
+
 export async function getProjects(limit?: number, skip?: number): Promise<Project[]> {
 
     const session = await auth();
@@ -138,7 +169,7 @@ export async function getProject(id: number): Promise<Project | null> {
     }
 }
 
-export async function createProject(formData: FormData): Promise<ActionResult> {
+export async function createProject(formData: FormData): Promise<ProjectMutationResult> {
     const session = await auth();
     if (!session?.user?.accessToken) {
         return { success: false, error: "Unauthorized" };
@@ -185,18 +216,19 @@ export async function createProject(formData: FormData): Promise<ActionResult> {
             return { success: false, error: "Failed to create project" };
         }
 
+        const created = mapProject(await response.json());
         safeRevalidate(() => {
             revalidatePath('/[orgSlug]/projects', 'page');
             revalidateTag('projects', 'max');
         }, 'projects mutation');
-        return { success: true };
+        return { success: true, project: created };
     } catch (error) {
         console.error("Error creating project:", error);
         return { success: false, error: "Failed to create project" };
     }
 }
 
-export async function updateProject(formData: FormData): Promise<ActionResult> {
+export async function updateProject(formData: FormData): Promise<ProjectMutationResult> {
     const session = await auth();
     if (!session?.user?.accessToken) {
         return { success: false, error: "Unauthorized" };
@@ -266,11 +298,12 @@ export async function updateProject(formData: FormData): Promise<ActionResult> {
             return { success: false, error: `Failed to update project: ${errorText}` };
         }
 
+        const updated = mapProject(await response.json());
         safeRevalidate(() => {
             revalidatePath('/[orgSlug]/projects', 'page');
             revalidateTag('projects', 'max');
         }, 'projects mutation');
-        return { success: true };
+        return { success: true, project: updated };
     } catch (error) {
         console.error("Error updating project:", error);
         return { success: false, error: "Failed to update project" };

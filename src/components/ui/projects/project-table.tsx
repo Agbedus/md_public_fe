@@ -8,7 +8,6 @@ import { FiEdit2, FiTrash2, FiClock, FiCheck, FiX, FiDollarSign } from 'react-ic
 import { format } from 'date-fns';
 import { CustomDatePicker } from '@/components/ui/inputs/custom-date-picker';
 import { CustomNumberInput } from '@/components/ui/inputs/custom-number-input';
-import { createProject, updateProject, deleteProject } from '@/app/(dashboard)/[orgSlug]/projects/actions';
 import { updateTask, deleteTask, createTask } from '@/app/(dashboard)/[orgSlug]/tasks/actions';
 import UserAvatarGroup from '@/components/ui/user-avatar-group';
 import TaskCard from '@/components/ui/tasks/task-card';
@@ -23,9 +22,16 @@ interface ProjectTableProps {
   users: User[];
   clients: Client[];
   onSelectProject?: (project: Project) => void;
+  // Optimistic project mutators owned by the parent page. Routing through these
+  // (instead of calling the server actions directly) makes create/edit/delete
+  // from the table view update the list instantly, sharing the same SWR cache
+  // as the grid view. Each throws on failure.
+  onCreateProject: (formData: FormData) => Promise<void>;
+  onUpdateProject: (existing: Project, formData: FormData) => Promise<void>;
+  onDeleteProject: (project: Project) => Promise<void>;
 }
 
-export function ProjectTable({ projects, users, clients, onSelectProject }: ProjectTableProps) {
+export function ProjectTable({ projects, users, clients, onSelectProject, onCreateProject, onUpdateProject, onDeleteProject }: ProjectTableProps) {
   const confirm = useConfirm();
   const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -92,11 +98,10 @@ export function ProjectTable({ projects, users, clients, onSelectProject }: Proj
         throw new Error('Project name is required');
       }
 
+      const existing = projects.find(p => p.id === editingId);
+      if (!existing) throw new Error('Project not found');
       formData.set('id', editingId!.toString());
-      const result = await updateProject(formData);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      await onUpdateProject(existing, formData);
       toast.success('Project updated successfully');
       setEditingId(null);
     } catch (err: any) {
@@ -121,10 +126,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject }: Proj
         throw new Error('Project name is required');
       }
 
-      const result = await createProject(formData);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      await onCreateProject(formData);
       toast.success('Project created successfully');
       setIsAdding(false);
       setNewProjectValues({ startDate: null, endDate: null, budget: '' });
@@ -146,9 +148,12 @@ export function ProjectTable({ projects, users, clients, onSelectProject }: Proj
     });
 
     if (confirmed) {
-      const formData = new FormData();
-      formData.set('id', project.id.toString());
-      await deleteProject(formData);
+      try {
+        await onDeleteProject(project);
+        toast.success('Project deleted successfully');
+      } catch (err: any) {
+        toast.error(err?.message || 'Failed to delete project');
+      }
     }
   };
 
@@ -200,7 +205,10 @@ export function ProjectTable({ projects, users, clients, onSelectProject }: Proj
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
-          {projects.map((project) => {
+          {projects.map((project, index) => {
+            // Fall back to the row index if a project somehow lacks an id, so the
+            // list always has a stable, defined key.
+            const rowKey = project.id ?? `project-row-${index}`;
             const isEditing = editingId === project.id;
             const owner = users.find(u => u.id === project.ownerId);
             const client = clients.find(c => c.id === project.clientId);
@@ -208,7 +216,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject }: Proj
 
             if (isEditing) {
               return (
-                <React.Fragment key={project.id}>
+                <React.Fragment key={rowKey}>
                 <tr className="bg-white/[0.02]">
                   <td colSpan={11} className="p-0">
                     <form onSubmit={handleUpdate} className="contents">
@@ -343,14 +351,14 @@ export function ProjectTable({ projects, users, clients, onSelectProject }: Proj
             }
 
             return (
-              <React.Fragment key={project.id}>
-              <tr 
+              <React.Fragment key={rowKey}>
+              <tr
                 className={`group hover:bg-foreground/[0.03] transition-colors items-center cursor-pointer ${expandedIds.includes(project.id) ? 'bg-foreground/[0.03]' : ''}`}
                 onClick={() => router.push(`/projects/${project.id}`)}
               >
                 <td className="px-6 py-3 sticky left-0 z-10 bg-card/90 backdrop-blur-md border-r border-card-border">
                   <div className="flex items-center gap-3">
-                    <div className={`w-1.5 h-1.5 rounded-full ${statusColors[project.status].split(' ')[1].replace('text-', 'bg-')}`} />
+                    <div className={`w-1.5 h-1.5 rounded-full ${(statusColors[project.status] ?? statusColors.planning).split(' ')[1].replace('text-', 'bg-')}`} />
                     <div className="font-bold text-foreground text-xs tracking-tight truncate group-hover:text-indigo-500 transition-colors uppercase">{project.name}</div>
                   </div>
                 </td>
@@ -365,8 +373,8 @@ export function ProjectTable({ projects, users, clients, onSelectProject }: Proj
                   )}
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider border whitespace-nowrap ${statusColors[project.status]}`}>
-                    {statusMapping[project.status]}
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider border whitespace-nowrap ${statusColors[project.status] ?? statusColors.planning}`}>
+                    {statusMapping[project.status] ?? project.status ?? '—'}
                   </span>
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">

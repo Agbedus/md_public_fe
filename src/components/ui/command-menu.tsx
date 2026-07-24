@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { searchGlobal, SearchResult } from "@/app/lib/search-actions";
 import { createTask } from "@/app/(dashboard)/[orgSlug]/tasks/actions";
 import { getProjects } from "@/app/(dashboard)/[orgSlug]/projects/actions";
+import { emit } from "@/lib/event-bus";
 import { Project } from "@/types/project";
 
 interface CommandMenuProps {
@@ -117,6 +118,11 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
     setIsSubmitting(false);
     
     if (result.success) {
+        // Refresh any tasks list that is already mounted (use-tasks listens for
+        // this). Without it, quick-creating while already on /tasks would not
+        // show the new task until a manual refresh, since router.push to the
+        // current route is a no-op.
+        emit('task:created');
         runCommand(() => router.push(orgHref('/tasks')));
         setTaskName("");
         setTaskProjectId("");
