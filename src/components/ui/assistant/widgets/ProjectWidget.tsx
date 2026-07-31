@@ -8,7 +8,7 @@ interface ProjectWidgetProps {
 
 export default function ProjectWidget({ project, taskCount }: ProjectWidgetProps) {
   // Status styling
-  let statusColor = "text-zinc-400";
+  let statusColor = "text-text-muted";
   let statusBg = "bg-zinc-400/10";
   
   if (project.status === "in_progress") {

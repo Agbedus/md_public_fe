@@ -140,7 +140,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
 
   return (
     <div className="p-4 pt-2">
-      <div className="bg-card p-2 relative flex flex-col w-full max-w-full rounded-[2rem] border border-card-border shadow-sm">
+      <div className="bg-white dark:bg-card p-2 relative flex flex-col w-full max-w-full rounded-[2rem] border border-card-border shadow-sm">
         <TextareaAutosize
           minRows={1}
           maxRows={8}
@@ -220,7 +220,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
                     type="button"
                     onClick={handleSend}
                     disabled={!displayValue.trim()}
-                    className="p-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-105 transition-all duration-200 focus:outline-none active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                    className="p-2.5 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-all duration-200 focus:outline-none active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                     aria-label="Send message"
                     title="Send"
                 >

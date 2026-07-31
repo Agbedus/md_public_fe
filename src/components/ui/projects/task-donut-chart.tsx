@@ -63,7 +63,7 @@ export function TaskDonutChart({
           stroke="currentColor"
           strokeWidth={strokeWidth}
           fill="transparent"
-          className="text-white/10"
+          className="text-foreground/10"
         />
         
         {/* Done segment with Gradient */}

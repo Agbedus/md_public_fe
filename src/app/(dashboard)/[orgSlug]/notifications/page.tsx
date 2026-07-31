@@ -126,8 +126,6 @@ export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN');
-
   const filteredNotifications = useMemo(() => {
     return notifications.filter(n => {
       const matchesSearch = 
@@ -188,10 +186,10 @@ export default function NotificationsPage() {
     <div className="px-4 py-8 max-w-[1600px] mx-auto h-[calc(100vh-40px)] flex flex-col overflow-hidden">
       <div className="mb-4 flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0 px-1">
         <div>
-          <h1 className="text-lg font-medium text-foreground mb-0.5 tracking-tight flex items-center gap-2 uppercase">
-             Notifications
+          <h1 className="text-xl font-bold text-foreground mb-0.5 tracking-tight">
+            Notifications
           </h1>
-          <p className="text-text-muted text-[11px] font-bold uppercase tracking-wider">Mission Intelligence Feed</p>
+          <p className="text-text-muted text-[11px] font-bold uppercase tracking-wider">Recent activity</p>
         </div>
         <div className="flex items-center gap-3">
             {unreadCount > 0 && (
@@ -199,7 +197,7 @@ export default function NotificationsPage() {
                 onClick={markAllAsRead}
                 className="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg border border-emerald-500/20 transition-all active:scale-95"
               >
-                Flush unread
+                Mark all read
               </button>
             )}
         </div>
@@ -241,7 +239,7 @@ export default function NotificationsPage() {
                 placeholder="Search resources..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-background border border-card-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500/30 transition-all placeholder:text-text-muted/50 font-medium"
+                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all placeholder:text-text-muted/50 font-medium"
               />
             </div>
           </div>
@@ -289,7 +287,7 @@ export default function NotificationsPage() {
                 <div className="w-16 h-16 rounded-3xl bg-foreground/[0.03] flex items-center justify-center border border-card-border">
                    <FiBell size={24} className="text-text-muted" />
                 </div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-text-muted">No transmissions found</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-text-muted">No messages found</p>
               </div>
             )}
           </div>
@@ -355,7 +353,7 @@ export default function NotificationsPage() {
                       <p className="text-[11px] font-mono text-text-secondary uppercase tracking-tight">{selectedNotification.resource_type || 'SYSTEM_CORE'}</p>
                     </div>
                     <div className="p-4 rounded-2xl bg-foreground/[0.02] border border-card-border space-y-1">
-                      <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider">Entity ID</p>
+                      <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider">Company</p>
                       <p className="text-[11px] font-mono text-text-secondary truncate">{selectedNotification.resource_id || 'NULL'}</p>
                     </div>
                     <div className="p-4 rounded-2xl bg-foreground/[0.02] border border-card-border space-y-1">
@@ -376,7 +374,7 @@ export default function NotificationsPage() {
               <div className="p-6 lg:p-8 border-t border-card-border bg-foreground/[0.01] backdrop-blur-md">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="flex flex-col gap-1.5 min-w-0">
-                    <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider text-center md:text-left">Recipient Designation</p>
+                    <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider text-center md:text-left">Recipient</p>
                     <div className="px-4 py-2 rounded-xl bg-foreground/[0.02] border border-card-border">
                       <p className="text-[11px] font-mono text-text-muted truncate tracking-tight">{selectedNotification.recipient_id}</p>
                     </div>

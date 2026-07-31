@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useTransition, useRef, useEffect } from 'react';
+import React, { useState, useTransition, useRef, useEffect, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import type { OrganizationMembershipWithUser, OrgRole, MembershipStatus } from '@/types/organization';
-import { isPrivilegedOrgRole } from '@/types/organization';
-import { FiShield, FiStar, FiUser, FiUserCheck, FiClock, FiXCircle, FiCheck, FiUserPlus, FiUserX, FiLink, FiCopy, FiSend, FiChevronDown, FiAlertTriangle, FiTrash2, FiPause, FiPlay } from 'react-icons/fi';
+import { isPrivilegedOrgRole, toOrgRole } from '@/types/organization';
+import { FiShield, FiStar, FiUser, FiUserCheck, FiEye, FiClock, FiXCircle, FiCheck, FiUserPlus, FiUserX, FiLink, FiCopy, FiSend, FiChevronDown, FiAlertTriangle, FiTrash2, FiPause, FiPlay, FiSearch, FiFilter } from 'react-icons/fi';
 import { approveMember, rejectMember as rejectMemberAction, updateMemberRole, suspendMember, removeMember as removeMemberAction } from '@/app/(dashboard)/[orgSlug]/team/actions';
 import { toast } from '@/lib/toast';
 import { InviteMemberModal } from '@/components/ui/invite-member-modal';
+import { Portal } from '@/components/ui/portal';
 
 interface TeamPageClientProps {
   members: OrganizationMembershipWithUser[];
@@ -17,32 +18,58 @@ interface TeamPageClientProps {
   isSuperAdmin: boolean;
 }
 
-const roleConfig: Record<OrgRole, { label: string; icon: React.ReactNode; color: string; bg: string }> = {
+type RoleDisplay = { label: string; hint: string; icon: React.ReactNode; color: string; bg: string };
+
+const roleConfig: Record<OrgRole, RoleDisplay> = {
   owner: {
     label: 'Owner',
+    hint: 'Full control of the organization',
     icon: <FiStar size={14} />,
     color: 'text-amber-500',
     bg: 'bg-amber-500/10',
   },
   admin: {
     label: 'Admin',
+    hint: "Can edit or remove anyone's work",
     icon: <FiShield size={14} />,
     color: 'text-blue-500',
     bg: 'bg-blue-500/10',
   },
+  manager: {
+    label: 'Manager',
+    hint: 'Sees everything, changes only their own',
+    icon: <FiEye size={14} />,
+    color: 'text-teal-500',
+    bg: 'bg-teal-500/10',
+  },
   member: {
     label: 'Member',
+    hint: 'Creates and manages their own work',
     icon: <FiUserCheck size={14} />,
     color: 'text-emerald-500',
     bg: 'bg-emerald-500/10',
   },
-  client: {
-    label: 'Client',
+  guest: {
+    label: 'Guest',
+    hint: 'Read-only, shared items only',
     icon: <FiUser size={14} />,
     color: 'text-purple-500',
     bg: 'bg-purple-500/10',
   },
 };
+
+const UNKNOWN_ROLE: RoleDisplay = {
+  label: 'Unknown',
+  hint: 'Unrecognized role',
+  icon: <FiUser size={14} />,
+  color: 'text-text-muted',
+  bg: 'bg-foreground/[0.05]',
+};
+
+/** Never index `roleConfig` directly — an unexpected role from the API would crash the row. */
+function displayRole(role: string | null | undefined): RoleDisplay {
+  return roleConfig[toOrgRole(role) as OrgRole] ?? UNKNOWN_ROLE;
+}
 
 const statusConfig: Record<MembershipStatus, { label: string; color: string; bg: string }> = {
   active: {
@@ -69,28 +96,56 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
   onRoleChange: (userId: string, role: OrgRole) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // The table this renders inside has `overflow-hidden` (for its rounded
+  // corners), which clips any absolutely-positioned child that spills past
+  // the table's own bounds — so a dropdown near the bottom of a long roster
+  // got cut off instead of showing its options. Rendering the panel through
+  // a portal, positioned from the trigger's viewport coordinates, escapes
+  // that clipping entirely and always paints above the rest of the page.
+  useLayoutEffect(() => {
+    if (!open || !triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setCoords({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+  }, [open]);
 
   useEffect(() => {
+    if (!open) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (triggerRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
+    // Closing on scroll avoids the panel drifting away from a trigger it no
+    // longer tracks live, since the portal is not in the table's DOM subtree.
+    const handleScroll = () => setOpen(false);
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [open]);
 
-  const role = roleConfig[member.role];
+  const role = displayRole(member.role);
 
-  const options: { value: OrgRole; label: string }[] = [
-    ...(isOwner ? [{ value: 'owner' as OrgRole, label: 'Owner' }] : []),
-    { value: 'admin', label: 'Admin' },
-    { value: 'member', label: 'Member' },
-    { value: 'client', label: 'Client' },
+  // Only an OWNER may grant OWNER or ADMIN. This mirrors the backend rule in
+  // `organizations.py` that stops an admin from minting a peer admin.
+  const options: OrgRole[] = [
+    ...(isOwner ? (['owner', 'admin'] as OrgRole[]) : []),
+    'manager',
+    'member',
+    'guest',
   ];
 
   return (
-    <div ref={ref} className="relative inline-block">
+    <>
       <button
+        ref={triggerRef}
         onClick={() => setOpen(!open)}
         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-card-border bg-foreground/[0.03] text-foreground hover:bg-foreground/[0.06] transition-all whitespace-nowrap"
       >
@@ -103,23 +158,40 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
         <FiChevronDown size={12} className={`text-text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-50 min-w-[150px] bg-background border border-card-border rounded-xl shadow-lg shadow-black/10 overflow-hidden">
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => { onRoleChange(member.user_id, opt.value); setOpen(false); }}
-              disabled={isLoading || member.role === opt.value}
-              className={`w-full flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors hover:bg-foreground/[0.05] ${
-                member.role === opt.value ? 'text-foreground bg-foreground/[0.03]' : 'text-text-muted'
-              } disabled:opacity-50`}
-            >
-              {roleConfig[opt.value].icon}
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <Portal>
+          <div
+            ref={panelRef}
+            style={{ position: 'fixed', top: coords.top, left: coords.left }}
+            className="z-[200] min-w-[230px] bg-background border border-card-border rounded-xl shadow-lg shadow-black/10 overflow-hidden"
+          >
+            {options.map((opt) => {
+              const cfg = roleConfig[opt];
+              const isCurrent = toOrgRole(member.role) === opt;
+              return (
+                <button
+                  key={opt}
+                  onClick={() => { onRoleChange(member.user_id, opt); setOpen(false); }}
+                  disabled={isLoading || isCurrent}
+                  className={`w-full flex items-start gap-2 px-3 py-2 text-left transition-colors hover:bg-foreground/[0.05] ${
+                    isCurrent ? 'bg-foreground/[0.03]' : ''
+                  } disabled:opacity-50`}
+                >
+                  <span className={`mt-0.5 ${cfg.color}`}>{cfg.icon}</span>
+                  <span className="min-w-0">
+                    <span className={`block text-xs font-medium ${isCurrent ? 'text-foreground' : 'text-text-muted'}`}>
+                      {cfg.label}
+                    </span>
+                    <span className="block text-[10px] text-text-muted/70 leading-tight mt-0.5">
+                      {cfg.hint}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </Portal>
       )}
-    </div>
+    </>
   );
 }
 
@@ -133,6 +205,9 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
   const [confirmAction, setConfirmAction] = useState<{ userId: string; name: string; action: 'remove' | 'suspend' } | null>(null);
 
   const [copied, setCopied] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
   const handleCopyInvite = () => {
     if (!inviteCode) return;
     const origin = window.location.origin;
@@ -143,9 +218,31 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
   };
 
   const sorted = [...localMembers].sort((a, b) => {
-    const roleOrder: Record<OrgRole, number> = { owner: 0, admin: 1, member: 2, client: 3 };
-    return (roleOrder[a.role] ?? 99) - (roleOrder[b.role] ?? 99);
+    const roleOrder: Record<OrgRole, number> = { owner: 0, admin: 1, manager: 2, member: 3, guest: 4 };
+    const rank = (r: string) => roleOrder[toOrgRole(r) as OrgRole] ?? 99;
+    return rank(a.role) - rank(b.role);
+  }).filter(m => {
+    const matchesSearch = !searchQuery || m.user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) || m.user.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = filterRole === 'all' || toOrgRole(m.role) === filterRole;
+    const matchesStatus = filterStatus === 'all' || m.status === filterStatus;
+    return matchesSearch && matchesRole && matchesStatus;
   });
+
+  /**
+   * Whether the current user may change or remove this member.
+   *
+   * Mirrors the backend: owners are untouchable through this screen, you cannot
+   * act on yourself, and an ADMIN may not modify a peer ADMIN — only an OWNER
+   * can. Without that last clause any admin could demote every other admin.
+   */
+  const canActOn = (member: OrganizationMembershipWithUser): boolean => {
+    if (!canManage) return false;
+    if (member.user_id === currentUserId) return false;
+    const targetRole = toOrgRole(member.role);
+    if (targetRole === 'owner') return false;
+    if (targetRole === 'admin' && !isOwner && !isSuperAdmin) return false;
+    return true;
+  };
 
   const handleApprove = (userId: string) => {
     setLoadingId(userId);
@@ -243,8 +340,8 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
     <div>
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Team</h1>
-          <p className="text-text-muted mt-1">{localMembers.length} member{localMembers.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Team</h1>
+          <p className="text-text-muted text-sm">{localMembers.length} member{localMembers.length !== 1 ? 's' : ''} in your organization.</p>
           {inviteCode && canManage && (
             <button
               onClick={handleCopyInvite}
@@ -259,12 +356,61 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
         {canManage && (
           <button
             onClick={() => setInviteModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-all"
+            className="flex items-center gap-2 p-1.5 h-9 lg:h-11 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
           >
-            <FiSend size={16} />
+            <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+              <FiSend size={16} />
+            </div>
             Invite Members
           </button>
         )}
+      </div>
+
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="relative flex-1 min-w-[140px] max-w-sm group">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5"/>
+          <input
+            type="text"
+            placeholder="Search members..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-8 pr-4 h-9 lg:h-11 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] text-foreground placeholder:text-text-muted/50 transition-all text-xs lg:text-sm"
+          />
+        </div>
+
+        <div className="relative group flex-shrink-0">
+          <div className="h-9 lg:h-11 w-9 lg:w-36 bg-foreground/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
+            <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
+            <select
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+            >
+              <option value="all" className="bg-card">Role</option>
+              <option value="owner" className="bg-card">Owner</option>
+              <option value="admin" className="bg-card">Admin</option>
+              <option value="manager" className="bg-card">Manager</option>
+              <option value="member" className="bg-card">Member</option>
+              <option value="guest" className="bg-card">Guest</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="relative group flex-shrink-0">
+          <div className="h-9 lg:h-11 w-9 lg:w-36 bg-foreground/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
+            <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+            >
+              <option value="all" className="bg-card">Status</option>
+              <option value="active" className="bg-card">Active</option>
+              <option value="pending" className="bg-card">Pending</option>
+              <option value="suspended" className="bg-card">Suspended</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <InviteMemberModal
@@ -273,12 +419,12 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
       />
 
       {sorted.length === 0 ? (
-        <div className="glass border border-card-border rounded-xl px-5 py-12 text-center">
+        <div className="bg-card border border-card-border rounded-2xl px-5 py-12 text-center">
           <FiUser className="mx-auto text-text-muted/40 mb-3" size={32} />
           <p className="text-text-muted">No team members found</p>
         </div>
       ) : (
-        <div className="glass border border-card-border rounded-xl">
+        <div className="bg-card border border-card-border rounded-2xl overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="border-b border-card-border bg-foreground/[0.02]">
@@ -291,7 +437,8 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
             <tbody className="divide-y divide-card-border">
               {sorted.map((m) => {
                 const isCurrentUser = m.user_id === currentUserId;
-                const isOwnerMember = m.role === 'owner';
+                const mayAct = canActOn(m);
+                const roleDisplay = displayRole(m.role);
                 const initial = (m.user.full_name || m.user.email || '?')[0].toUpperCase();
                 const status = statusConfig[m.status];
 
@@ -329,12 +476,15 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                       </div>
                     </td>
                     <td className="px-5 py-3">
-                      {canManage && !isCurrentUser && !isOwnerMember ? (
+                      {mayAct ? (
                         <RoleDropdown member={m} isOwner={isOwner} isLoading={loadingId === m.user_id} onRoleChange={handleRoleChange} />
                       ) : (
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${roleConfig[m.role].bg} ${roleConfig[m.role].color} whitespace-nowrap`}>
-                          {roleConfig[m.role].icon}
-                          {roleConfig[m.role].label}
+                        <span
+                          title={roleDisplay.hint}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${roleDisplay.bg} ${roleDisplay.color} whitespace-nowrap`}
+                        >
+                          {roleDisplay.icon}
+                          {roleDisplay.label}
                         </span>
                       )}
                     </td>
@@ -376,7 +526,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                             </button>
                           </>
                         )}
-                        {canManage && !isCurrentUser && !isOwnerMember && m.status !== 'pending' && (
+                        {mayAct && m.status !== 'pending' && (
                           <>
                             {m.status === 'active' ? (
                               <button
@@ -467,7 +617,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-all disabled:opacity-50"
               >
                 {loadingId === confirmAction.userId ? (
-                  <span className="block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="block w-4 h-4 border-2 border-foreground/30 border-t-white rounded-full animate-spin" />
                 ) : null}
                 {loadingId === confirmAction.userId ? 'Processing...' : `Confirm ${confirmAction.action}`}
               </button>

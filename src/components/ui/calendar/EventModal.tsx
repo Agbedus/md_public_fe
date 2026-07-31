@@ -140,9 +140,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
 
       const result = await createEvent(formData);
       if (result && !result.success) {
-        // In a real robust app we might rollback optimistic update here or show toast error
         console.error(result.error || "Failed to save event");
-        // alert(result.error || "Failed to save event"); // Don't block UI with alert on failure for now to keep snappy flow
         return;
       }
       
@@ -177,8 +175,8 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
 
       <div className="relative w-full md:max-w-3xl bg-background border border-card-border rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex-none px-8 py-5 border-b border-card-border flex items-center justify-between bg-foreground/[0.03]">
-          <div id="create-event-title" className="text-foreground font-black tracking-tight text-lg uppercase italic">Initialize Event</div>
+        <div className="flex-none px-8 py-5 border-b border-card-border flex items-center justify-between bg-white dark:bg-white/[0.03]">
+          <div id="create-event-title" className="text-foreground font-black tracking-tight text-lg uppercase italic">Add event</div>
           <button
             type="button"
             onClick={onClose}
@@ -193,10 +191,10 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
         <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
             <form id="create-event-form" onSubmit={handleSubmit} className="space-y-8">
             {/* All-day toggle at top */}
-            <div className="flex items-center justify-between gap-3 p-4 bg-foreground/[0.03] rounded-2xl border border-card-border">
+            <div className="flex items-center justify-between gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-500/10 rounded-lg">
-                        <FiCalendar className="text-purple-500 w-4 h-4" />
+                    <div className="p-2 bg-foreground/[0.06] rounded-lg">
+                        <FiCalendar className="text-foreground/60 w-4 h-4" />
                     </div>
                     <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
                         Temporal Mode
@@ -208,12 +206,12 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                 onClick={() => setAllDay((v) => !v)}
                 aria-pressed={allDay}
                 className={`relative inline-flex h-10 items-center rounded-xl border p-1 transition-all duration-300 ${
-                    allDay ? "bg-purple-600/10 border-purple-500/30" : "bg-background border-card-border"
+                    allDay ? "bg-foreground/[0.08] border-foreground/20" : "bg-background border-card-border"
                 }`}
                 >
                 <span
                     className={`inline-flex items-center px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all duration-300 ${
-                    allDay ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20" : "bg-transparent text-text-muted"
+                    allDay ? "bg-foreground/[0.12] text-foreground" : "bg-transparent text-text-muted"
                     }`}
                 >
                     Full Duration
@@ -231,11 +229,11 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
             {/* Primary fields */}
             <div className="space-y-6">
                 <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Mission Identifier</label>
+                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Task name</label>
                 <input
                     value={title}
                     onChange={(e)=>setTitle(e.target.value)}
-                    className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold"
+                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
                     placeholder="Operational designation..."
                     required
                 />
@@ -244,7 +242,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1 flex items-center gap-1.5">
-                    <FiClock className="text-purple-500" /> Commencement
+                    <FiClock className="text-blue-500" /> Commencement
                     </label>
                     <CustomDatePicker
                         value={start}
@@ -259,7 +257,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                 </div>
                 <div>
                     <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1 flex items-center gap-1.5">
-                    <FiClock className="text-purple-500" /> Termination
+                    <FiClock className="text-blue-500" /> Termination
                     </label>
                     <CustomDatePicker
                         value={end}
@@ -277,12 +275,12 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
 
                 <div>
                 <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1 flex items-center gap-1.5">
-                    <FiMapPin className="text-purple-500" /> Operational Coordinates
+                    <FiMapPin className="text-blue-500" /> Office location
                 </label>
                 <input
                     value={location}
                     onChange={(e)=>setLocation(e.target.value)}
-                    className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold"
+                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
                     placeholder="Physical or virtual deployment zone"
                 />
                 </div>
@@ -291,17 +289,17 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
             {/* Advanced options */}
             <div className="space-y-6 pt-4">
                 <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Supplemental Intelligence</span>
+                    <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Additional details</span>
                     <div className="h-px w-full bg-foreground/[0.05]" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Mission Lead</label>
+                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Assigned to</label>
                     <input
                         value={organizer}
                         onChange={(e)=>setOrganizer(e.target.value)}
-                        className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold"
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
                         placeholder="Command authority"
                     />
                     </div>
@@ -311,13 +309,13 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                     <input
                         value={attendees}
                         onChange={(e)=>setAttendees(e.target.value)}
-                        className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold"
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
                         placeholder="Authorized identifiers (comma separated)"
                     />
                     </div>
 
                     <div>
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Operational Status</label>
+                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Status</label>
                     <div className="flex flex-wrap gap-2">
                         {([
                         { v: "tentative", label: "Tentative" },
@@ -330,7 +328,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             onClick={() => setStatus(opt.v)}
                             className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${
                             status === opt.v
-                                ? "border-purple-500/60 bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                                ? "border-blue-500/60 bg-blue-500/10 text-blue-600 dark:text-blue-400"
                                 : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
                             }`}
                         >
@@ -365,7 +363,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                     </div>
 
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Recurrence Protocol</label>
+                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Repeat</label>
                     <div className="flex flex-wrap gap-2">
                         {([
                         { v: "none", label: "Static" },
@@ -380,7 +378,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             onClick={() => setRecurrence(opt.v)}
                             className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${
                             recurrence === opt.v
-                                ? "border-purple-500/60 bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                                ? "border-blue-500/60 bg-blue-500/10 text-blue-600 dark:text-blue-400"
                                 : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
                             }`}
                         >
@@ -392,7 +390,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
 
                     <div className="md:col-span-2">
                     <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Chromatic Designation</label>
-                    <div className="flex flex-wrap gap-3 p-4 bg-foreground/[0.03] rounded-2xl border border-card-border">
+                    <div className="flex flex-wrap gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
                         {(["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4"] as const).map((c) => (
                         <button
                             type="button"
@@ -408,27 +406,27 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                     </div>
 
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Tactical Briefing</label>
+                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Summary</label>
                     <textarea
                         value={description}
                         onChange={(e)=>setDescription(e.target.value)}
-                        className="w-full min-h-32 bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold resize-none custom-scrollbar"
-                        placeholder="Operational details, mission agenda..."
+                        className="w-full min-h-32 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold resize-none custom-scrollbar"
+                        placeholder="What is this event about?"
                     />
                     </div>
 
                     <div className="md:col-span-2">
                     <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-3 ml-1 flex items-center gap-1.5">
-                        <FiBell className="text-purple-500" /> Proactive Notifications
+                        <FiBell className="text-blue-500" /> Proactive Notifications
                     </label>
                     <div className="flex flex-wrap gap-2 mb-4">
                         {reminders.map((r, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-2 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 shadow-sm">
+                        <span key={idx} className="inline-flex items-center gap-2 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border border-card-border bg-foreground/[0.06] text-text-secondary shadow-sm">
                              {r.days > 0 && `${r.days}D `}
                              {r.hours > 0 && `${r.hours}H `}
                              {r.minutes > 0 && `${r.minutes}M `}
                              Lead Time
-                            <button type="button" onClick={() => setReminders((prev) => prev.filter((_, i) => i !== idx))} className="ml-1 p-0.5 hover:bg-purple-500/20 rounded-full transition-all">
+                            <button type="button" onClick={() => setReminders((prev) => prev.filter((_, i) => i !== idx))} className="ml-1 p-0.5 hover:bg-foreground/[0.12] rounded-full transition-all">
                             <FiX className="h-3 w-3" />
                             </button>
                         </span>
@@ -436,7 +434,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                         {reminders.length === 0 && <p className="text-[10px] font-black text-text-muted/30 uppercase tracking-widest italic ml-1">No alerts configured</p>}
                     </div>
                     
-                    <div className="flex flex-wrap items-end gap-3 p-5 bg-foreground/[0.03] border border-card-border rounded-2xl shadow-sm">
+                    <div className="flex flex-wrap items-end gap-3 p-5 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl">
                         <div className="flex-1 min-w-[70px]">
                             <label className="block text-[9px] uppercase font-black tracking-[0.2em] text-text-muted mb-2 ml-1">Days</label>
                             <CustomNumberInput
@@ -482,11 +480,11 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
         </div>
 
         {/* Fixed Footer */}
-        <div className="flex-none flex items-center justify-end gap-3 p-6 border-t border-card-border bg-foreground/[0.03]">
+        <div className="flex-none flex items-center justify-end gap-3 p-6 border-t border-card-border bg-white dark:bg-white/[0.03]">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
+                className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-white dark:bg-white/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
               >
                 Abort
               </button>
@@ -495,9 +493,9 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                 type="submit"
                 form="create-event-form"
                 disabled={submitting}
-                className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-white bg-purple-600 hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-muted hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] transition-all border border-card-border disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {submitting ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiCheck className="h-4 w-4" />}
+                {submitting ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground/60"></div> : <FiCheck className="h-4 w-4" />}
                 Confirm Entry
               </button>
         </div>

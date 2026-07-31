@@ -27,15 +27,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
   if (!session?.user?.id) {
     return (
       <div className="px-4 py-8 max-w-[1600px] mx-auto">
-        <div className="glass p-6 rounded-2xl text-center">
-          <h2 className="text-xl font-bold text-white mb-2">Please log in</h2>
-          <p className="text-zinc-400">You need to be logged in to view the dashboard.</p>
+        <div className="bg-card p-6 rounded-2xl text-center border border-card-border">
+          <h2 className="text-xl font-bold text-foreground mb-2">Please log in</h2>
+          <p className="text-text-muted">You need to be logged in to view the dashboard.</p>
         </div>
       </div>
     );
   }
 
-  const userName = session.user.name || 'User';
+  // Greet by first name only — "Good morning, Yaw" reads like a colleague,
+  // "Good morning, Yaw Donkor Mensah" reads like a form letter.
+  const firstName = (session.user.name || '').trim().split(/\s+/)[0] || 'there';
   
   // Determine greeting based on time
   const hour = new Date().getHours();
@@ -46,8 +48,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
   return (
     <div className="px-4 py-8 max-w-[1600px] mx-auto">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">{greeting}, {userName}</h1>
-        <p className="text-(--text-muted) text-sm lg:text-lg font-bold uppercase tracking-tight">Operational intelligence dashboard</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">{greeting}, {firstName}</h1>
+        <p className="text-text-muted text-sm lg:text-base">Here&apos;s what&apos;s happening across your organization today.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

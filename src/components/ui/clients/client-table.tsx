@@ -10,9 +10,11 @@ interface ClientTableProps {
   clients: Client[];
   onEdit: (client: Client) => void;
   onDelete: (client: Client) => void;
+  /** Per-row gate: false for a client the viewer can see but not change. */
+  canModifyClient?: (client: Client) => boolean;
 }
 
-export default function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
+export default function ClientTable({ clients, onEdit, onDelete, canModifyClient = () => true }: ClientTableProps) {
   return (
     <div className="bg-card rounded-2xl overflow-hidden border border-card-border">
       <div className="overflow-x-auto">
@@ -73,6 +75,8 @@ export default function ClientTable({ clients, onEdit, onDelete }: ClientTablePr
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {canModifyClient(client) && (
+                    <>
                     <button
                       onClick={() => onEdit(client)}
                       className="p-1.5 rounded-lg bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all"
@@ -87,6 +91,8 @@ export default function ClientTable({ clients, onEdit, onDelete }: ClientTablePr
                     >
                       <FiTrash2 size={14} />
                     </button>
+                    </>
+                    )}
                   </div>
                 </td>
               </tr>

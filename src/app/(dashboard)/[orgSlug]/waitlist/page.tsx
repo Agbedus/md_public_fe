@@ -18,18 +18,18 @@ const roleColors: Record<string, string> = {
     "Individual Contributor": 'bg-emerald-600/10 text-emerald-400 border-emerald-600/20',
     "Consultant": 'bg-rose-600/10 text-rose-400 border-rose-600/20',
     "Founder / Owner": 'bg-orange-600/10 text-orange-400 border-orange-600/20',
-    "Other": 'bg-zinc-600/10 text-zinc-400 border-zinc-600/20',
+    "Other": 'bg-zinc-600/10 text-text-muted border-card-border',
 };
 
 const sourceColors: Record<string, string> = {
     "LinkedIn": 'bg-sky-600/10 text-sky-400 border-sky-600/20',
-    "Twitter / X": 'bg-zinc-600/10 text-zinc-300 border-zinc-600/20',
+    "Twitter / X": 'bg-zinc-600/10 text-text-secondary border-card-border',
     "Google Search": 'bg-emerald-600/10 text-emerald-400 border-emerald-600/20',
     "Friend / Referral": 'bg-purple-600/10 text-purple-400 border-purple-600/20',
     "Conference / Event": 'bg-amber-600/10 text-amber-400 border-amber-600/20',
     "Blog / Article": 'bg-rose-600/10 text-rose-400 border-rose-600/20',
     "Podcast": 'bg-orange-600/10 text-orange-400 border-orange-600/20',
-    "Other": 'bg-zinc-600/10 text-zinc-400 border-zinc-600/20',
+    "Other": 'bg-zinc-600/10 text-text-muted border-card-border',
 };
 
 export default function WaitlistPage() {
@@ -91,7 +91,7 @@ export default function WaitlistPage() {
             <div className="hidden lg:flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-10">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Waitlist</h1>
-                    <p className="text-text-muted text-sm font-bold uppercase tracking-wider">
+                    <p className="text-text-muted text-sm">
                         Early access registration & lead intelligence
                     </p>
                 </div>

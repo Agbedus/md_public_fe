@@ -30,7 +30,7 @@ export function AttendanceStack({ stats }: { stats: AttendanceStats }) {
       bg: pColors.bg,
       content: (
         <div className="flex-1 flex flex-col justify-center">
-          <div className="glass p-4 rounded-2xl border border-card-border relative overflow-hidden mb-2">
+          <div className="bg-card p-4 rounded-2xl border border-card-border relative overflow-hidden mb-2">
              <div className={`absolute left-0 top-0 bottom-0 w-1 ${pColors.dot}`} />
              <p className="text-[10px] text-(--text-muted) font-black uppercase tracking-widest mb-1">Live Presence</p>
              <h3 className="text-xl font-bold text-foreground">{presenceStateLabels[stats.myPresence as PresenceState] || 'Standby'}</h3>
@@ -65,7 +65,7 @@ export function AttendanceStack({ stats }: { stats: AttendanceStats }) {
                 <span>Engagement</span>
                 <span>{Math.round((stats.teamActiveCount / (stats.teamTotalCount || 1)) * 100)}%</span>
              </div>
-             <div className="h-2 bg-background/50 rounded-full border border-card-border overflow-hidden">
+              <div className="h-2 bg-foreground/[0.04] rounded-full border border-card-border overflow-hidden">
                 <motion.div 
                    initial={{ width: 0 }}
                    animate={{ width: `${(stats.teamActiveCount / (stats.teamTotalCount || 1)) * 100}%` }}
@@ -88,17 +88,17 @@ export function AttendanceStack({ stats }: { stats: AttendanceStats }) {
       content: (
         <div className="flex-1 flex flex-col justify-center">
            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 rounded-2xl bg-background/40 border border-card-border">
+               <div className="p-3 rounded-2xl bg-foreground/[0.03] border border-card-border">
                  <p className="text-[9px] text-(--text-muted) font-black uppercase tracking-widest mb-1">Avg Daily</p>
                  <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-black font-numbers text-foreground">{stats.avgDailyHours}</span>
                     <span className="text-[10px] text-(--text-muted) font-bold uppercase">HRS</span>
                  </div>
-              </div>
-              <div className="p-3 rounded-2xl bg-background/40 border border-card-border">
+               </div>
+               <div className="p-3 rounded-2xl bg-foreground/[0.03] border border-card-border">
                  <p className="text-[9px] text-(--text-muted) font-black uppercase tracking-widest mb-1">Efficiency</p>
                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black font-numbers text-emerald-400">{(stats.avgDailyHours / 8 * 100).toFixed(0)}%</span>
+                    <span className="text-2xl font-black font-numbers text-[var(--pastel-emerald)]">{(stats.avgDailyHours / 8 * 100).toFixed(0)}%</span>
                  </div>
               </div>
            </div>
@@ -183,13 +183,13 @@ export function AttendanceStack({ stats }: { stats: AttendanceStats }) {
         <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-50 opacity-0 group-hover/stack:opacity-100 transition-opacity">
           <button 
             onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-            className="w-8 h-8 rounded-full bg-background/80 border border-card-border text-foreground flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition-all active:scale-90 shadow-lg backdrop-blur-md"
+            className="w-8 h-8 rounded-full bg-background border border-card-border text-foreground flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition-all active:scale-90"
           >
             <FiChevronUp className="text-lg" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-            className="w-8 h-8 rounded-full bg-background/80 border border-card-border text-foreground flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition-all active:scale-90 shadow-lg backdrop-blur-md"
+            className="w-8 h-8 rounded-full bg-background border border-card-border text-foreground flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition-all active:scale-90"
           >
             <FiChevronDown className="text-lg" />
           </button>

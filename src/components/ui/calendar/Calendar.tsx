@@ -17,9 +17,8 @@ import { useUsers } from "@/hooks/use-users";
 import { useProjects } from "@/hooks/use-projects";
 import { useTimeOff } from "@/hooks/use-time-off";
 import { useCalendarData } from "@/hooks/use-calendar-data";
-import { canCollaborate } from "@/lib/org-permissions";
+import { canCollaborate, canModifyRecord } from "@/lib/org-permissions";
 import CalendarLoading from "@/app/(dashboard)/[orgSlug]/calendar/loading";
-import TimezoneClocks from "./TimezoneClocks";
 import type { Task } from "@/types/task";
 import type { User } from "@/types/user";
 import type { Project } from "@/types/project";
@@ -38,9 +37,10 @@ interface CalendarProps {
   initialTimeOff?: TimeOffRequest[];
   currentUserRoles?: string[];
   currentUserOrgRole?: string;
+  currentUserId?: string;
 }
 
-export default function Calendar({ initialDate, initialView = "month", initialEvents, initialTasks, initialUsers, initialProjects, initialTimeOff, currentUserRoles = [], currentUserOrgRole }: CalendarProps) {
+export default function Calendar({ initialDate, initialView = "month", initialEvents, initialTasks, initialUsers, initialProjects, initialTimeOff, currentUserRoles = [], currentUserOrgRole, currentUserId }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState<Date>(initialDate ? startOfDay(initialDate) : startOfDay(new Date()));
   const [view, setView] = useState<CalendarView>(initialView);
   const [activeFilter, setActiveFilter] = useState<'projects' | 'tasks' | 'events' | 'timeOff'>('tasks');
@@ -81,6 +81,9 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
   // Requesting time off is a baseline org capability — any member and above,
   // matching the backend's get_current_org_collaborator guard.
   const canRequestTimeOff = canCollaborate({ roles: currentUserRoles, orgRole: currentUserOrgRole });
+  // Org admins may change any event; everyone else — MANAGER included, who now
+  // sees the whole org's calendar — only the events they created.
+  const permissionSubject = { id: currentUserId, roles: currentUserRoles, orgRole: currentUserOrgRole };
 
   // Combine events, tasks, projects, and time-off for the calendar
   const allEvents = useMemo(() => {
@@ -307,8 +310,6 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
         )}
       </div>
 
-      <TimezoneClocks />
-
       <EventModal
         open={modalOpen}
         onClose={() => {
@@ -334,6 +335,7 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
           onUpdated={() => { mutateAll(); }}
           onOptimisticUpdate={(e) => applyOptimisticEvent(events => events.map(x => (String(x.id) === String(e.id) ? e : x)))}
           onOptimisticDelete={(e) => applyOptimisticEvent(events => events.filter(x => String(x.id) !== String(e.id)))}
+          canModify={canModifyRecord(permissionSubject, selectedEvent.userId)}
         />
       )}
     </div>

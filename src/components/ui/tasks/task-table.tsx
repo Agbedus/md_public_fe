@@ -43,18 +43,18 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
     };
 
     return (
-        <div className="bg-slate-900 rounded-lg border border-slate-700">
-            <table className="w-full text-left divide-y divide-slate-700">
-                <thead className="bg-slate-800">
+        <div className="bg-foreground/[0.03] rounded-lg border border-card-border">
+            <table className="w-full text-left divide-y divide-card-border">
+                <thead className="bg-foreground/[0.03]">
                     <tr>
-                        <th className="px-6 py-3 text-xs font-medium text-slate-300 uppercase tracking-wider">Task</th>
-                        <th className="px-6 py-3 text-xs font-medium text-slate-300 uppercase tracking-wider">Description</th>
-                        <th className="px-6 py-3 text-xs font-medium text-slate-300 uppercase tracking-wider">Owner</th>
-                        <th className="px-6 py-3 text-xs font-medium text-slate-300 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-xs font-medium text-slate-300 uppercase tracking-wider">Actions</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Task</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Description</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Owner</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-card-border">
                     {tasks.map(task => (
                         <tr key={task.id}>
                             {editingTask?.id === task.id ? (
@@ -83,21 +83,21 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
                                 </td>
                             ) : (
                                 <>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{task.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">{task.description}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{task.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-muted">{task.description}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-text-muted">
                                         {task.owner ? (
                                             <div className="flex items-center gap-2">
                                                 {task.owner.avatarUrl ? (
                                                     <Image src={task.owner.avatarUrl} alt={task.owner.fullName || ''} width={20} height={20} className="w-5 h-5 rounded-full" />
                                                 ) : (
-                                                    <div className="w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center text-[11px] text-white">
+                                                    <div className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground">
                                                         {(task.owner.fullName || task.owner.email || '?')[0].toUpperCase()}
                                                     </div>
                                                 )}
                                                 <span className="text-xs">{task.owner.fullName || task.owner.email}</span>
                                             </div>
-                                        ) : <span className="text-xs text-slate-500">-</span>}
+                                        ) : <span className="text-xs text-text-muted">-</span>}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full whitespace-nowrap ${task.status === 'DONE' ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'}`}>
@@ -106,10 +106,10 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center space-x-4">
-                                            <button onClick={() => setEditingTask(task)} className="p-2 text-slate-400 hover:text-white">
+                                            <button onClick={() => setEditingTask(task)} className="p-2 text-text-muted hover:text-foreground">
                                                 <FiEdit />
                                             </button>
-                                            <button onClick={() => handleDelete(task)} className="p-2 text-slate-400 hover:text-red-500">
+                                            <button onClick={() => handleDelete(task)} className="p-2 text-text-muted hover:text-red-500">
                                                 <FiTrash2 />
                                             </button>
                                         </div>

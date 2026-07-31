@@ -123,24 +123,16 @@ export function Combobox({
       const currentValues = Array.isArray(value) ? value : [];
       onChange(currentValues.filter((v) => v !== optionValue));
     } else {
-      onChange(null); // Or whatever empty value logic you prefer
+      onChange(null);
     }
   };
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {/* Hidden input for form submission */}
+      {/* Hidden input for plain FormData submission. Multi-select serializes
+          as a JSON string, matching what the server actions expect. */}
       {name && (
         multiple ? (
-           // For multi-select, we might need multiple hidden inputs or a JSON string
-           // Here we'll use a JSON string as that's what the actions expect for arrays usually
-           // BUT the actions currently expect `assigneeIdsSelect` as multiple inputs or `assigneeIds` as JSON.
-           // Let's stick to the pattern used in the forms: a hidden input with JSON string if possible, 
-           // OR let the parent handle the hidden input. 
-           // The most robust way for standard form submission is to not render a hidden input here 
-           // if the parent is managing state and submitting via JSON, 
-           // BUT for standard FormData, we need inputs.
-           // Let's render a hidden input with the name and value.
            <input type="hidden" name={name} value={JSON.stringify(value)} />
         ) : (
            <input type="hidden" name={name} value={value?.toString() || ''} />
@@ -150,30 +142,30 @@ export function Combobox({
       {/* Trigger */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full min-h-[34px] bg-zinc-900/50 border border-white/5 rounded-xl px-3 py-1.5 text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all cursor-pointer flex items-center justify-between gap-2"
+        className="w-full min-h-[34px] bg-foreground/[0.03] border border-foreground/5 rounded-xl px-3 py-1.5 text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all cursor-pointer flex items-center justify-between gap-2"
       >
         <div className="flex flex-wrap gap-1.5">
           {selectedOptions.length > 0 ? (
             selectedOptions.map((option) => (
               <span
                 key={option.value}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-800 border border-white/5 text-[11px] text-zinc-200"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-foreground/[0.03] border border-foreground/5 text-[11px] text-text-secondary"
               >
                 {option.label}
                 <button
                   type="button"
                   onClick={(e) => removeValue(e, option.value)}
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   <FiX className="w-3 h-3" />
                 </button>
               </span>
             ))
           ) : (
-            <span className="text-zinc-500">{placeholder}</span>
+            <span className="text-text-muted">{placeholder}</span>
           )}
         </div>
-        <FiChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <FiChevronDown className={`w-4 h-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {/* Dropdown in Portal */}
@@ -188,19 +180,19 @@ export function Combobox({
               left: `${coords.left}px`,
               width: `${coords.width}px`,
             }}
-            className={`z-[9999] bg-zinc-900 border border-white/5 rounded-xl  overflow-hidden animate-in fade-in zoom-in-95 duration-100 ${
+            className={`z-[9999] bg-foreground/[0.03] border border-foreground/5 rounded-xl  overflow-hidden animate-in fade-in zoom-in-95 duration-100 ${
               openUpward ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
             }`}
           >
-            <div className="p-2 border-b border-white/5">
+            <div className="p-2 border-b border-foreground/5">
               <div className="relative">
-                <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500 w-3.5 h-3.5" />
+                <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted w-3.5 h-3.5" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="w-full bg-zinc-800/50 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:bg-zinc-800 transition-colors"
+                  className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-colors"
                   autoFocus
                 />
               </div>
@@ -218,19 +210,19 @@ export function Combobox({
                       type="button"
                       onClick={() => handleSelect(option.value)}
                       className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between group transition-colors ${
-                        isSelected ? 'bg-indigo-500/10 text-indigo-400' : 'text-zinc-300 hover:bg-white/[0.03] hover:text-white'
+                        isSelected ? 'bg-indigo-500/10 text-indigo-400' : 'text-text-secondary hover:bg-foreground/[0.03] hover:text-foreground'
                       }`}
                     >
                       <div>
-                        <div className="font-medium text-xs text-white">{option.label}</div>
-                        {option.subLabel && <div className="text-[11px] text-zinc-500 group-hover:text-zinc-400">{option.subLabel}</div>}
+                        <div className="font-medium text-xs text-foreground">{option.label}</div>
+                        {option.subLabel && <div className="text-[11px] text-text-muted group-hover:text-text-secondary">{option.subLabel}</div>}
                       </div>
                       {isSelected && <FiCheck className="w-4 h-4" />}
                     </button>
                   );
                 })
               ) : (
-                <div className="px-3 py-4 text-center text-xs text-zinc-500 italic">
+                <div className="px-3 py-4 text-center text-xs text-text-muted italic">
                   No results found
                 </div>
               )}

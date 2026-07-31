@@ -107,7 +107,7 @@ export default function VerifyOtpForm() {
   }
 
   function getInputClass() {
-    return 'w-full h-14 text-center text-xl font-semibold tracking-widest bg-input-bg border border-card-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all [font-size:max(16px,inherit)]';
+    return 'w-full h-14 text-center text-xl font-semibold tracking-widest bg-foreground/[0.03] border border-card-border rounded-xl text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)]';
   }
 
   async function handleSubmit(e: React.FormEvent) {

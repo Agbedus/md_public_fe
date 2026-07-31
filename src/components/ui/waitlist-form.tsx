@@ -118,14 +118,14 @@ export default function WaitlistForm() {
                             placeholder="Your full name"
                             value={data.name}
                             onChange={e => update("name", e.target.value)}
-                            className="w-full px-6 py-4 rounded-full bg-white/[0.02] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.04] text-xs transition-all"
+                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:border-indigo-500/50 focus:bg-foreground/[0.04] text-xs transition-all"
                         />
                         <input
                             type="text"
                             placeholder="Company name"
                             value={data.company}
                             onChange={e => update("company", e.target.value)}
-                            className="w-full px-6 py-4 rounded-full bg-white/[0.02] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.04] text-xs transition-all"
+                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:border-indigo-500/50 focus:bg-foreground/[0.04] text-xs transition-all"
                         />
                     </motion.div>
                 );
@@ -140,7 +140,7 @@ export default function WaitlistForm() {
                                 className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
                                     data.role === role
                                         ? "bg-indigo-500/20 border border-indigo-500/50 text-indigo-300"
-                                        : "bg-white/[0.02] border border-white/10 text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-300"
+                                        : "bg-foreground/[0.02] border border-foreground/10 text-text-muted hover:bg-foreground/[0.06] hover:text-foreground"
                                 }`}
                             >
                                 {data.role === role && <FiCheck className="inline mr-1.5 -mt-0.5" />}
@@ -160,7 +160,7 @@ export default function WaitlistForm() {
                                 className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
                                     data.source === source
                                         ? "bg-indigo-500/20 border border-indigo-500/50 text-indigo-300"
-                                        : "bg-white/[0.02] border border-white/10 text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-300"
+                                        : "bg-foreground/[0.02] border border-foreground/10 text-text-muted hover:bg-foreground/[0.06] hover:text-foreground"
                                 }`}
                             >
                                 {data.source === source && <FiCheck className="inline mr-1.5 -mt-0.5" />}
@@ -177,7 +177,7 @@ export default function WaitlistForm() {
                             placeholder="Phone number"
                             value={data.phone}
                             onChange={e => update("phone", e.target.value)}
-                            className="w-full px-6 py-4 rounded-full bg-white/[0.02] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.04] text-xs transition-all"
+                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:border-indigo-500/50 focus:bg-foreground/[0.04] text-xs transition-all"
                         />
                     </motion.div>
                 );
@@ -189,7 +189,7 @@ export default function WaitlistForm() {
                             placeholder="Email address for updates"
                             value={data.email}
                             onChange={e => update("email", e.target.value)}
-                            className="w-full px-6 py-4 rounded-full bg-white/[0.02] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.04] text-xs transition-all"
+                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:border-indigo-500/50 focus:bg-foreground/[0.04] text-xs transition-all"
                         />
                     </motion.div>
                 );
@@ -198,7 +198,7 @@ export default function WaitlistForm() {
 
     return (
         <div className="max-w-lg mx-auto">
-            <p className="text-zinc-400 text-xs font-dm-sans text-center mb-6">
+            <p className="text-text-muted text-xs font-dm-sans text-center mb-6">
                 Step {step + 1} of 5 &mdash; {STEP_LABELS[step]}
             </p>
 
@@ -219,7 +219,7 @@ export default function WaitlistForm() {
                                     ? "w-6 bg-indigo-500"
                                     : i < step
                                         ? "w-1.5 bg-indigo-500/40"
-                                        : "w-1.5 bg-white/10"
+                                        : "w-1.5 bg-foreground/10"
                             }`}
                         />
                     ))}
@@ -230,7 +230,7 @@ export default function WaitlistForm() {
                         <button
                             type="button"
                             onClick={prevStep}
-                            className="px-6 py-3 rounded-full border border-white/10 text-zinc-400 text-xs font-bold hover:bg-white/[0.04] hover:text-white transition-all flex items-center gap-2 font-sora uppercase tracking-wider"
+                            className="px-6 py-3 rounded-full border border-foreground/10 text-text-muted text-xs font-bold hover:bg-foreground/[0.04] hover:text-foreground transition-all flex items-center gap-2 font-sora uppercase tracking-wider"
                         >
                             <FiArrowLeft /> Back
                         </button>
@@ -243,7 +243,7 @@ export default function WaitlistForm() {
                             type="button"
                             onClick={nextStep}
                             disabled={!canProceed()}
-                            className="px-6 py-3 rounded-full bg-white text-zinc-950 text-xs font-bold hover:bg-zinc-200 transition-all active:scale-[0.96] flex items-center gap-2 font-sora uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="px-6 py-3 rounded-full bg-foreground text-background text-xs font-bold hover:bg-foreground/90 transition-all active:scale-[0.96] flex items-center gap-2 font-sora uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             Next <FiArrowRight />
                         </button>

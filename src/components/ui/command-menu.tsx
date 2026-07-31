@@ -338,7 +338,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                             className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
                         >
                             {isSubmitting ? <FiLoader className="animate-spin" /> : <FiTarget />}
-                            <span>Create Mission</span>
+                            <span>Create task</span>
                         </button>
                     </div>
                 </motion.div>

@@ -9,7 +9,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
   IN_PROGRESS: { label: "In Progress", color: "text-blue-400",    bg: "bg-blue-400/10" },
   DONE:        { label: "Done",        color: "text-emerald-400", bg: "bg-emerald-400/10" },
   TODO:        { label: "To Do",       color: "text-yellow-400",  bg: "bg-yellow-400/10" },
-  BACKLOG:     { label: "Backlog",     color: "text-zinc-400",    bg: "bg-zinc-400/10" },
+  BACKLOG:     { label: "Backlog",     color: "text-text-muted",    bg: "bg-zinc-400/10" },
 };
 
 const priorityConfig: Record<string, { label: string; color: string }> = {
@@ -19,8 +19,8 @@ const priorityConfig: Record<string, { label: string; color: string }> = {
 };
 
 export default function TaskWidget({ task }: TaskWidgetProps) {
-  const status = statusConfig[task.status] ?? { label: task.status, color: "text-zinc-400", bg: "bg-zinc-400/10" };
-  const priority = priorityConfig[task.priority] ?? { label: task.priority, color: "text-zinc-400" };
+  const status = statusConfig[task.status] ?? { label: task.status, color: "text-text-muted", bg: "bg-zinc-400/10" };
+  const priority = priorityConfig[task.priority] ?? { label: task.priority, color: "text-text-muted" };
 
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return "No due date";

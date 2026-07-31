@@ -45,7 +45,6 @@ import { CookiePopup } from '@/components/ui/cookie-popup';
 
 import { ThemeProvider } from "@/providers/theme-provider";
 import { GlobalActionProvider } from "@/providers/global-action-provider";
-import { AstryxProvider } from "@/providers/astryx-provider";
 
 export default async function RootLayout({
   children,
@@ -64,11 +63,13 @@ export default async function RootLayout({
               try {
                 let theme = localStorage.getItem('md_platform_theme_preference');
                 let supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                let resolved;
                 if (!theme || theme === 'system') {
-                  document.documentElement.classList.add(supportDarkMode ? 'dark' : 'light');
+                  resolved = supportDarkMode ? 'dark' : 'light';
                 } else {
-                  document.documentElement.classList.add(theme);
+                  resolved = theme;
                 }
+                document.documentElement.classList.add(resolved);
               } catch (e) {}
             `,
           }}
@@ -81,11 +82,9 @@ export default async function RootLayout({
           <GlobalActionProvider>
             <TaskTimerProvider>
               <LocationProvider initialRecord={initialAttendance}>
-                <AstryxProvider>
-                  <div className="min-h-screen bg-background transition-colors duration-300">
-                    {children}
-                  </div>
-                </AstryxProvider>
+                <div className="min-h-screen bg-background transition-colors duration-300">
+                  {children}
+                </div>
                 <TaskTimerUI />
                 <CookiePopup />
               </LocationProvider>
@@ -100,7 +99,6 @@ export default async function RootLayout({
               background: 'var(--toast-bg)',
               color: 'var(--toast-text)',
               border: '1px solid var(--toast-border)',
-              backdropFilter: 'blur(12px)',
               padding: '16px 24px',
               fontSize: '14px',
               fontWeight: '600',

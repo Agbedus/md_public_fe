@@ -25,7 +25,7 @@ import {
 import type { CalendarEvent } from "@/types/calendar";
 import { Tooltip } from "@/components/ui/Tooltip";
 import Image from "next/image";
-import { FiCalendar, FiMaximize2, FiMinimize2, FiLayers, FiSun, FiClock, FiCoffee } from "react-icons/fi";
+import { FiCalendar, FiMaximize2, FiMinimize2, FiLayers, FiSun, FiClock, FiCoffee, FiMapPin } from "react-icons/fi";
 
 interface GanttGridProps {
   date: Date;
@@ -37,18 +37,18 @@ interface GanttGridProps {
 type ZoomLevel = 'days' | 'weeks' | 'months';
 
 const COLOR_PALETTE = [
-  { bg: 'bg-indigo-500/10 dark:bg-indigo-500/20', border: 'border-indigo-500/30', text: 'text-indigo-700 dark:text-indigo-300' },
-  { bg: 'bg-emerald-500/10 dark:bg-emerald-500/20', border: 'border-emerald-500/30', text: 'text-emerald-700 dark:text-emerald-300' },
-  { bg: 'bg-rose-500/10 dark:bg-rose-500/20', border: 'border-rose-500/30', text: 'text-rose-700 dark:text-rose-300' },
-  { bg: 'bg-amber-500/10 dark:bg-amber-500/20', border: 'border-amber-500/30', text: 'text-amber-700 dark:text-amber-300' },
-  { bg: 'bg-sky-500/10 dark:bg-sky-500/20', border: 'border-sky-500/30', text: 'text-sky-700 dark:text-sky-300' },
-  { bg: 'bg-purple-500/10 dark:bg-purple-500/20', border: 'border-purple-500/30', text: 'text-purple-700 dark:text-purple-300' },
-  { bg: 'bg-fuchsia-500/10 dark:bg-fuchsia-500/20', border: 'border-fuchsia-500/30', text: 'text-fuchsia-700 dark:text-fuchsia-300' },
-  { bg: 'bg-teal-500/10 dark:bg-teal-500/20', border: 'border-teal-500/30', text: 'text-teal-700 dark:text-teal-300' },
-  { bg: 'bg-orange-500/10 dark:bg-orange-500/20', border: 'border-orange-500/30', text: 'text-orange-700 dark:text-orange-300' },
-  { bg: 'bg-blue-500/10 dark:bg-blue-500/20', border: 'border-blue-500/30', text: 'text-blue-700 dark:text-blue-300' },
-  { bg: 'bg-lime-500/10 dark:bg-lime-500/20', border: 'border-lime-500/30', text: 'text-lime-700 dark:text-lime-300' },
-  { bg: 'bg-pink-500/10 dark:bg-pink-500/20', border: 'border-pink-500/30', text: 'text-pink-700 dark:text-pink-300' },
+  { bg: 'bg-indigo-50 dark:bg-indigo-950/60', border: 'border-indigo-500', text: 'text-indigo-600 dark:text-indigo-300' },
+  { bg: 'bg-emerald-50 dark:bg-emerald-950/60', border: 'border-emerald-500', text: 'text-emerald-600 dark:text-emerald-300' },
+  { bg: 'bg-rose-50 dark:bg-rose-950/60', border: 'border-rose-500', text: 'text-rose-600 dark:text-rose-300' },
+  { bg: 'bg-yellow-50 dark:bg-yellow-950/60', border: 'border-yellow-500', text: 'text-yellow-600 dark:text-yellow-300' },
+  { bg: 'bg-sky-50 dark:bg-sky-950/60', border: 'border-sky-500', text: 'text-sky-600 dark:text-sky-300' },
+  { bg: 'bg-purple-50 dark:bg-purple-950/60', border: 'border-purple-500', text: 'text-purple-600 dark:text-purple-300' },
+  { bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/60', border: 'border-fuchsia-500', text: 'text-fuchsia-600 dark:text-fuchsia-300' },
+  { bg: 'bg-teal-50 dark:bg-teal-950/60', border: 'border-teal-500', text: 'text-teal-600 dark:text-teal-300' },
+  { bg: 'bg-orange-50 dark:bg-orange-950/60', border: 'border-orange-500', text: 'text-orange-600 dark:text-orange-300' },
+  { bg: 'bg-blue-50 dark:bg-blue-950/60', border: 'border-blue-500', text: 'text-blue-600 dark:text-blue-300' },
+  { bg: 'bg-lime-50 dark:bg-lime-950/60', border: 'border-lime-500', text: 'text-lime-600 dark:text-lime-300' },
+  { bg: 'bg-pink-50 dark:bg-pink-950/60', border: 'border-pink-500', text: 'text-pink-600 dark:text-pink-300' },
 ];
 
 function getColorForId(id: string) {
@@ -190,7 +190,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                 </div>
                 <div className="flex">
                       {zoomLevel === 'days' && days.map((d) => (
-                        <div key={d.toISOString()} className={`flex-shrink-0 w-12 border-r border-card-border p-2 text-center transition-colors ${isSameDay(d, new Date()) ? 'bg-indigo-500/5' : 'hover:bg-foreground/[0.05]'}`}>
+                        <div key={d.toISOString()} className={`flex-shrink-0 w-12 border-r border-card-border p-2 text-center transition-colors ${isSameDay(d, new Date()) ? 'bg-indigo-500/5' : 'hover:bg-blue-50 dark:hover:bg-white/[0.06]'}`}>
                             <div className="text-[9px] font-black text-text-muted uppercase leading-none mb-1">{format(d, "EEE")}</div>
                             <div className={`text-xs font-black leading-none tracking-tight ${isSameDay(d, new Date()) ? 'text-indigo-600 dark:text-indigo-400' : 'text-text-secondary'}`}>{format(d, "d")}</div>
                         </div>
@@ -199,7 +199,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                         const wStart = startOfWeek(w, { weekStartsOn: 1 });
                         const isCurrentWeek = isWithinInterval(new Date(), { start: wStart, end: endOfWeek(wStart, { weekStartsOn: 1 }) });
                         return (
-                            <div key={w.toISOString()} style={{ width: `${7 * dayWidth}px` }} className={`flex-shrink-0 border-r border-card-border p-2 text-center transition-colors ${isCurrentWeek ? 'bg-indigo-500/5' : 'hover:bg-foreground/[0.05]'}`}>
+                            <div key={w.toISOString()} style={{ width: `${7 * dayWidth}px` }} className={`flex-shrink-0 border-r border-card-border p-2 text-center transition-colors ${isCurrentWeek ? 'bg-indigo-500/5' : 'hover:bg-blue-50 dark:hover:bg-white/[0.06]'}`}>
                                 <div className="text-[9px] font-black text-text-muted uppercase leading-none mb-1">W{format(w, "w")}</div>
                                 <div className={`text-[10px] font-black leading-none tracking-tight ${isCurrentWeek ? 'text-indigo-600 dark:text-indigo-400' : 'text-text-muted'}`}>{format(w, "MMM d")}</div>
                             </div>
@@ -210,7 +210,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                         const daysInM = differenceInDays(endOfMonth(m), mStart) + 1;
                         const isCurrentMonth = isSameDay(startOfMonth(new Date()), mStart);
                         return (
-                            <div key={m.toISOString()} style={{ width: `${daysInM * dayWidth}px` }} className={`flex-shrink-0 border-r border-card-border p-2 text-center transition-colors ${isCurrentMonth ? 'bg-indigo-500/5' : 'hover:bg-foreground/[0.05]'}`}>
+                            <div key={m.toISOString()} style={{ width: `${daysInM * dayWidth}px` }} className={`flex-shrink-0 border-r border-card-border p-2 text-center transition-colors ${isCurrentMonth ? 'bg-indigo-500/5' : 'hover:bg-blue-50 dark:hover:bg-white/[0.06]'}`}>
                                 <div className="text-[10px] font-black leading-none text-text-muted uppercase tracking-wider">{format(m, "MMM")}</div>
                             </div>
                         );
@@ -298,7 +298,35 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                             const cleanTitle = displayTitle.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
 
                             return (
-                              <Tooltip key={e.id} content={`${cleanTitle} (${format(start, 'MMM d')} - ${format(end, 'MMM d')})`}>
+                              <Tooltip key={e.id} content={
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-1.5">
+                                        {e.isProject ? (
+                                            <FiLayers className={`h-3 w-3 ${barColor.text}`} />
+                                        ) : e.isTimeOff ? (
+                                            <FiSun className={`h-3 w-3 ${barColor.text}`} />
+                                        ) : (
+                                            <FiCalendar className={`h-3 w-3 ${barColor.text}`} />
+                                        )}
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${barColor.text}`}>
+                                            {e.isProject ? 'Project' : e.isTimeOff ? 'Time Off' : 'Event'}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-tight">{cleanTitle}</p>
+                                    <div className="flex items-center gap-3 text-[10px] text-zinc-500 dark:text-zinc-400">
+                                        <span className="flex items-center gap-1">
+                                            <FiCalendar className="h-3 w-3" />
+                                            {format(start, 'MMM d')} - {format(end, 'MMM d')}
+                                        </span>
+                                        {e.location && (
+                                            <span className="flex items-center gap-1">
+                                                <FiMapPin className="h-3 w-3" />
+                                                {e.location}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                              }>
                                 <div
                                   onClick={() => onEventClick?.(e)}
                                   style={{ 

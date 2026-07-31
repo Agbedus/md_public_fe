@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function ChartSkeleton() {
   return (
-    <div className="glass p-6 rounded-2xl h-96 flex flex-col border border-card-border">
+    <div className="bg-card p-6 rounded-2xl h-96 flex flex-col border border-card-border">
       <Skeleton className="h-7 w-48 mb-6" />
       <Skeleton className="flex-1 rounded-xl" />
     </div>
@@ -11,7 +11,7 @@ export function ChartSkeleton() {
 
 export function ListSkeleton() {
   return (
-    <div className="glass p-6 rounded-2xl border border-card-border">
+    <div className="bg-card p-6 rounded-2xl border border-card-border">
       <div className="flex justify-between items-center mb-6">
         <Skeleton className="h-7 w-32" />
         <Skeleton className="h-8 w-8" />
@@ -37,7 +37,7 @@ export function SummarySkeleton() {
 
 export function CardSkeleton() {
     return (
-        <div className="glass p-6 rounded-2xl border border-card-border h-full">
+        <div className="bg-card p-6 rounded-2xl border border-card-border h-full">
             <Skeleton className="h-7 w-32 mb-4" />
             <div className="space-y-2">
                  <Skeleton className="h-4 w-full" />

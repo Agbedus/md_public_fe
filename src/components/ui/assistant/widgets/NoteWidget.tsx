@@ -16,7 +16,7 @@ const typeConfig: Record<string, { label: string; color: string; bg: string }> =
 };
 
 export default function NoteWidget({ note }: NoteWidgetProps) {
-  const type = typeConfig[note.type] ?? { label: note.type, color: "text-zinc-400", bg: "bg-zinc-400/10" };
+  const type = typeConfig[note.type] ?? { label: note.type, color: "text-text-muted", bg: "bg-zinc-400/10" };
 
   return (
     <div className="bg-foreground/[0.03] border border-card-border rounded-xl hover:bg-foreground/[0.06] hover:border-indigo-500/20 transition-all">

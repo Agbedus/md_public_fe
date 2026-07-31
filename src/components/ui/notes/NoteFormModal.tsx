@@ -95,7 +95,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
             {/* Modal Body */}
             <div className={`relative w-full max-w-4xl max-h-[90vh] bg-background rounded-3xl overflow-hidden border border-card-border shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 transform ${isOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`} onClick={e => e.stopPropagation()}>
                 <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col h-full max-h-[90vh]">
-                    <div className="px-6 py-4 flex items-center justify-between border-b border-card-border bg-foreground/[0.03]">
+                    <div className="px-6 py-4 flex items-center justify-between border-b border-card-border bg-white dark:bg-white/[0.03]">
                         {/* Group 1: Selections */}
                         <div className="flex items-center gap-3">
                             <select
@@ -103,7 +103,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 id="priority"
                                 value={priority || 'low'}
                                 onChange={(e) => setPriority(e.target.value as Note['priority'])}
-                                className="h-9 bg-foreground/[0.03] border border-card-border rounded-xl px-3 text-[10px] uppercase font-black tracking-wider text-text-secondary focus:outline-none focus:border-indigo-500/30 cursor-pointer hover:bg-foreground/[0.06] transition-all"
+                                className="h-9 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-3 text-[10px] uppercase font-black tracking-wider text-text-secondary focus:outline-none focus:border-indigo-500/30 cursor-pointer hover:bg-foreground/[0.06] transition-all"
                                 required
                             >
                                 <option value="low" className="bg-background">Low Priority</option>
@@ -115,7 +115,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 id="type"
                                 value={typeVal}
                                 onChange={(e) => setTypeVal(e.target.value as Note['type'])}
-                                className="h-9 bg-foreground/[0.03] border border-card-border rounded-xl px-3 text-[10px] uppercase font-black tracking-wider text-text-secondary focus:outline-none focus:border-indigo-500/30 cursor-pointer hover:bg-foreground/[0.06] transition-all"
+                                className="h-9 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-3 text-[10px] uppercase font-black tracking-wider text-text-secondary focus:outline-none focus:border-indigo-500/30 cursor-pointer hover:bg-foreground/[0.06] transition-all"
                                 required
                             >
                                 {noteTypes.map(type => (
@@ -127,7 +127,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 id="task_id"
                                 value={taskId}
                                 onChange={(e) => setTaskId(e.target.value)}
-                                className="h-9 bg-foreground/[0.03] border border-card-border rounded-xl px-3 text-[10px] uppercase font-black tracking-wider text-text-secondary focus:outline-none focus:border-indigo-500/30 max-w-[150px] cursor-pointer hover:bg-foreground/[0.06] transition-all"
+                                className="h-9 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-3 text-[10px] uppercase font-black tracking-wider text-text-secondary focus:outline-none focus:border-indigo-500/30 max-w-[150px] cursor-pointer hover:bg-foreground/[0.06] transition-all"
                             >
                                 <option value="" className="bg-background">No Task Associated</option>
                                 {tasks?.map(task => (
@@ -137,7 +137,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                         </div>
 
                         {/* Group 2: Status */}
-                        <div className="flex items-center gap-1.5 p-1 bg-foreground/[0.03] rounded-xl border border-card-border h-9">
+                        <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-white/[0.03] rounded-xl border border-card-border h-9">
                             <button
                                 type="button"
                                 onClick={() => setIsPinned(!isPinned)}
@@ -207,7 +207,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 placeholder="Add labels (travel, important, research)..."
                                 value={tags}
                                 onChange={(e) => setTags(e.target.value)}
-                                className="text-xs font-bold flex-1 bg-foreground/[0.03] border border-card-border py-2.5 px-4 rounded-xl text-foreground focus:outline-none focus:border-indigo-500/30 transition-all placeholder:text-text-muted/50 uppercase tracking-wider"
+                                className="text-xs font-bold flex-1 bg-white dark:bg-white/[0.03] border border-card-border py-2.5 px-4 rounded-xl text-foreground focus:outline-none focus:border-indigo-500/30 transition-all placeholder:text-text-muted/50 uppercase tracking-wider"
                             />
                         </div>
                         <SlashCommandEditor initialContent={content} onChange={setContent} user={currentUser} />

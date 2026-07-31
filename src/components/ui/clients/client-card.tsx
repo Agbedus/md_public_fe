@@ -10,9 +10,11 @@ interface ClientCardProps {
     onEdit: (client: Client) => void;
     onDelete: (client: Client) => void;
     isPending?: boolean;
+    /** False for a client the viewer can see but not change. */
+    canModify?: boolean;
 }
 
-export default function ClientCard({ client, onEdit, onDelete, isPending = false }: ClientCardProps) {
+export default function ClientCard({ client, onEdit, onDelete, isPending = false, canModify = true }: ClientCardProps) {
     return (
         <div 
             className={`group relative bg-card border border-card-border rounded-2xl p-6 transition-all duration-300 ${
@@ -42,6 +44,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                     )}
                 </div>
 
+                {canModify && (
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0 translate-x-2">
                     <button
                         onClick={() => onEdit(client)}
@@ -60,6 +63,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                         <FiTrash2 className="w-4 h-4" />
                     </button>
                 </div>
+                )}
             </div>
 
             <div className="space-y-4">

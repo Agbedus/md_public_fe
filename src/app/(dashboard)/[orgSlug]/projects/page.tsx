@@ -8,7 +8,8 @@ import { getNotes } from '@/app/(dashboard)/[orgSlug]/notes/actions';
 import { Project } from '@/types/project';
 import { Task } from '@/types/task';
 import { auth } from '@/auth';
-import { canManageOrg } from '@/lib/org-permissions';
+import { canCreate } from '@/lib/org-permissions';
+import { getPermissionSubject } from '@/lib/permission-subject';
 
 export default async function ProjectsPage() {
   const [session, allProjects, allUsers, allTasks, allNotes] = await Promise.all([
@@ -19,8 +20,10 @@ export default async function ProjectsPage() {
     getNotes(),
   ]);
 
-  // Clients are org-scoped: org OWNER/ADMIN see them, as do global managers.
-  const hasClientAccess = canManageOrg({
+  // Reading the client list is collaborator-level on the backend
+  // (`get_current_org_collaborator`), so anyone who can create a project can
+  // pick a client for it. Creating a client is a separate, higher gate.
+  const hasClientAccess = canCreate({
     roles: session?.user?.roles,
     orgRole: session?.user?.orgRole,
   });
@@ -32,7 +35,10 @@ export default async function ProjectsPage() {
     tasks: allTasks.filter((task: Task) => task.projectId === project.id)
   }));
   
+  const subject = await getPermissionSubject();
+
   return <ProjectsPageClient 
+    subject={subject}
     initialProjects={projectsWithTasks} 
     initialUsers={allUsers} 
     initialClients={allClients} 

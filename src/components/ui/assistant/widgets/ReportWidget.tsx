@@ -25,7 +25,7 @@ export default function ReportWidget({ title, data }: ReportWidgetProps) {
         { label: "Total", value: data.tasks.total, color: "text-blue-400" },
         { label: "Created This Month", value: data.tasks.created, color: "text-cyan-400" },
         { label: "Completed", value: data.tasks.completed, color: "text-emerald-400" },
-        { label: "Pending", value: data.tasks.pending, color: "text-zinc-400" },
+        { label: "Pending", value: data.tasks.pending, color: "text-text-muted" },
         { label: "In Progress", value: data.tasks.byStatus.inProgress, color: "text-yellow-400" },
         { label: "QA/Review", value: data.tasks.byStatus.qa + data.tasks.byStatus.review, color: "text-orange-400" },
       ],

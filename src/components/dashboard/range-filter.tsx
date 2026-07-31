@@ -29,15 +29,15 @@ export function RangeFilter() {
   };
 
   return (
-    <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+    <div className="flex items-center gap-1 bg-foreground/[0.03] p-1 rounded-xl border border-foreground/5">
       {RANGES.map((range) => (
         <button
           key={range.value}
           onClick={() => handleRangeChange(range.value)}
           className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all duration-200 ${
             currentRange === range.value
-              ? 'bg-white text-zinc-950 shadow-[0_0_15px_rgba(255,255,255,0.1)]'
-              : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+              ? 'bg-card text-foreground border border-card-border'
+              : 'text-text-muted hover:text-foreground hover:bg-foreground/5'
           }`}
         >
           {range.label}

@@ -1,6 +1,6 @@
 "use client";
 import React, { useMemo } from "react";
-import { FiCheckCircle, FiBriefcase, FiX, FiCalendar, FiClock, FiMapPin } from "react-icons/fi";
+import { FiCheckCircle, FiBriefcase, FiX, FiCalendar, FiClock, FiMapPin, FiSun } from "react-icons/fi";
 import { 
   addDays, 
   eachDayOfInterval, 
@@ -32,18 +32,18 @@ interface MonthGridProps {
 }
 
 const COLOR_PALETTE = [
-    { bg: 'bg-indigo-500/10 dark:bg-indigo-500/20', border: 'border-indigo-500/30', text: 'text-indigo-700 dark:text-indigo-300' },
-    { bg: 'bg-emerald-500/10 dark:bg-emerald-500/20', border: 'border-emerald-500/30', text: 'text-emerald-700 dark:text-emerald-300' },
-    { bg: 'bg-rose-500/10 dark:bg-rose-500/20', border: 'border-rose-500/30', text: 'text-rose-700 dark:text-rose-300' },
-    { bg: 'bg-amber-500/10 dark:bg-amber-500/20', border: 'border-amber-500/30', text: 'text-amber-700 dark:text-amber-300' },
-    { bg: 'bg-sky-500/10 dark:bg-sky-500/20', border: 'border-sky-500/30', text: 'text-sky-700 dark:text-sky-300' },
-    { bg: 'bg-purple-500/10 dark:bg-purple-500/20', border: 'border-purple-500/30', text: 'text-purple-700 dark:text-purple-300' },
-    { bg: 'bg-fuchsia-500/10 dark:bg-fuchsia-500/20', border: 'border-fuchsia-500/30', text: 'text-fuchsia-700 dark:text-fuchsia-300' },
-    { bg: 'bg-teal-500/10 dark:bg-teal-500/20', border: 'border-teal-500/30', text: 'text-teal-700 dark:text-teal-300' },
-    { bg: 'bg-orange-500/10 dark:bg-orange-500/20', border: 'border-orange-500/30', text: 'text-orange-700 dark:text-orange-300' },
-    { bg: 'bg-blue-500/10 dark:bg-blue-500/20', border: 'border-blue-500/30', text: 'text-blue-700 dark:text-blue-300' },
-    { bg: 'bg-lime-500/10 dark:bg-lime-500/20', border: 'border-lime-500/30', text: 'text-lime-700 dark:text-lime-300' },
-    { bg: 'bg-pink-500/10 dark:bg-pink-500/20', border: 'border-pink-500/30', text: 'text-pink-700 dark:text-pink-300' },
+    { bg: 'bg-indigo-50 dark:bg-indigo-950/60', border: 'border-indigo-500', text: 'text-indigo-600 dark:text-indigo-300' },
+    { bg: 'bg-emerald-50 dark:bg-emerald-950/60', border: 'border-emerald-500', text: 'text-emerald-600 dark:text-emerald-300' },
+    { bg: 'bg-rose-50 dark:bg-rose-950/60', border: 'border-rose-500', text: 'text-rose-600 dark:text-rose-300' },
+    { bg: 'bg-yellow-50 dark:bg-yellow-950/60', border: 'border-yellow-500', text: 'text-yellow-600 dark:text-yellow-300' },
+    { bg: 'bg-sky-50 dark:bg-sky-950/60', border: 'border-sky-500', text: 'text-sky-600 dark:text-sky-300' },
+    { bg: 'bg-purple-50 dark:bg-purple-950/60', border: 'border-purple-500', text: 'text-purple-600 dark:text-purple-300' },
+    { bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/60', border: 'border-fuchsia-500', text: 'text-fuchsia-600 dark:text-fuchsia-300' },
+    { bg: 'bg-teal-50 dark:bg-teal-950/60', border: 'border-teal-500', text: 'text-teal-600 dark:text-teal-300' },
+    { bg: 'bg-orange-50 dark:bg-orange-950/60', border: 'border-orange-500', text: 'text-orange-600 dark:text-orange-300' },
+    { bg: 'bg-blue-50 dark:bg-blue-950/60', border: 'border-blue-500', text: 'text-blue-600 dark:text-blue-300' },
+    { bg: 'bg-lime-50 dark:bg-lime-950/60', border: 'border-lime-500', text: 'text-lime-600 dark:text-lime-300' },
+    { bg: 'bg-pink-50 dark:bg-pink-950/60', border: 'border-pink-500', text: 'text-pink-600 dark:text-pink-300' },
 ];
 
 function getColorForId(id: string) {
@@ -64,7 +64,7 @@ function privacyClasses(p?: CalendarEvent["privacy"]) {
     case "confidential":
       return { dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-rose-500/30", text: "text-rose-700 dark:text-rose-400", bg: "bg-rose-500/5" };
     default:
-      return { dot: "bg-slate-400", border: "border-slate-500/30", text: "text-text-secondary", bg: "bg-slate-500/5" };
+      return { dot: "bg-slate-400", border: "border-card-border", text: "text-text-secondary", bg: "bg-slate-500/5" };
   }
 }
 
@@ -177,7 +177,7 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
                             onClick={() => onSelectDate?.(d)}
                             className={`relative p-2 text-left transition-colors border-r border-card-border last:border-r-0 group/cell ${
                                 !isCurrentMonth ? "bg-background/30 opacity-50" : "bg-background/50"
-                            } hover:bg-foreground/[0.05] flex flex-col`}
+                            } hover:bg-blue-50 dark:hover:bg-white/[0.06] flex flex-col`}
                         >
                             <div className="flex items-center justify-between mb-2 relative z-10">
                                 <span 
@@ -203,7 +203,44 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
                                     const c = isTask ? taskClasses(e.taskStatus) : privacyClasses(e.privacy);
                                     
                                     return (
-                                        <Tooltip key={e.id} content={e.title}>
+                                        <Tooltip key={e.id} content={
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-1.5">
+                                                    {isTask ? (
+                                                        <FiCheckCircle className={`h-3 w-3 ${c.text}`} />
+                                                    ) : (
+                                                        <span className={`h-2 w-2 rounded-full ${c.dot}`} />
+                                                    )}
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${c.text}`}>
+                                                        {isTask ? 'Task' : 'Event'}
+                                                    </span>
+                                                    {e.taskPriority && (
+                                                        <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${c.bg} ${c.text}`}>
+                                                            {e.taskPriority}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-tight">{e.title}</p>
+                                                <div className="flex items-center gap-3 text-[10px] text-zinc-500 dark:text-zinc-400">
+                                                    <span className="flex items-center gap-1">
+                                                        <FiCalendar className="h-3 w-3" />
+                                                        {format(new Date(e.start), 'MMM d')}
+                                                    </span>
+                                                    {!e.allDay && (
+                                                        <span className="flex items-center gap-1">
+                                                            <FiClock className="h-3 w-3" />
+                                                            {format(new Date(e.start), 'h:mm a')}
+                                                        </span>
+                                                    )}
+                                                    {e.location && (
+                                                        <span className="flex items-center gap-1">
+                                                            <FiMapPin className="h-3 w-3" />
+                                                            {e.location}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        }>
                                             <div
                                                 role="button"
                                                 onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e); }}
@@ -222,7 +259,7 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
                                 {dayEvents.length > 2 && (
                                     <div 
                                         onClick={(ev) => { ev.stopPropagation(); setPopupData({ date: d, events: dayEvents }); }}
-                                        className="text-[9px] font-black text-text-secondary uppercase tracking-widest pl-2 hover:text-indigo-400 transition-colors cursor-pointer"
+                                        className="text-[9px] font-bold text-text-secondary uppercase tracking-wider px-1.5 py-0.5 rounded-lg bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-card-border transition-colors cursor-pointer text-center leading-tight w-full"
                                     >
                                         + {dayEvents.length - 2} more
                                     </div>
@@ -264,7 +301,35 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
                                     }}
                                     className="relative h-6"
                                 >
-                                    <Tooltip content={`${displayTitle} (${format(eStart, 'MMM d')} - ${format(eEnd, 'MMM d')})`}>
+                                    <Tooltip content={
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-1.5">
+                                                {e.isProject ? (
+                                                    <FiBriefcase className={`h-3 w-3 ${barColor.text}`} />
+                                                ) : e.isTimeOff ? (
+                                                    <FiSun className={`h-3 w-3 ${barColor.text}`} />
+                                                ) : (
+                                                    <FiCalendar className={`h-3 w-3 ${barColor.text}`} />
+                                                )}
+                                                <span className={`text-[10px] font-black uppercase tracking-widest ${barColor.text}`}>
+                                                    {e.isProject ? 'Project' : e.isTimeOff ? 'Time Off' : 'Event'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-tight">{displayTitle}</p>
+                                            <div className="flex items-center gap-3 text-[10px] text-zinc-500 dark:text-zinc-400">
+                                                <span className="flex items-center gap-1">
+                                                    <FiCalendar className="h-3 w-3" />
+                                                    {format(eStart, 'MMM d')} - {format(eEnd, 'MMM d')}
+                                                </span>
+                                                {e.location && (
+                                                    <span className="flex items-center gap-1">
+                                                        <FiMapPin className="h-3 w-3" />
+                                                        {e.location}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    }>
                                         <div 
                                             onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e); }}
                                             className={`
@@ -274,7 +339,7 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
                                                 ${!isEnding ? 'rounded-r-none border-r-0' : ''}
                                             `}
                                         >
-                                            {e.isProject && isStarting && <FiBriefcase className="w-2.5 h-2.5 flex-shrink-0 text-white" />}
+                                            {e.isProject && isStarting && <FiBriefcase className="w-2.5 h-2.5 flex-shrink-0 text-foreground" />}
                                             {e.isTimeOff && isStarting && <span className="text-[10px] flex-shrink-0">🌴</span>}
                                             <span className={`text-[9px] font-black uppercase tracking-wider truncate ${barColor.text}`}>
                                                 {displayTitle}

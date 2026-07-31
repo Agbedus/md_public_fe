@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getOrgMembers, getCurrentUserOrgRole } from './actions';
 import { getOrganizations } from '@/lib/org-actions';
-import { canManageOrg } from '@/lib/org-permissions';
+import { isOrgAdmin } from '@/lib/org-permissions';
 import TeamPageClient from '@/components/ui/team/team-page-client';
 
 export default async function TeamPage() {
@@ -17,9 +17,10 @@ export default async function TeamPage() {
 
   const currentOrg = orgs.find(o => o.id === session.user.currentOrganizationId);
   const inviteCode = currentOrg?.invite_code ?? null;
-  // Org OWNER/ADMIN administer their own roster; global managers keep
-  // platform-wide access. Previously this was global super_admin only.
-  const canManageTeam = canManageOrg({
+  // Administering the roster — inviting, approving, changing roles — is
+  // OWNER/ADMIN. A MANAGER can still *view* this page; the client hides every
+  // mutating control when this is false.
+  const canManageTeam = isOrgAdmin({
     roles: session.user.roles,
     orgRole: currentOrgRole ?? session.user.orgRole,
   });

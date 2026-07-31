@@ -51,7 +51,7 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                             className="flex items-center gap-2 h-10 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[10px] font-black text-text-muted hover:text-foreground uppercase tracking-widest transition-all"
                         >
                             <FiMaximize2 className="w-3.5 h-3.5" />
-                            <span>Command Center</span>
+                            <span>Overview</span>
                         </Link>
                         <button onClick={onClose} className="p-2.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-card-border">
                             <FiX className="w-5 h-5" />
@@ -77,13 +77,13 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div className="flex flex-col gap-1.5">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Client Partner</span>
+                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Client</span>
                             <span className="text-xs font-bold text-foreground uppercase tracking-tight truncate">
                                 {client ? client.companyName : 'Internal Asset'}
                             </span>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Mission Lead</span>
+                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Project lead</span>
                             <div className="flex items-center gap-2">
                                 {owner ? (
                                     <>
@@ -94,7 +94,7 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                             </div>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Capital Intel</span>
+                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Budget</span>
                             <div className="flex flex-col">
                                 <span className="text-xs font-bold text-foreground uppercase tracking-tight">${spent.toLocaleString()} / ${totalBudget.toLocaleString()}</span>
                                 <div className="w-full h-1 bg-foreground/[0.05] rounded-full mt-2 overflow-hidden">
@@ -136,10 +136,10 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                     {activeTab === 'tasks' ? (
                         <div className="space-y-6">
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Deployment Pipeline</h3>
+                                <h3 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Tasks</h3>
                                 <button className="flex items-center gap-2 h-9 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-foreground transition-all">
                                     <FiPlus className="w-3.5 h-3.5" />
-                                    <span>New Objective</span>
+                                    <span>New task</span>
                                 </button>
                             </div>
                             
@@ -164,17 +164,17 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                             ) : (
                                 <div className="py-20 flex flex-col items-center gap-4 text-text-muted/30">
                                     <FiCheckSquare className="w-12 h-12" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">No Active Deployments</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">No tasks yet</span>
                                 </div>
                             )}
                         </div>
                     ) : (
                         <div className="space-y-8">
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Strategic Context</h3>
+                                <h3 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Notes</h3>
                                 <button className="flex items-center gap-2 h-9 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-foreground transition-all">
                                     <FiPlus className="w-3.5 h-3.5" />
-                                    <span>New Intel</span>
+                                    <span>New note</span>
                                 </button>
                             </div>
 
@@ -195,7 +195,7 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                             ) : (
                                 <div className="py-20 flex flex-col items-center gap-4 text-text-muted/30">
                                     <FiFileText className="w-12 h-12" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Zero Data Points</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">No notes yet</span>
                                 </div>
                             )}
                         </div>
@@ -206,7 +206,7 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                 <div className="p-8 border-t border-card-border bg-foreground/[0.02]">
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col gap-2">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Operational Progress</span>
+                            <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Progress</span>
                             <div className="flex items-center gap-4">
                                 <div className="w-48 h-1.5 bg-foreground/[0.05] rounded-full overflow-hidden">
                                     <div 
@@ -223,7 +223,7 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">{project.createdAt ? format(new Date(project.createdAt), 'MMM dd, yyyy') : '-'}</span>
                             </div>
                             <div className="flex flex-col items-end gap-1">
-                                <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Last Intel</span>
+                                <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Last updated</span>
                                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">{project.updatedAt ? format(new Date(project.updatedAt), 'MMM dd, yyyy') : '-'}</span>
                             </div>
                         </div>

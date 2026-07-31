@@ -19,7 +19,6 @@ const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: numb
             backgroundColor: 'var(--tooltip-bg)',
             border: '1px solid var(--tooltip-border)',
             borderRadius: '0.75rem',
-            backdropFilter: 'blur(8px)',
           }}
         />
         <Legend wrapperStyle={{ fontSize: '0.875rem' }} />

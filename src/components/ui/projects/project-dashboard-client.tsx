@@ -143,11 +143,11 @@ export default function ProjectDashboardClient({
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-foreground/[0.03] border border-card-border">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[11px] font-medium text-foreground uppercase tracking-wider">Active System</span>
+                        <span className="text-[11px] font-medium text-foreground uppercase tracking-wider">Active</span>
                     </div>
                     <button className="flex items-center gap-2 h-10 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[11px] font-medium text-text-muted hover:text-foreground uppercase tracking-wider transition-all">
                         <FiSettings className="w-4 h-4" />
-                        <span>Matrix Config</span>
+                        <span>Settings</span>
                     </button>
                     <div className="w-px h-6 bg-foreground/[0.06] mx-2" />
                     {owner && <UserAvatarGroup users={[owner]} size="sm" limit={1} />}
@@ -166,10 +166,10 @@ export default function ProjectDashboardClient({
                     </div>
 
                     <div className="space-y-1">
-                        <p className="px-4 text-[11px] font-bold text-text-muted/60 uppercase tracking-wider mb-3">Health Status</p>
+                        <p className="px-4 text-[11px] font-bold text-text-muted/60 uppercase tracking-wider mb-3">Status</p>
                         <div className="px-4 py-3 rounded-2xl bg-foreground/[0.03] border border-card-border space-y-3 shadow-sm">
                             <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-bold text-text-muted uppercase tracking-tight">Tactical Health</span>
+                                <span className="text-[11px] font-bold text-text-muted uppercase tracking-tight">Project health</span>
                                 <span className={`text-[11px] font-medium uppercase tracking-wider ${
                                     taskProgress > 75 ? 'text-emerald-500' : taskProgress > 40 ? 'text-indigo-500' : 'text-amber-500'
                                 }`}>
@@ -204,9 +204,9 @@ export default function ProjectDashboardClient({
                             <>
                                 {/* Impact Stats Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <StatCard icon={FiCheckSquare} color="indigo" label="Tactical Alignment" value={`${completedTasks}/${tasks.length}`} subValue={`${Math.round(taskProgress)}% Completed`} />
-                                    <StatCard icon={FiDollarSign} color="emerald" label="Resource Purity" value={`$${(project.spent || 0).toLocaleString()}`} subValue={`of $${(project.budget || 0).toLocaleString()} Cap`} />
-                                    <StatCard icon={FiClock} color="amber" label="Mission Window" value={project.endDate ? format(new Date(project.endDate), 'MMM dd') : 'N/A'} subValue="End Sequence" />
+                                    <StatCard icon={FiCheckSquare} color="indigo" label="Tasks completed" value={`${completedTasks}/${tasks.length}`} subValue={`${Math.round(taskProgress)}% done`} />
+                                    <StatCard icon={FiDollarSign} color="emerald" label="Budget spent" value={`$${(project.spent || 0).toLocaleString()}`} subValue={`of $${(project.budget || 0).toLocaleString()} budget`} />
+                                    <StatCard icon={FiClock} color="amber" label="Due date" value={project.endDate ? format(new Date(project.endDate), 'MMM dd') : 'N/A'} subValue="Target completion" />
                                     <StatCard icon={FiTrendingUp} color="rose" label="Hours Logged" value={totalHoursLogged > 0 ? `${totalHoursLogged.toFixed(1)}h` : '0h'} subValue="Across All Tasks" />
                                 </div>
 
@@ -232,7 +232,7 @@ export default function ProjectDashboardClient({
                                                     </div>
                                                     <div className="flex-1 space-y-4">
                                                         <div>
-                                                            <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-2">Project Brief</p>
+                                                            <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-2">Overview</p>
                                                             <p className="text-xs text-text-secondary line-clamp-2 italic leading-relaxed">
                                                                 {project.description || "Operational intelligence for this theater of operations remains classified. Update mission briefing in settings."}
                                                             </p>
@@ -284,7 +284,7 @@ export default function ProjectDashboardClient({
                                                             {tasks.length === 0 ? (
                                                                 <tr>
                                                                     <td colSpan={3} className="px-6 py-16 text-center">
-                                                                        <EmptyState icon={FiClipboard} title="No active operations" description="Task briefings will appear here." />
+                                                                        <EmptyState icon={FiClipboard} title="No tasks yet" description="Task briefings will appear here." />
                                                                     </td>
                                                                 </tr>
                                                             ) : tasks.slice(0, 5).map(task => (
@@ -323,7 +323,7 @@ export default function ProjectDashboardClient({
                                             <div className="rounded-2xl p-6 border border-card-border bg-card flex flex-col gap-4">
                                                 <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
                                                     <FiActivity className="text-rose-500" />
-                                                    Activity Intel
+                                                    Recent activity
                                                 </h3>
                                                 <div className="space-y-4">
                                                     {tasks.filter(t => t.status === 'DONE').slice(0, 3).map(t => (
@@ -339,13 +339,13 @@ export default function ProjectDashboardClient({
                                                 </h3>
                                                 <div className="space-y-4">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Allocation</span>
+                                                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Budget</span>
                                                         <span className="text-[11px] font-medium text-foreground uppercase tracking-wider">${(project.budget || 0).toLocaleString()}</span>
                                                     </div>
                                                     <div className="w-full h-8 bg-foreground/[0.03] rounded-xl border border-card-border relative overflow-hidden flex">
                                                         <div className="h-full bg-emerald-500/40" style={{ width: `${Math.min(budgetProgress, 100)}%` }} />
                                                         <div className="absolute inset-0 flex items-center justify-center">
-                                                            <span className="text-[11px] font-medium text-foreground uppercase tracking-wider">{Math.round(budgetProgress)}% Exhausted</span>
+                                                            <span className="text-[11px] font-medium text-foreground uppercase tracking-wider">{Math.round(budgetProgress)}% used</span>
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
@@ -354,7 +354,7 @@ export default function ProjectDashboardClient({
                                                             <p className="text-xs font-medium text-foreground">${(project.spent || 0).toLocaleString()}</p>
                                                         </div>
                                                         <div className="p-3 rounded-xl bg-foreground/[0.03] border border-card-border">
-                                                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Available</p>
+                                                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Remaining</p>
                                                             <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">${((project.budget || 0) - (project.spent || 0)).toLocaleString()}</p>
                                                         </div>
                                                     </div>
@@ -365,21 +365,21 @@ export default function ProjectDashboardClient({
 
                                     {/* Sidebar Intel Column */}
                                     <div className="space-y-6">
-                                        {/* Client Briefing */}
+                                        {/* Client */}
                                         <div className="rounded-2xl p-6 border border-card-border bg-card space-y-4">
                                             <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
                                                 <FiUsers className="text-indigo-500" />
-                                                Client Briefing
+                                                Client
                                             </h3>
                                             <div className="p-4 rounded-xl bg-foreground/[0.03] border border-card-border space-y-3">
                                                 <div>
-                                                    <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-1">Entity</p>
+                                                    <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-1">Client</p>
                                                     <p className="text-sm font-medium text-foreground uppercase tracking-tight">{client ? client.companyName : 'Internal Asset'}</p>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <p className="text-[11px] font-medium text-text-muted/60 uppercase tracking-wider mb-1">Entity</p>
-                                                        <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wider">{client?.companyName || 'Classified'}</p>
+                                                        <p className="text-[11px] font-medium text-text-muted/60 uppercase tracking-wider mb-1">Client</p>
+                                                        <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wider">{client?.companyName || 'No client'}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-[11px] font-medium text-text-muted/60 uppercase tracking-wider mb-1">Contact</p>
@@ -389,11 +389,11 @@ export default function ProjectDashboardClient({
                                             </div>
                                         </div>
 
-                                        {/* Tactical Unit */}
+                                        {/* Team */}
                                         <div className="rounded-2xl p-6 border border-card-border bg-card space-y-6">
                                             <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
                                                 <FiUsers className="text-rose-500" />
-                                                Tactical Unit
+                                                Team
                                             </h3>
                                             <div className="flex flex-wrap gap-2.5">
                                                 {users.slice(0, 12).map((u, i) => (
@@ -419,15 +419,15 @@ export default function ProjectDashboardClient({
                                             </h3>
                                             <div className="space-y-3">
                                                 <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider">
-                                                    <span className="text-text-muted">Established</span>
+                                                    <span className="text-text-muted">Start date</span>
                                                     <span className="text-text-secondary">{project.createdAt ? format(new Date(project.createdAt), 'MMM dd, yyyy') : '-'}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider">
-                                                    <span className="text-text-muted">Window</span>
+                                                    <span className="text-text-muted">Timeline</span>
                                                     <span className="text-text-secondary">{project.startDate ? format(new Date(project.startDate), 'MMM dd') : 'TBD'} - {project.endDate ? format(new Date(project.endDate), 'MMM dd') : 'TBD'}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider">
-                                                    <span className="text-text-muted">Sync Status</span>
+                                                    <span className="text-text-muted">Last updated</span>
                                                     <span className="text-emerald-500 dark:text-emerald-400">Encrypted</span>
                                                 </div>
                                             </div>
@@ -442,7 +442,7 @@ export default function ProjectDashboardClient({
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <div>
                                         <h2 className="text-2xl font-medium text-foreground uppercase tracking-tight leading-none">Operation Center</h2>
-                                        <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mt-2">{tasks.length} Active Maneuvers Identified</p>
+                                        <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mt-2">{tasks.length} tasks in this project</p>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="flex bg-foreground/[0.03] p-1 rounded-2xl border border-card-border">
@@ -461,7 +461,7 @@ export default function ProjectDashboardClient({
                                             {tasks.length === 0 ? (
                                                 <tr>
                                                     <td colSpan={8} className="px-6 py-24 text-center">
-                                                        <EmptyState icon={FiClipboard} title="No tasks yet" description="Task briefings for this mission will appear here." />
+                                                        <EmptyState icon={FiClipboard} title="No tasks yet" description="Tasks for this project will appear here." />
                                                     </td>
                                                 </tr>
                                             ) : tasks.map(task => (
@@ -485,12 +485,12 @@ export default function ProjectDashboardClient({
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <div>
-                                        <h2 className="text-2xl font-medium text-foreground uppercase tracking-tight leading-none">Intelligence Hub</h2>
-                                        <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mt-2">Classified briefings and metadata</p>
+                                        <h2 className="text-2xl font-medium text-foreground uppercase tracking-tight leading-none">Notes</h2>
+                                        <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mt-2">Notes and documents for this project</p>
                                     </div>
                                     <button className="flex items-center gap-2 h-12 px-8 rounded-2xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-foreground text-[11px] font-medium uppercase tracking-wider transition-all">
                                         <FiPlus className="w-4 h-4" />
-                                        <span>Log Note</span>
+                                        <span>New note</span>
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -508,7 +508,7 @@ export default function ProjectDashboardClient({
                                     {notes.length === 0 && (
                                         <div className="col-span-full py-32 flex flex-col items-center gap-6 text-text-muted border border-card-border border-dashed rounded-2xl">
                                             <FiFileText className="w-16 h-16 opacity-10" />
-                                            <p className="text-xs font-medium uppercase tracking-wider">Vault is empty</p>
+                                            <p className="text-xs font-medium uppercase tracking-wider">No notes yet</p>
                                         </div>
                                     )}
                                 </div>

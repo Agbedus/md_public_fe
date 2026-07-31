@@ -30,7 +30,7 @@ import { AboutModal } from "./about-modal";
 import { useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import OrgSwitcher from "./org-switcher";
-import { canManageOrg } from "@/lib/org-permissions";
+import { isOrgAdmin, canCreate } from "@/lib/org-permissions";
 
 interface OrgBrief {
   id: string;
@@ -116,10 +116,10 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
 
   // Mobile: smaller padding, Desktop: normal padding
   const baseLinkClasses =
-    "flex items-center py-1.5 md:py-2 rounded-lg transition-all duration-200 font-light text-sm hover:bg-foreground/[0.05] hover:text-foreground whitespace-nowrap";
+    "flex items-center py-1.5 md:py-2 rounded-lg transition-all duration-200 font-light text-sm hover:bg-blue-50 dark:hover:bg-white/[0.06] hover:text-foreground whitespace-nowrap";
 
   const activeLinkClasses =
-    "bg-foreground/[0.07] text-foreground border border-card-border font-medium";
+    "bg-blue-100 dark:bg-slate-950 text-foreground border border-card-border font-medium";
 
   const inactiveLinkClasses = "text-text-muted";
 
@@ -162,7 +162,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
 
   return (
     <div
-      className={`glass border-r border-sidebar-border transition-all duration-300 hidden md:flex flex-col h-full ${widthClass}`}
+      className={`bg-sidebar border-r border-sidebar-border transition-all duration-300 hidden md:flex flex-col h-full ${widthClass}`}
     >
       {/* ---------- Header ---------- */}
       <div className={headerClass}>
@@ -266,10 +266,14 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
                 {user?.roles?.includes("super_admin") && (
                   renderMenuItem({ href: "/users", icon: FiUsers, label: "System Users", color: "text-teal-400" })
                 )}
-                {canManageOrg({ roles: user?.roles, orgRole: user?.orgRole }) && (
+                {/* Every collaborator can read the client list; only MANAGER and
+                    above can add or change one, which the page itself gates. */}
+                {canCreate({ roles: user?.roles, orgRole: user?.orgRole }) && (
                   renderMenuItem({ href: "/clients", icon: FiBriefcase, label: "Clients", color: "text-violet-400" })
                 )}
-                {canManageOrg({ roles: user?.roles, orgRole: user?.orgRole }) && (
+                {/* This is the time-off *approvals* screen, so it stays at the
+                    admin tier. Members request time off from the calendar. */}
+                {isOrgAdmin({ roles: user?.roles, orgRole: user?.orgRole }) && (
                   renderMenuItem({ href: "/time-off", icon: FiSun, label: "Time Off", color: "text-amber-400" })
                 )}
               </nav>
@@ -361,7 +365,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
             {!isSidebarCollapsed && (
               <Link 
                 href={orgSlug ? `/${orgSlug}/settings` : "/settings"}
-                className="p-2 hover:bg-foreground/[0.05] rounded-lg transition-colors text-text-muted hover:text-foreground shrink-0 ml-auto flex items-center justify-center"
+                className="p-2 hover:bg-blue-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors text-text-muted hover:text-foreground shrink-0 ml-auto flex items-center justify-center"
                 title="Settings"
               >
                 <FiSettings size={16} className="text-text-muted hover:text-foreground transition-colors" />

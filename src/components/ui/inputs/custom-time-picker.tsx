@@ -194,7 +194,7 @@ export function CustomTimePicker({
     <div className={`relative ${className}`} ref={containerRef}>
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-1.5 text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all cursor-pointer flex items-center justify-between gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-foreground/[0.06]'}`}
+        className={`w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-1.5 text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all cursor-pointer flex items-center justify-between gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-foreground/[0.06]'}`}
       >
         <div className="flex items-center gap-2 truncate flex-1">
           <FiClock className="text-text-muted w-3.5 h-3.5 shrink-0" />

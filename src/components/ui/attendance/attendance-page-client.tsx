@@ -21,6 +21,8 @@ export interface AttendancePageClientProps {
     users: any[];
     isManager: boolean;
     isAdmin: boolean;
+    /** Platform SUPER_ADMIN — the raw-record endpoints are not org-scoped. */
+    canReadRawRecords?: boolean;
     currentUserId: string;
 }
 
@@ -35,6 +37,7 @@ export default function AttendancePageClient({
     users,
     isManager,
     isAdmin,
+    canReadRawRecords = false,
     currentUserId,
 }: AttendancePageClientProps) {
     const [activeTab, setActiveTab] = useState<TabId>('my');
@@ -50,7 +53,7 @@ export default function AttendancePageClient({
         revalidateOnFocus: true
     });
 
-    const { data: liveTeamHistory } = useSWR(isAdmin ? 'team-attendance-history' : null, getTeamAttendanceHistory, {
+    const { data: liveTeamHistory } = useSWR(canReadRawRecords ? 'team-attendance-history' : null, getTeamAttendanceHistory, {
         fallbackData: teamHistory,
         revalidateOnFocus: true
     });
@@ -58,7 +61,9 @@ export default function AttendancePageClient({
     const tabs: { id: TabId; label: string; icon: React.ElementType; visible: boolean }[] = [
         { id: 'my', label: 'My Attendance', icon: FiUser, visible: true },
         { id: 'team', label: 'Team Presence', icon: FiUsers, visible: isManager },
-        { id: 'admin', label: 'Office Settings', icon: FiSettings, visible: isManager },
+        // Office settings are administration, so a MANAGER sees team presence
+        // but not this tab.
+        { id: 'admin', label: 'Office Settings', icon: FiSettings, visible: isAdmin },
     ];
 
     return (
@@ -66,8 +71,8 @@ export default function AttendancePageClient({
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground tracking-tight">Attendance</h1>
-                    <p className="text-text-muted text-sm mt-1">Daily tracking and real-time team presence.</p>
+                    <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Attendance</h1>
+                    <p className="text-text-muted text-sm">Daily tracking and real-time team presence.</p>
                 </div>
 
                 {/* Tabs */}

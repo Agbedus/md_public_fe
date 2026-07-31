@@ -26,7 +26,6 @@ export function WorkloadChart({ data }: { data: any[] }) {
             backgroundColor: 'var(--tooltip-bg)', 
             border: '1px solid var(--tooltip-border)', 
             borderRadius: '12px',
-            backdropFilter: 'blur(8px)',
           }}
           itemStyle={{ color: 'var(--foreground)', fontSize: '12px' }}
           cursor={{ fill: 'var(--chart-grid)' }}

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { sanitizeHtml } from '@/lib/sanitize-html';
 import Image from "next/image";
 import type { Note } from "@/types/note";
 import 'quill/dist/quill.snow.css';
@@ -21,34 +22,14 @@ interface NoteCardProps {
     availableUsers?: {id: string, name: string | null, email: string | null, image: string | null}[];
     isExpanded?: boolean;
     onToggleExpand?: () => void;
+    /**
+     * Whether the viewer may edit or delete this note. Managers can see notes
+     * they did not write, so this is false for them on other people's notes and
+     * the controls are hidden rather than left to 403.
+     */
+    canModify?: boolean;
 }
 
-
-function sanitizeHtml(html: string): string {
-    if (!html) return '';
-    if (typeof window === 'undefined' || typeof DOMParser === 'undefined') return '';
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    doc.querySelectorAll('script, style').forEach(node => node.remove());
-    const elements = doc.getElementsByTagName('*');
-    for (let i = 0; i < elements.length; i++) {
-        const el = elements[i];
-        const attrs = Array.from(el.attributes);
-        for (const attr of attrs) {
-            const name = attr.name.toLowerCase();
-            const val = attr.value;
-            if (name.startsWith('on')) {
-                el.removeAttribute(attr.name);
-                continue;
-            }
-            if ((name === 'href' || name === 'src') && val.trim().toLowerCase().startsWith('javascript:')) {
-                el.removeAttribute(attr.name);
-                continue;
-            }
-        }
-    }
-    return doc.body.innerHTML;
-}
 
 const noteTypeIcons: Record<Note['type'], React.ElementType> = {
     note: FiFileText,
@@ -99,7 +80,7 @@ const TextHighlight: React.FC<{ text: string; highlight: string }> = ({ text, hi
     );
 };
 
-export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, searchQuery = '', onEdit, availableUsers = [], isExpanded = false, onToggleExpand }: NoteCardProps) {
+export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, searchQuery = '', onEdit, availableUsers = [], isExpanded = false, onToggleExpand, canModify = true }: NoteCardProps) {
     const [showUserDropdown, setShowUserDropdown] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
     const [isSharing, setIsSharing] = useState(false);
@@ -180,7 +161,12 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
     const getNoteTags = () => {
         if (!note.tags) return [];
         if (typeof note.tags === 'string') {
-            return note.tags.split(',').map(t => t.trim()).filter(Boolean);
+            // De-duplicate: the same tag repeated in the stored string would
+            // otherwise render twice and collide on the React key, since the tag
+            // text is the key.
+            return Array.from(
+                new Set(note.tags.split(',').map(t => t.trim()).filter(Boolean))
+            );
         }
         return [];
     };
@@ -252,7 +238,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                     </div>                </div>
 
                 {/* content area now flexes and scrolls internally */}
-                <div className="ql-snow text-sm text-text-secondary overflow-y-auto notes-scroll flex-1">
+                <div className="ql-snow text-sm text-slate-600 dark:text-slate-400 overflow-y-auto notes-scroll flex-1">
                     <div className="ql-editor" dangerouslySetInnerHTML={{ __html: hasMounted ? renderContent(note.content || '') : '' }} />
                 </div>
 
@@ -346,7 +332,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-[10px] font-black text-foreground truncate uppercase tracking-tight">{note.owner.full_name || note.owner.name}</p>
-                                            <p className="text-[9px] text-text-muted font-black uppercase tracking-widest">Command Lead</p>
+                                            <p className="text-[9px] text-text-muted font-black uppercase tracking-widest">Owner</p>
                                         </div>
                                     </div>
                                 </div>
@@ -406,11 +392,15 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                     </div>
                                 )}
                             </div>
-                            <button onClick={() => onEdit?.(note)} className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"><FiEdit2 size={16} /></button>
-                            <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(); fd.append('id', note.id.toString()); await onNoteDelete(fd); }} style={{ display: 'inline' }}>
-                                <input type="hidden" name="id" value={note.id} />
-                                <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-rose-500 hover:bg-rose-500/10 transition-all"><FiTrash2 size={16} /></button>
-                            </form>
+                            {canModify && (
+                                <>
+                                    <button onClick={() => onEdit?.(note)} className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"><FiEdit2 size={16} /></button>
+                                    <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(); fd.append('id', note.id.toString()); await onNoteDelete(fd); }} style={{ display: 'inline' }}>
+                                        <input type="hidden" name="id" value={note.id} />
+                                        <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-rose-500 hover:bg-rose-500/10 transition-all"><FiTrash2 size={16} /></button>
+                                    </form>
+                                </>
+                            )}
                         </div>
                         </div>
                         </div>
@@ -478,7 +468,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         )}
                         </div>
                         </td>
-                        <td className="px-6 py-5 text-xs text-text-secondary font-medium">
+                        <td className="px-6 py-5 text-xs text-slate-600 dark:text-slate-400 font-medium">
                         <div className="ql-snow">
                         <div className="ql-editor !p-0 line-clamp-2" dangerouslySetInnerHTML={{ __html: hasMounted ? renderContent(note.content || '') : '' }} />
                         </div>
@@ -551,11 +541,15 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         </div>
                         )}
                         </div>
+                        {canModify && (
+                        <>
                         <button type="button" onClick={() => onEdit?.(note)} className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"><FiEdit2 size={15} /></button>
                         <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(); fd.append('id', note.id.toString()); await onNoteDelete(fd); }} style={{ display: 'inline' }}>
                         <input type="hidden" name="id" value={note.id} />
                         <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-rose-500 hover:bg-rose-500/10 transition-all"><FiTrash2 size={15} /></button>
                         </form>
+                        </>
+                        )}
                         </td>
                         {/* Owner Tooltip for Table */}
                         {hoveredOwner && note.owner && (
@@ -581,7 +575,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                             </div>
                             <div className="min-w-0 text-left">
                                 <p className="text-[10px] font-black text-foreground truncate uppercase tracking-tight">{note.owner.full_name || note.owner.name}</p>
-                                <p className="text-[9px] text-text-muted font-black uppercase tracking-widest">Command Lead</p>
+                                <p className="text-[9px] text-text-muted font-black uppercase tracking-widest">Owner</p>
                             </div>
                         </div>
                         </div>

@@ -20,7 +20,7 @@ import {
 } from "react-icons/fi";
 import UserAvatarGroup from "@/components/ui/user-avatar-group";
 import { useTaskTimer } from "@/providers/task-timer-provider";
-import { canUserWorkOnTask } from "@/lib/task-auth";
+import { canUserWorkOnTask, canDeleteTask } from "@/lib/task-auth";
 
 interface KanbanCardProps {
   task: Task;
@@ -79,9 +79,9 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
       default: 
         return {
           stripe: 'bg-zinc-500',
-          tint: 'bg-white/[0.02]',
+          tint: 'bg-foreground/[0.02]',
           glow: 'group-hover:-[0_0_30px_rgba(255,255,255,0.05)]',
-          ring: 'group-hover:ring-white/20',
+          ring: 'group-hover:ring-foreground/20',
           gradient: 'from-white/5 to-transparent'
         };
     }
@@ -94,8 +94,8 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative overflow-hidden rounded-2xl border border-white/5 ${styles.tint} transition-all duration-500 backdrop-blur-md cursor-grab active:cursor-grabbing ${
-        isDragging ? 'opacity-40 ring-2 ring-indigo-500/50  scale-[1.02] z-50' : `hover:border-white/5 hover:-translate-y-1.5 ring-0 ${styles.ring} ${styles.glow}`
+      className={`group relative overflow-hidden rounded-2xl border border-foreground/5 ${styles.tint} transition-all duration-500 backdrop-blur-md cursor-grab active:cursor-grabbing ${
+        isDragging ? 'opacity-40 ring-2 ring-indigo-500/50  scale-[1.02] z-50' : `hover:border-foreground/5 hover:-translate-y-1.5 ring-0 ${styles.ring} ${styles.glow}`
       }`}
       {...attributes}
       {...listeners}
@@ -109,7 +109,7 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
       <div className="p-5 pl-6">
         <div className="flex items-start justify-between gap-3 mb-2.5">
           <div className="flex-1 min-w-0">
-            <h4 className={`text-lg font-bold tracking-tight leading-tight text-white/90 group-hover:text-white transition-colors ${task.status === 'DONE' ? 'line-through opacity-40' : ''}`}>
+            <h4 className={`text-lg font-bold tracking-tight leading-tight text-foreground/90 group-hover:text-foreground transition-colors ${task.status === 'DONE' ? 'line-through opacity-40' : ''}`}>
               {task.name}
             </h4>
           </div>
@@ -120,17 +120,17 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
                 className={`transition-all duration-300 p-1.5 rounded-xl ${
                   activeTask?.id === task.id 
                     ? 'bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/30' 
-                    : 'opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10'
+                    : 'opacity-0 group-hover:opacity-100 text-text-muted hover:text-indigo-400 hover:bg-indigo-500/10'
                 }`}
                 aria-label="Start Focus"
               >
                 <FiPlay className={`h-3.5 w-3.5 ${activeTask?.id === task.id ? 'fill-current' : ''}`} />
               </button>
             )}
-            {canManage && (
+            {(canManage || canDeleteTask(currentUser, task)) && (
             <button
               onClick={(e) => { e.stopPropagation(); void onDelete(task); }}
-              className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
+              className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-1.5 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-xl"
               aria-label={`Delete ${task.name}`}
             >
               <FiTrash2 className="h-3.5 w-3.5" />
@@ -140,7 +140,7 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
         </div>
 
         {task.description && (
-          <p className="text-[14px] leading-relaxed text-zinc-500 line-clamp-2 mb-5 group-hover:text-zinc-400 transition-colors">
+          <p className="text-[14px] leading-relaxed text-text-muted line-clamp-2 mb-5 group-hover:text-text-secondary transition-colors">
             {task.description}
           </p>
         )}
@@ -176,10 +176,10 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+        <div className="flex items-center justify-between pt-4 border-t border-foreground/5">
           <div className="flex items-center gap-3">
             {task.dueDate && (
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-500 bg-white/[0.03] px-2.5 py-1.5 rounded-xl border border-white/5 group-hover:bg-white/[0.06] transition-colors">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-text-muted bg-foreground/[0.03] px-2.5 py-1.5 rounded-xl border border-foreground/5 group-hover:bg-foreground/[0.06] transition-colors">
                 <FiCalendar className="w-3.5 h-3.5" />
                 <span>{new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
               </div>
@@ -201,7 +201,7 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
               {task.status === 'TODO' && (
                 <button
                   onClick={(e) => { e.stopPropagation(); void onMove(task, 'IN_PROGRESS'); }}
-                  className="p-1.5 rounded-xl hover:bg-white/[0.06] text-zinc-500 hover:text-white transition-all border border-white/5 active:scale-90"
+                  className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
                   title="Move to In Progress"
                 >
                   <FiChevronRight className="h-4 w-4" />
@@ -211,14 +211,14 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
                 <>
                   <button
                     onClick={(e) => { e.stopPropagation(); void onMove(task, 'TODO'); }}
-                    className="p-1.5 rounded-xl hover:bg-white/[0.06] text-zinc-500 hover:text-white transition-all border border-white/5 active:scale-90"
+                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
                     title="Move to To Do"
                   >
                     <FiChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); void onMove(task, task.qa_required ? 'QA' : task.review_required ? 'REVIEW' : 'DONE'); }}
-                    className="p-1.5 rounded-xl hover:bg-white/[0.06] text-zinc-500 hover:text-white transition-all border border-white/5 active:scale-90"
+                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
                     title={`Move to ${task.qa_required ? 'QA' : task.review_required ? 'Review' : 'Done'}`}
                   >
                     <FiChevronRight className="h-4 w-4" />
@@ -229,14 +229,14 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
                 <>
                   <button
                     onClick={(e) => { e.stopPropagation(); void onMove(task, 'IN_PROGRESS'); }}
-                    className="p-1.5 rounded-xl hover:bg-white/[0.06] text-zinc-500 hover:text-white transition-all border border-white/5 active:scale-90"
+                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
                     title="Move to In Progress"
                   >
                     <FiChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); void onMove(task, task.review_required ? 'REVIEW' : 'DONE'); }}
-                    className="p-1.5 rounded-xl hover:bg-white/[0.06] text-zinc-500 hover:text-white transition-all border border-white/5 active:scale-90"
+                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
                     title={`Move to ${task.review_required ? 'Review' : 'Done'}`}
                   >
                     <FiChevronRight className="h-4 w-4" />
@@ -247,14 +247,14 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
                 <>
                   <button
                     onClick={(e) => { e.stopPropagation(); void onMove(task, task.qa_required ? 'QA' : 'IN_PROGRESS'); }}
-                    className="p-1.5 rounded-xl hover:bg-white/[0.06] text-zinc-500 hover:text-white transition-all border border-white/5 active:scale-90"
+                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
                     title={`Move to ${task.qa_required ? 'QA' : 'In Progress'}`}
                   >
                     <FiChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); void onMove(task, 'DONE'); }}
-                    className="p-1.5 rounded-xl hover:bg-white/[0.06] text-zinc-500 hover:text-white transition-all border border-white/5 active:scale-90"
+                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
                     title="Move to Done"
                   >
                     <FiChevronRight className="h-4 w-4" />
@@ -264,7 +264,7 @@ export default function KanbanCard({ task, users, user: currentUser, projects, c
               {task.status === 'DONE' && (
                 <button
                   onClick={(e) => { e.stopPropagation(); void onMove(task, task.review_required ? 'REVIEW' : task.qa_required ? 'QA' : 'IN_PROGRESS'); }}
-                  className="p-1.5 rounded-xl hover:bg-white/[0.06] text-zinc-500 hover:text-white transition-all border border-white/5 active:scale-90"
+                  className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
                   title={`Move to ${task.review_required ? 'Review' : task.qa_required ? 'QA' : 'In Progress'}`}
                 >
                   <FiChevronLeft className="h-4 w-4" />

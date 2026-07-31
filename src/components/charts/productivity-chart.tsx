@@ -26,7 +26,6 @@ const ProductivityChart = ({ data }: { data: Array<{ name: string; productivity:
             border: '1px solid var(--tooltip-border)',
             borderRadius: '0.75rem',
             fontSize: '12px',
-            backdropFilter: 'blur(8px)',
           }}
           itemStyle={{ padding: '2px 0' }}
         />

@@ -19,6 +19,7 @@ interface ApiClient {
     contact_person_name: string | null;
     contact_email: string | null;
     website_url: string | null;
+    owner_id?: string | null;
     created_at: string;
 }
 
@@ -53,6 +54,7 @@ export const getClients = cache(async function(): Promise<Client[]> {
             contactPersonName: client.contact_person_name,
             contactEmail: client.contact_email,
             websiteUrl: client.website_url,
+            ownerId: client.owner_id ?? null,
             createdAt: client.created_at
         }));
     } catch (error) {

@@ -39,7 +39,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <label htmlFor="name" className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-              Mission Designation *
+              Project name *
             </label>
             <input
               type="text"
@@ -47,7 +47,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
               id="name"
               required
               defaultValue={defaultValues?.name}
-              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+              className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
               placeholder="Enter project name"
             />
           </div>
@@ -61,7 +61,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
               name="key"
               id="key"
               defaultValue={defaultValues?.key || ''}
-              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+              className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
               placeholder="e.g., PROJ-123"
             />
           </div>
@@ -69,14 +69,14 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
 
         <div>
           <label htmlFor="description" className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-            Tactical Briefing
+            Description
           </label>
           <textarea
             name="description"
             id="description"
             rows={3}
             defaultValue={defaultValues?.description || ''}
-            className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all resize-none font-bold"
+            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all resize-none font-bold"
             placeholder="Add details about this project..."
           />
         </div>
@@ -90,7 +90,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
             name="tags"
             id="tags"
             defaultValue={defaultValues?.tags ? (Array.isArray(defaultValues.tags) ? defaultValues.tags.join(', ') : defaultValues.tags) : ''}
-            className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
             placeholder="Comma-separated tags"
           />
         </div>
@@ -106,14 +106,14 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label htmlFor="status" className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-              Operational Status
+              Status
             </label>
             <div className="relative">
                 <select
                 name="status"
                 id="status"
                 defaultValue={defaultValues?.status || 'planning'}
-                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-indigo-500/30 transition-all appearance-none cursor-pointer font-bold"
+                className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-indigo-500/30 transition-all appearance-none cursor-pointer font-bold"
                 >
                 <option value="planning" className="bg-background">Planning</option>
                 <option value="in_progress" className="bg-background">In Progress</option>
@@ -132,7 +132,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
                 name="priority"
                 id="priority"
                 defaultValue={defaultValues?.priority || 'medium'}
-                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-indigo-500/30 transition-all appearance-none cursor-pointer font-bold"
+                className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-indigo-500/30 transition-all appearance-none cursor-pointer font-bold"
                 >
                 <option value="low" className="bg-background">Low</option>
                 <option value="medium" className="bg-background">Medium</option>
@@ -190,7 +190,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
         <div className="grid grid-cols-3 gap-6">
           <div>
             <label htmlFor="budget" className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-              Mission Budget
+              Budget
             </label>
             <CustomNumberInput
                 value={budget}
@@ -225,7 +225,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
               name="currency"
               id="currency"
               defaultValue={defaultValues?.currency || 'USD'}
-              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+              className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
               placeholder="USD"
             />
           </div>
@@ -240,7 +240,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
                 name="billingType"
                 id="billingType"
                 defaultValue={defaultValues?.billingType || 'non_billable'}
-                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-indigo-500/30 transition-all appearance-none cursor-pointer font-bold"
+                className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-indigo-500/30 transition-all appearance-none cursor-pointer font-bold"
             >
                 <option value="non_billable" className="bg-background">Non-Billable</option>
                 <option value="time_and_materials" className="bg-background">Time & Materials</option>
@@ -261,7 +261,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
           {/* Owner */}
           <div>
             <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-              Command Lead
+              Owner
             </label>
             <Combobox
               name="ownerId"

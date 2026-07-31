@@ -151,18 +151,20 @@ export default function Pomodoro() {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-white">Focus</h2>
-          <p className="text-sm text-slate-400">Pomodoro timer</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Focus</h1>
+          <p className="text-text-muted text-sm">Stay on task with a work-and-break timer.</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-slate-400">Cycles: {cyclesCompleted}</div>
-          <button title="Settings" onClick={() => setSettingsOpen(true)} className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200">
-            <FiSettings size={18} />
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-text-muted">Cycles: {cyclesCompleted}</div>
+          <button title="Settings" onClick={() => setSettingsOpen(true)} className="p-2.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-secondary hover:text-foreground transition-all">
+            <FiSettings size={16} />
           </button>
         </div>
       </div>
+
+      <div className="bg-card border border-card-border rounded-2xl p-6 lg:p-10">
 
       {/* Centered large clock with icons below */}
       <div className="flex flex-col items-center justify-center gap-6">
@@ -170,12 +172,12 @@ export default function Pomodoro() {
           <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg]">
             <defs>
               <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#fb7185" />
-                <stop offset="100%" stopColor="#f97316" />
+                <stop offset="0%" stopColor="var(--pastel-rose)" />
+                <stop offset="100%" stopColor="var(--pastel-amber)" />
               </linearGradient>
             </defs>
             <circle
-              stroke="#0f172a"
+              stroke="var(--card-border)"
               fill="transparent"
               strokeWidth={stroke}
               r={normalizedRadius}
@@ -196,11 +198,11 @@ export default function Pomodoro() {
           </svg>
 
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="p-6 rounded-full bg-slate-900/70 backdrop-blur-sm flex items-center justify-center" style={{ width: radius * 1.6, height: radius * 1.6 }}>
+            <div className="p-6 rounded-full bg-background border border-card-border flex items-center justify-center" style={{ width: radius * 1.6, height: radius * 1.6 }}>
               <div className="flex flex-col items-center">
                 <ModeIcon size={24} className="text-rose-400 mb-2" />
-                <div className="text-5xl font-mono text-white">{formatTime(Math.max(0, timeLeft))}</div>
-                <div className="text-sm text-slate-400 mt-1">{mode === 'work' ? 'Work' : mode === 'short' ? 'Short Break' : 'Long Break'}</div>
+                <div className="text-5xl font-mono text-foreground">{formatTime(Math.max(0, timeLeft))}</div>
+                <div className="text-sm text-text-muted mt-1">{mode === 'work' ? 'Work' : mode === 'short' ? 'Short Break' : 'Long Break'}</div>
               </div>
             </div>
           </div>
@@ -213,80 +215,81 @@ export default function Pomodoro() {
               {isRunning ? <FiPause size={26} /> : <FiPlay size={26} />}
             </button>
 
-            <button title="Reset" onClick={reset} className="p-4 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200">
+            <button title="Reset" onClick={reset} className="p-4 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-secondary">
               <FiRefreshCw size={20} />
             </button>
 
-            <button title="Settings" onClick={() => setSettingsOpen(true)} className="p-4 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200">
+            <button title="Settings" onClick={() => setSettingsOpen(true)} className="p-4 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-secondary">
               <FiSettings size={20} />
             </button>
           </div>
 
           <div className="flex items-center gap-4 mt-1">
-            <button title="Work" onClick={() => switchMode('work')} className={`p-3 rounded-full ${mode === 'work' ? 'bg-slate-800 text-white' : 'bg-slate-700 text-slate-300'}`}>
+            <button title="Work" onClick={() => switchMode('work')} className={`p-3 rounded-full ${mode === 'work' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
               <FiClock size={18} />
             </button>
-            <button title="Short Break" onClick={() => switchMode('short')} className={`p-3 rounded-full ${mode === 'short' ? 'bg-slate-800 text-white' : 'bg-slate-700 text-slate-300'}`}>
+            <button title="Short Break" onClick={() => switchMode('short')} className={`p-3 rounded-full ${mode === 'short' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
               <FiCoffee size={18} />
             </button>
-            <button title="Long Break" onClick={() => switchMode('long')} className={`p-3 rounded-full ${mode === 'long' ? 'bg-slate-800 text-white' : 'bg-slate-700 text-slate-300'}`}>
+            <button title="Long Break" onClick={() => switchMode('long')} className={`p-3 rounded-full ${mode === 'long' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
               <FiMoon size={18} />
             </button>
           </div>
 
-          <div className="text-sm text-slate-400 mt-2">Total: {mode === 'work' ? settings.workMinutes : mode === 'short' ? settings.shortBreakMinutes : settings.longBreakMinutes} min</div>
+          <div className="text-sm text-text-muted mt-2">Total: {mode === 'work' ? settings.workMinutes : mode === 'short' ? settings.shortBreakMinutes : settings.longBreakMinutes} min</div>
         </div>
+      </div>
       </div>
 
       {/* Full-screen settings overlay with icon-based controls */}
       {settingsOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="w-full h-full bg-slate-800 p-6 overflow-auto flex flex-col">
+        <div className="fixed inset-0 z-50 bg-white/60 dark:bg-black/60 backdrop-blur-md flex items-center justify-center p-6">
+          <div className="w-full h-full max-w-3xl max-h-[90vh] bg-card border border-card-border rounded-2xl p-6 overflow-auto flex flex-col shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-white">Settings</h3>
+              <h3 className="text-lg font-semibold text-foreground">Settings</h3>
               <div className="flex items-center gap-3">
-                <button onClick={() => setSettingsOpen(false)} className="p-2 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-200"><FiX /></button>
+                <button onClick={() => setSettingsOpen(false)} className="p-2 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-secondary hover:text-foreground transition-all"><FiX /></button>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100%-64px)]">
               {/* Work setting */}
-              <div className="flex flex-col items-center justify-center gap-4 p-6 rounded bg-slate-900">
+              <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-background border border-card-border">
                 <FiClock size={40} className="text-rose-400" />
-                <div className="text-sm text-slate-300">Work</div>
-                <div className="text-3xl font-mono text-white">{settings.workMinutes}m</div>
+                <div className="text-sm text-text-secondary">Work</div>
+                <div className="text-3xl font-mono text-foreground">{settings.workMinutes}m</div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => updateSetting('workMinutes', Math.max(1, settings.workMinutes + 1))} className="p-3 rounded-full bg-slate-700 text-white"><FiPlus /></button>
-                  <button onClick={() => updateSetting('workMinutes', Math.max(1, settings.workMinutes - 1))} className="p-3 rounded-full bg-slate-700 text-white"><FiMinus /></button>
+                  <button onClick={() => updateSetting('workMinutes', Math.max(1, settings.workMinutes + 1))} className="p-3 rounded-full bg-foreground/[0.06] text-foreground"><FiPlus /></button>
+                  <button onClick={() => updateSetting('workMinutes', Math.max(1, settings.workMinutes - 1))} className="p-3 rounded-full bg-foreground/[0.06] text-foreground"><FiMinus /></button>
                 </div>
               </div>
 
               {/* Short break */}
-              <div className="flex flex-col items-center justify-center gap-4 p-6 rounded bg-slate-900">
+              <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-background border border-card-border">
                 <FiCoffee size={40} className="text-rose-400" />
-                <div className="text-sm text-slate-300">Short Break</div>
-                <div className="text-3xl font-mono text-white">{settings.shortBreakMinutes}m</div>
+                <div className="text-sm text-text-secondary">Short Break</div>
+                <div className="text-3xl font-mono text-foreground">{settings.shortBreakMinutes}m</div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => updateSetting('shortBreakMinutes', Math.max(1, settings.shortBreakMinutes + 1))} className="p-3 rounded-full bg-slate-700 text-white"><FiPlus /></button>
-                  <button onClick={() => updateSetting('shortBreakMinutes', Math.max(1, settings.shortBreakMinutes - 1))} className="p-3 rounded-full bg-slate-700 text-white"><FiMinus /></button>
+                  <button onClick={() => updateSetting('shortBreakMinutes', Math.max(1, settings.shortBreakMinutes + 1))} className="p-3 rounded-full bg-foreground/[0.06] text-foreground"><FiPlus /></button>
+                  <button onClick={() => updateSetting('shortBreakMinutes', Math.max(1, settings.shortBreakMinutes - 1))} className="p-3 rounded-full bg-foreground/[0.06] text-foreground"><FiMinus /></button>
                 </div>
               </div>
 
               {/* Long break */}
-              <div className="flex flex-col items-center justify-center gap-4 p-6 rounded bg-slate-900">
+              <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-background border border-card-border">
                 <FiMoon size={40} className="text-rose-400" />
-                <div className="text-sm text-slate-300">Long Break</div>
-                <div className="text-3xl font-mono text-white">{settings.longBreakMinutes}m</div>
+                <div className="text-sm text-text-secondary">Long Break</div>
+                <div className="text-3xl font-mono text-foreground">{settings.longBreakMinutes}m</div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => updateSetting('longBreakMinutes', Math.max(1, settings.longBreakMinutes + 1))} className="p-3 rounded-full bg-slate-700 text-white"><FiPlus /></button>
-                  <button onClick={() => updateSetting('longBreakMinutes', Math.max(1, settings.longBreakMinutes - 1))} className="p-3 rounded-full bg-slate-700 text-white"><FiMinus /></button>
+                  <button onClick={() => updateSetting('longBreakMinutes', Math.max(1, settings.longBreakMinutes + 1))} className="p-3 rounded-full bg-foreground/[0.06] text-foreground"><FiPlus /></button>
+                  <button onClick={() => updateSetting('longBreakMinutes', Math.max(1, settings.longBreakMinutes - 1))} className="p-3 rounded-full bg-foreground/[0.06] text-foreground"><FiMinus /></button>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
-              <button onClick={() => { saveSettings(settings); setSettingsOpen(false); }} className="px-4 py-2 rounded bg-rose-500 text-white">Save</button>
-              <button onClick={() => { setSettings(JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify(DEFAULTS))); setSettingsOpen(false); }} className="px-4 py-2 rounded bg-slate-700 text-slate-200">Cancel</button>
+              <button onClick={() => { saveSettings(settings); setSettingsOpen(false); }} className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition-all">Save</button>
+              <button onClick={() => { setSettings(JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify(DEFAULTS))); setSettingsOpen(false); }} className="px-6 py-2.5 rounded-xl text-sm font-medium text-text-secondary bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all">Cancel</button>
             </div>
           </div>
         </div>

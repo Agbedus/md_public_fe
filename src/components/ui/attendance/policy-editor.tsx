@@ -5,6 +5,7 @@ import type { OfficeLocation, AttendancePolicy } from '@/types/attendance';
 import { getAttendancePolicy, updateAttendancePolicy } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
 import { FiSettings, FiCheck } from 'react-icons/fi';
 import { toast } from '@/lib/toast';
+import { Toggle } from '@/components/ui/inputs/toggle';
 import { CustomTimePicker } from '@/components/ui/inputs/custom-time-picker';
 
 export default function PolicyEditor({ officeLocationId }: { officeLocationId: number }) {
@@ -64,7 +65,7 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
         setIsSaving(false);
     };
 
-    const inputClass = "w-full px-3 py-1.5 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all font-numbers placeholder:text-text-muted/50";
+    const inputClass = "w-full px-3 py-1.5 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all font-numbers placeholder:text-text-muted/50";
     const labelClass = "block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5";
 
     // Helper to strip :SS for HTML time input
@@ -79,7 +80,7 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                     <FiSettings className="w-4 h-4 text-indigo-400" />
                 </div>
                 <div>
-                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Operational Policy</h3>
+                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Attendance policy</h3>
                     <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Automations & Grace Thresholds</p>
                 </div>
             </div>
@@ -99,24 +100,22 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                                 <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Auto Clock-In</p>
                                 <p className="text-[9px] text-text-muted font-bold uppercase tracking-tight mt-0.5 italic">Geofence Trigger</p>
                             </div>
-                            <button
-                                onClick={() => setForm(f => ({ ...f, auto_clock_in: !f.auto_clock_in }))}
-                                className={`relative w-10 h-5 rounded-full transition-all duration-300 shrink-0 border ${form.auto_clock_in ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-input-bg border-card-border'}`}
-                            >
-                                <div className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full transition-all duration-300 ${form.auto_clock_in ? 'translate-x-5 bg-emerald-400 -[0_0_10px_rgba(52,211,153,0.5)]' : 'bg-text-muted'}`} />
-                            </button>
+                            <Toggle
+                                label="Auto clock-in"
+                                isChecked={form.auto_clock_in}
+                                onChange={(next) => setForm(f => ({ ...f, auto_clock_in: next }))}
+                            />
                         </div>
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-foreground/[0.02] border border-card-border">
                             <div>
                                 <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Auto Clock-Out</p>
                                 <p className="text-[9px] text-text-muted font-bold uppercase tracking-tight mt-0.5 italic">Geofence Trigger</p>
                             </div>
-                            <button
-                                onClick={() => setForm(f => ({ ...f, auto_clock_out: !f.auto_clock_out }))}
-                                className={`relative w-10 h-5 rounded-full transition-all duration-300 shrink-0 border ${form.auto_clock_out ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-input-bg border-card-border'}`}
-                            >
-                                <div className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full transition-all duration-300 ${form.auto_clock_out ? 'translate-x-5 bg-emerald-400 -[0_0_10px_rgba(52,211,153,0.5)]' : 'bg-text-muted'}`} />
-                            </button>
+                            <Toggle
+                                label="Auto clock-out"
+                                isChecked={form.auto_clock_out}
+                                onChange={(next) => setForm(f => ({ ...f, auto_clock_out: next }))}
+                            />
                         </div>
                     </div>
 

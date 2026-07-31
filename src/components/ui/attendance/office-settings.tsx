@@ -120,7 +120,7 @@ export default function OfficeSettings({ initialLocations }: { initialLocations:
         setIsSaving(false);
     };
 
-    const inputClass = "w-full px-3 py-1.5 rounded-lg bg-background/50 border border-card-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all placeholder:text-text-muted/50";
+    const inputClass = "w-full px-3 py-1.5 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all placeholder:text-text-muted/50";
     const labelClass = "block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5";
 
     return (
@@ -187,7 +187,7 @@ export default function OfficeSettings({ initialLocations }: { initialLocations:
                                     : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'
                             }`}
                         >
-                            Operational Policy
+                            Attendance policy
                         </button>
                     </div>
                 )}

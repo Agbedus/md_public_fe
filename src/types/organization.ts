@@ -8,16 +8,28 @@
  * compared against raw API payloads without lowercasing gymnastics.
  */
 
-export type OrgRole = "owner" | "admin" | "member" | "client";
+export type OrgRole = "owner" | "admin" | "manager" | "member" | "guest";
 export type MembershipStatus = "pending" | "active" | "suspended";
 
 export const OrgRoleValue = {
   OWNER: "OWNER",
   ADMIN: "ADMIN",
+  MANAGER: "MANAGER",
   MEMBER: "MEMBER",
-  CLIENT: "CLIENT",
+  GUEST: "GUEST",
 } as const;
 export type OrgRoleValueType = typeof OrgRoleValue[keyof typeof OrgRoleValue];
+
+/** Every org role, most privileged first. */
+export const ORG_ROLES: OrgRole[] = ["owner", "admin", "manager", "member", "guest"];
+
+/**
+ * `client` was an org role the frontend once anticipated; the backend enum went
+ * straight from OWNER/ADMIN/MEMBER to the five roles above and never stored it.
+ * `guest` is its successor, so anything stale that still says "client" is read
+ * as a guest rather than falling through to an unknown role.
+ */
+const LEGACY_ROLE_ALIASES: Record<string, OrgRole> = { client: "guest" };
 
 export const MembershipStatusValue = {
   PENDING: "pending",
@@ -27,20 +39,41 @@ export const MembershipStatusValue = {
 export type MembershipStatusValueType =
   typeof MembershipStatusValue[keyof typeof MembershipStatusValue];
 
-/** Anything that should gate org-management actions. */
+/**
+ * Normalize any casing or legacy spelling to the canonical lowercase role.
+ * Returns null when the value is not a role we recognize.
+ */
+export function toOrgRole(raw: string | null | undefined): OrgRole | null {
+  if (!raw) return null;
+  const key = raw.trim().toLowerCase();
+  if ((ORG_ROLES as string[]).includes(key)) return key as OrgRole;
+  return LEGACY_ROLE_ALIASES[key] ?? null;
+}
+
+/** Anything that should gate org-administration actions (backend: ORG_ADMIN_ROLES). */
 export const PRIVILEGED_ORG_ROLES: string[] = ["OWNER", "ADMIN"];
 export const PRIVILEGED_ORG_ROLES_LOWER: string[] = ["owner", "admin"];
 
 export function isPrivilegedOrgRole(role: string | null | undefined): boolean {
-  if (!role) return false;
-  return PRIVILEGED_ORG_ROLES.includes(role.toUpperCase());
+  const normalized = toOrgRole(role);
+  return normalized === "owner" || normalized === "admin";
 }
 
 export const orgRoleLabels: Record<string, { label: string; tone: string; rank: number }> = {
-  OWNER:  { label: "Owner",  tone: "rose",    rank: 4 },
-  ADMIN:  { label: "Admin",  tone: "amber",   rank: 3 },
-  MEMBER: { label: "Member", tone: "sky",     rank: 2 },
-  CLIENT: { label: "Client", tone: "violet",  rank: 1 },
+  OWNER:   { label: "Owner",   tone: "rose",    rank: 5 },
+  ADMIN:   { label: "Admin",   tone: "amber",   rank: 4 },
+  MANAGER: { label: "Manager", tone: "emerald", rank: 3 },
+  MEMBER:  { label: "Member",  tone: "sky",     rank: 2 },
+  GUEST:   { label: "Guest",   tone: "zinc",    rank: 1 },
+};
+
+/** One-line explanation of each role, for role pickers and settings copy. */
+export const orgRoleDescriptions: Record<OrgRole, string> = {
+  owner:   "Full control of the organization, including billing and ownership transfer.",
+  admin:   "Administers the organization and can edit or remove anyone's work.",
+  manager: "Sees everything across the organization, but only changes their own work.",
+  member:  "Creates and manages their own work, plus anything shared with them.",
+  guest:   "Read-only access, limited to what has been explicitly shared with them.",
 };
 
 export const orgRoleToneClasses: Record<string, string> = {
@@ -59,17 +92,15 @@ export const membershipStatusToneClasses: Record<string, string> = {
 };
 
 export function presentOrgRole(role: string | null | undefined): { label: string; tone: string } {
-  const key = (role || "").toUpperCase();
-  const found = orgRoleLabels[key];
+  const normalized = toOrgRole(role);
+  const found = normalized ? orgRoleLabels[normalized.toUpperCase()] : undefined;
   if (found) return { label: found.label, tone: found.tone };
   return { label: role || "Member", tone: "zinc" };
 }
 
 export function normalizeRoleValue(raw: string | null | undefined): OrgRoleValueType | null {
-  if (!raw) return null;
-  const u = raw.toUpperCase();
-  if (u === "OWNER" || u === "ADMIN" || u === "MEMBER" || u === "CLIENT") return u;
-  return null;
+  const normalized = toOrgRole(raw);
+  return normalized ? (normalized.toUpperCase() as OrgRoleValueType) : null;
 }
 
 export interface UserBrief {
@@ -127,7 +158,7 @@ export interface CurrentOrgContext {
   slug: string;
   logo_url?: string | null;
   description?: string | null;
-  role: string;             // OWNER | ADMIN | MEMBER | CLIENT — matches backend enum
+  role: string;             // OWNER | ADMIN | MANAGER | MEMBER | GUEST — matches backend enum
   status: MembershipStatus; // pending | active | suspended
   joined_at?: string | null;
   member_count?: number;

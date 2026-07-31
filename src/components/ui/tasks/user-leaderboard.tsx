@@ -29,9 +29,9 @@ export function UserLeaderboard({ tasks, users }: UserLeaderboardProps) {
   const getAwardIcon = (index: number) => {
     switch(index) {
       case 0: return <FiAward className="text-yellow-400 text-sm sm:text-base pulse-soft" />;
-      case 1: return <FiAward className="text-zinc-300 text-sm sm:text-base" />;
+      case 1: return <FiAward className="text-text-secondary text-sm sm:text-base" />;
       case 2: return <FiAward className="text-orange-400 text-sm sm:text-base" />;
-      default: return <FiStar className="text-zinc-500 text-[11px]" />;
+      default: return <FiStar className="text-text-muted text-[11px]" />;
     }
   };
 

@@ -8,6 +8,7 @@ import { useAnnouncements } from './announcement-provider';
 import { formatDistanceToNow } from 'date-fns';
 import { AnnouncementForm } from './announcement-form';
 import { CreatorAvatar } from './creator-avatar';
+import { canReadAll, canModifyRecord } from '@/lib/org-permissions';
 
 export const AnnouncementDrawer = () => {
   const { 
@@ -22,10 +23,10 @@ export const AnnouncementDrawer = () => {
   } = useAnnouncements();
 
   const drawerRef = useRef<HTMLDivElement>(null);
-  const isSuperAdmin = user?.roles?.includes('SUPER_ADMIN') || 
-                      user?.role === 'SUPER_ADMIN' || 
-                      user?.roles?.includes('MANAGER') || 
-                      user?.role === 'MANAGER';
+  // MANAGER-tier to publish; ownership rule to remove. Matches the
+  // announcements page and the backend guards.
+  const canPublish = canReadAll(user);
+  const canRemove = (creatorId: string) => canModifyRecord(user, creatorId);
 
   // Load latest first
   const sortedAnnouncements = [...announcements].sort((a, b) => 
@@ -95,11 +96,11 @@ export const AnnouncementDrawer = () => {
             {/* Header */}
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-background/80 backdrop-blur-md">
               <div>
-                <h2 className="text-xl font-bold text-foreground flex items-center gap-3 italic tracking-tight">
+                <h2 className="text-xl font-bold text-foreground flex items-center gap-3 tracking-tight">
                   <HiSpeakerphone className="text-[var(--pastel-yellow)]" />
                   Announcements
                 </h2>
-                <p className="text-[10px] text-text-muted mt-1 font-black uppercase tracking-[0.2em]">System-Wide Broadcasts</p>
+                <p className="text-xs text-text-muted mt-1">Notices for the whole organization.</p>
               </div>
               <button 
                 onClick={() => setIsDrawerOpen(false)}
@@ -137,7 +138,7 @@ export const AnnouncementDrawer = () => {
                           {announcement.title}
                         </h3>
                         
-                        {isSuperAdmin && (
+                        {canRemove(announcement.creator_id) && (
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
@@ -181,7 +182,7 @@ export const AnnouncementDrawer = () => {
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-center py-32">
                   <FiMessageSquare size={48} className="mb-6 text-text-muted opacity-20" />
-                  <p className="text-xs font-bold text-text-muted uppercase tracking-[0.2em]">No active broadcasts</p>
+                  <p className="text-xs font-bold text-text-muted uppercase tracking-[0.2em]">No announcements</p>
                   <p className="text-[11px] text-text-muted mt-2 font-medium uppercase tracking-widest">Check back later for system updates</p>
                 </div>
               )}
@@ -190,6 +191,7 @@ export const AnnouncementDrawer = () => {
             {/* Footer */}
             <div className="p-5 border-t border-card-border bg-background/80 backdrop-blur-md flex items-center justify-between">
               {/* Minimal Add Button (Style from task table) */}
+              {canPublish && (
               <button
                 onClick={() => setIsAdminFormOpen(true)}
                 className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-[var(--pastel-yellow)]/30 text-xs text-text-muted hover:text-foreground transition-all duration-300 group"
@@ -198,8 +200,9 @@ export const AnnouncementDrawer = () => {
                 <div className="p-1.5 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border">
                   <FiPlus className="w-3.5 h-3.5 text-[var(--pastel-yellow)]" />
                 </div>
-                <span className="font-black uppercase tracking-[0.2em] text-[9px]">New Broadcast</span>
+                <span className="font-black uppercase tracking-[0.2em] text-[9px]">New announcement</span>
               </button>
+              )}
 
               {/* Info Tooltip */}
               <div className="relative group">

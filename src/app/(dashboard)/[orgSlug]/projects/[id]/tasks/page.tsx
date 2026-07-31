@@ -32,12 +32,12 @@ export default async function ProjectTasksPage({ params }: ProjectTasksPageProps
     return (
         <div className="flex flex-col gap-4">
             <div className="px-8 pt-8">
-                <div className="flex items-center gap-2 text-zinc-400 text-sm mb-2">
-                    <Link href={`/${orgSlug}/projects`} className="hover:text-white transition-colors">Projects</Link>
+                <div className="flex items-center gap-2 text-text-muted text-sm mb-2">
+                    <Link href={`/${orgSlug}/projects`} className="hover:text-foreground transition-colors">Projects</Link>
                     <span>/</span>
-                    <span className="text-white">{project.name}</span>
+                    <span className="text-foreground">{project.name}</span>
                 </div>
-                <h1 className="text-2xl font-bold text-white">Tasks for {project.name}</h1>
+                <h1 className="text-2xl font-bold text-foreground">Tasks for {project.name}</h1>
             </div>
             <TasksPageClient 
                 allTasks={allTasks as any[]} 

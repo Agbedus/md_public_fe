@@ -2,32 +2,58 @@
  * Organization-scoped permission helpers.
  *
  * These mirror the backend rules in `md_public_be/app/api/deps.py`
- * (`has_org_role`, `ORG_MANAGE_ROLES`, `ORG_COLLABORATOR_ROLES`). Keep the two
- * in step — the frontend gate decides what the UI offers, the backend gate
- * decides what actually succeeds.
+ * (`ORG_ADMIN_ROLES`, `ORG_READ_ALL_ROLES`, `ORG_CREATE_ROLES`,
+ * `is_org_admin`, `can_read_all`, `can_modify_record`). Keep the two in step —
+ * the frontend gate decides what the UI offers, the backend gate decides what
+ * actually succeeds. When they drift, users see buttons that 403.
  *
  * The two role layers are independent:
  *   - global platform roles: super_admin, manager, staff, client, user
- *   - org roles (per membership): owner, admin, member, client
+ *   - org roles (per membership): owner, admin, manager, member, guest
  *
  * A global role never grants within-org access, with one exception: super_admin
  * bypasses org scoping entirely, and manager keeps platform-wide operational
  * access. Everyone else is judged purely on their org role.
+ *
+ * The four rules, applied uniformly to every org-scoped feature:
+ *   1. Read    — owner/admin/manager see everything in the org; member sees own
+ *                plus assigned/shared; guest sees only what was shared.
+ *   2. Create  — owner/admin/manager/member. Never guest.
+ *   3. Update  — owner/admin on any record; everyone below admin only on
+ *      /Delete   records they created. Guest never.
+ *   4. Admin   — org settings, members, office locations, policies: owner/admin.
+ *
+ * The dividing line is ADMIN. Manager differs from Member by *visibility*, not
+ * by power.
  */
 
+import { toOrgRole, type OrgRole } from '@/types/organization';
+
 /** Org roles, ordered lowest to highest. */
-export const ORG_ROLE_RANK: Record<string, number> = {
-    client: 0,
+export const ORG_ROLE_RANK: Record<OrgRole, number> = {
+    guest: 0,
     member: 1,
-    admin: 2,
-    owner: 3,
+    manager: 2,
+    admin: 3,
+    owner: 4,
 };
 
-/** Org roles allowed to administer the org's data (backend: ORG_MANAGE_ROLES). */
-export const ORG_MANAGE_ROLES = ['owner', 'admin'];
+/** May administer the org and act on anyone's records (backend: ORG_ADMIN_ROLES). */
+export const ORG_ADMIN_ROLES: OrgRole[] = ['owner', 'admin'];
 
-/** Org roles allowed to create work (backend: ORG_COLLABORATOR_ROLES). */
-export const ORG_COLLABORATOR_ROLES = ['owner', 'admin', 'member'];
+/** Sees every record in the org (backend: ORG_READ_ALL_ROLES). */
+export const ORG_READ_ALL_ROLES: OrgRole[] = ['owner', 'admin', 'manager'];
+
+/** May create records (backend: ORG_CREATE_ROLES). */
+export const ORG_CREATE_ROLES: OrgRole[] = ['owner', 'admin', 'manager', 'member'];
+
+/** Any active membership, guest included (backend: ORG_ANY_ROLE). */
+export const ORG_ANY_ROLE: OrgRole[] = [...ORG_CREATE_ROLES, 'guest'];
+
+/** @deprecated Use ORG_ADMIN_ROLES. Kept so existing imports keep compiling. */
+export const ORG_MANAGE_ROLES = ORG_ADMIN_ROLES;
+/** @deprecated Use ORG_CREATE_ROLES. */
+export const ORG_COLLABORATOR_ROLES = ORG_CREATE_ROLES;
 
 export interface PermissionSubject {
     /** Global platform roles from the session. */
@@ -53,53 +79,104 @@ export function isPlatformManager(roles: string[] | null | undefined): boolean {
     });
 }
 
-/** Whether an org role meets a minimum level in the owner > admin > member > client hierarchy. */
-export function orgRoleAtLeast(
-    orgRole: string | null | undefined,
-    minimum: keyof typeof ORG_ROLE_RANK | string,
-): boolean {
-    const have = ORG_ROLE_RANK[normalize(orgRole)];
-    const need = ORG_ROLE_RANK[normalize(minimum)];
-    if (have === undefined || need === undefined) return false;
-    return have >= need;
+function hasOrgRole(subject: PermissionSubject | null | undefined, allowed: OrgRole[]): boolean {
+    if (!subject) return false;
+    if (isPlatformManager(subject.roles)) return true;
+    const role = toOrgRole(subject.orgRole);
+    return role !== null && allowed.includes(role);
 }
 
 /**
- * May administer this organization's data — manage members and settings, and
- * read/write every resource in the org.
+ * Whether an org role meets a minimum level in the
+ * owner > admin > manager > member > guest hierarchy.
+ */
+export function orgRoleAtLeast(
+    orgRole: string | null | undefined,
+    minimum: OrgRole | string,
+): boolean {
+    const have = toOrgRole(orgRole);
+    const need = toOrgRole(minimum);
+    if (have === null || need === null) return false;
+    return ORG_ROLE_RANK[have] >= ORG_ROLE_RANK[need];
+}
+
+/**
+ * Rule 4 — may administer this organization: manage members and settings, and
+ * act on **any** record in the org regardless of who created it.
  *
  * Org OWNER/ADMIN, or a global MANAGER/SUPER_ADMIN.
  */
-export function canManageOrg(subject: PermissionSubject | null | undefined): boolean {
-    if (!subject) return false;
-    if (isPlatformManager(subject.roles)) return true;
-    return ORG_MANAGE_ROLES.includes(normalize(subject.orgRole));
+export function isOrgAdmin(subject: PermissionSubject | null | undefined): boolean {
+    return hasOrgRole(subject, ORG_ADMIN_ROLES);
 }
 
 /**
- * May create work in this organization — tasks, notes, events, time-off
- * requests. This is the baseline capability of belonging to an org, so it holds
- * all the way down to MEMBER. Org CLIENTs are excluded: they are external
- * collaborators who only see what is explicitly shared with them.
+ * Rule 1 — sees every record in the org.
+ *
+ * Org OWNER/ADMIN/MANAGER. This is *visibility only*: a MANAGER who can see a
+ * record they did not create still cannot change it — use `canModifyRecord`
+ * for that.
  */
-export function canCollaborate(subject: PermissionSubject | null | undefined): boolean {
-    if (!subject) return false;
-    if (isPlatformManager(subject.roles)) return true;
-    return ORG_COLLABORATOR_ROLES.includes(normalize(subject.orgRole));
+export function canReadAll(subject: PermissionSubject | null | undefined): boolean {
+    return hasOrgRole(subject, ORG_READ_ALL_ROLES);
 }
 
-/** External org CLIENT — read-only access to explicitly shared data. */
-export function isOrgClient(subject: PermissionSubject | null | undefined): boolean {
+/**
+ * Rule 2 — may create work in this organization: tasks, notes, projects,
+ * events, time-off requests. Holds all the way down to MEMBER, because
+ * creating is the baseline capability of belonging to an org. GUESTs are
+ * excluded — they only read what is explicitly shared with them.
+ */
+export function canCreate(subject: PermissionSubject | null | undefined): boolean {
+    return hasOrgRole(subject, ORG_CREATE_ROLES);
+}
+
+/**
+ * Rule 3 — may update or delete one specific record.
+ *
+ * Org admins may act on anything. Everyone below them — MANAGER included —
+ * may only act on records they created. Pass the record's owner id
+ * (`user_id` / `owner_id` / `creator_id`, depending on the resource).
+ */
+export function canModifyRecord(
+    subject: (PermissionSubject & { id?: string | number | null }) | null | undefined,
+    ownerId: string | number | null | undefined,
+): boolean {
+    if (!subject) return false;
+    if (isOrgAdmin(subject)) return true;
+    if (ownerId === null || ownerId === undefined || subject.id === null || subject.id === undefined) {
+        return false;
+    }
+    return String(ownerId) === String(subject.id);
+}
+
+/** Read-only org GUEST — sees only what has been explicitly shared. */
+export function isOrgGuest(subject: PermissionSubject | null | undefined): boolean {
     if (!subject) return false;
     if (isPlatformManager(subject.roles)) return false;
-    return normalize(subject.orgRole) === 'client';
+    return toOrgRole(subject.orgRole) === 'guest';
 }
 
 /**
- * May approve/reject time-off and act on other members' requests.
- * Same level as org administration.
+ * May administer this organization's data.
+ * @deprecated Prefer `isOrgAdmin` — same behaviour, clearer name.
  */
-export const canApproveRequests = canManageOrg;
+export const canManageOrg = isOrgAdmin;
 
-/** May view the org-wide roster and per-member detail. */
-export const canViewOrgMembers = canManageOrg;
+/**
+ * May create work in this organization.
+ * @deprecated Prefer `canCreate` — same behaviour, clearer name.
+ */
+export const canCollaborate = canCreate;
+
+/** @deprecated The org `client` role is now `guest`. */
+export const isOrgClient = isOrgGuest;
+
+/** May approve/reject time-off. Administration, so org OWNER/ADMIN only. */
+export const canApproveRequests = isOrgAdmin;
+
+/** May view the org-wide roster — a visibility concern, so MANAGER and above. */
+export const canViewOrgMembers = canReadAll;
+
+/** May add, remove, or change the role of a member. Administration. */
+export const canManageMembers = isOrgAdmin;

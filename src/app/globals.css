@@ -1,10 +1,8 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* ── Astryx design system ──────────────────────────────────────────── */
-/* Pre-built CSS with @scope isolation — only affects [data-astryx-theme] elements */
-@import "@astryxdesign/core/astryx.css";
-@import "@astryxdesign/theme-neutral/theme.css";
+/* Class-based dark variant — matches .dark class on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @keyframes pulse-ring {
   0% { transform: scale(0.5); opacity: 0.5; }
@@ -49,15 +47,30 @@
   100% { opacity: 0.15; }
 }
 
-/* ── Shared pastel palette (theme-agnostic) ────────────────────── */
+/* ── Accent palette ────────────────────────────────────────────────
+   These are used overwhelmingly as TEXT colours (note-type icons, status
+   labels, badges) and as /10 tints for backgrounds and borders.
+
+   They used to be a single "theme-agnostic" set tuned for dark backgrounds.
+   On white every one of them failed WCAG badly (1.67:1 to 2.98:1), which is
+   why accented text looked washed out in light mode. They are now
+   theme-aware: the 400-level values stay for dark, and light mode uses the
+   600/700-level of the same hue so contrast passes AA on white.
+
+   The :root values are the dark set, so anything rendered before the theme
+   class lands still looks correct on the dark default. */
 :root {
-  --pastel-indigo:   #818cf8;
-  --pastel-emerald:  #34d399;
-  --pastel-blue:     #60a5fa;
-  --pastel-purple:   #c084fc;
-  --pastel-rose:     #fb7185;
-  --pastel-amber:    #fbbf24;
-  --pastel-teal:     #2dd4bf;
+  --pastel-indigo:   #818cf8;   /* 6.67:1 on dark */
+  --pastel-emerald:  #34d399;   /* 10.35:1 */
+  --pastel-blue:     #60a5fa;   /* 7.83:1 */
+  --pastel-purple:   #c084fc;   /* 7.53:1 */
+  --pastel-rose:     #fb7185;   /* 7.39:1 */
+  --pastel-amber:    #fbbf24;   /* 11.92:1 */
+  --pastel-teal:     #2dd4bf;   /* 10.69:1 */
+  --pastel-yellow:   #facc15;   /* 12.99:1 — was referenced 23x but never
+                                   defined, so it resolved to nothing and any
+                                   solid `bg-[var(--pastel-yellow)]` rendered
+                                   transparent behind near-black text. */
 }
 
 /* ── Light theme ───────────────────────────────────────────────── */
@@ -66,51 +79,60 @@
   color-scheme: light;
 
   /* Page */
-  --background:       #ffffff;   /* clean white */
-  --foreground:       #0f172a;   /* slate-900 — primary text */
-  --text-secondary:   #1e293b;   /* slate-800 — higher contrast secondary text */
-  --text-muted:       #475569;   /* slate-600 — higher contrast muted text */
+  --background:       #f8faf9;   /* slate-50 — subtle off-white background */
+  --foreground:       #000000;   /* pure black — primary text */
+  --text-secondary:   #0a0a0a;   /* near-black — secondary text */
+  --text-muted:       #1a1a1a;   /* dark gray — muted text */
+
+  /* Accents — bright 500 shades for badges, icons, and highlights */
+  --pastel-indigo:    #6366f1;   /* indigo-500 */
+  --pastel-emerald:   #10b981;   /* emerald-500 */
+  --pastel-blue:      #3b82f6;   /* blue-500 */
+  --pastel-purple:    #a855f7;   /* purple-500 */
+  --pastel-rose:      #f43f5e;   /* rose-500 */
+  --pastel-amber:     #f59e0b;   /* amber-500 */
+  --pastel-teal:      #14b8a6;   /* teal-500 */
+  --pastel-yellow:    #eab308;   /* yellow-500 */
 
   /* Cards / elevated containers */
   --card-bg:          #ffffff;
-  --card-border:      #f1f5f9;   /* slate-100 — very subtle border for white-on-white */
+  --card-border:      #e2e8f0;   /* slate-200 — subtle edge against white */
 
-  /* Sidebar */
+  /* Sidebar — solid white */
   --sidebar-bg:       #ffffff;
-  --sidebar-border:   #f1f5f9;
+  --sidebar-border:   #e2e8f0;   /* slate-200 */
 
   /* Generic borders & inputs */
-  --border-subtle:    #f1f5f9;
-  --input-bg:         #f1f5f9;   /* light silver-blue (slate-100) */
+  --border-subtle:    #e2e8f0;
+  --input-bg:         #f1f5f9;   /* slate-100 */
 
   /* Charts & Tooltips */
-  --chart-grid:       rgba(0, 0, 0, 0.03);
-  --chart-axis:       #64748b;   /* slate-500 */
-  --tooltip-bg:       rgba(255, 255, 255, 0.95);
-  --tooltip-border:   rgba(0, 0, 0, 0.05);
-  --glass-bg:         rgba(255, 255, 255, 0.85);
-  --glass-border:     rgba(0, 0, 0, 0.05);
+  --chart-grid:       rgba(0, 0, 0, 0.05);
+  --chart-axis:       #525252;   /* neutral-600 — darker axis labels */
+  --tooltip-bg:       #ffffff;
+  --tooltip-border:   #e2e8f0;   /* slate-200 */
+  /* Glass surfaces */
+  --glass-bg:         #ffffff;
+  --glass-border:     #e2e8f0;
 
   /* Toast */
-  --toast-bg:         rgba(255, 255, 255, 0.98);
-  --toast-text:       #1e293b;   /* slate-800 */
-  --toast-border:     rgba(0, 0, 0, 0.05);
+  --toast-bg:         #ffffff;
+  --toast-text:       #000000;
+  --toast-border:     #e2e8f0;
 
   /* Skeleton */
-  --skeleton-bg:      #f1f5f9;                 /* silver base (slate-100) */
-  --skeleton-shimmer: rgba(255, 255, 255, 0.7);
+  --skeleton-bg:      #e2e8f0;                 /* slate-200 — visible base */
+  --skeleton-shimmer: rgba(255, 255, 255, 0.8);
 
-  /* Shadow Overrides for Light Mode - Slightly more visible for contrast on white background */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
-  
-  /* Custom shadow token for components using arbitrary values */
-  --shadow-extra: 0 20px 50px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.06);
+  /* Shadows removed — clean flat design */
+  --shadow-sm: 0 0 0 0 transparent;
+  --shadow: 0 0 0 0 transparent;
+  --shadow-md: 0 0 0 0 transparent;
+  --shadow-lg: 0 0 0 0 transparent;
+  --shadow-xl: 0 0 0 0 transparent;
+  --shadow-2xl: 0 0 0 0 transparent;
+  --shadow-extra: 0 0 0 0 transparent;
+  --shadow-glow: 0 0 0 0 transparent;
 }
 
 /* ── Dark theme ────────────────────────────────────────────────── */
@@ -121,49 +143,51 @@
   /* Page */
   --background:       #09090b;   /* zinc-950 */
   --foreground:       #fafafa;   /* near-white */
-  --text-secondary:   #a1a1aa;   /* zinc-400 */
-  --text-muted:       #71717a;   /* zinc-500 */
+  --text-secondary:   #a1a1aa;   /* zinc-400 — 7.76:1 on the page background */
+  /* Lifted from zinc-500 (#71717a). That was 4.12:1 on the page and 3.84:1 on a
+     card, i.e. below the WCAG AA 4.5:1 minimum for body text. This value is
+     5.23:1 on the page and 4.88:1 on a card, so muted text passes AA on both
+     surfaces while still reading as secondary. */
+  --text-muted:       #82828c;
 
   /* Cards / elevated containers */
-  --card-bg:          rgba(24, 24, 27, 0.4);   /* zinc-900 at 40% opacity */
-  --card-border:      rgba(255, 255, 255, 0.08);
+  --card-bg:          #18181b;   /* zinc-900 solid */
+  --card-border:      #27272a;   /* zinc-800 — subtle dark grey border */
 
   /* Sidebar */
   --sidebar-bg:       #09090b;
-  --sidebar-border:   rgba(255, 255, 255, 0.08);
+  --sidebar-border:   #27272a;
 
   /* Generic borders & inputs */
-  --border-subtle:    rgba(255, 255, 255, 0.08);
-  --input-bg:         #27272a;   /* zinc-800 */
+  --border-subtle:    #27272a;
+  --input-bg:         #27272a;
 
   /* Charts & Tooltips */
   --chart-grid:       rgba(255, 255, 255, 0.05);
   --chart-axis:       #94a3b8;   /* slate-400 */
-  --tooltip-bg:       rgba(15, 23, 42, 0.9);
-  --tooltip-border:   rgba(255, 255, 255, 0.1);
-  --glass-bg:         rgba(24, 24, 27, 0.4);
-  --glass-border:     rgba(255, 255, 255, 0.08);
+  --tooltip-bg:       #18181b;   /* zinc-900 — matches card bg */
+  --tooltip-border:   #27272a;
+  --glass-bg:         #18181b;   /* zinc-900 solid */
+  --glass-border:     #2f2f35;   /* solid border */
 
   /* Toast */
-  --toast-bg:         rgba(24, 24, 27, 0.9);
+  --toast-bg:         #18181b;
   --toast-text:       #a1a1aa;   /* zinc-400 */
-  --toast-border:     rgba(255, 255, 255, 0.08);
+  --toast-border:     #2f2f35;
 
   /* Skeleton */
-  --skeleton-bg:      rgba(255, 255, 255, 0.03);
-  --skeleton-shimmer: rgba(255, 255, 255, 0.08);
+  --skeleton-bg:      #18181b;
+  --skeleton-shimmer: #2f2f35;
 
-  /* Shadow Values for Dark Mode - Reinstating depth */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-
-  /* Custom shadow tokens for components using arbitrary values */
-  --shadow-extra: 0 20px 50px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.2);
+  /* Shadows removed — clean flat design */
+  --shadow-sm: 0 0 0 0 transparent;
+  --shadow: 0 0 0 0 transparent;
+  --shadow-md: 0 0 0 0 transparent;
+  --shadow-lg: 0 0 0 0 transparent;
+  --shadow-xl: 0 0 0 0 transparent;
+  --shadow-2xl: 0 0 0 0 transparent;
+  --shadow-extra: 0 0 0 0 transparent;
+  --shadow-glow: 0 0 0 0 transparent;
 }
 
 body {
@@ -172,22 +196,34 @@ body {
   font-family: var(--font-dm-sans), Arial, Helvetica, sans-serif;
 }
 
-/* ── Light Mode Form Inputs Premium Styling ────────────────────── */
+/* ── Light Mode Form Inputs ───────────────────────────────────────
+   This used to force every input/select/textarea to an opaque slate-100
+   background, and on focus, to solid white with an indigo box-shadow ring —
+   all with `!important`. That silently overrode whatever background or focus
+   treatment a component actually authored (`bg-foreground/[0.03]`,
+   `focus:bg-foreground/[0.06]`, etc.), so no per-component styling choice was
+   ever visible in light mode; every field looked the same regardless of what
+   its own classes said.
+
+   Fields are transparent by default now, and nothing here uses `!important` —
+   any background, border, or focus utility class a component sets wins. This
+   block is only the fallback for a plain, unstyled input. Colour still needs
+   setting explicitly, since native form controls do not inherit it. */
 .light input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
 .light select,
 .light textarea {
-  background-color: var(--input-bg) !important;
-  border-color: rgba(148, 163, 184, 0.25) !important;
-  color: var(--foreground) !important;
-  transition: all 0.2s ease-in-out;
+  background-color: transparent;
+  border-color: var(--card-border);
+  color: var(--foreground);
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
 .light input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):focus,
 .light select:focus,
 .light textarea:focus {
-  background-color: #ffffff !important;
-  border-color: rgba(99, 102, 241, 0.5) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+  background-color: transparent;
+  outline: none;
+  box-shadow: none;
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────── */
@@ -202,17 +238,15 @@ body {
   font-family: var(--font-space-grotesk), sans-serif;
 }
 
-/* Glass card — works in dark only, degrades gracefully in light */
+/* Glass card — solid background, no blur */
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
 }
 
-/* Sidebar glass: same token, different opacity tweak */
+/* Glass — solid background, no blur */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
 }
 
 .noise {
@@ -276,4 +310,42 @@ body {
 
 .new-task-glow {
   animation: new-task-fade 7s ease-out forwards;
+}
+
+/* ── Rich-text content (notes, wiki, assistant) ──────────────────
+   Content is authored in whichever theme the writer had active, and the
+   editor bakes that colour into the saved HTML. `sanitizeHtml` strips inline
+   colour declarations on render; this is the floor for anything that arrives
+   by another route (legacy rows, class-based editor colours), so note bodies
+   always inherit the theme instead of staying white-on-white in light mode. */
+.ql-editor,
+.ql-editor * {
+  color: inherit;
+  background-color: transparent;
+}
+
+.ql-editor a {
+  color: var(--pastel-indigo);
+  text-decoration: underline;
+}
+
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.ql-editor code,
+.ql-editor pre {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--foreground);
+}
+
+.ql-editor blockquote {
+  border-left: 3px solid var(--card-border);
+  color: var(--text-muted);
+  padding-left: 0.75rem;
 }

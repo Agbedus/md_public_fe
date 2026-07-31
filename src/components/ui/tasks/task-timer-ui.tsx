@@ -41,7 +41,7 @@ export function TaskTimerUI() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] bg-zinc-950 flex items-center justify-center p-4 overflow-hidden"
+                    className="fixed inset-0 z-[100] bg-foreground/[0.03] flex items-center justify-center p-4 overflow-hidden"
                 >
                     {/* Animated background highlights */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -54,7 +54,7 @@ export function TaskTimerUI() {
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 1.05, opacity: 0, y: -30 }}
                         transition={{ duration: 0.5, ease: "circOut" }}
-                        className="w-full max-w-4xl glass border border-white/5 rounded-[40px] p-8 lg:p-16 -[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col items-center text-center space-y-12"
+                        className="w-full max-w-4xl glass border border-foreground/5 rounded-[40px] p-8 lg:p-16 -[0_0_100px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col items-center text-center space-y-12"
                     >
                         {/* Header Section */}
                         <div className="space-y-4">
@@ -73,7 +73,7 @@ export function TaskTimerUI() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3 }}
-                                className="text-4xl lg:text-7xl font-medium text-white tracking-tight leading-tight max-w-2xl mx-auto "
+                                className="text-4xl lg:text-7xl font-medium text-foreground tracking-tight leading-tight max-w-2xl mx-auto "
                             >
                                 {activeTask.name}
                             </motion.h2>
@@ -83,7 +83,7 @@ export function TaskTimerUI() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.4 }}
-                                    className="text-zinc-400 text-base lg:text-xl font-medium max-w-xl mx-auto leading-relaxed"
+                                    className="text-text-muted text-base lg:text-xl font-medium max-w-xl mx-auto leading-relaxed"
                                 >
                                     {activeTask.description}
                                 </motion.p>
@@ -96,7 +96,7 @@ export function TaskTimerUI() {
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.5, duration: 0.7 }}
-                                className="text-[120px] lg:text-[200px] font-medium text-white tracking-tight tabular-nums leading-none select-none filter blur-none group-hover:-[0_0_50px_rgba(255,255,255,0.15)] transition-all duration-700"
+                                className="text-[120px] lg:text-[200px] font-medium text-foreground tracking-tight tabular-nums leading-none select-none filter blur-none group-hover:-[0_0_50px_rgba(255,255,255,0.15)] transition-all duration-700"
                             >
                                 {formatTime(elapsedTime)}
                             </motion.div>
@@ -115,10 +115,10 @@ export function TaskTimerUI() {
                                 onClick={pauseTimer}
                                 className="group relative flex flex-col items-center gap-3 transition-all hover-scale"
                             >
-                                <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-3xl bg-zinc-900/50 border border-white/5 flex items-center justify-center group-hover:bg-amber-500 group-hover:border-amber-400 group-hover:scale-110 transition-all duration-500  group-hover:-amber-500/20">
-                                    <FiPause className="w-8 h-8 lg:w-10 lg:h-10 text-white transition-transform group-active:scale-95" />
+                                <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-3xl bg-foreground/[0.03] border border-foreground/5 flex items-center justify-center group-hover:bg-amber-500 group-hover:border-amber-400 group-hover:scale-110 transition-all duration-500  group-hover:-amber-500/20">
+                                    <FiPause className="w-8 h-8 lg:w-10 lg:h-10 text-foreground transition-transform group-active:scale-95" />
                                 </div>
-                                <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider group-hover:text-amber-400 transition-colors">Break Time</span>
+                                <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider group-hover:text-amber-400 transition-colors">Break Time</span>
                             </button>
 
                             <button
@@ -126,9 +126,9 @@ export function TaskTimerUI() {
                                 className="group relative flex flex-col items-center gap-3 transition-all hover-scale"
                             >
                                 <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-[32px] bg-rose-500/10 border border-rose-500/30 flex items-center justify-center group-hover:bg-rose-500 group-hover:border-rose-400 group-hover:scale-110 transition-all duration-500  group-hover:-rose-500/30">
-                                    <FiSquare className="w-10 h-10 lg:w-12 lg:h-12 text-rose-500 group-hover:text-white transition-transform group-active:scale-95" />
+                                    <FiSquare className="w-10 h-10 lg:w-12 lg:h-12 text-rose-500 group-hover:text-foreground transition-transform group-active:scale-95" />
                                 </div>
-                                <span className="text-[11px] font-medium text-rose-500/80 uppercase tracking-wider group-hover:text-rose-400 transition-colors">Finish Mission</span>
+                                <span className="text-[11px] font-medium text-rose-500/80 uppercase tracking-wider group-hover:text-rose-400 transition-colors">Complete task</span>
                             </button>
                         </div>
 
@@ -147,7 +147,7 @@ export function TaskTimerUI() {
                                             <motion.div 
                                                 animate={{ rotate: 360 }}
                                                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                                                className="absolute inset-0 border-4 border-white/30 border-t-white rounded-full"
+                                                className="absolute inset-0 border-4 border-foreground/30 border-t-white rounded-full"
                                             />
                                         </div>
                                         <div className="text-center">
@@ -166,7 +166,7 @@ export function TaskTimerUI() {
 
                         {/* Footer Tips */}
                         <div className="pt-8 w-full">
-                            <p className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider opacity-50">
+                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider opacity-50">
                                 Deep Work in Progress • All notifications muted
                             </p>
                         </div>
@@ -184,20 +184,20 @@ export function TaskTimerUI() {
                 >
                     <button
                         onClick={resumeTimer}
-                        className="group flex items-center gap-3 h-12 pl-3 pr-2 rounded-2xl bg-zinc-900/95 border border-white/5 -[0_8px_32px_rgba(0,0,0,0.6)] hover:border-indigo-500/30 transition-all duration-300 backdrop-blur-2xl"
+                        className="group flex items-center gap-3 h-12 pl-3 pr-2 rounded-2xl bg-foreground/[0.03] border border-foreground/5 -[0_8px_32px_rgba(0,0,0,0.6)] hover:border-indigo-500/30 transition-all duration-300 backdrop-blur-2xl"
                     >
                         {/* Pulse dot */}
                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />
                         {/* Task name + time */}
                         <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider max-w-[100px] truncate hidden sm:block">{activeTask.name}</span>
-                            <span className="text-sm font-medium text-white tabular-nums tracking-tight">{formatTime(elapsedTime)}</span>
+                            <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider max-w-[100px] truncate hidden sm:block">{activeTask.name}</span>
+                            <span className="text-sm font-medium text-foreground tabular-nums tracking-tight">{formatTime(elapsedTime)}</span>
                         </div>
                         {/* Divider */}
-                        <div className="w-px h-4 bg-white/[0.06]" />
+                        <div className="w-px h-4 bg-foreground/[0.06]" />
                         {/* Play button */}
                         <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center group-hover:bg-indigo-500 group-hover:border-indigo-400 transition-all duration-300">
-                            <FiPlay className="w-3.5 h-3.5 text-indigo-400 group-hover:text-white fill-current transition-colors" />
+                            <FiPlay className="w-3.5 h-3.5 text-indigo-400 group-hover:text-foreground fill-current transition-colors" />
                         </div>
                     </button>
                 </motion.div>

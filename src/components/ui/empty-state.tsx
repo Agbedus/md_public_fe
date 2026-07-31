@@ -9,14 +9,20 @@ interface EmptyStateProps {
     label: string;
     onClick: () => void;
   };
+  /**
+   * Tighter vertical rhythm, for empty states inside a table or card where the
+   * container already contributes padding and the full-page spacing leaves a
+   * tall blank slab.
+   */
+  compact?: boolean;
   className?: string;
 }
 
-export function EmptyState({ icon: Icon = FiInbox, title, description, action, className = '' }: EmptyStateProps) {
+export function EmptyState({ icon: Icon = FiInbox, title, description, action, compact = false, className = '' }: EmptyStateProps) {
   return (
-    <div className={`flex flex-col items-center justify-center py-24 text-center ${className}`}>
-      <div className="w-16 h-16 rounded-2xl bg-foreground/[0.03] border border-card-border flex items-center justify-center mb-5">
-        <Icon className="w-7 h-7 text-text-muted/40" />
+    <div className={`flex flex-col items-center justify-center text-center ${compact ? 'py-8' : 'py-24'} ${className}`}>
+      <div className={`rounded-2xl bg-foreground/[0.03] border border-card-border flex items-center justify-center ${compact ? 'w-11 h-11 mb-3' : 'w-16 h-16 mb-5'}`}>
+        <Icon className={compact ? 'w-5 h-5 text-text-muted/40' : 'w-7 h-7 text-text-muted/40'} />
       </div>
       <h3 className="text-base font-semibold text-text-muted">{title}</h3>
       {description && (

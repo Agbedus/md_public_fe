@@ -58,29 +58,29 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Task Name</label>
+        <label className="block text-sm font-medium mb-1 text-foreground">Task Name</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full p-2 border border-slate-700 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none"
+          className="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Description</label>
+        <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full p-2 border border-slate-700 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none"
+          className="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all"
           rows={3}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-gray-300">Due Date</label>
+          <label className="block text-sm font-medium mb-1 text-foreground">Due Date</label>
           <CustomDatePicker
             value={dueDate}
             onChange={setDueDate}
@@ -89,11 +89,11 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1 dark:text-gray-300">Priority</label>
+          <label className="block text-sm font-medium mb-1 text-foreground">Priority</label>
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className="w-full p-2 border border-slate-700 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none h-[42px]"
+            className="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all h-[42px]"
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -103,11 +103,11 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Status</label>
+        <label className="block text-sm font-medium mb-1 text-foreground">Status</label>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="w-full p-2 border border-slate-700 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none h-[42px]"
+          className="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all h-[42px]"
         >
           <option value="TODO">To Do</option>
           <option value="IN_PROGRESS">In Progress</option>
@@ -124,11 +124,11 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
               type="checkbox" 
               checked={qaRequired}
               onChange={(e) => setQaRequired(e.target.checked)}
-              className="peer h-4 w-4 appearance-none rounded border border-slate-700 bg-slate-800 checked:bg-purple-500/40 checked:border-purple-400 transition-all"
+              className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-purple-500/40 checked:border-purple-400 transition-all"
             />
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-purple-400 rounded-sm opacity-0 peer-checked:opacity-100 transition-opacity" />
           </div>
-          <span className="text-xs font-bold text-slate-400 group-hover:text-purple-400 transition-colors uppercase tracking-wider">QA Required</span>
+          <span className="text-xs font-bold text-text-muted group-hover:text-purple-400 transition-colors uppercase tracking-wider">QA Required</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer group">
           <div className="relative flex items-center">
@@ -136,22 +136,22 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
               type="checkbox" 
               checked={reviewRequired}
               onChange={(e) => setReviewRequired(e.target.checked)}
-              className="peer h-4 w-4 appearance-none rounded border border-slate-700 bg-slate-800 checked:bg-blue-500/40 checked:border-blue-400 transition-all"
+              className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-blue-500/40 checked:border-blue-400 transition-all"
             />
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-blue-400 rounded-sm opacity-0 peer-checked:opacity-100 transition-opacity" />
           </div>
-          <span className="text-xs font-bold text-slate-400 group-hover:text-blue-400 transition-colors uppercase tracking-wider">Review Required</span>
+          <span className="text-xs font-bold text-text-muted group-hover:text-blue-400 transition-colors uppercase tracking-wider">Review Required</span>
         </label>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Depends On (Task ID)</label>
+        <label className="block text-sm font-medium mb-1 text-foreground">Depends On (Task ID)</label>
         <input
           type="number"
           value={dependsOn}
           onChange={(e) => setDependsOn(e.target.value)}
           placeholder="e.g. 123"
-          className="w-full p-2 border border-slate-700 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none"
+          className="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all"
         />
       </div>
 

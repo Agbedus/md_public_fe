@@ -107,7 +107,7 @@ export default function UserDetailClient({
         manager: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
         staff: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
         client: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-        user: 'bg-zinc-700/50 text-zinc-400 border-white/5',
+        user: 'bg-foreground/[0.06] text-text-muted border-foreground/5',
     };
 
     const handleApprove = async (id: number) => {
@@ -148,20 +148,20 @@ export default function UserDetailClient({
         <div className="space-y-8">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Link href={orgPath('/users')} className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] text-zinc-400 hover:text-white transition-all border border-white/5">
+                <Link href={orgPath('/users')} className="p-2 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5">
                     <FiArrowLeft className="w-5 h-5" />
                 </Link>
                 <div className="flex items-center gap-4 flex-1">
                     {user.avatarUrl ? (
-                        <Image src={user.avatarUrl} alt={user.fullName || 'User'} width={56} height={56} className="rounded-2xl object-cover border border-white/5" />
+                        <Image src={user.avatarUrl} alt={user.fullName || 'User'} width={56} height={56} className="rounded-2xl object-cover border border-foreground/5" />
                     ) : (
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-medium text-xl">
                             {(user.fullName || user.email).charAt(0).toUpperCase()}
                         </div>
                     )}
                     <div>
-                        <h1 className="text-3xl font-medium text-white tracking-tight">{user.fullName || 'Unknown User'}</h1>
-                        <p className="text-zinc-500 text-sm">{user.email}</p>
+                        <h1 className="text-3xl font-medium text-foreground tracking-tight">{user.fullName || 'Unknown User'}</h1>
+                        <p className="text-text-muted text-sm">{user.email}</p>
                         <div className="flex gap-1 mt-1.5">
                             {user.roles?.map(role => (
                                 <span key={role} className={`px-2 py-0.5 rounded-full text-[11px] font-medium uppercase tracking-wider border ${roleColors[role] || roleColors.user}`}>
@@ -174,10 +174,10 @@ export default function UserDetailClient({
             </div>
             
             {/* Activity Heatmap */}
-            <div className="glass p-6 rounded-3xl border border-white/5 bg-zinc-900/50 space-y-4 overflow-hidden">
+            <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4 overflow-hidden">
                 <div className="flex justify-between items-center mb-1">
                     <h4 className="text-[11px] font-medium text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded">Activity Engine</h4>
-                    <span className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider">Historical Performance</span>
+                    <span className="text-[11px] text-text-muted font-bold uppercase tracking-wider">Historical Performance</span>
                 </div>
                 <ActivityHeatmap data={activityData} variant="full" />
             </div>
@@ -201,13 +201,13 @@ export default function UserDetailClient({
                             key={label}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="glass rounded-2xl p-5 border border-white/5 bg-zinc-900/10"
+                            className="glass rounded-2xl p-5 border border-foreground/5 bg-foreground/[0.03]"
                         >
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center border mb-3 ${c[color]}`}>
                                 <Icon className="w-4 h-4" />
                             </div>
-                            <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider mb-1">{label}</p>
-                            <p className="text-2xl font-medium text-white">{value}</p>
+                            <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-1">{label}</p>
+                            <p className="text-2xl font-medium text-foreground">{value}</p>
                         </motion.div>
                     );
                 })}
@@ -215,22 +215,22 @@ export default function UserDetailClient({
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Hours Per Task Chart */}
-                <div className="xl:col-span-1 glass rounded-2xl p-6 border border-white/5 bg-zinc-900/10 space-y-4">
-                    <h2 className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                <div className="xl:col-span-1 glass rounded-2xl p-6 border border-foreground/5 bg-foreground/[0.03] space-y-4">
+                    <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
                         <FiActivity className="text-indigo-400 w-4 h-4" />
                         Hours Per Task
                     </h2>
                     {taskHours.length === 0 ? (
-                        <p className="text-sm text-zinc-600 italic">No time logged yet.</p>
+                        <p className="text-sm text-text-muted italic">No time logged yet.</p>
                     ) : (
                         <div className="space-y-3">
                             {taskHours.map(({ name, hours }) => (
                                 <div key={name} className="space-y-1">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-[11px] font-bold text-zinc-400 truncate max-w-[160px]">{name}</span>
-                                        <span className="text-[11px] font-medium text-white">{hours.toFixed(1)}h</span>
+                                        <span className="text-[11px] font-bold text-text-muted truncate max-w-[160px]">{name}</span>
+                                        <span className="text-[11px] font-medium text-foreground">{hours.toFixed(1)}h</span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-white/[0.03] rounded-full overflow-hidden">
+                                    <div className="w-full h-1.5 bg-foreground/[0.03] rounded-full overflow-hidden">
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${(hours / maxHours) * 100}%` }}
@@ -245,9 +245,9 @@ export default function UserDetailClient({
                 </div>
 
                 {/* Timesheet Table */}
-                <div className="xl:col-span-2 glass rounded-2xl border border-white/5 bg-zinc-900/10 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-white/5">
-                        <h2 className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                <div className="xl:col-span-2 glass rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
+                    <div className="px-6 py-4 border-b border-foreground/5">
+                        <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
                             <FiCalendar className="text-emerald-400 w-4 h-4" />
                             Timesheet ({timeLogs.length} sessions)
                         </h2>
@@ -255,17 +255,17 @@ export default function UserDetailClient({
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-white/5 bg-white/[0.02]">
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Task</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Start</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">End</th>
-                                    <th className="px-6 py-3 text-right text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Duration</th>
+                                <tr className="border-b border-foreground/5 bg-foreground/[0.02]">
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Task</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Start</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">End</th>
+                                    <th className="px-6 py-3 text-right text-[11px] font-medium text-text-muted uppercase tracking-wider">Duration</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-foreground/5">
                                 {timeLogs.length === 0 && (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-10 text-center text-zinc-600 text-sm italic">No sessions recorded yet.</td>
+                                        <td colSpan={4} className="px-6 py-10 text-center text-text-muted text-sm italic">No sessions recorded yet.</td>
                                     </tr>
                                 )}
                                 {timeLogs.slice().reverse().map(log => {
@@ -273,13 +273,13 @@ export default function UserDetailClient({
                                     const duration = getLogDuration(log);
                                     const isActive = !log.end_time;
                                     return (
-                                        <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
+                                        <tr key={log.id} className="hover:bg-foreground/[0.02] transition-colors">
                                             <td className="px-6 py-3">
-                                                <span className="font-bold text-white text-xs truncate max-w-[200px] block">
+                                                <span className="font-bold text-foreground text-xs truncate max-w-[200px] block">
                                                     {task?.name || `Task #${log.task_id}`}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-3 text-zinc-400 text-xs tabular-nums">
+                                            <td className="px-6 py-3 text-text-muted text-xs tabular-nums">
                                                 {log.start_time ? format(parseISO(log.start_time), 'MMM dd, HH:mm') : '-'}
                                             </td>
                                             <td className="px-6 py-3 text-xs">
@@ -289,13 +289,13 @@ export default function UserDetailClient({
                                                         Active
                                                     </span>
                                                 ) : (
-                                                    <span className="text-zinc-400 tabular-nums">
+                                                    <span className="text-text-muted tabular-nums">
                                                         {log.end_time ? format(parseISO(log.end_time), 'MMM dd, HH:mm') : '-'}
                                                     </span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-3 text-right">
-                                                <span className="font-medium text-white text-xs tabular-nums">
+                                                <span className="font-medium text-foreground text-xs tabular-nums">
                                                     {isActive ? (
                                                         <span className="text-emerald-400">—</span>
                                                     ) : formatDuration(duration)}
@@ -307,9 +307,9 @@ export default function UserDetailClient({
                             </tbody>
                             {timeLogs.length > 0 && (
                                 <tfoot>
-                                    <tr className="border-t border-white/5 bg-white/[0.02]">
-                                        <td colSpan={3} className="px-6 py-3 text-right text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Total</td>
-                                        <td className="px-6 py-3 text-right text-sm font-medium text-white">{totalHours}h</td>
+                                    <tr className="border-t border-foreground/5 bg-foreground/[0.02]">
+                                        <td colSpan={3} className="px-6 py-3 text-right text-[11px] font-medium text-text-muted uppercase tracking-wider">Total</td>
+                                        <td className="px-6 py-3 text-right text-sm font-medium text-foreground">{totalHours}h</td>
                                     </tr>
                                 </tfoot>
                             )}
@@ -320,9 +320,9 @@ export default function UserDetailClient({
 
             {/* Time Off Section */}
             {localTimeOff.length > 0 && (
-                <div className="glass rounded-2xl border border-white/5 bg-zinc-900/10 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-white/5">
-                        <h2 className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                <div className="glass rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
+                    <div className="px-6 py-4 border-b border-foreground/5">
+                        <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
                             <FiSun className="text-amber-400 w-4 h-4" />
                             Time Off Requests ({localTimeOff.length})
                         </h2>
@@ -330,33 +330,33 @@ export default function UserDetailClient({
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-white/5 bg-white/[0.02]">
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Type</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Period</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Days</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Justification</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Requested</th>
+                                <tr className="border-b border-foreground/5 bg-foreground/[0.02]">
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Type</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Period</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Days</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Justification</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Requested</th>
                                     {isSuperAdmin && (
-                                        <th className="px-6 py-3 text-right text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Actions</th>
+                                        <th className="px-6 py-3 text-right text-[11px] font-medium text-text-muted uppercase tracking-wider">Actions</th>
                                     )}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-foreground/5">
                                 {localTimeOff.map(req => {
                                     const days = differenceInDays(new Date(req.end_date), new Date(req.start_date)) + 1;
                                     return (
-                                        <tr key={req.id} className="hover:bg-white/[0.02] transition-colors">
-                                            <td className="px-6 py-3 text-xs font-bold text-white">
+                                        <tr key={req.id} className="hover:bg-foreground/[0.02] transition-colors">
+                                            <td className="px-6 py-3 text-xs font-bold text-foreground">
                                                 {typeLabels[req.type] || req.type}
                                             </td>
-                                            <td className="px-6 py-3 text-xs text-zinc-400 tabular-nums">
+                                            <td className="px-6 py-3 text-xs text-text-muted tabular-nums">
                                                 {format(new Date(req.start_date), 'MMM dd')} — {format(new Date(req.end_date), 'MMM dd, yyyy')}
                                             </td>
-                                            <td className="px-6 py-3 text-xs text-zinc-300 font-medium">
+                                            <td className="px-6 py-3 text-xs text-text-secondary font-medium">
                                                 {days}d
                                             </td>
-                                            <td className="px-6 py-3 text-xs text-zinc-500 max-w-[200px] truncate">
+                                            <td className="px-6 py-3 text-xs text-text-muted max-w-[200px] truncate">
                                                 {req.justification || '—'}
                                             </td>
                                             <td className="px-6 py-3">
@@ -364,7 +364,7 @@ export default function UserDetailClient({
                                                     {req.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-3 text-xs text-zinc-500 tabular-nums">
+                                            <td className="px-6 py-3 text-xs text-text-muted tabular-nums">
                                                 {req.requested_at ? format(new Date(req.requested_at), 'MMM dd, yyyy') : '—'}
                                             </td>
                                             {isSuperAdmin && (

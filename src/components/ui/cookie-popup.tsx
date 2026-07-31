@@ -140,7 +140,7 @@ export const CookiePopup = () => {
                                     >
                                         <div className="space-y-1">
                                             <span className="text-xs font-bold text-foreground uppercase tracking-wide">Performance & Intel</span>
-                                            <p className="text-[10px] text-text-secondary font-bold leading-relaxed">Helps us understand operational velocity and bottleneck patterns.</p>
+                                            <p className="text-[10px] text-text-secondary font-bold leading-relaxed">Helps us see where work is slowing down.</p>
                                         </div>
                                         <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${prefs.analytics ? 'bg-emerald-500' : 'bg-card-border'}`}>
                                             <motion.div 
@@ -157,7 +157,7 @@ export const CookiePopup = () => {
                                     >
                                         <div className="space-y-1">
                                             <span className="text-xs font-bold text-foreground uppercase tracking-wide">Personalization</span>
-                                            <p className="text-[10px] text-text-secondary font-bold leading-relaxed">Remembers your preferred command-center layout and AI persona settings.</p>
+                                            <p className="text-[10px] text-text-secondary font-bold leading-relaxed">Remembers your layout and assistant preferences.</p>
                                         </div>
                                         <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${prefs.personalization ? 'bg-indigo-500' : 'bg-card-border'}`}>
                                             <motion.div 

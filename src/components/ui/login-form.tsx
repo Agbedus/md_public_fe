@@ -36,7 +36,7 @@ export default function LoginForm() {
     }
   }, [state]);
 
-  const inputBase = 'block w-full pl-12 pr-3.5 py-3 bg-input-bg border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all [font-size:max(16px,inherit)] border-card-border';
+  const inputBase = 'block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] border-card-border';
 
   return (
     <form action={dispatch} className="space-y-5">

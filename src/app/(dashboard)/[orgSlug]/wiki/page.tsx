@@ -1,475 +1,765 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-    FiInfo, 
-    FiBookOpen, 
-    FiDatabase, 
-    FiCpu, 
-    FiShield, 
-    FiTarget, 
-    FiLayers, 
-    FiClock, 
-    FiZap, 
-    FiBarChart2, 
-    FiMapPin, 
-    FiBriefcase,
-    FiHelpCircle,
-    FiChevronRight,
-    FiCheckCircle,
-    FiActivity,
+import {
+    FiBookOpen,
     FiChevronLeft,
-    FiTerminal,
+    FiSearch,
+    FiUsers,
+    FiCheckSquare,
+    FiFolder,
+    FiFileText,
+    FiCalendar,
+    FiMapPin,
+    FiBell,
+    FiCpu,
+    FiClock,
     FiSettings,
-    FiAlertCircle,
-    FiLock
+    FiInfo,
+    FiAlertTriangle,
+    FiShield,
 } from 'react-icons/fi';
-import { motion, AnimatePresence } from 'framer-motion';
+
+/* ────────────────────────────────────────────────────────────────
+   Documentation primitives
+
+   The previous version rendered every topic as a boxed card in a grid, which
+   made continuous reading hard: the eye had to re-enter a new container every
+   two sentences. These are prose-first instead — a readable column, real
+   heading hierarchy, and boxes reserved for the things that genuinely are
+   tabular or set apart.
+   ──────────────────────────────────────────────────────────────── */
+
+/** A top-level documentation section. */
+function Section({
+    id,
+    title,
+    icon: Icon,
+    color = 'text-emerald-400',
+    children,
+}: {
+    id: string;
+    title: string;
+    icon: React.ElementType;
+    /** Per-section accent, matching the coloured-icon convention the main sidebar uses. */
+    color?: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <section id={id} className="scroll-mt-8">
+            <div className="flex items-center gap-3 mb-4">
+                <span className={`flex h-9 w-9 items-center justify-center rounded-lg bg-foreground/[0.05] shrink-0 ${color}`}>
+                    <Icon className="h-4 w-4" />
+                </span>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
+            </div>
+            <div className="space-y-6">{children}</div>
+        </section>
+    );
+}
+
+/** A subsection within a documentation section. */
+function Topic({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+    return (
+        <div id={id} className="scroll-mt-8 space-y-3">
+            <h3 className="text-base font-semibold text-foreground">{title}</h3>
+            {children}
+        </div>
+    );
+}
+
+/** Body copy. Constrained to a comfortable measure for reading. */
+function P({ children }: { children: React.ReactNode }) {
+    return <p className="max-w-[68ch] text-sm leading-7 text-text-secondary">{children}</p>;
+}
+
+/** A list of steps or points. */
+function List({ items, isOrdered = false }: { items: React.ReactNode[]; isOrdered?: boolean }) {
+    const Tag = isOrdered ? 'ol' : 'ul';
+    return (
+        <Tag
+            className={`max-w-[68ch] space-y-2 pl-5 text-sm leading-7 text-text-secondary ${
+                isOrdered ? 'list-decimal' : 'list-disc'
+            } marker:text-text-muted`}
+        >
+            {items.map((item, i) => (
+                <li key={i} className="pl-1">
+                    {item}
+                </li>
+            ))}
+        </Tag>
+    );
+}
+
+/** Set-apart guidance. Colour is always paired with an icon and a label. */
+function Callout({
+    type = 'note',
+    title,
+    children,
+}: {
+    type?: 'note' | 'warning';
+    title: string;
+    children: React.ReactNode;
+}) {
+    const isWarning = type === 'warning';
+    const Icon = isWarning ? FiAlertTriangle : FiInfo;
+    return (
+        <div
+            className={`max-w-[68ch] rounded-xl border p-4 ${
+                isWarning
+                    ? 'border-amber-500/30 bg-amber-500/[0.06]'
+                    : 'border-card-border bg-foreground/[0.02]'
+            }`}
+        >
+            <div className="mb-1.5 flex items-center gap-2">
+                <Icon className={`h-3.5 w-3.5 ${isWarning ? 'text-amber-600 dark:text-amber-400' : 'text-text-muted'}`} />
+                <span className="text-xs font-semibold text-foreground">{title}</span>
+            </div>
+            <div className="text-sm leading-6 text-text-secondary">{children}</div>
+        </div>
+    );
+}
+
+/** A reference table. */
+function Table({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
+    return (
+        <div className="max-w-[68ch] overflow-x-auto rounded-xl border border-card-border">
+            <table className="w-full border-collapse text-left text-sm">
+                <thead>
+                    <tr className="border-b border-card-border bg-foreground/[0.03]">
+                        {headers.map((h) => (
+                            <th key={h} className="whitespace-nowrap px-4 py-2.5 text-xs font-semibold text-foreground">
+                                {h}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-card-border">
+                    {rows.map((row, i) => (
+                        <tr key={i} className="align-top">
+                            {row.map((cell, j) => (
+                                <td key={j} className="px-4 py-2.5 leading-6 text-text-secondary">
+                                    {cell}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Navigation
+   ──────────────────────────────────────────────────────────────── */
+
+const NAV: { id: string; title: string; icon: React.ElementType; color: string; topics: { id: string; title: string }[] }[] = [
+    {
+        id: 'getting-started',
+        title: 'Getting started',
+        icon: FiBookOpen,
+        color: 'text-blue-400',
+        topics: [
+            { id: 'what-it-is', title: 'What this platform does' },
+            { id: 'organizations', title: 'Organizations' },
+            { id: 'finding-things', title: 'Finding things' },
+        ],
+    },
+    {
+        id: 'roles',
+        title: 'Roles and permissions',
+        icon: FiShield,
+        color: 'text-rose-400',
+        topics: [
+            { id: 'the-five-roles', title: 'The five roles' },
+            { id: 'the-rules', title: 'What each role can do' },
+            { id: 'role-exceptions', title: 'Two exceptions' },
+        ],
+    },
+    {
+        id: 'tasks',
+        title: 'Tasks',
+        icon: FiCheckSquare,
+        color: 'text-purple-400',
+        topics: [
+            { id: 'creating-tasks', title: 'Creating and assigning' },
+            { id: 'board-and-table', title: 'Board and table views' },
+            { id: 'time-logging', title: 'Logging time' },
+        ],
+    },
+    {
+        id: 'projects',
+        title: 'Projects and clients',
+        icon: FiFolder,
+        color: 'text-pink-400',
+        topics: [
+            { id: 'projects-basics', title: 'Working with projects' },
+            { id: 'clients', title: 'Clients' },
+        ],
+    },
+    {
+        id: 'notes',
+        title: 'Notes',
+        icon: FiFileText,
+        color: 'text-yellow-400',
+        topics: [
+            { id: 'notes-basics', title: 'Writing notes' },
+            { id: 'sharing-notes', title: 'Sharing' },
+        ],
+    },
+    {
+        id: 'calendar',
+        title: 'Calendar and time off',
+        icon: FiCalendar,
+        color: 'text-green-400',
+        topics: [
+            { id: 'events', title: 'Events' },
+            { id: 'time-off', title: 'Requesting time off' },
+        ],
+    },
+    {
+        id: 'attendance',
+        title: 'Attendance',
+        icon: FiMapPin,
+        color: 'text-sky-400',
+        topics: [
+            { id: 'clocking-in', title: 'Clocking in and out' },
+            { id: 'office-locations', title: 'Office locations' },
+        ],
+    },
+    {
+        id: 'team',
+        title: 'Your team',
+        icon: FiUsers,
+        color: 'text-teal-400',
+        topics: [
+            { id: 'inviting', title: 'Inviting people' },
+            { id: 'changing-roles', title: 'Changing roles' },
+        ],
+    },
+    {
+        id: 'notifications',
+        title: 'Announcements and alerts',
+        icon: FiBell,
+        color: 'text-indigo-400',
+        topics: [
+            { id: 'announcements', title: 'Announcements' },
+            { id: 'who-gets-notified', title: 'Who gets notified' },
+            { id: 'live-updates', title: 'Live updates' },
+        ],
+    },
+    {
+        id: 'assistant',
+        title: 'Assistant',
+        icon: FiCpu,
+        color: 'text-fuchsia-400',
+        topics: [{ id: 'assistant-basics', title: 'Asking questions' }],
+    },
+    {
+        id: 'focus',
+        title: 'Focus timer',
+        icon: FiClock,
+        color: 'text-orange-400',
+        topics: [{ id: 'focus-basics', title: 'Running a session' }],
+    },
+    {
+        id: 'settings',
+        title: 'Settings',
+        icon: FiSettings,
+        color: 'text-cyan-400',
+        topics: [{ id: 'settings-basics', title: 'Your preferences' }],
+    },
+];
 
 export default function WikiPage() {
     const router = useRouter();
-    const [activeSection, setActiveSection] = useState('getting-started');
+    const [activeId, setActiveId] = useState('what-it-is');
+    const [query, setQuery] = useState('');
+    const mainRef = useRef<HTMLElement>(null);
 
-    const topics = [
-        {
-            id: 'getting-started',
-            title: 'Mission & Infrastructure',
-            icon: FiZap,
-            color: 'text-[var(--pastel-yellow)]',
-            bg: 'bg-[var(--pastel-yellow)]/10',
-            subheadings: [
-                { id: 'platform-vision', title: 'Platform Vision', icon: FiInfo },
-                { id: 'technical-specs', title: 'Technical Requirements', icon: FiTerminal },
-                { id: 'security-auth', title: 'Security & Auth', icon: FiShield },
-            ]
-        },
-        {
-            id: 'attendance-presence',
-            title: 'Attendance & Presence',
-            icon: FiMapPin,
-            color: 'text-sky-400',
-            bg: 'bg-sky-500/10',
-            subheadings: [
-                { id: 'how-to-clock-in', title: 'How to Clock In', icon: FiMapPin },
-                { id: 'geofencing-logic', title: 'Geofencing Logic', icon: FiTarget },
-                { id: 'admin-office-bounds', title: 'Admin Config', icon: FiSettings },
-            ]
-        },
-        {
-            id: 'operations-mastery',
-            title: 'Operations & Tasks',
-            icon: FiBriefcase,
-            color: 'text-emerald-400',
-            bg: 'bg-emerald-500/10',
-            subheadings: [
-                { id: 'kanban-mastery', title: 'Kanban Mastery', icon: FiLayers },
-                { id: 'task-dynamics', title: 'Priority Dynamics', icon: FiActivity },
-                { id: 'time-resource', title: 'Time Logging', icon: FiClock },
-            ]
-        },
-        {
-            id: 'ai-mission-control',
-            title: 'Mission Control AI',
-            icon: FiCpu,
-            color: 'text-purple-400',
-            bg: 'bg-purple-500/10',
-            subheadings: [
-                { id: 'ai-briefing', title: 'Intelligence partner', icon: FiZap },
-                { id: 'local-llm-architecture', title: 'NVIDIA Cloud AI', icon: FiCpu },
-            ]
-        },
-        {
-            id: 'announcements-system',
-            title: 'System Broadcasts',
-            icon: FiBell,
-            color: 'text-pink-400',
-            bg: 'bg-pink-500/10',
-            subheadings: [
-                { id: 'broadcast-protocol', title: 'Broadcast Protocol', icon: FiBell },
-                { id: 'priority-alerts', title: 'Priority Levels', icon: FiAlertCircle },
-            ]
-        }
-    ];
+    // Highlight the nav entry for whatever is currently on screen.
+    useEffect(() => {
+        const ids = NAV.flatMap((s) => [s.id, ...s.topics.map((t) => t.id)]);
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const visible = entries
+                    .filter((e) => e.isIntersecting)
+                    .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+                if (visible) setActiveId(visible.target.id);
+            },
+            { rootMargin: '0px 0px -70% 0px', threshold: 0 },
+        );
+        ids.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) observer.observe(el);
+        });
+        return () => observer.disconnect();
+    }, []);
 
-    const scrollToSection = (id: string) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setActiveSection(id);
-        }
+    const scrollTo = (id: string) => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveId(id);
     };
 
+    const filteredNav = query.trim()
+        ? NAV.map((s) => ({
+              ...s,
+              topics: s.topics.filter(
+                  (t) =>
+                      t.title.toLowerCase().includes(query.toLowerCase()) ||
+                      s.title.toLowerCase().includes(query.toLowerCase()),
+              ),
+          })).filter((s) => s.topics.length > 0 || s.title.toLowerCase().includes(query.toLowerCase()))
+        : NAV;
+
     return (
-        <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-6rem)] overflow-hidden bg-background relative border-t border-card-border">
-            {/* Left Static Sidebar */}
-            <aside className="w-80 h-full border-r border-card-border flex flex-col bg-card/10 backdrop-blur-md shrink-0">
-                {/* Back Button and Branding */}
-                <div className="p-6 border-b border-card-border space-y-6">
-                    <button 
+        <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-6rem)] overflow-hidden border-t border-card-border bg-background">
+            {/* Sidebar */}
+            <aside className="hidden w-72 shrink-0 flex-col border-r border-card-border lg:flex">
+                <div className="space-y-4 border-b border-card-border p-5">
+                    <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-text-muted hover:text-foreground transition-all font-bold uppercase tracking-[0.2em] text-[10px] group"
+                        className="group flex items-center gap-1.5 text-xs font-medium text-text-muted transition-colors hover:text-foreground"
                     >
-                        <div className="p-1.5 rounded-lg bg-foreground/[0.03] border border-card-border group-hover:bg-foreground/[0.06] group-hover:border-card-border transition-all">
-                            <FiChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-                        </div>
-                        Back to Platform
+                        <FiChevronLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+                        Back
                     </button>
 
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                            <FiBookOpen className="text-xl text-emerald-400" />
+                    <div className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
+                            <FiBookOpen className="h-4 w-4" />
+                        </span>
+                        <div>
+                            <h1 className="text-sm font-semibold text-foreground">Documentation</h1>
+                            <p className="text-xs text-text-muted">How the platform works</p>
                         </div>
-                        <div className="flex flex-col">
-                            <h1 className="text-sm font-black text-foreground tracking-tight">Knowledge base</h1>
-                            <span className="text-[9px] text-text-muted/50 font-bold uppercase tracking-widest mt-0.5">Platform Manual v1.4</span>
-                        </div>
+                    </div>
+
+                    <div className="relative">
+                        <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
+                        <input
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search docs"
+                            className="w-full rounded-lg border border-card-border bg-foreground/[0.03] py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all"
+                        />
                     </div>
                 </div>
 
-                {/* Static Navigation */}
-                <nav className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
-                    {topics.map((topic) => (
-                        <div key={topic.id} className="space-y-3">
-                            <div className="flex items-center gap-3 px-2">
-                                <div className={`p-1.5 rounded-lg border border-card-border ${topic.bg}`}>
-                                    <topic.icon className={`text-base ${topic.color}`} />
-                                </div>
-                                <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest opacity-80 leading-none">
-                                    {topic.title}
-                                </h3>
-                            </div>
-                            <div className="space-y-1">
-                                {topic.subheadings.map((sub) => (
+                <nav className="custom-scrollbar flex-1 space-y-6 overflow-y-auto p-4">
+                    {filteredNav.map((section) => (
+                        <div key={section.id}>
+                            <button
+                                onClick={() => scrollTo(section.id)}
+                                className="mb-1.5 flex w-full items-center gap-2 px-2 text-left"
+                            >
+                                <section.icon className={`h-3.5 w-3.5 shrink-0 ${section.color}`} />
+                                <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                                    {section.title}
+                                </span>
+                            </button>
+                            <div className="space-y-0.5">
+                                {section.topics.map((topic) => (
                                     <button
-                                        key={sub.id}
-                                        onClick={() => scrollToSection(sub.id)}
-                                        className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl transition-all font-bold uppercase tracking-[0.15em] text-[9px] group ${
-                                            activeSection === sub.id
-                                                ? 'bg-foreground/[0.06] text-foreground border border-card-border'
-                                                : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03] border border-transparent'
+                                        key={topic.id}
+                                        onClick={() => scrollTo(topic.id)}
+                                        className={`block w-full rounded-md border-l-2 py-1.5 pl-4 pr-2 text-left text-sm transition-colors ${
+                                            activeId === topic.id
+                                                ? 'border-emerald-500 bg-emerald-500/[0.07] font-medium text-foreground'
+                                                : 'border-transparent text-text-muted hover:bg-foreground/[0.03] hover:text-foreground'
                                         }`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <sub.icon size={11} className="group-hover:scale-110 transition-transform" />
-                                            {sub.title}
-                                        </div>
-                                        <FiChevronRight size={10} className={`opacity-0 group-hover:opacity-100 transition-opacity ${activeSection === sub.id ? 'opacity-100' : ''}`} />
+                                        {topic.title}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     ))}
+                    {filteredNav.length === 0 && (
+                        <p className="px-2 text-sm text-text-muted">No matching topics.</p>
+                    )}
                 </nav>
-
-                {/* Footer Guide Status */}
-                <div className="p-6 border-t border-card-border bg-card/5">
-                    <div className="p-4 rounded-3xl bg-foreground/[0.02] border border-card-border flex items-center justify-between">
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Administrator</span>
-                            <span className="text-[8px] text-text-muted/50 font-bold uppercase tracking-[0.2em] mt-1">Manual Access Guaranteed</span>
-                        </div>
-                        <FiLock size={14} className="text-text-muted/30" />
-                    </div>
-                </div>
             </aside>
 
-            {/* Content Area - Vertically Scrolling */}
-            <main className="flex-1 overflow-y-auto h-full scroll-smooth custom-scrollbar bg-background">
-                <div className="max-w-4xl mx-auto py-24 px-12 space-y-40">
-                    
-                    {/* Mission Architecture */}
-                    <section id="getting-started" className="space-y-20">
-                        <SectionHeader title="Infrastructure" icon={FiZap} color="text-[var(--pastel-yellow)]" />
-                        
-                        <article id="platform-vision" className="space-y-6">
-                            <h3 className="text-2xl font-bold text-foreground tracking-tight tracking-[0.05em]">Platform philosophy</h3>
-                            <p className="text-text-muted text-lg leading-relaxed font-medium">
-                                The platform serves as a high-density operational gateway, centralizing mission-critical workflows into a single intelligence environment. Unlike traditional ERP systems, it utilizes a <strong>privacy-first AI bridge</strong> to synthesize data without compromising institutional sovereignty.
-                            </p>
-                        </article>
+            {/* Content */}
+            <main ref={mainRef} className="custom-scrollbar flex-1 overflow-y-auto scroll-smooth">
+                <div className="mx-auto max-w-3xl space-y-16 px-6 py-12 md:px-10">
+                    <header className="space-y-2 border-b border-card-border pb-8">
+                        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Documentation</h1>
+                        <P>
+                            How this platform works, what each part is for, and who can do what. If
+                            you are new here, start with Getting started and Roles.
+                        </P>
+                    </header>
 
-                        <article id="technical-specs" className="space-y-12">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">Technical specifications</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <DocCard 
-                                    title="Endpoint Compatibility" 
-                                    description="Optimized for Chromium-based browsers (v110+). Requires active permissions for Geolocation and WebSocket connectivity for real-time alerting."
-                                    icon={FiTerminal}
-                                />
-                                <DocCard 
-                                    title="GPS Synchronization" 
-                                    description="Requires GPS lock within 50m accuracy for automated presence verification. High-frequency polling is managed locally to preserve battery."
-                                    icon={FiActivity}
-                                />
-                            </div>
-                            <div className="p-10 rounded-[3rem] bg-card border border-card-border">
-                                <h4 className="text-xs font-bold text-text-muted uppercase tracking-[0.2em] mb-6">Device standards</h4>
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-center py-4 border-b border-card-border">
-                                        <span className="text-sm font-bold text-text-muted uppercase tracking-widest">WebSocket Latency</span>
-                                        <span className="text-sm font-bold text-emerald-400">&lt; 150ms Guaranteed</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-4 border-b border-card-border">
-                                        <span className="text-sm font-bold text-text-muted uppercase tracking-widest">Geolocation Precision</span>
-                                        <span className="text-sm font-bold text-sky-400">Haversine Standard</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-4 border-b border-card-border last:border-0 text-text-muted">
-                                        <span className="text-sm font-bold text-text-muted uppercase tracking-widest">Resource Persistence</span>
-                                        <span className="text-sm font-bold text-purple-400">JWT / Local Cache</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </article>
+                    <Section id="getting-started" title="Getting started" icon={FiBookOpen} color="text-blue-400">
+                        <Topic id="what-it-is" title="What this platform does">
+                            <P>
+                                This is a shared workspace for running day-to-day operations. It
+                                keeps tasks, projects, clients, notes, schedules and attendance in
+                                one place, so your team is not spread across half a dozen tools.
+                            </P>
+                            <P>
+                                Everything you see is scoped to your organization. People in other
+                                organizations cannot see your data, and you cannot see theirs.
+                            </P>
+                        </Topic>
 
-                        <article id="security-auth" className="space-y-6">
-                            <h3 className="text-2xl font-bold text-foreground tracking-tight tracking-[0.05em]">Security & privacy protocols</h3>
-                            <div className="p-12 rounded-[3.5rem] bg-indigo-500/[0.02] border border-indigo-500/10 space-y-8 group">
-                                <p className="text-text-muted text-base leading-relaxed font-medium">
-                                    All communications are secured via TLS 1.3. User identity is managed through <strong>JSON Web Tokens (JWT)</strong>, with a strict 24-hour expiration policy and automatic refresh orchestration.
-                                </p>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-6 rounded-2xl bg-background border border-card-border">
-                                        <FiShield className="text-emerald-400 mb-3" size={20} />
-                                        <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest leading-none mb-2">Isolation Layer</h5>
-                                        <p className="text-[11px] text-text-muted leading-relaxed">No data training or external leakage. AI reasoning is contained within the VPC.</p>
-                                    </div>
-                                    <div className="p-6 rounded-2xl bg-background border border-card-border">
-                                        <FiLock className="text-blue-400 mb-3" size={20} />
-                                        <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest leading-none mb-2">Access Control</h5>
-                                        <p className="text-[11px] text-text-muted leading-relaxed">Role-Based Access (RBAC) enforced at the system core. Managers see aggregates, admins see infrastructure.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </article>
-                    </section>
+                        <Topic id="organizations" title="Organizations">
+                            <P>
+                                An organization is your company or team. Your access is decided by
+                                your role inside that organization, and every page you open shows
+                                only that organization&apos;s records.
+                            </P>
+                            <P>
+                                If you belong to more than one organization, use the switcher at the
+                                top of the sidebar. Switching changes everything on screen — tasks,
+                                projects, people and notifications all follow.
+                            </P>
+                        </Topic>
 
-                    {/* Attendance Guide */}
-                    <section id="attendance-presence" className="space-y-20">
-                        <SectionHeader title="Presence protocol" icon={FiMapPin} color="text-sky-400" />
-                        
-                        <article id="how-to-clock-in" className="space-y-8">
-                            <h4 className="text-xl font-bold text-foreground tracking-[0.1em]">User attendance manual</h4>
-                            <div className="p-12 rounded-[3rem] bg-card border border-card-border space-y-10">
-                                <p className="text-text-muted text-base leading-relaxed font-medium">
-                                    To maintain operational integrity, attendance must be logged through the platform&apos;s geofenced interface. The system automates verification but requires browser permission.
-                                </p>
-                                <div className="space-y-12">
-                                    <StepItem 
-                                        num="01" 
-                                        title="Initial Handshake" 
-                                        body="Navigate to the Attendance dashboard. If prompted, grant location access. The system must query your device coordinates to establish a baseline."
-                                    />
-                                    <StepItem 
-                                        num="02" 
-                                        title="Verification (Haversine)" 
-                                        body="The system calculates your exact distance from the configured office hub. You must be within the 200m operational perimeter to enable the Clock In trigger."
-                                    />
-                                    <StepItem 
-                                        num="03" 
-                                        title="Continuous Sync" 
-                                        body="Once clocked in, enable the background tracking toggle. This ensures your presence state is preserved even if you minimize the application or exit the zone briefly."
-                                    />
-                                </div>
-                            </div>
-                        </article>
+                        <Topic id="finding-things" title="Finding things">
+                            <P>
+                                Press <Kbd>Ctrl</Kbd> <Kbd>K</Kbd> (or <Kbd>⌘</Kbd> <Kbd>K</Kbd> on
+                                a Mac) anywhere to open the command menu. You can jump to a page,
+                                create a task, or search across your work from there. The Search page
+                                does the same thing with more room for results.
+                            </P>
+                        </Topic>
+                    </Section>
 
-                        <article id="geofencing-logic" className="space-y-6">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">Geofencing constraints</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="p-8 rounded-3xl bg-sky-500/[0.03] border border-sky-500/10 text-center">
-                                    <span className="text-4xl font-bold text-sky-400 block mb-2 font-numbers">200m</span>
-                                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Hub Radius</span>
-                                </div>
-                                <div className="p-8 rounded-3xl bg-sky-500/[0.03] border border-sky-500/10 text-center">
-                                    <span className="text-4xl font-bold text-sky-400 block mb-2 font-numbers">&lt;50m</span>
-                                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-[0.2em]">Precision Required</span>
-                                </div>
-                                <div className="p-8 rounded-3xl bg-sky-500/[0.03] border border-sky-500/10 text-center flex items-center justify-center">
-                                    <FiActivity className="text-sky-500/50" size={32} />
-                                </div>
-                            </div>
-                            <p className="text-text-muted text-sm leading-relaxed font-medium italic">
-                                Note: High-accuracy GPS requires an unobstructed view of the sky. In deep architectural environments, the system may default to Wi-Fi triangulation which might reduce precision.
-                            </p>
-                        </article>
+                    <Section id="roles" title="Roles and permissions" icon={FiShield} color="text-rose-400">
+                        <Topic id="the-five-roles" title="The five roles">
+                            <P>
+                                Every person in an organization has one role. Roles run from most to
+                                least access:
+                            </P>
+                            <Table
+                                headers={['Role', 'What it means']}
+                                rows={[
+                                    ['Owner', 'Full control, including organization settings and transferring ownership.'],
+                                    ['Admin', "Runs the organization day to day and can change anyone's work."],
+                                    ['Manager', 'Sees everything the team is doing, but only changes their own work.'],
+                                    ['Member', 'Creates and manages their own work, plus anything shared with them.'],
+                                    ['Guest', 'Read-only, and only for things shared with them directly.'],
+                                ]}
+                            />
+                            <Callout title="Manager is about visibility, not authority">
+                                A Manager can see every task, project and note in the organization —
+                                that is the point of the role. It does not let them edit or delete
+                                other people&apos;s work. Only Owners and Admins can do that.
+                            </Callout>
+                        </Topic>
 
-                        <article id="admin-office-bounds" className="space-y-6">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">Admin: Regional configuration</h3>
-                            <div className="p-10 rounded-[3rem] bg-foreground/[0.02] border border-card-border space-y-6">
-                                <p className="text-text-muted text-sm leading-relaxed font-medium">
-                                    Administrators can modify office hubs via the **Office Settings** panel. Ensure coordinates are formatted in Decimal Degrees (DD).
-                                </p>
-                                <div className="grid grid-cols-1 gap-3">
-                                    <div className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-background border border-card-border">
-                                        <FiSettings className="text-text-muted/50" />
-                                        <p className="text-xs font-bold text-text-muted uppercase tracking-widest">Adjust Perimeter Radius (Config-Only)</p>
-                                    </div>
-                                    <div className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-background border border-card-border">
-                                        <FiMapPin className="text-text-muted/50" />
-                                        <p className="text-xs font-bold text-text-muted uppercase tracking-widest">Update Primary Hub Coordinates</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </article>
-                    </section>
+                        <Topic id="the-rules" title="What each role can do">
+                            <P>The same four rules apply to every part of the platform:</P>
+                            <List
+                                isOrdered
+                                items={[
+                                    <>
+                                        <strong className="font-medium text-foreground">Seeing things.</strong>{' '}
+                                        Owners, Admins and Managers see everything in the organization.
+                                        Members see their own work plus anything assigned or shared
+                                        with them. Guests see only what was shared with them.
+                                    </>,
+                                    <>
+                                        <strong className="font-medium text-foreground">Creating things.</strong>{' '}
+                                        Everyone except Guests can create work.
+                                    </>,
+                                    <>
+                                        <strong className="font-medium text-foreground">Editing and deleting.</strong>{' '}
+                                        Owners and Admins can change anything. Everyone else can only
+                                        change what they created.
+                                    </>,
+                                    <>
+                                        <strong className="font-medium text-foreground">Administration.</strong>{' '}
+                                        Organization settings, team members, office locations and
+                                        attendance rules are Owner and Admin only.
+                                    </>,
+                                ]}
+                            />
+                            <P>
+                                If you cannot see a button, it is because your role does not allow
+                                that action. The buttons are hidden rather than shown-and-refused.
+                            </P>
+                        </Topic>
 
-                    {/* Operations Mastery */}
-                    <section id="operations-mastery" className="space-y-20">
-                        <SectionHeader title="Operational dynamics" icon={FiBriefcase} color="text-emerald-400" />
-                        
-                        <article id="kanban-mastery" className="space-y-8">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">Kanban workflow strategy</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-6">
-                                    <p className="text-text-muted text-sm leading-relaxed font-medium">
-                                        The Tasks engine utilizes a non-linear flow. Items start in <strong>Backlog</strong> and progress through <strong>In Progress</strong> and <strong>In Review</strong> to final <strong>Delivery</strong>.
-                                    </p>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-3">
-                                            <FiCheckCircle className="text-emerald-400" />
-                                            <span className="text-xs font-bold text-foreground uppercase tracking-widest">Atomic Updates</span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <FiCheckCircle className="text-emerald-400" />
-                                            <span className="text-xs font-bold text-foreground uppercase tracking-widest">State-Preserving Drag-and-Drop</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="aspect-square rounded-[3rem] bg-emerald-500/[0.03] border border-emerald-500/10 flex items-center justify-center">
-                                    <FiLayers size={64} className="text-emerald-500/20" />
-                                </div>
-                            </div>
-                        </article>
+                        <Topic id="role-exceptions" title="Two exceptions">
+                            <List
+                                items={[
+                                    <>
+                                        If a task is <strong className="font-medium text-foreground">assigned</strong>{' '}
+                                        to you, you can edit it even though you did not create it —
+                                        that is how work moves across a board. Deleting it still
+                                        requires being the person who created it.
+                                    </>,
+                                    <>
+                                        Adding a <strong className="font-medium text-foreground">client</strong>{' '}
+                                        needs Manager level or above, rather than the usual Member
+                                        level. Everyone can still see the client list.
+                                    </>,
+                                ]}
+                            />
+                        </Topic>
+                    </Section>
 
-                        <article id="task-dynamics" className="space-y-6">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">Priority & weighting</h3>
-                            <div className="p-10 rounded-[3rem] bg-card border border-card-border space-y-6">
-                                <p className="text-text-muted text-sm leading-relaxed font-medium">
-                                    Priority level is more than just a label. It affects the AI mission briefing sorting and notification urgency. High priority tasks trigger immediate system-wide WebSocket pushes for managers.
-                                </p>
-                            </div>
-                        </article>
-                    </section>
+                    <Section id="tasks" title="Tasks" icon={FiCheckSquare} color="text-purple-400">
+                        <Topic id="creating-tasks" title="Creating and assigning">
+                            <P>
+                                Add a task from the Tasks page, or from anywhere with the command
+                                menu. A task needs a name; everything else — description, due date,
+                                priority, project, assignees — is optional and can be filled in
+                                later.
+                            </P>
+                            <P>
+                                Assigning a task tells that person about it and lets them work on it.
+                                You can assign several people to the same task.
+                            </P>
+                        </Topic>
 
-                    {/* AI Mission Control */}
-                    <section id="ai-mission-control" className="space-y-20">
-                        <SectionHeader title="Intelligence deck" icon={FiCpu} color="text-purple-400" />
-                        
-                        <article id="ai-briefing" className="space-y-8">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">Strategic daily briefings</h3>
-                            <p className="text-text-muted text-base leading-relaxed font-medium">
-                                Each day, the platform synthesizes your upcoming tasks and past velocity to generate a natural language briefing. This briefing is processed locally, ensuring that private work details are never passed to external AI training sets.
-                            </p>
-                        </article>
+                        <Topic id="board-and-table" title="Board and table views">
+                            <P>
+                                The board view groups tasks by status so you can drag them from To do
+                                through In progress, QA and Review to Done. The table view shows more
+                                detail at once and lets you edit a row in place.
+                            </P>
+                            <P>
+                                Priority is Low, Medium or High. Marking a task as needing QA or
+                                Review flags it for a second pair of eyes before it counts as
+                                finished. You can also mark a task as depending on another one when
+                                the order matters.
+                            </P>
+                        </Topic>
 
-                        <article id="local-llm-architecture" className="space-y-6">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">NVIDIA Cloud AI (Minimax-M3)</h3>
-                            <div className="p-10 rounded-[3rem] bg-purple-500/[0.05] border border-purple-500/20 space-y-6">
-                                <p className="text-text-muted text-sm leading-relaxed font-medium">
-                                    The platform interfaces with <strong>NVIDIA NIM</strong> using the <strong>Minimax-M3</strong> model. This cloud-powered engine delivers intelligent task analysis, monthly report generation, and productivity insights — all secured via encrypted API calls.
-                                </p>
-                                <div className="flex gap-4">
-                                    <div className="px-4 py-2 rounded-xl bg-background border border-card-border text-[10px] font-bold text-purple-400 uppercase tracking-widest">NVIDIA NIM</div>
-                                    <div className="px-4 py-2 rounded-xl bg-background border border-card-border text-[10px] font-bold text-purple-400 uppercase tracking-widest">Minimax-M3</div>
-                                </div>
-                            </div>
-                        </article>
-                    </section>
+                        <Topic id="time-logging" title="Logging time">
+                            <P>
+                                Start the timer on a task to record how long it takes. Time logged
+                                rolls up to the task and to the project, which is what the reports
+                                and the budget figures on projects are based on.
+                            </P>
+                        </Topic>
+                    </Section>
 
-                    {/* System Broadcasts */}
-                    <section id="announcements-system" className="space-y-20">
-                        <SectionHeader title="Communication deck" icon={FiBell} color="text-pink-400" />
-                        
-                        <article id="broadcast-protocol" className="space-y-6 text-foreground">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">Broadcast protocol</h3>
-                            <p className="text-text-muted text-sm leading-relaxed font-medium">
-                                Announcements are pushed to all active clients via an operational WebSocket bridge. Broadcasts can be initiated by Managers and Super Admins only.
-                            </p>
-                        </article>
+                    <Section id="projects" title="Projects and clients" icon={FiFolder} color="text-pink-400">
+                        <Topic id="projects-basics" title="Working with projects">
+                            <P>
+                                A project groups related tasks and gives you a place to track dates,
+                                budget and progress. Open a project to see its tasks, the time logged
+                                against it, and how much of its budget has been used.
+                            </P>
+                            <P>
+                                Projects can be linked to a client, given a short key for reference,
+                                and set to Planning, In progress, Completed or On hold.
+                            </P>
+                        </Topic>
 
-                        <article id="priority-alerts" className="space-y-6">
-                            <h3 className="text-xl font-bold text-foreground tracking-wider">Alert priority definitions</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-6 rounded-3xl bg-pink-500/[0.03] border border-pink-500/10">
-                                    <h5 className="text-xs font-bold text-pink-400 uppercase tracking-widest mb-2">Critical Alpha</h5>
-                                    <p className="text-xs text-text-muted leading-relaxed font-medium uppercase tracking-wider">Triggers visual alerts and pins at the top of the feed until acknowledged.</p>
-                                </div>
-                                <div className="p-6 rounded-3xl bg-blue-500/[0.03] border border-blue-500/10">
-                                    <h5 className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Informational Beta</h5>
-                                    <p className="text-xs text-text-muted leading-relaxed font-medium uppercase tracking-wider">Standard system updates for general knowledge tracking.</p>
-                                </div>
-                            </div>
-                        </article>
-                    </section>
+                        <Topic id="clients" title="Clients">
+                            <P>
+                                Clients are the companies you do work for. Each one holds a contact
+                                name, email and website, and can be linked to any number of projects.
+                            </P>
+                            <P>
+                                Everyone in the organization can see the client list. Adding, editing
+                                or removing a client needs Manager level or above.
+                            </P>
+                        </Topic>
+                    </Section>
 
-                    <div className="h-64" />
+                    <Section id="notes" title="Notes" icon={FiFileText} color="text-yellow-400">
+                        <Topic id="notes-basics" title="Writing notes">
+                            <P>
+                                Notes are for anything that does not fit a task — meeting minutes,
+                                research, checklists, ideas. The editor supports headings, lists,
+                                links and formatting, and notes can be tagged by type so they are
+                                easier to find later.
+                            </P>
+                        </Topic>
+
+                        <Topic id="sharing-notes" title="Sharing">
+                            <P>
+                                A note starts private to you. Share it with specific colleagues and
+                                it appears in their Notes page too. Owners, Admins and Managers can
+                                see every note in the organization whether or not it was shared.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <Section id="calendar" title="Calendar and time off" icon={FiCalendar} color="text-green-400">
+                        <Topic id="events" title="Events">
+                            <P>
+                                The calendar shows events alongside task due dates, project
+                                milestones and approved time off, so you can see the whole picture in
+                                one place. Switch between month, week and day views.
+                            </P>
+                            <P>
+                                Events pulled in from tasks, projects and time off are read-only on
+                                the calendar — change them where they live and the calendar follows.
+                            </P>
+                        </Topic>
+
+                        <Topic id="time-off" title="Requesting time off">
+                            <P>
+                                Request time off from the calendar. Choose the type — leave, sick,
+                                other — and the dates. Some types need a short reason.
+                            </P>
+                            <P>
+                                Requests go to your Owners and Admins for approval. Once approved,
+                                the time appears on the shared calendar so nobody double-books you.
+                                You can cancel your own request while it is still pending.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <Section id="attendance" title="Attendance" icon={FiMapPin} color="text-sky-400">
+                        <Topic id="clocking-in" title="Clocking in and out">
+                            <P>
+                                Attendance uses your device location. When you arrive within range of
+                                a registered office you are clocked in automatically, and when you
+                                leave you are clocked out. Your browser will ask for location
+                                permission the first time.
+                            </P>
+                            <Callout type="warning" title="Location permission is required">
+                                If you deny location access, attendance cannot record your hours. You
+                                can change this in your browser&apos;s site settings.
+                            </Callout>
+                        </Topic>
+
+                        <Topic id="office-locations" title="Office locations">
+                            <P>
+                                Owners and Admins set up offices by placing a point on the map and
+                                choosing a radius. Anyone inside that radius counts as present.
+                            </P>
+                            <P>
+                                Attendance rules — expected start time, how much lateness is
+                                allowed, working days — are set per office. Managers can see the
+                                team&apos;s attendance; changing a record or the rules is Owner and
+                                Admin only.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <Section id="team" title="Your team" icon={FiUsers} color="text-teal-400">
+                        <Topic id="inviting" title="Inviting people">
+                            <P>
+                                Owners and Admins can invite colleagues from the Team page by sharing
+                                an invite link. New joiners appear as Pending until someone approves
+                                them, at which point they get access at the role you choose.
+                            </P>
+                        </Topic>
+
+                        <Topic id="changing-roles" title="Changing roles">
+                            <P>
+                                Change someone&apos;s role from the Team page. Two limits apply: only
+                                an Owner can grant Owner or Admin, and an Admin cannot change or
+                                remove another Admin. This stops administrators from locking each
+                                other out.
+                            </P>
+                            <P>
+                                You can also suspend someone to remove their access without deleting
+                                their history, and restore them later.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <Section id="notifications" title="Announcements and alerts" icon={FiBell} color="text-indigo-400">
+                        <Topic id="announcements" title="Announcements">
+                            <P>
+                                Announcements go to everyone in the organization at once — useful for
+                                notices that should not sit in one person&apos;s inbox. Posting one
+                                needs Manager level or above. You can remove your own; Owners and
+                                Admins can remove any.
+                            </P>
+                        </Topic>
+
+                        <Topic id="who-gets-notified" title="Who gets notified">
+                            <P>
+                                Notifications follow the same permission rules as everything else:
+                                you are only told about things you are allowed to see. In practice
+                                that means:
+                            </P>
+                            <Table
+                                headers={['You are told when', 'Who hears about it']}
+                                rows={[
+                                    ['A task is assigned to you', 'You'],
+                                    ['A note is shared with you', 'You'],
+                                    ['Someone creates or updates work', 'Owners, Admins and Managers'],
+                                    ['Time off is requested', 'Owners and Admins'],
+                                    ['Your time off is approved or declined', 'You'],
+                                ]}
+                            />
+                            <P>
+                                You will never be notified about a record you could not open. Choose
+                                which alerts you receive in Settings.
+                            </P>
+                        </Topic>
+
+                        <Topic id="live-updates" title="Live updates">
+                            <P>
+                                Pages update themselves. When a colleague creates a task, shares a
+                                note or adds a project, it appears on your screen without a refresh —
+                                the same way a chat message arrives. If your connection drops, the
+                                platform reconnects on its own and catches up.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <Section id="assistant" title="Assistant" icon={FiCpu} color="text-fuchsia-400">
+                        <Topic id="assistant-basics" title="Asking questions">
+                            <P>
+                                The assistant answers questions about your organization&apos;s work in
+                                plain language — what is overdue, who is working on what, how a
+                                project is tracking. You do not need to learn a query syntax.
+                            </P>
+                            <P>
+                                It can only reach data you already have permission to see, so its
+                                answers respect your role.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <Section id="focus" title="Focus timer" icon={FiClock} color="text-orange-400">
+                        <Topic id="focus-basics" title="Running a session">
+                            <P>
+                                Focus mode runs a work-and-break timer for concentrated stretches of
+                                work. Set the session and break lengths in Settings. Time recorded
+                                against a task while the timer runs counts towards that task.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <Section id="settings" title="Settings" icon={FiSettings} color="text-cyan-400">
+                        <Topic id="settings-basics" title="Your preferences">
+                            <P>
+                                Settings covers the choices that are yours alone: which notifications
+                                you receive, sound, focus timer lengths, and light or dark theme.
+                                They follow you across devices.
+                            </P>
+                            <P>
+                                Organization-wide settings — the name, logo, offices and attendance
+                                rules — live elsewhere and are Owner and Admin only.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <footer className="border-t border-card-border pt-8">
+                        <P>
+                            Something missing or out of date? Tell an Owner or Admin in your
+                            organization and they can pass it on.
+                        </P>
+                    </footer>
                 </div>
             </main>
         </div>
     );
 }
 
-const SectionHeader = ({ title, icon: Icon, color }: { title: string, icon: any, color: string }) => (
-    <div className="space-y-6">
-        <div className={`w-16 h-16 rounded-ux flex items-center justify-center border bg-card  ${color.replace('text-', 'border-').replace('400', '400/10')}`}>
-            <Icon className={`text-3xl ${color}`} />
-        </div>
-        <h2 className="text-3xl font-bold text-foreground tracking-tight tracking-[-0.02em]">{title}</h2>
-        <div className={`h-1.5 w-32 bg-gradient-to-r ${color.replace('text-', 'from-').replace('400', '500/50')} to-transparent rounded-full`} />
-    </div>
-);
-
-const DocCard = ({ title, description, icon: Icon }: { title: string, description: string, icon: any }) => (
-    <div className="p-10 rounded-[2.5rem] bg-card border border-card-border hover:border-card-border transition-all duration-500 group">
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-foreground/[0.03] border border-card-border mb-8 group-hover:scale-110 group-hover:bg-foreground/[0.06] transition-all`}>
-            <Icon className={`text-xl text-text-muted group-hover:text-foreground`} />
-        </div>
-        <h4 className="font-bold text-foreground text-xs uppercase tracking-[0.2em] mb-4">{title}</h4>
-        <p className="text-text-muted text-[11px] leading-relaxed font-bold uppercase tracking-wider">{description}</p>
-    </div>
-);
-
-const StepItem = ({ num, title, body }: { num: string, title: string, body: string }) => (
-    <div className="flex gap-8 group">
-        <div className="flex flex-col items-center">
-            <div className="w-12 h-12 rounded-full border border-card-border flex items-center justify-center text-text-muted/30 font-bold group-hover:text-sky-400 group-hover:border-sky-400/50 transition-all text-sm font-numbers">
-                {num}
-            </div>
-            <div className="w-px flex-1 bg-gradient-to-b from-card-border to-transparent mt-4" />
-        </div>
-        <div className="pt-2">
-            <h5 className="text-base font-bold text-foreground uppercase tracking-tight mb-2 group-hover:text-sky-300 transition-colors">{title}</h5>
-            <p className="text-text-muted text-sm font-medium leading-relaxed" dangerouslySetInnerHTML={{ __html: body }} />
-        </div>
-    </div>
-);
-
-// Fallback icons for missing primitives
-const FiBell = (props: any) => (
-  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-  </svg>
-);
-
-const FiCheckSquare = (props: any) => (
-  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <polyline points="9 11 12 14 22 4"></polyline>
-    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-  </svg>
-);
-
-const FiSun = (props: any) => (
-  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="5"></circle>
-    <line x1="12" y1="1" x2="12" y2="3"></line>
-    <line x1="12" y1="21" x2="12" y2="23"></line>
-    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-    <line x1="1" y1="12" x2="3" y2="12"></line>
-    <line x1="21" y1="12" x2="23" y2="12"></line>
-    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-  </svg>
-);
+/** A keyboard key. */
+function Kbd({ children }: { children: React.ReactNode }) {
+    return (
+        <kbd className="rounded border border-card-border bg-foreground/[0.04] px-1.5 py-0.5 font-mono text-xs text-foreground">
+            {children}
+        </kbd>
+    );
+}

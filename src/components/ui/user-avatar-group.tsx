@@ -59,7 +59,7 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
                         ref={(el) => { triggerRefs.current[index] = el; }}
                         onMouseEnter={() => handleMouseEnter(user, index)}
                         onMouseLeave={() => setHoveredUser(null)}
-                        className={`group/avatar relative inline-block ${sizeClasses[size]} rounded-full ring-2 ring-zinc-900 bg-zinc-800 cursor-pointer`} 
+                        className={`group/avatar relative inline-block ${sizeClasses[size]} rounded-full ring-2 ring-background bg-foreground/[0.03] cursor-pointer`} 
                     >
                         {image ? (
                             <Image
@@ -87,10 +87,10 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
                             left: `${coords.left}px`,
                             transform: 'translate(-50%, -100%)',
                         }}
-                        className="mb-2 w-48 p-2 bg-zinc-900 border border-white/5 rounded-lg  animate-in fade-in slide-in-from-bottom-1 duration-200 z-[9999]"
+                        className="mb-2 w-48 p-2 bg-card border border-card-border rounded-lg shadow-lg  animate-in fade-in slide-in-from-bottom-1 duration-200 z-[9999]"
                     >
                         <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-zinc-800 flex-shrink-0 relative overflow-hidden ring-1 ring-white/10">
+                            <div className="h-8 w-8 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-foreground/10">
                                 {hoveredUser.avatar_url || hoveredUser.avatarUrl || hoveredUser.image ? (
                                     <Image src={hoveredUser.avatar_url || hoveredUser.avatarUrl || hoveredUser.image || ''} alt={hoveredUser.name || ''} fill className="object-cover" />
                                 ) : (
@@ -100,8 +100,8 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
                                 )}
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-semibold text-white truncate">{hoveredUser.name || hoveredUser.fullName || hoveredUser.full_name}</p>
-                                {hoveredUser.email && <p className="text-[11px] text-zinc-500 truncate">{hoveredUser.email}</p>}
+                                <p className="text-xs font-semibold text-foreground truncate">{hoveredUser.name || hoveredUser.fullName || hoveredUser.full_name}</p>
+                                {hoveredUser.email && <p className="text-[11px] text-text-muted truncate">{hoveredUser.email}</p>}
                             </div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
             )}
 
             {remaining > 0 && (
-                <div className={`relative ${sizeClasses[size]} rounded-full ring-2 ring-zinc-900 bg-zinc-800 flex items-center justify-center font-medium text-zinc-400 leading-none`}>
+                <div className={`relative ${sizeClasses[size]} rounded-full ring-2 ring-background bg-foreground/[0.03] flex items-center justify-center font-medium text-text-muted leading-none`}>
                     +{remaining}
                 </div>
             )}

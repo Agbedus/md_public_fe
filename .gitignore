@@ -50,6 +50,13 @@ Thumbs.db
 .turbo
 scratch/
 
+# editor swap/backup files
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+
 # local debug scripts
 diagnose.ts
 debug_tasks.js

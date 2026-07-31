@@ -4,10 +4,12 @@ export type Client = {
     contactPersonName: string | null;
     contactEmail: string | null;
     websiteUrl: string | null;
+    /** API: owner_id — who created the client. Drives edit/delete gating. */
+    ownerId?: string | null;
     createdAt?: string | null;
 };
 
-export type ClientFormData = Omit<Client, 'id' | 'createdAt'>;
+export type ClientFormData = Omit<Client, 'id' | 'createdAt' | 'ownerId'>;
 
 export function parseClientFormData(formData: FormData): Partial<Client> {
     const data = Object.fromEntries(formData);

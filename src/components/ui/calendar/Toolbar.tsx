@@ -3,6 +3,7 @@ import React from "react";
 import { format } from "date-fns";
 import { FiChevronLeft, FiChevronRight, FiPlus, FiSun } from "react-icons/fi";
 import type { CalendarView } from "@/types/calendar";
+import TimezoneClocks from "./TimezoneClocks";
 
 interface ToolbarProps {
   currentDate: Date;
@@ -75,7 +76,7 @@ export default function Toolbar({
                     onClick={() => onChangeView?.(v)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                         view === v 
-                        ? "bg-foreground/[0.06] text-foreground" 
+                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" 
                         : "text-(--text-muted) hover:text-foreground"
                     }`}
                 >
@@ -87,46 +88,50 @@ export default function Toolbar({
       </div>
 
       {/* Filter Toggles */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-2">
-          {/* Main Calendar Group */}
-          <div className="flex flex-col gap-2.5">
-              <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.2em] px-1">Main Calendar</span>
-              <div className="flex items-center gap-2">
-                  <FilterToggle 
-                    label="Events" 
-                    active={activeFilter === 'events'} 
-                    onClick={() => setActiveFilter('events')}
-                    color="purple"
-                  />
-                  <FilterToggle 
-                    label="Tasks" 
-                    active={activeFilter === 'tasks'} 
-                    onClick={() => setActiveFilter('tasks')}
-                    color="emerald"
-                  />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              {/* Main Calendar Group */}
+              <div className="flex flex-col gap-2.5">
+                  <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.2em] px-1">Main Calendar</span>
+                  <div className="flex items-center gap-2">
+                      <FilterToggle
+                        label="Events"
+                        active={activeFilter === 'events'}
+                        onClick={() => setActiveFilter('events')}
+                        color="purple"
+                      />
+                      <FilterToggle
+                        label="Tasks"
+                        active={activeFilter === 'tasks'}
+                        onClick={() => setActiveFilter('tasks')}
+                        color="emerald"
+                      />
+                  </div>
+              </div>
+
+              <div className="hidden sm:block h-6 w-px bg-card-border self-end mb-2" />
+
+              {/* Timeline Group */}
+              <div className="flex flex-col gap-2.5">
+                  <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.2em] px-1">Timeline (Gantt)</span>
+                  <div className="flex items-center gap-2">
+                      <FilterToggle
+                        label="Projects"
+                        active={activeFilter === 'projects'}
+                        onClick={() => setActiveFilter('projects')}
+                        color="indigo"
+                      />
+                      <FilterToggle
+                        label="Time Off"
+                        active={activeFilter === 'timeOff'}
+                        onClick={() => setActiveFilter('timeOff')}
+                        color="amber"
+                      />
+                  </div>
               </div>
           </div>
 
-          <div className="hidden sm:block h-6 w-px bg-card-border self-end mb-2" />
-
-          {/* Timeline Group */}
-          <div className="flex flex-col gap-2.5">
-              <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.2em] px-1">Timeline (Gantt)</span>
-              <div className="flex items-center gap-2">
-                  <FilterToggle 
-                    label="Projects" 
-                    active={activeFilter === 'projects'} 
-                    onClick={() => setActiveFilter('projects')}
-                    color="indigo"
-                  />
-                  <FilterToggle 
-                    label="Time Off" 
-                    active={activeFilter === 'timeOff'} 
-                    onClick={() => setActiveFilter('timeOff')}
-                    color="amber"
-                  />
-              </div>
-          </div>
+          <TimezoneClocks />
       </div>
     </div>
   );
@@ -134,10 +139,10 @@ export default function Toolbar({
 
 function FilterToggle({ label, active, onClick, color }: { label: string, active: boolean, onClick: () => void, color: 'indigo' | 'emerald' | 'purple' | 'amber' }) {
     const activeColors = {
-        indigo: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400',
-        emerald: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-        purple: 'bg-purple-500/10 border-purple-500/30 text-purple-400',
-        amber: 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+        indigo: 'bg-indigo-100 dark:bg-indigo-900/40 border-indigo-400 dark:border-indigo-600 text-indigo-600 dark:text-indigo-300',
+        emerald: 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-600 dark:text-emerald-300',
+        purple: 'bg-purple-100 dark:bg-purple-900/40 border-purple-400 dark:border-purple-600 text-purple-600 dark:text-purple-300',
+        amber: 'bg-amber-100 dark:bg-amber-900/40 border-amber-400 dark:border-amber-600 text-amber-600 dark:text-amber-300'
     };
 
     return (

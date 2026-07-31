@@ -16,7 +16,7 @@ import { Project } from "@/types/project";
 import { toast } from "@/lib/toast";
 import { startTaskTimer, pauseTaskTimer, stopTaskTimer } from "@/app/(dashboard)/[orgSlug]/tasks/actions";
 import { useTaskTimer } from "@/providers/task-timer-provider";
-import { canUserWorkOnTask } from "@/lib/task-auth";
+import { canUserWorkOnTask, canDeleteTask } from "@/lib/task-auth";
 import { useConfirm } from "@/providers/confirmation-provider";
 import Image from "next/image";
 import { trackAction } from '@/lib/recent-actions';
@@ -158,13 +158,18 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
       }
     };
 
-    const rowClasses = "border-b border-card-border";
+    const rowClasses = "border-b border-card-border transition-colors hover:bg-foreground/[0.03]";
 
     const variants = {
        initial: { opacity: 0, y: 10 },
        animate: { opacity: 1, y: 0 },
        exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
-       hover: { scale: 1.002, backgroundColor: "rgba(var(--foreground-rgb), 0.05)" }
+       // The row tint is a CSS hover class (see rowClasses) rather than an
+       // animated backgroundColor: `--foreground-rgb` is not defined anywhere,
+       // so `rgba(var(--foreground-rgb), 0.05)` resolved to an invalid colour —
+       // Motion could not interpolate it, logged "not an animatable color" on
+       // every row, and no tint was ever applied.
+       hover: { scale: 1.002 }
     };
 
     return isEditing ? (
@@ -197,7 +202,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
               name="name"
               defaultValue={task.name}
               disabled={isUpdating}
-              className="w-full bg-foreground/[0.06] border border-card-border rounded-xl focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 px-3 py-1.5 text-foreground placeholder:text-text-muted/50 text-xs transition-all disabled:opacity-50"
+              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] px-3 py-1.5 text-foreground placeholder:text-text-muted/50 text-xs transition-all disabled:opacity-50"
             />
           </td>
           <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap bg-foreground/[0.02]">
@@ -207,7 +212,31 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
               name="description"
               defaultValue={task.description || ''}
               disabled={isUpdating}
-              className="w-full bg-foreground/[0.06] border border-card-border rounded-xl focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 px-3 py-1.5 text-foreground placeholder:text-text-muted/50 text-xs transition-all disabled:opacity-50"
+              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] px-3 py-1.5 text-foreground placeholder:text-text-muted/50 text-xs transition-all disabled:opacity-50"
+            />
+          </td>
+          <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap">
+            <select
+              form={`update-${task.id}`}
+              name="priority"
+              defaultValue={task.priority}
+              disabled={isUpdating}
+              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] px-3 py-1.5 text-foreground text-xs appearance-none cursor-pointer transition-all disabled:opacity-50"
+            >
+              <option value="low" className="bg-card">Low</option>
+              <option value="medium" className="bg-card">Medium</option>
+              <option value="high" className="bg-card">High</option>
+            </select>
+          </td>
+          <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap min-w-[200px]">
+            <Combobox
+              options={users.map(u => ({ value: u.id, label: u.fullName || u.email, subLabel: u.email }))}
+              value={selectedAssignees}
+              onChange={(val) => setSelectedAssignees(val as (string | number)[])}
+              multiple
+              placeholder="Assign..."
+              searchPlaceholder="Search users..."
+              className="w-full"
             />
           </td>
           <td className="px-4 py-2 text-[11px] text-text-muted whitespace-nowrap min-w-[120px] bg-foreground/[0.02]">
@@ -220,6 +249,57 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 placeholder="Due date"
                 disabled={isUpdating}
             />
+          </td>
+          <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap">
+              {/* Owner cannot be changed during edit, just display it */}
+             {task.owner ? (
+                <div className="flex items-center gap-2">
+                     {task.owner.avatarUrl ? (
+                        <Image src={task.owner.avatarUrl} alt={task.owner.fullName || ''} width={20} height={20} className="w-5 h-5 rounded-full" />
+                    ) : (
+                        <div className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground shadow-sm">
+                            {(task.owner.fullName || task.owner.email || '?')[0].toUpperCase()}
+                        </div>
+                    )}
+                    <span className="text-xs text-foreground">{task.owner.fullName || task.owner.email}</span>
+                </div>
+            ) : <span className="text-xs text-text-muted">-</span>}
+          </td>
+          {!hideProject && (
+            <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap min-w-[150px]">
+              <Combobox
+                options={projects.map(p => ({ value: p.id, label: p.name, subLabel: p.key || undefined }))}
+                value={selectedProject || ''}
+                onChange={(val) => setSelectedProject(val as string | number | null)}
+                placeholder="Project..."
+                searchPlaceholder="Search projects..."
+                className="w-full"
+              />
+            </td>
+          )}
+          <td className="px-4 py-2 text-xs text-text-secondary whitespace-nowrap bg-foreground/[0.03]">
+            <select
+              form={`update-${task.id}`}
+              name="status"
+              defaultValue={task.status}
+              disabled={isUpdating}
+              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] px-3 py-1.5 text-foreground text-xs appearance-none cursor-pointer transition-all disabled:opacity-50 font-bold"
+            >
+              <option value="TODO" className="bg-card">To Do</option>
+              <option value="IN_PROGRESS" className="bg-card">In Progress</option>
+              <option value="QA" className="bg-card">QA</option>
+              <option value="REVIEW" className="bg-card">Review</option>
+              <option value="DONE" className="bg-card">Done</option>
+            </select>
+          </td>
+          {/* Time Logged placeholder in edit mode */}
+          <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap">
+            {totalHours > 0 ? (
+              <div className="flex items-center gap-1.5">
+                <FiClock className="w-3 h-3 text-text-muted" />
+                <span className="font-bold text-text-secondary tabular-nums">{totalHours.toFixed(1)}h</span>
+              </div>
+            ) : <span>-</span>}
           </td>
           <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap bg-foreground/[0.02]">
             <div className="flex items-center gap-4">
@@ -258,81 +338,6 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
               className="w-full"
             />
           </td>
-          <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap">
-              {/* Owner cannot be changed during edit, just display it */}
-             {task.owner ? (
-                <div className="flex items-center gap-2">
-                     {task.owner.avatarUrl ? (
-                        <Image src={task.owner.avatarUrl} alt={task.owner.fullName || ''} width={20} height={20} className="w-5 h-5 rounded-full" />
-                    ) : (
-                        <div className="w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center text-[11px] text-white shadow-sm">
-                            {(task.owner.fullName || task.owner.email || '?')[0].toUpperCase()}
-                        </div>
-                    )}
-                    <span className="text-xs text-foreground">{task.owner.fullName || task.owner.email}</span>
-                </div>
-            ) : <span className="text-xs text-text-muted">-</span>}
-          </td>
-          <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap">
-            <select
-              form={`update-${task.id}`}
-              name="priority"
-              defaultValue={task.priority}
-              disabled={isUpdating}
-              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 px-3 py-1.5 text-foreground text-xs appearance-none cursor-pointer transition-all disabled:opacity-50"
-            >
-              <option value="low" className="bg-card">Low</option>
-              <option value="medium" className="bg-card">Medium</option>
-              <option value="high" className="bg-card">High</option>
-            </select>
-          </td>
-          <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap min-w-[200px]">
-            <Combobox
-              options={users.map(u => ({ value: u.id, label: u.fullName || u.email, subLabel: u.email }))}
-              value={selectedAssignees}
-              onChange={(val) => setSelectedAssignees(val as (string | number)[])}
-              multiple
-              placeholder="Assign..."
-              searchPlaceholder="Search users..."
-              className="w-full"
-            />
-          </td>
-          {!hideProject && (
-            <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap min-w-[150px]">
-              <Combobox
-                options={projects.map(p => ({ value: p.id, label: p.name, subLabel: p.key || undefined }))}
-                value={selectedProject || ''}
-                onChange={(val) => setSelectedProject(val as string | number | null)}
-                placeholder="Project..."
-                searchPlaceholder="Search projects..."
-                className="w-full"
-              />
-            </td>
-          )}
-          <td className="px-4 py-2 text-xs text-text-secondary whitespace-nowrap bg-foreground/[0.03]">
-            <select
-              form={`update-${task.id}`}
-              name="status"
-              defaultValue={task.status}
-              disabled={isUpdating}
-              className="w-full bg-foreground/[0.03] border border-card-border rounded-xl focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 px-3 py-1.5 text-foreground text-xs appearance-none cursor-pointer transition-all disabled:opacity-50 font-bold"
-            >
-              <option value="TODO" className="bg-card">To Do</option>
-              <option value="IN_PROGRESS" className="bg-card">In Progress</option>
-              <option value="QA" className="bg-card">QA</option>
-              <option value="REVIEW" className="bg-card">Review</option>
-              <option value="DONE" className="bg-card">Done</option>
-            </select>
-          </td>
-          {/* Time Logged placeholder in edit mode */}
-          <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap">
-            {totalHours > 0 ? (
-              <div className="flex items-center gap-1.5">
-                <FiClock className="w-3 h-3 text-text-muted" />
-                <span className="font-bold text-text-secondary tabular-nums">{totalHours.toFixed(1)}h</span>
-              </div>
-            ) : <span>-</span>}
-          </td>
           <td className="px-4 py-2 text-xs font-bold text-right whitespace-nowrap sticky right-0 z-10 bg-card/95 backdrop-blur-md border-l border-card-border">
             <div className="flex items-center justify-end space-x-2">
                 <button
@@ -350,7 +355,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 <button
                 type="button"
                 onClick={onCancel}
-                className="p-1.5 bg-white/[0.03] text-zinc-400 rounded-lg hover:bg-white/[0.06] hover:text-white transition-colors"
+                className="p-1.5 bg-foreground/[0.03] text-text-muted rounded-lg hover:bg-foreground/[0.06] hover:text-foreground transition-colors"
                 >
                 <FiX className="w-3 h-3" />
                 </button>
@@ -385,42 +390,6 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
         <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap max-w-[300px] truncate hidden lg:table-cell">
           {task.description || <span className="text-text-muted/50 italic">No description</span>}
         </td>
-        <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap">
-          {task.dueDate ? format(new Date(task.dueDate as string), "MMM dd, yyyy") : <span className="text-text-muted/50">-</span>}
-        </td>
-        <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap">
-            <div className="flex items-center gap-2">
-                {task.qa_required && (
-                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--pastel-purple)]/10 text-[var(--pastel-purple)] border border-[var(--pastel-purple)]/20 uppercase tracking-wider whitespace-nowrap">QA</span>
-                )}
-                {task.review_required && (
-                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--pastel-indigo)]/10 text-[var(--pastel-indigo)] border border-[var(--pastel-indigo)]/20 uppercase tracking-wider whitespace-nowrap">Review</span>
-                )}
-                {!task.qa_required && !task.review_required && <span className="text-text-muted/50">-</span>}
-            </div>
-        </td>
-        <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap">
-            {task.depends_on_id ? (
-                <div className="flex items-center gap-2 text-[11px] font-bold text-amber-400 cursor-help" title={`Requires Task ID: ${task.depends_on_id}`}>
-                    <FiClock className="w-3 h-3" />
-                    <span>Req #{task.depends_on_id}</span>
-                </div>
-            ) : <span className="text-text-muted/30">-</span>}
-        </td>
-        <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap hidden md:table-cell">
-            {task.owner ? (
-                <div className="flex items-center gap-2">
-                     {task.owner.avatarUrl ? (
-                        <Image src={task.owner.avatarUrl} alt={task.owner.fullName || ''} width={20} height={20} className="w-5 h-5 rounded-full" />
-                    ) : (
-                        <div className="w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center text-[11px] text-white">
-                            {(task.owner.fullName || task.owner.email || '?')[0].toUpperCase()}
-                        </div>
-                    )}
-                    <span className="text-xs text-foreground font-bold">{task.owner.fullName || task.owner.email}</span>
-                </div>
-            ) : <span className="text-xs text-text-muted/30">-</span>}
-        </td>
         <td className="px-6 py-4 text-xs whitespace-nowrap hidden sm:table-cell">
           <span
             className={`px-3 py-1 inline-flex text-[11px] font-bold rounded-lg border uppercase tracking-wider whitespace-nowrap ${
@@ -440,6 +409,23 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
             ) : (
                 <span className="text-text-muted/30 italic">Unassigned</span>
             )}
+        </td>
+        <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap">
+          {task.dueDate ? format(new Date(task.dueDate as string), "MMM dd, yyyy") : <span className="text-text-muted/50">-</span>}
+        </td>
+        <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap hidden md:table-cell">
+            {task.owner ? (
+                <div className="flex items-center gap-2">
+                     {task.owner.avatarUrl ? (
+                        <Image src={task.owner.avatarUrl} alt={task.owner.fullName || ''} width={20} height={20} className="w-5 h-5 rounded-full" />
+                    ) : (
+                        <div className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground">
+                            {(task.owner.fullName || task.owner.email || '?')[0].toUpperCase()}
+                        </div>
+                    )}
+                    <span className="text-xs text-foreground font-bold">{task.owner.fullName || task.owner.email}</span>
+                </div>
+            ) : <span className="text-xs text-text-muted/30">-</span>}
         </td>
         <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap hidden md:table-cell">
             {task.projectId ? (
@@ -486,7 +472,26 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
             <span className="text-text-muted/50">-</span>
           )}
         </td>
-        <td className="px-4 py-2 text-xs font-bold text-right whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity sticky right-0 z-10 bg-card/95 backdrop-blur-md border-l border-card-border">
+<td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap">
+            <div className="flex items-center gap-2">
+                {task.qa_required && (
+                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--pastel-purple)]/10 text-[var(--pastel-purple)] border border-[var(--pastel-purple)]/20 uppercase tracking-wider whitespace-nowrap">QA</span>
+                )}
+                {task.review_required && (
+                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--pastel-indigo)]/10 text-[var(--pastel-indigo)] border border-[var(--pastel-indigo)]/20 uppercase tracking-wider whitespace-nowrap">Review</span>
+                )}
+                {!task.qa_required && !task.review_required && <span className="text-text-muted/50">-</span>}
+            </div>
+        </td>
+        <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap">
+            {task.depends_on_id ? (
+                <div className="flex items-center gap-2 text-[11px] font-bold text-amber-400 cursor-help" title={`Requires Task ID: ${task.depends_on_id}`}>
+                    <FiClock className="w-3 h-3" />
+                    <span>Req #{task.depends_on_id}</span>
+                </div>
+            ) : <span className="text-text-muted/30">-</span>}
+        </td>
+                <td className="px-4 py-2 text-xs font-bold text-right whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity sticky right-0 z-10 bg-card/95 backdrop-blur-md border-l border-card-border">
           <div className="flex items-center justify-end space-x-1">
             {canUserWorkOnTask(currentUser, task) && (
               <button
@@ -498,7 +503,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 <FiPlay className={`w-3.5 h-3.5 ${activeTask?.id === task.id ? 'fill-current' : ''}`} />
               </button>
             )}
-            {canManage && (
+            {(canManage || canUserWorkOnTask(currentUser, task)) && (
             <button
                 type="button"
                 onClick={onEdit}
@@ -509,7 +514,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 <FiEdit2 className="w-3.5 h-3.5" />
             </button>
             )}
-            {canManage && (
+            {(canManage || canDeleteTask(currentUser, task)) && (
             <button 
                 type="button" 
                 disabled={task.id < 0 || isDeleting}

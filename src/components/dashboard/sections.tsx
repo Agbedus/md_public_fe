@@ -64,7 +64,7 @@ const AvatarGroup = ({ users, total }: { users: any[], total: number }) => {
     return (
         <div className="flex -space-x-2 overflow-hidden">
             {users.map((user, i) => (
-                <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-background/50 border border-card-border overflow-hidden relative">
+                <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-foreground/[0.03] border border-card-border overflow-hidden relative">
                     {user.image ? (
                         <Image src={user.image} alt={user.name} fill className="object-cover" />
                     ) : (
@@ -75,7 +75,7 @@ const AvatarGroup = ({ users, total }: { users: any[], total: number }) => {
                 </div>
             ))}
             {total > users.length && (
-                <div className="flex items-center justify-center h-8 w-8 rounded-full ring-2 ring-background bg-background/50 border border-card-border text-[11px] font-bold text-foreground">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full ring-2 ring-background bg-foreground/[0.03] border border-card-border text-[11px] font-bold text-foreground">
                     +{total - users.length}
                 </div>
             )}
@@ -102,7 +102,7 @@ export async function SummaryStatsSection() {
                     className={`bg-card p-3 lg:p-6 rounded-2xl border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col justify-between h-24 lg:h-40 group ${i === 0 ? 'col-span-2 lg:col-span-1' : 'col-span-1'}`}
                 >
                     <div className="flex justify-between items-start">
-                        <div className={`p-1.5 lg:p-3 rounded-xl ${stat.bg} ${stat.color} transition-colors group-hover:bg-background/80`}>
+                        <div className={`p-1.5 lg:p-3 rounded-xl ${stat.bg} ${stat.color} transition-colors group-hover:bg-foreground/[0.06]`}>
                             <stat.icon className="text-sm lg:text-xl" />
                         </div>
                         {stat.users ? (
@@ -123,7 +123,7 @@ export async function SummaryStatsSection() {
                         <div className="flex items-baseline justify-between">
                             <p className="text-xl lg:text-3xl font-bold font-numbers text-foreground leading-none">{stat.value}</p>
                             {i !== 0 && (
-                                <div className={`text-[11px] lg:text-[11px] font-bold font-numbers ${stat.color} bg-background/50 px-1.5 py-0.5 rounded-full`}>
+                                <div className={`text-[11px] lg:text-[11px] font-bold font-numbers ${stat.color} bg-foreground/[0.03] px-1.5 py-0.5 rounded-full`}>
                                    +{(i * 7 + 4) % 15}%
                                 </div>
                             )}
@@ -151,8 +151,8 @@ export async function UserStatSection() {
         <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 text-left">
             <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
                 <div>
-                    <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">User Intelligence</h2>
-                    <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Tactical Output</p>
+                    <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">People</h2>
+                    <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Summary</p>
                 </div>
                 <div className="p-2 rounded-xl bg-[var(--pastel-purple)]/10">
                     <FiCpu className="text-sm text-[var(--pastel-purple)]" />
@@ -161,20 +161,20 @@ export async function UserStatSection() {
             
             <div className="flex-1 flex flex-col justify-center space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-2xl bg-background/50 border border-card-border">
+                    <div className="p-3 rounded-2xl bg-foreground/[0.03] border border-card-border">
                         <p className="text-[9px] text-(--text-muted) font-black uppercase tracking-widest mb-1">Total Notes</p>
                         <p className="text-2xl font-black font-numbers text-foreground">{stats.totalNotes}</p>
                     </div>
-                    <div className="p-3 rounded-2xl bg-background/50 border border-card-border">
+                    <div className="p-3 rounded-2xl bg-foreground/[0.03] border border-card-border">
                         <p className="text-[9px] text-(--text-muted) font-black uppercase tracking-widest mb-1">Total Tasks</p>
                         <p className="text-2xl font-black font-numbers text-foreground">{stats.totalTasks}</p>
                     </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-background/50 border border-card-border">
+                <div className="p-4 rounded-2xl bg-foreground/[0.03] border border-card-border">
                     <div className="flex items-center justify-between mb-2">
                         <p className="text-[9px] text-(--text-muted) font-black uppercase tracking-widest">Completion Rate</p>
-                        <span className="text-xs font-bold font-numbers text-emerald-400">
+                        <span className="text-xs font-bold font-numbers text-[var(--pastel-emerald)]">
                             {stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0}%
                         </span>
                     </div>
@@ -240,13 +240,13 @@ export async function StatsOverviewSection() {
               ) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-2 rounded-xl bg-background/50 border border-card-border"
+                  className="flex items-center justify-between p-2 rounded-xl bg-foreground/[0.03] border border-card-border"
                 >
                   <div className="flex flex-col">
                     <span className="text-sm text-(--text-muted)">{stat.name}</span>
                     {stat.trend !== undefined && stat.trend !== 0 && (
                       <div
-                        className={`flex items-center gap-1 text-[11px] font-bold ${stat.trend > 0 ? "text-emerald-400" : "text-rose-400"}`}
+                        className={`flex items-center gap-1 text-[11px] font-bold ${stat.trend > 0 ? "text-[var(--pastel-emerald)]" : "text-[var(--pastel-rose)]"}`}
                       >
                         {stat.trend > 0 ? <FiArrowUp /> : <FiArrowDown />}
                         {Math.abs(stat.trend)}%
@@ -271,7 +271,7 @@ export async function StatsOverviewSection() {
               (stat: { name: string; value: number }, i: number) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-2 rounded-xl bg-background/50 border border-card-border"
+                  className="flex items-center justify-between p-2 rounded-xl bg-foreground/[0.03] border border-card-border"
                 >
                   <span className="text-sm text-(--text-muted) font-medium">{stat.name}</span>
                   <span className="text-sm font-bold font-numbers text-foreground">
@@ -333,7 +333,7 @@ export async function KeyTasksSection() {
           keyTasks.map((task, i) => (
             <div
               key={i}
-              className="flex items-start gap-2.5 p-2.5 rounded-xl bg-background/50 border border-card-border hover:bg-background/80 hover:border-foreground/10 transition-all cursor-pointer group"
+              className="flex items-start gap-2.5 p-2.5 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-all cursor-pointer group"
             >
               <div className="shrink-0 w-2 h-2 mt-1.5 rounded-full bg-blue-400"></div>
               <div className="flex-1 min-w-0">
@@ -341,19 +341,19 @@ export async function KeyTasksSection() {
                   {task.title}
                 </span>
                 <div className="flex items-center justify-between gap-2 mt-1.5">
-                  <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 font-bold uppercase tracking-tight">
+                  <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] font-bold uppercase tracking-tight">
                     <FiActivity className="text-[11px]" />
                     {task.status}
                   </span>
                   <div className="flex items-center gap-1.5">
                     {task.priority && (
-                      <span className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight ${task.priority === 'high' ? 'bg-rose-500/10 text-rose-400' : task.priority === 'medium' ? 'bg-amber-500/10 text-amber-400' : 'bg-background/50 text-(--text-muted)'}`}>
+                      <span className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight ${task.priority === 'high' ? 'bg-rose-500/10 text-[var(--pastel-rose)]' : task.priority === 'medium' ? 'bg-amber-500/10 text-[var(--pastel-amber)]' : 'bg-foreground/[0.03] text-(--text-muted)'}`}>
                         <FiZap className="text-[11px]" />
                         {task.priority}
                       </span>
                     )}
                     {task.dueDate && (
-                      <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-background/50 text-(--text-muted) font-bold font-numbers">
+                      <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-foreground/[0.03] text-(--text-muted) font-bold font-numbers">
                         <FiClock className="text-[11px]" />
                         {new Date(task.dueDate).toLocaleDateString()}
                       </span>
@@ -369,7 +369,7 @@ export async function KeyTasksSection() {
           </p>
         )}
       </div>
-      <button className="w-full mt-6 py-2.5 rounded-xl border border-card-border text-(--text-muted) text-xs font-bold uppercase tracking-tight hover:bg-background/80 hover:text-foreground transition-all hover-scale">
+      <button className="w-full mt-6 py-2.5 rounded-xl border border-card-border text-(--text-muted) text-xs font-bold uppercase tracking-tight hover:bg-foreground/[0.06] hover:text-foreground transition-all hover-scale">
         View All Tasks
       </button>
     </div>
@@ -385,7 +385,7 @@ export async function PrioritiesSection() {
         <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">
           Today&apos;s Priorities
         </h2>
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background/50 border border-card-border">
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-foreground/[0.03] border border-card-border">
           <FiCpu className="text-[11px] text-[var(--pastel-indigo)]" />
           <span className="text-[11px] font-bold text-[var(--pastel-indigo)] uppercase tracking-tight">
             AI
@@ -397,12 +397,12 @@ export async function PrioritiesSection() {
           priorities.map((priority: any, i: number) => {
             const isHigh = priority.priority === "high";
             return (
-              <div key={i} className="group flex items-start gap-3 p-3 rounded-xl bg-background/50 border border-card-border hover:border-foreground/10 transition-all hover:bg-background/80">
+              <div key={i} className="group flex items-start gap-3 p-3 rounded-xl bg-foreground/[0.03] border border-card-border hover:border-foreground/10 transition-all hover:bg-foreground/[0.06]">
                 <div className={`mt-0.5 shrink-0 ${isHigh ? 'text-[var(--pastel-rose)]' : 'text-(--text-muted)'}`}>
                   {isHigh ? (
                     <FiAlertCircle className="text-sm" />
                   ) : (
-                    <div className="w-3.5 h-3.5 rounded-md border-2 border-zinc-600 group-hover:border-zinc-500 transition-colors" />
+                    <div className="w-3.5 h-3.5 rounded-md border-2 border-card-border group-hover:border-card-border transition-colors" />
                   )}
                 </div>
                 <div className="flex-1 overflow-hidden">
@@ -425,7 +425,7 @@ export async function PrioritiesSection() {
           </div>
         )}
       </div>
-      <button className="w-full mt-4 py-2 rounded-xl border border-card-border text-(--text-muted) text-[11px] font-bold uppercase tracking-tight hover:bg-background/80 hover:text-foreground transition-all hover-scale shrink-0">
+      <button className="w-full mt-4 py-2 rounded-xl border border-card-border text-(--text-muted) text-[11px] font-bold uppercase tracking-tight hover:bg-foreground/[0.06] hover:text-foreground transition-all hover-scale shrink-0">
         Refresh AI Analysis
       </button>
     </div>
@@ -441,7 +441,7 @@ export async function RecentNotesSection() {
         <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">
           Recent Notes
         </h2>
-        <button className="p-2 rounded-lg bg-background/50 text-(--text-muted) hover:text-foreground hover:bg-background/80 border border-card-border transition-all hover-scale">
+        <button className="p-2 rounded-lg bg-foreground/[0.03] text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] border border-card-border transition-all hover-scale">
           <FiPlus />
         </button>
       </div>
@@ -470,7 +470,7 @@ export async function ProjectProgressSection() {
 export function FocusModeSection() {
   return (
     <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col justify-center items-center text-center relative overflow-hidden group h-80 lg:h-96">
-      <div className="p-4 rounded-full bg-background/50 mb-4 border border-card-border relative z-10">
+      <div className="p-4 rounded-full bg-foreground/[0.03] mb-4 border border-card-border relative z-10">
         <FiClock className="text-3xl text-[var(--pastel-indigo)]" />
       </div>
       <h2 className="text-lg lg:text-xl font-bold text-foreground mb-2 relative z-10">
@@ -479,7 +479,7 @@ export function FocusModeSection() {
       <p className="text-sm text-(--text-muted) font-bold uppercase tracking-tight mb-6 relative z-10">
         Block distractions and concentrate.
       </p>
-      <button className="relative z-10 px-6 py-2.5 rounded-xl bg-background border border-card-border text-foreground font-bold uppercase tracking-tight hover:bg-background/80 transition-all duration-200 active:scale-95">
+      <button className="relative z-10 px-6 py-2.5 rounded-xl bg-foreground/[0.04] border border-card-border text-foreground font-bold uppercase tracking-tight hover:bg-foreground/[0.06] transition-all duration-200 active:scale-95">
         Start Session
       </button>
     </div>
@@ -507,7 +507,7 @@ export async function UnitLoadSection() {
         {data.length > 0 ? (
           data.map((user, i) => (
             <div key={i} className="flex items-center gap-3 group">
-              <div className="shrink-0 h-7 w-7 rounded-full bg-background/50 border border-card-border overflow-hidden ring-1 ring-background relative">
+              <div className="shrink-0 h-7 w-7 rounded-full bg-foreground/[0.03] border border-card-border overflow-hidden ring-1 ring-background relative">
                 {user.avatar ? (
                   <Image src={user.avatar} alt={user.name} fill className="object-cover" />
                 ) : (
@@ -521,7 +521,7 @@ export async function UnitLoadSection() {
                   <span className="text-xs text-(--text-muted) font-bold truncate">{user.name}</span>
                   <span className="text-xs font-bold font-numbers text-foreground ml-2">{user.activeTasks}</span>
                 </div>
-                <div className="h-1.5 bg-background/50 rounded-full overflow-hidden border border-card-border">
+                <div className="h-1.5 bg-foreground/[0.03] rounded-full overflow-hidden border border-card-border">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
@@ -562,7 +562,7 @@ export async function PriorityMatrixSection() {
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Threat Level</h2>
-          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Priority Matrix</p>
+          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Priority</p>
         </div>
         {data.hasCritical && (
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20">
@@ -651,7 +651,7 @@ export async function TemporalBurnRateSection() {
             <span className="text-xs text-(--text-muted) font-bold">Estimated Hours</span>
             <span className="text-sm font-bold font-numbers text-foreground">{data.estimatedHours}h</span>
           </div>
-          <div className="h-3 bg-background/50 rounded-full overflow-hidden border border-card-border">
+          <div className="h-3 bg-foreground/[0.03] rounded-full overflow-hidden border border-card-border">
             <div className="h-full rounded-full bg-[var(--pastel-indigo)]/60 transition-all duration-700" style={{ width: '100%' }} />
           </div>
         </div>
@@ -662,7 +662,7 @@ export async function TemporalBurnRateSection() {
             <span className="text-xs text-(--text-muted) font-bold">Actual Hours Logged</span>
             <span className="text-sm font-bold font-numbers text-foreground">{data.actualHours}h</span>
           </div>
-          <div className="h-3 bg-background/50 rounded-full overflow-hidden border border-card-border">
+          <div className="h-3 bg-foreground/[0.03] rounded-full overflow-hidden border border-card-border">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
@@ -705,7 +705,7 @@ export async function CriticalBottlenecksSection() {
       <div className="flex-1 min-h-0 space-y-2.5 overflow-y-auto pr-1 custom-scrollbar">
         {bottlenecks.length > 0 ? (
           bottlenecks.map((task, i) => (
-            <div key={i} className="p-3 rounded-xl bg-background/50 border border-card-border hover:bg-background/80 hover:border-foreground/10 transition-all group">
+            <div key={i} className="p-3 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-all group">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="text-sm text-(--text-muted) font-bold group-hover:text-foreground transition-colors truncate flex-1">
                   {task.title}
@@ -717,14 +717,14 @@ export async function CriticalBottlenecksSection() {
               </div>
               <div className="flex items-center gap-2">
                 <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight ${
-                  task.priority === 'high' ? 'bg-rose-500/10 text-rose-400'
-                  : task.priority === 'medium' ? 'bg-amber-500/10 text-amber-400'
-                  : 'bg-background/50 text-(--text-muted)'
+                  task.priority === 'high' ? 'bg-rose-500/10 text-[var(--pastel-rose)]'
+                  : task.priority === 'medium' ? 'bg-amber-500/10 text-[var(--pastel-amber)]'
+                  : 'bg-foreground/[0.03] text-(--text-muted)'
                 }`}>
                   <FiZap className="text-[10px]" />
                   {task.priority}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 font-bold uppercase tracking-tight">
+                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] font-bold uppercase tracking-tight">
                   <FiActivity className="text-[10px]" />
                   {task.status.replace('_', ' ')}
                 </span>
@@ -757,7 +757,7 @@ export async function OperationVelocitySection() {
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Momentum Tracker</h2>
-          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Operation Velocity</p>
+          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Progress</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">

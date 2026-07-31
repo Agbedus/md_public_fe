@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { toast } from '@/lib/toast';
+import { applyRealtimeUpdate, REALTIME_LABELS } from '@/lib/realtime';
 import useSWR, { useSWRConfig } from 'swr';
 import { FiCheckCircle, FiInfo, FiAlertCircle, FiBell, FiX } from 'react-icons/fi';
 import { 
@@ -212,9 +213,18 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
     const connect = () => {
       if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
+      // The socket is authenticated server-side. Browsers cannot set headers on
+      // a WebSocket handshake, so the token travels as a query parameter; the
+      // backend rejects a token that does not match the user in the path.
+      // `organization_id` tells the server which tenant this tab is watching so
+      // org-scoped pushes skip sockets open on a different org.
       const wsBaseUrl = baseUrl.replace(/^http/, 'ws');
-      const wsUrl = `${wsBaseUrl}/api/v1/notifications/ws/${user.id}`;
-      
+      const params = new URLSearchParams({ token: user.accessToken });
+      if (user.currentOrganizationId) {
+        params.set('organization_id', user.currentOrganizationId);
+      }
+      const wsUrl = `${wsBaseUrl}/api/v1/notifications/ws/${user.id}?${params.toString()}`;
+
       const socket = new WebSocket(wsUrl);
       socketRef.current = socket;
 
@@ -231,91 +241,38 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
           // 1. Handle Data Updates (Real-time sync)
           if (message.realtime_type === 'DATA_UPDATE') {
             const { resource, action, data } = message;
-            
-            // Trigger SWR revalidation for all keys starting with the resource name
-            mutate((key: any) => Array.isArray(key) && key[0] === (resource === 'task' ? 'tasks' : resource + 's'));
-            
-            // Special cases or specific mutations
-            if (resource === 'task') {
-               if (action === 'created') {
-                 if (!isRecentAction('task', 'created')) {
-                   const dedupKey = `data_update_task_${data.id || data.name}`;
-                    if (!isToastShown(dedupKey)) {
-                      enqueueToast(() => {
-                        toast(`New Task: ${data.name || 'Untitled'}`, {
-                         icon: <FiCheckCircle className="text-emerald-400" />,
-                         duration: 3000
-                       });
-                     });
-                   }
-                 }
-                 emit('task:created', data);
-                } else if (action === 'updated') {
-                  if (!isRecentAction('task', 'updated')) {
-                    const dedupKey = `data_update_task_updated_${data.id}`;
-                    if (!isToastShown(dedupKey)) {
-                      enqueueToast(() => {
-                        toast(`Task Updated: ${data.name || 'Untitled'}`, {
-                          icon: <FiInfo className="text-blue-400" />,
-                          duration: 3000
-                        });
-                      });
-                    }
-                  }
-                  emit('task:updated', data);
-                } else if (action === 'deleted') {
-                  if (!isRecentAction('task', 'deleted')) {
-                    const dedupKey = `data_update_task_deleted_${data.id}`;
-                    if (!isToastShown(dedupKey)) {
-                      enqueueToast(() => {
-                        toast(`Task Deleted: ${data.name || 'Untitled'}`, {
-                          icon: <FiAlertCircle className="text-amber-400" />,
-                          duration: 3000
-                        });
-                      });
-                    }
-                  }
-                  emit('task:deleted', data);
-                }
-            } else if (resource === 'note') {
-                if (action === 'created') {
-                  if (!isRecentAction('note', 'created')) {
-                    const dedupKey = `data_update_note_${data.id || data.title}`;
-                    if (!isToastShown(dedupKey)) {
-                      enqueueToast(() => {
-                        toast(`New Note: ${data.title || 'Untitled'}`, {
-                          icon: <FiInfo className="text-blue-400" />,
-                          duration: 3000
-                        });
-                      });
-                    }
-                  }
-                } else if (action === 'updated') {
-                  if (!isRecentAction('note', 'updated')) {
-                    const dedupKey = `data_update_note_updated_${data.id}`;
-                    if (!isToastShown(dedupKey)) {
-                      enqueueToast(() => {
-                        toast(`Note Updated: ${data.title || 'Untitled'}`, {
-                          icon: <FiInfo className="text-blue-400" />,
-                          duration: 3000
-                        });
-                      });
-                    }
-                  }
-                } else if (action === 'deleted') {
-                  if (!isRecentAction('note', 'deleted')) {
-                    const dedupKey = `data_update_note_deleted_${data.id}`;
-                    if (!isToastShown(dedupKey)) {
-                      enqueueToast(() => {
-                        toast(`Note Deleted: ${data.title || 'Untitled'}`, {
-                          icon: <FiAlertCircle className="text-amber-400" />,
-                          duration: 3000
-                        });
-                      });
-                    }
-                  }
-                }
+
+            // Apply to the SWR cache. This used to derive the cache key as
+            // `resource + 's'`, which silently missed calendar events (cached
+            // under 'calendar-events') and every resource added since.
+            void applyRealtimeUpdate(resource, action, data);
+
+            // Toast + event emit, deduped so your own action does not announce
+            // itself back to you.
+            const label = data?.name || data?.title || data?.company_name || 'Untitled';
+            const verb =
+              action === 'created' ? 'New' : action === 'deleted' ? 'Deleted' : 'Updated';
+
+            if (!isRecentAction(resource, action)) {
+              const dedupKey = `data_update_${resource}_${action}_${data?.id ?? label}`;
+              if (!isToastShown(dedupKey)) {
+                enqueueToast(() => {
+                  toast(`${verb} ${REALTIME_LABELS[resource] ?? resource}: ${label}`, {
+                    icon:
+                      action === 'created' ? (
+                        <FiCheckCircle className="text-emerald-400" />
+                      ) : action === 'deleted' ? (
+                        <FiAlertCircle className="text-amber-400" />
+                      ) : (
+                        <FiInfo className="text-blue-400" />
+                      ),
+                    duration: 3000,
+                  });
+                });
+              }
             }
+
+            emit(`${resource}:${action}`, data);
             return;
           }
 

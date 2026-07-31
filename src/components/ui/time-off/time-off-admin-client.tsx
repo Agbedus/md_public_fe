@@ -30,7 +30,7 @@ const typeColors: Record<string, string> = {
     leave: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     off: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
     sick: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    other: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
+    other: 'bg-zinc-500/10 text-text-muted border-card-border',
 };
 
 const typeLabels: Record<string, string> = {
@@ -150,7 +150,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                     <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
                         Time off requests
                     </h1>
-                    <p className="text-text-muted text-lg">Review and manage team time-off requests.</p>
+                    <p className="text-text-muted text-sm">Review and manage team time-off requests.</p>
                 </div>
             </div>
 
@@ -269,7 +269,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0, height: 0 }}
                                             onClick={() => setSelectedRequest(req)}
-                                            className="hover:bg-white/[0.02] transition-colors cursor-pointer"
+                                            className="hover:bg-foreground/[0.02] transition-colors cursor-pointer"
                                         >
                                             {/* Employee */}
                                             <td className="px-6 py-4 whitespace-nowrap">

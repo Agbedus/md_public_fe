@@ -85,7 +85,7 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
   return (
     <div className="flex flex-col gap-4 mb-4 lg:mb-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Quick Stats</h2>
+        <h2 className="text-xs font-medium text-text-muted uppercase tracking-wider">Quick Stats</h2>
         {activeTasks.length > 0 && (
           <button
             onClick={handleMarkAllDone}

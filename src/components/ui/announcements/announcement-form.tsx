@@ -67,7 +67,7 @@ export const AnnouncementForm = () => {
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-bold text-foreground italic flex items-center gap-3 tracking-tight">
                 <HiSpeakerphone className="text-[var(--pastel-yellow)]" />
-                New Broadcast
+                New announcement
               </h3>
               <button 
                 onClick={() => setIsAdminFormOpen(false)}
@@ -144,7 +144,7 @@ export const AnnouncementForm = () => {
               {success && (
                 <div className="flex items-center gap-3 text-xs text-emerald-400 bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/10 animate-in fade-in zoom-in-95 duration-200">
                   <FiAlertCircle size={16} className="flex-shrink-0" />
-                  <span>Announcement broadcasted successfully!</span>
+                  <span>Announcement posted</span>
                 </div>
               )}
 
@@ -152,7 +152,7 @@ export const AnnouncementForm = () => {
                 <button
                   type="submit"
                   disabled={loading || success || !title.trim() || !content.trim()}
-                  className="px-8 py-3 bg-[var(--pastel-yellow)] hover:bg-[#ffe666] text-black text-xs font-bold rounded-2xl transition-all  hover:-[var(--pastel-yellow)]/20 disabled:opacity-50 disabled:hover: flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
+                  className="px-8 py-3 bg-yellow-400 hover:bg-yellow-300 text-black text-xs font-bold rounded-2xl transition-all  hover:-[var(--pastel-yellow)]/20 disabled:opacity-50 disabled:hover: flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
                 >
                   {loading ? (
                     <>

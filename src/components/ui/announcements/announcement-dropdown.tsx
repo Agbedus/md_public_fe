@@ -19,7 +19,7 @@ export const AnnouncementDropdown = () => {
           <p className="text-sm font-black text-foreground uppercase tracking-tight">Broadcasts</p>
         </div>
         {unreadCount > 0 && (
-          <span className="text-[10px] text-zinc-950 bg-[var(--pastel-yellow)] px-2.5 py-1 rounded-full font-black uppercase tracking-wider shadow-sm animate-pulse">{unreadCount} New</span>
+          <span className="text-[10px] text-zinc-950 bg-yellow-400 px-2.5 py-1 rounded-full font-black uppercase tracking-wider shadow-sm animate-pulse">{unreadCount} New</span>
         )}
       </div>
       
@@ -62,7 +62,7 @@ export const AnnouncementDropdown = () => {
         ) : (
           <div className="px-4 py-12 text-center">
             <FiMessageSquare className="mx-auto text-text-muted opacity-20 mb-3" size={32} />
-            <p className="text-xs text-text-muted font-black uppercase tracking-widest">No broadcasts</p>
+            <p className="text-xs text-text-muted font-black uppercase tracking-widest">No announcements</p>
           </div>
         )}
       </div>

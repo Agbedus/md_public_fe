@@ -117,7 +117,7 @@ function SearchableCountrySelect({
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center gap-2.5 px-4 py-3 text-[15px] text-left cursor-pointer transition-all [font-size:max(16px,inherit)] ${
           selected ? 'text-foreground' : 'text-text-muted/40'
-        } focus:outline-none ${flat ? '' : 'bg-input-bg border border-card-border rounded-xl focus:ring-2 focus:ring-emerald-500/20'} ${className}`}
+        } focus:outline-none ${flat ? '' : 'bg-foreground/[0.03] border border-card-border rounded-xl focus:bg-foreground/[0.06]'} ${className}`}
       >
         {icon && <span className="shrink-0 text-text-muted">{icon}</span>}
         {selected && <span className="text-lg leading-none shrink-0">{getFlagEmoji(selected.code)}</span>}
@@ -136,7 +136,7 @@ function SearchableCountrySelect({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search countries..."
-              className="w-full px-3 py-2 text-sm bg-input-bg border border-card-border rounded-lg text-foreground placeholder:text-text-muted/40 outline-none"
+              className="w-full px-3 py-2 text-sm bg-foreground/[0.03] border border-card-border rounded-lg text-foreground placeholder:text-text-muted/40 outline-none focus:bg-foreground/[0.06] transition-all"
               autoFocus
             />
           </div>
@@ -179,7 +179,7 @@ function PhoneInput({
   placeholder?: string;
 }) {
   return (
-    <div className="flex rounded-xl border border-card-border overflow-hidden bg-input-bg focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
+    <div className="flex rounded-xl border border-card-border overflow-hidden bg-foreground/[0.03] focus-within:bg-foreground/[0.06] transition-all">
       <div className="shrink-0 border-r border-card-border">
         <SearchableCountrySelect
           value={code}
@@ -367,7 +367,7 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
   }
 
   function inputClass(error?: string) {
-    return `block w-full pl-12 pr-3.5 py-3 bg-input-bg border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all [font-size:max(16px,inherit)] ${
+    return `block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] ${
       error ? 'border-rose-500/50' : 'border-card-border'
     }`;
   }
@@ -639,7 +639,7 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
                               <FiBriefcase className="h-4 w-4 text-text-muted" />
                             </div>
                             <select
-                              className="block w-full pl-12 pr-3.5 py-3 bg-input-bg border rounded-xl text-[15px] text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all [font-size:max(16px,inherit)] appearance-none cursor-pointer border-card-border focus:border-emerald-500/50"
+                              className="block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] appearance-none cursor-pointer border-card-border"
                               id="orgIndustry"
                               value={orgIndustry}
                               onChange={(e) => setOrgIndustry(e.target.value)}
@@ -658,7 +658,7 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
                               <FiUser className="h-4 w-4 text-text-muted" />
                             </div>
                             <select
-                              className="block w-full pl-12 pr-3.5 py-3 bg-input-bg border rounded-xl text-[15px] text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all [font-size:max(16px,inherit)] appearance-none cursor-pointer border-card-border focus:border-emerald-500/50"
+                              className="block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] appearance-none cursor-pointer border-card-border"
                               id="orgCompanySize"
                               value={orgCompanySize}
                               onChange={(e) => setOrgCompanySize(e.target.value)}

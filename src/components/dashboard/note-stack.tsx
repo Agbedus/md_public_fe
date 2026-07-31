@@ -83,7 +83,7 @@ export function NoteStack({ notes }: { notes: Note[] }) {
             return (
                 <div
                     key={`stack-${(currentIndex + depth) % notes.length}`}
-                    className="absolute inset-0 rounded-3xl bg-card border border-card-border shadow-md transition-all duration-500 pointer-events-none"
+                    className="absolute inset-0 rounded-3xl bg-card border border-card-border transition-all duration-500 pointer-events-none"
                     style={{
                         transform: `translateY(${depth * 8}px) scale(${1 - depth * 0.04})`,
                         opacity: 1 - depth * 0.35,
@@ -109,12 +109,12 @@ export function NoteStack({ notes }: { notes: Note[] }) {
                         stiffness: 300, 
                         mass: 0.6,
                     }}
-                    className="absolute inset-0 p-5 rounded-3xl bg-card border border-card-border shadow-xl flex flex-col group/card cursor-pointer hover:border-emerald-500/20 transition-colors duration-300"
+                    className="absolute inset-0 p-5 rounded-3xl bg-card border border-card-border flex flex-col group/card cursor-pointer hover:border-emerald-500/20 transition-colors duration-300"
                 >
                     <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative z-10">
                         <div className="flex items-center justify-between mb-3 shrink-0">
                             <div className="flex items-center gap-2.5">
-                            <div className={`p-1.5 rounded-lg bg-background/50 border border-card-border ${notes[currentIndex].color}`}>
+                            <div className={`p-1.5 rounded-lg bg-foreground/[0.04] border border-card-border ${notes[currentIndex].color}`}>
                                 {React.createElement(getIcon(notes[currentIndex].type), { className: "text-sm" })}
                             </div>
                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-(--text-muted) opacity-50">
@@ -126,12 +126,12 @@ export function NoteStack({ notes }: { notes: Note[] }) {
                             </div>
                         </div>
                         
-                        <h3 className="text-lg font-bold text-foreground leading-tight mb-2 group-hover/card:text-emerald-400 transition-colors line-clamp-2 uppercase tracking-tight">
+                        <h3 className="text-lg font-bold text-foreground leading-tight mb-2 group-hover/card:text-[var(--pastel-emerald)] transition-colors line-clamp-2 uppercase tracking-tight">
                             {notes[currentIndex].title}
                         </h3>
                         
                         <div className="flex-1 overflow-hidden">
-                            <p className="text-xs text-(--text-muted) font-medium leading-relaxed italic opacity-70 line-clamp-[6]">
+                            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic opacity-70 line-clamp-[6]">
                                 &quot;{notes[currentIndex].content?.replace(/<[^>]*>/g, '').trim() || 'No briefings recorded for this tactical note.'}&quot;
                             </p>
                         </div>
@@ -153,14 +153,14 @@ export function NoteStack({ notes }: { notes: Note[] }) {
         <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-50">
           <button 
             onClick={(e) => { e.stopPropagation(); prevNote(); }}
-            className="w-8 h-8 rounded-full bg-background/80 border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 hover:border-emerald-400 transition-all active:scale-90 backdrop-blur-md shadow-sm"
+            className="w-8 h-8 rounded-full bg-background border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 hover:border-emerald-400 transition-all active:scale-90"
             title="Previous Note"
           >
             <FiChevronUp className="text-lg" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); nextNote(); }}
-            className="w-8 h-8 rounded-full bg-background/80 border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 hover:border-emerald-400 transition-all active:scale-90 backdrop-blur-md shadow-sm"
+            className="w-8 h-8 rounded-full bg-background border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 hover:border-emerald-400 transition-all active:scale-90"
             title="Next Note"
           >
             <FiChevronDown className="text-lg" />

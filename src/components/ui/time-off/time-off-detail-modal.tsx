@@ -30,7 +30,7 @@ const typeColors: Record<string, string> = {
     leave: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     off: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
     sick: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    other: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
+    other: 'bg-zinc-500/10 text-text-muted border-card-border',
 };
 
 const typeLabels: Record<string, string> = {

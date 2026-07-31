@@ -50,17 +50,17 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
             <div className={`md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMenuOpen(false)} />
             
             <div className={`md:hidden fixed bottom-20 right-4 z-50 transition-all duration-300 transform ${isMenuOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95 pointer-events-none'}`}>
-                <div className="w-56 bg-zinc-900 border border-white/5 rounded-2xl  overflow-hidden max-h-[60vh] overflow-y-auto">
+                <div className="w-56 bg-foreground/[0.03] border border-foreground/5 rounded-2xl  overflow-hidden max-h-[60vh] overflow-y-auto">
                     <div className="flex flex-col">
                         {secondaryItems.map((item, index) => (
                             <Link 
                                 key={index} 
                                 href={item.href}
                                 onClick={() => setIsMenuOpen(false)}
-                                className="flex items-center gap-3 p-4 hover:bg-white/[0.03] transition-colors border-b border-white/5 last:border-0"
+                                className="flex items-center gap-3 p-4 hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-colors border-b border-foreground/5 last:border-0"
                             >
                                 <item.icon className={`text-lg ${item.color}`} />
-                                <span className="text-sm font-medium text-zinc-300">{item.label}</span>
+                                <span className="text-sm font-medium text-text-secondary">{item.label}</span>
                             </Link>
                         ))}
                          <button
@@ -77,7 +77,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                 </div>
             </div>
 
-            <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#09090b]/80 backdrop-blur-xl border-t border-white/5 z-50 px-6 pb-safe">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#09090b]/80 backdrop-blur-xl border-t border-foreground/5 z-50 px-6 pb-safe">
             <div className="flex justify-between items-center h-full">
                 {navItems.map((item, index) => {
                     const isActive = pathname === item.href || (item.isActive);
@@ -88,7 +88,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                             <button
                                 key={index}
                                 onClick={item.onClick}
-                                className={`flex flex-col items-center justify-center gap-1 transition-colors ${isActive ? 'text-white' : 'text-zinc-500 active:text-white'}`}
+                                className={`flex flex-col items-center justify-center gap-1 transition-colors ${isActive ? 'text-foreground' : 'text-text-muted active:text-foreground'}`}
                             >
                                 <div className={`relative p-1`}>
                                      <Icon size={20} />
@@ -109,7 +109,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                             key={index}
                             href={item.href || '#'}
                             className={`flex flex-col items-center justify-center gap-1 transition-colors ${
-                                isActive ? 'text-white' : 'text-zinc-500'
+                                isActive ? 'text-foreground' : 'text-text-muted'
                             }`}
                         >
                             <div className="relative">

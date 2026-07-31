@@ -107,7 +107,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
                     {/* Type */}
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Exemption Protocol</label>
+                        <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Exemptions</label>
                         <div className="grid grid-cols-2 gap-3">
                             {TIME_OFF_TYPES.map(t => (
                                 <button
@@ -176,7 +176,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-amber-500 text-zinc-950 hover:bg-amber-400 text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                            className="flex items-center gap-2 px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-muted hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] transition-all border border-card-border disabled:opacity-50"
                         >
                             {isSubmitting ? (
                                 <div className="h-4 w-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />

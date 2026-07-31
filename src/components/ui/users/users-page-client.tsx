@@ -152,8 +152,8 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Team intelligence</h1>
-          <p className="text-text-muted text-lg">Cross-functional team coordination & role management.</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">System users</h1>
+          <p className="text-text-muted text-sm">Every person on the platform, across all organizations.</p>
         </div>
       </div>
 
@@ -216,7 +216,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                             type="text" 
                             value={editForm.fullName || ''} 
                             onChange={e => setEditForm({...editForm, fullName: e.target.value})}
-                            className="bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm w-full focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                            className="bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm w-full focus:outline-none focus:bg-foreground/[0.06] transition-all"
                           />
                       ) : (
                         <div className="text-sm font-bold text-foreground">{user.fullName || 'Unknown User'}</div>
@@ -231,7 +231,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                             type="email" 
                             value={editForm.email || ''} 
                             onChange={e => setEditForm({...editForm, email: e.target.value})}
-                            className="bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm w-full focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                            className="bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm w-full focus:outline-none focus:bg-foreground/[0.06] transition-all"
                         />
                     ) : user.email}
                   </td>
@@ -270,7 +270,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                             type="text" 
                             value={editForm.avatarUrl || ''} 
                             onChange={e => setEditForm({...editForm, avatarUrl: e.target.value})}
-                            className="bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm w-full focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                            className="bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm w-full focus:outline-none focus:bg-foreground/[0.06] transition-all"
                             placeholder="https://..."
                         />
                     ) : (
@@ -284,7 +284,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                         const userRequests = timeOffRequests.filter(r => r.user_id === user.id);
                         const approved = userRequests.filter(r => r.status === 'approved').length;
                         const pending = userRequests.filter(r => r.status === 'pending').length;
-                        if (approved === 0 && pending === 0) return <span className="text-xs text-zinc-600">—</span>;
+                        if (approved === 0 && pending === 0) return <span className="text-xs text-text-muted">—</span>;
                         return (
                             <div className="flex items-center gap-2">
                                 <FiSun className="w-3 h-3 text-amber-400" />

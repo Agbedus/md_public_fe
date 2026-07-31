@@ -74,13 +74,13 @@ export function CustomNumberInput({
   };
 
   return (
-    <div className={`flex items-center bg-zinc-900/50 border border-white/5 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all ${className} ${disabled ? 'opacity-50' : ''}`}>
+    <div className={`flex items-center bg-foreground/[0.03] border border-foreground/5 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all ${className} ${disabled ? 'opacity-50' : ''}`}>
       {name && <input type="hidden" name={name} value={value} form={form} />}
       <button
         type="button"
         onClick={handleDecrement}
         disabled={disabled || (min !== undefined && value !== '' && value <= min)}
-        className="px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/[0.03] disabled:opacity-30 disabled:hover:bg-transparent transition-colors border-r border-white/5"
+        className="px-3 py-2 text-text-muted hover:text-foreground hover:bg-foreground/[0.03] disabled:opacity-30 disabled:hover:bg-transparent transition-colors border-r border-foreground/5"
       >
         <FiMinus className="w-3.5 h-3.5" />
       </button>
@@ -96,14 +96,14 @@ export function CustomNumberInput({
         step={step}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full bg-transparent border-none text-center text-white text-sm focus:ring-0 px-2 py-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        className="w-full bg-transparent border-none text-center text-foreground text-sm focus:ring-0 px-2 py-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
       
       <button
         type="button"
         onClick={handleIncrement}
         disabled={disabled || (max !== undefined && value !== '' && value >= max)}
-        className="px-3 py-2 text-zinc-400 hover:text-white hover:bg-white/[0.03] disabled:opacity-30 disabled:hover:bg-transparent transition-colors border-l border-white/5"
+        className="px-3 py-2 text-text-muted hover:text-foreground hover:bg-foreground/[0.03] disabled:opacity-30 disabled:hover:bg-transparent transition-colors border-l border-foreground/5"
       >
         <FiPlus className="w-3.5 h-3.5" />
       </button>

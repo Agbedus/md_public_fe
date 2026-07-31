@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiMaximize2, FiChevronDown, FiX, FiSquare } from 'react-icons/fi';
+import { FiSend, FiMaximize2, FiChevronDown, FiSquare } from 'react-icons/fi';
 import { useRouter, usePathname } from 'next/navigation';
 import ChatBubble from './ChatBubble';
 import PipMascot from './pip-mascot';
@@ -43,7 +43,9 @@ export default function AssistantOrb() {
   const typingRef = useRef<NodeJS.Timeout | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const isOnAssistantPage = pathname === '/assistant';
+  // Route is org-scoped (`/[orgSlug]/assistant`), so match on the last path
+  // segment rather than the full pathname.
+  const isOnAssistantPage = pathname?.split('/').filter(Boolean).pop() === 'assistant';
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -188,177 +190,219 @@ export default function AssistantOrb() {
     setIsFocused(false);
   };
 
+  const openChat = useCallback(() => {
+    setIsFocused(true);
+    setTimeout(() => inputRef.current?.focus(), 150);
+  }, []);
+
+  // The collapsed orb shows a chat bubble: the latest AI reply once a
+  // conversation exists, otherwise the rotating greeting.
+  const hasMessages = messages.length > 0;
+  const lastAiText = [...messages].reverse().find(m => !m.isUser && m.text.trim())?.text;
+  const bubbleText = hasMessages ? (lastAiText ?? 'Pip is thinking…') : typedText;
+
   if (isOnAssistantPage) return null;
 
   return (
     <>
-    {/* Desktop AI Assistant Bar */}
-    <div className="hidden md:flex fixed bottom-0 left-0 right-0 z-50 justify-center">
-      {/* Backdrop blur when focused with messages */}
+    {/* Desktop AI Assistant — floating orb that expands into a chat box */}
+    <div className="hidden md:block fixed bottom-6 right-6 z-50">
+      {/* Dim the page behind the open chat box */}
       <AnimatePresence>
-        {isFocused && messages.length > 0 && (
+        {isFocused && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm -z-10"
+            transition={{ duration: 0.25 }}
+            onClick={handleCloseChat}
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] -z-10"
           />
         )}
       </AnimatePresence>
 
-      <div
-        className="w-full max-w-2xl mx-4 transition-all duration-500 ease-out"
-      >
+      <div className="flex flex-col items-end gap-3">
+        {/* ── Expanded chat box ── */}
         <AnimatePresence>
-          {isFocused && messages.length > 0 && (
+          {isFocused && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="overflow-hidden"
+              initial={{ opacity: 0, y: 24, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.94 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+              style={{ transformOrigin: 'bottom right' }}
+              className="relative w-[min(28rem,calc(100vw_-_3rem))] max-h-[78vh] flex flex-col bg-background/95 backdrop-blur-2xl border border-card-border rounded-2xl shadow-2xl overflow-hidden"
             >
-              <div className="bg-background/95 backdrop-blur-xl border border-card-border rounded-t-2xl shadow-xl mx-4">
-                {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-card-border">
-                  <div className="flex items-center gap-2">
+              {/* Header */}
+              <div className="relative flex items-center justify-between px-5 py-4 border-b border-card-border shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative shrink-0">
+                    <div className="absolute inset-0 bg-indigo-500/20 blur-lg rounded-full scale-125" />
                     <motion.div
                       key={pipVariantIdx}
                       initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
                       animate={{ opacity: 1, scale: 1, rotate: 0 }}
                       transition={{ duration: 0.3 }}
+                      className="relative"
                     >
                       <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="sm" errorMessage={hasError ? 'Connection error' : undefined} />
                     </motion.div>
-                    <span className="text-sm font-medium text-foreground">
-                      {isLoading ? 'Pip is thinking...' : 'AI Assistant'}
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    {isLoading ? 'Pip is thinking...' : 'AI Assistant'}
+                  </span>
+                  {isLoading && (
+                    <span className="flex gap-1 ml-1">
+                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </span>
-                    {isLoading && (
-                      <span className="flex gap-1 ml-1">
-                        <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handleOpenFullPage}
+                    className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
+                    title="Open full screen"
+                  >
+                    <FiMaximize2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleCloseChat}
+                    className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
+                    title="Minimize"
+                  >
+                    <FiChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 min-h-[10rem] overflow-y-auto px-4 py-4 space-y-3 scrollbar-hide">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-3 py-6 text-center">
+                    <PipMascot variant={PIP_VARIANTS[pipVariantIdx]} status="idle" size="md" />
+                    <p className="text-sm text-text-muted max-w-[16rem] font-medium">
+                      {typedText}
+                      {!typingDone && <span className="animate-pulse">|</span>}
+                    </p>
+                  </div>
+                ) : (
+                  messages.map(msg => (
+                    <ChatBubble key={msg.id} message={msg} />
+                  ))
+                )}
+                <div ref={bottomRef} />
+              </div>
+
+              {/* Input */}
+              <div className="px-4 pb-4 pt-3 border-t border-card-border shrink-0">
+                <div className="relative rounded-2xl bg-foreground/[0.045] border border-card-border focus-within:border-indigo-500/40 transition-colors overflow-hidden">
+                  <div className="absolute inset-0 pointer-events-none z-0 shimmer-sweep" />
+                  <div className="flex items-end gap-2 px-4 py-3.5 relative z-10">
+                    <textarea
+                      ref={inputRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask me anything..."
+                      rows={1}
+                      className="flex-1 bg-transparent text-[15px] text-foreground placeholder:text-text-muted resize-none focus:outline-none scrollbar-hide font-medium leading-relaxed"
+                      style={{ minHeight: '30px', maxHeight: '140px' }}
+                    />
+                    {isLoading ? (
+                      <button
+                        onClick={handleStop}
+                        className="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl hover:bg-rose-500/20 transition-all duration-200 shrink-0"
+                        aria-label="Stop generating"
+                        title="Stop generating"
+                      >
+                        <FiSquare className="w-4 h-4 fill-current" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSend}
+                        disabled={!input.trim()}
+                        className="p-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none shrink-0"
+                        aria-label="Send"
+                      >
+                        <FiSend className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={handleOpenFullPage}
-                      className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
-                      title="Open full screen"
-                    >
-                      <FiMaximize2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleCloseChat}
-                      className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
-                      title="Close chat"
-                    >
-                      <FiX className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Messages */}
-                <div className="max-h-[40vh] overflow-y-auto px-4 py-4 space-y-3 scrollbar-hide">
-                  {messages.map(msg => (
-                    <ChatBubble key={msg.id} message={msg} />
-                  ))}
-                  <div ref={bottomRef} />
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="relative mx-4 mb-2">
-          <div className="relative rounded-3xl bg-background border border-card-border overflow-hidden shadow-sm">
-            <div className="absolute inset-0 pointer-events-none z-0 shimmer-sweep" />
+        {/* ── Collapsed: chat bubble + orb button ── */}
+        <AnimatePresence>
+          {!isFocused && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.25 }}
+              className="flex justify-end"
+            >
+              {/* The bubble lives inside the same bobbing wrapper as the mascot, so it
+                  reads as attached to it (talking right next to its face) rather than
+                  a separate element floating nearby. */}
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                className="relative"
+              >
+                {/* Small tooltip-style bubble anchored right at mouth height — the
+                    `calc()` here needs Tailwind's underscore-for-space syntax
+                    (`calc(100%_+_6px)`); without it the browser drops the whole
+                    `right` value as invalid CSS and the bubble falls back to
+                    rendering flush over the mascot, blanking out its face. */}
+                <AnimatePresence mode="wait">
+                  {bubbleText && (
+                    <motion.button
+                      key={hasMessages ? 'msg' : greetingIdx}
+                      onClick={openChat}
+                      initial={{ opacity: 0, scale: 0.85, x: 6 }}
+                      animate={{ opacity: 1, scale: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.85, x: 6 }}
+                      transition={{ type: 'spring', damping: 22, stiffness: 320 }}
+                      style={{ transformOrigin: 'right center' }}
+                      className="absolute right-[80%] top-[57%] -translate-y-1/2 w-max max-w-[13.5rem] text-left px-3.5 py-2.5 rounded-xl bg-background/95 backdrop-blur-xl border border-card-border shadow-lg text-xs text-foreground font-medium line-clamp-3 hover:border-indigo-500/30 transition-colors"
+                      title="Open chat"
+                    >
+                      {bubbleText}
+                      {!hasMessages && !typingDone && <span className="animate-pulse">|</span>}
+                      {/* Tail pointing at Pip's mouth */}
+                      <span className="absolute top-1/2 -right-[9px] -translate-y-1/2 w-0 h-0 border-y-[9px] border-y-transparent border-l-[10px] border-l-card-border" />
+                      <span className="absolute top-1/2 -right-[7px] -translate-y-1/2 w-0 h-0 border-y-[8px] border-y-transparent border-l-[9px] border-l-background" />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
 
-            <div className="flex items-center gap-3 px-4 py-3 relative z-10">
-              {/* Pip mascot with unread badge */}
-              <div className="shrink-0 flex items-center justify-center w-8 h-8 relative">
-                {!isFocused && messages.length > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-background z-10" />
-                )}
-                <motion.div
-                  key={pipVariantIdx}
-                  initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.3 }}
+                {/* Orb button — no card behind it, just the mascot with its own glow */}
+                <button
+                  onClick={openChat}
+                  className="relative shrink-0 flex items-center justify-center active:scale-95 hover:scale-105 transition-transform duration-200"
+                  aria-label="Open AI Assistant"
                 >
-                  <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="sm" errorMessage={hasError ? 'Connection error' : undefined} />
-                </motion.div>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                {isFocused || input.length > 0 ? (
-                  <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => setIsFocused(true)}
-                    placeholder="Ask me anything..."
-                    rows={1}
-                    className="w-full !bg-white dark:!bg-transparent text-base text-foreground placeholder:text-text-muted resize-none focus:outline-none focus:!bg-white dark:focus:!bg-transparent focus:!shadow-none scrollbar-hide font-medium"
-                    style={{ minHeight: '22px', maxHeight: '120px' }}
-                  />
-                ) : (
-                  <button
-                    onClick={() => {
-                      setIsFocused(true);
-                      setTimeout(() => inputRef.current?.focus(), 100);
-                    }}
-                    className="w-full text-left"
+                  {hasMessages && (
+                    <span className="absolute top-1 right-1 w-3 h-3 rounded-full bg-indigo-500 border-2 border-background z-10" />
+                  )}
+                  <motion.div
+                    key={pipVariantIdx}
+                    initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.35 }}
                   >
-                    <div className="relative h-6 overflow-hidden">
-                      <p className="text-base text-text-muted font-medium">
-                        {typedText}
-                        {!typingDone && (
-                          <span className="animate-pulse">|</span>
-                        )}
-                      </p>
-                    </div>
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                {isLoading ? (
-                  <button
-                    onClick={handleStop}
-                    className="p-2.5 bg-rose-500/10 text-rose-400 rounded-2xl hover:bg-rose-500/20 transition-all duration-200 flex items-center gap-1.5 text-xs font-bold"
-                    aria-label="Stop generating"
-                    title="Stop generating"
-                  >
-                    <FiSquare className="w-3.5 h-3.5 fill-current" />
-                    <span className="hidden sm:inline">Stop</span>
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={handleOpenFullPage}
-                      className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all hidden sm:block"
-                      title="Open full screen"
-                    >
-                      <FiMaximize2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleSend}
-                      disabled={!input.trim()}
-                      className="p-2.5 bg-foreground/[0.08] text-foreground/80 rounded-2xl hover:bg-foreground/[0.14] hover:text-foreground transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
-                      aria-label="Send"
-                    >
-                      <FiSend className="w-4 h-4" />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+                    <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="md" errorMessage={hasError ? 'Connection error' : undefined} />
+                  </motion.div>
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <style jsx>{`
@@ -383,11 +427,11 @@ export default function AssistantOrb() {
         <div className="fixed right-5 z-50" style={{ bottom: 'calc(4rem + 12px)' }}>
           <button
             onClick={() => setIsMobileOpen(true)}
-            className="flex items-center justify-center w-12 h-12 rounded-full bg-background/90 border border-card-border shadow-lg backdrop-blur-md hover:bg-background active:scale-95 transition-all relative"
+            className="flex items-center justify-center relative active:scale-95 transition-transform"
             aria-label="Open AI Assistant"
           >
             {messages.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-background z-10" />
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-background z-10" />
             )}
             <PipMascot variant={PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="sm" errorMessage={hasError ? 'Connection error' : undefined} />
           </button>

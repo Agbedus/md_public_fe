@@ -19,6 +19,11 @@ interface Props {
   onUpdated: () => Promise<void> | void;
   onOptimisticUpdate?: (event: CalendarEvent) => void;
   onOptimisticDelete?: (event: CalendarEvent) => void;
+  /**
+   * Whether the viewer may edit or delete this event. Managers can see events
+   * they did not create, so this is false for them on other people's events.
+   */
+  canModify?: boolean;
 }
 
 export default function EventDetailModal({ 
@@ -27,7 +32,8 @@ export default function EventDetailModal({
   onClose, 
   onUpdated,
   onOptimisticUpdate,
-  onOptimisticDelete 
+  onOptimisticDelete,
+  canModify = true
 }: Props) {
   const confirm = useConfirm();
   const [isEditing, setIsEditing] = useState(false);
@@ -115,6 +121,11 @@ export default function EventDetailModal({
 
 
   if (!open || !event) return null;
+
+  // Projects, tasks and time-off are derived rows the calendar renders but does
+  // not own, so they were already read-only here. An event the viewer lacks
+  // permission on is locked the same way, reusing the existing disabled styling.
+  const isLocked = event.isProject || event.isTask || event.isTimeOff || !canModify;
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
@@ -220,7 +231,7 @@ export default function EventDetailModal({
 
       <div className="relative w-full md:max-w-3xl bg-background border border-card-border rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex-none px-8 py-5 border-b border-card-border flex items-center justify-between bg-foreground/[0.03]">
+        <div className="flex-none px-8 py-5 border-b border-card-border flex items-center justify-between bg-white dark:bg-white/[0.03]">
           <div className="text-foreground font-black tracking-tightest truncate pr-4 text-lg uppercase italic">
             {isEditing ? "Refine Objective" : event.title.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()}
           </div>
@@ -242,7 +253,7 @@ export default function EventDetailModal({
               <div className="flex flex-col gap-6">
                  {/* Timing */}
                  <div className="flex items-start gap-4">
-                    <div className="mt-1 h-10 w-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 shadow-sm">
+                    <div className="mt-1 h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-sm">
                       <FiCalendar className="h-5 w-5" />
                     </div>
                     <div className="space-y-1">
@@ -258,7 +269,7 @@ export default function EventDetailModal({
                         <div className="text-[10px] text-text-muted font-black uppercase tracking-[0.2em] flex items-center gap-2">
                             {event.allDay ? "Full Duration Active" : "Precision Timing Active"}
                             {event.recurrence && event.recurrence !== 'none' && (
-                                <span className="text-purple-600 dark:text-purple-400 font-black uppercase tracking-[0.2em] bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20">
+                                <span className="text-blue-600 dark:text-blue-400 font-black uppercase tracking-[0.2em] bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/20">
                                     Protocol: {event.recurrence}
                                 </span>
                             )}
@@ -289,7 +300,7 @@ export default function EventDetailModal({
                       </div>
                       
                       {event.timeOffJustification && (
-                        <div className="p-6 bg-foreground/[0.03] border border-card-border rounded-2xl">
+                        <div className="p-6 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl">
                           <div className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-3 flex items-center gap-1.5">
                             <FiEdit2 className="w-3.5 h-3.5" /> Operational Justification
                           </div>
@@ -359,7 +370,7 @@ export default function EventDetailModal({
                       </div>
 
                       {event.taskAssignees && event.taskAssignees.length > 0 && (
-                        <div className="p-5 bg-foreground/[0.03] border border-card-border rounded-2xl">
+                        <div className="p-5 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl">
                           <div className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-4 flex items-center gap-1.5">
                             <FiUsers className="w-3.5 h-3.5" /> Assigned Personnel
                           </div>
@@ -383,12 +394,12 @@ export default function EventDetailModal({
                       {/* Location */}
                       {event.location && (
                           <div className="flex items-start gap-4">
-                              <div className="mt-1 h-10 w-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 shadow-sm">
+                              <div className="mt-1 h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-sm">
                                 <FiMapPin className="h-5 w-5" />
                               </div>
                               <div className="space-y-1">
                                   <div className="text-lg font-black text-foreground uppercase tracking-tight">{event.location}</div>
-                                  <div className="text-[10px] text-text-muted font-black uppercase tracking-[0.2em]">Operational Coordinates</div>
+                                  <div className="text-[10px] text-text-muted font-black uppercase tracking-[0.2em]">Office location</div>
                               </div>
                           </div>
                       )}
@@ -396,7 +407,7 @@ export default function EventDetailModal({
                       {/* Attendees */}
                       {event.attendees && event.attendees.length > 0 && (
                           <div className="flex items-start gap-4">
-                              <div className="mt-1 h-10 w-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 shadow-sm">
+                              <div className="mt-1 h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-sm">
                                 <FiUsers className="h-5 w-5" />
                               </div>
                               <div className="space-y-3 flex-1 min-w-0">
@@ -416,7 +427,7 @@ export default function EventDetailModal({
                       {event.description && (
                           <div className="bg-foreground/[0.02] rounded-[2rem] border border-card-border p-6 mt-4">
                               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-3 flex items-center gap-2">
-                                  <FiEdit2 className="h-3.5 w-3.5" /> Tactical Briefing
+                                  <FiEdit2 className="h-3.5 w-3.5" /> Summary
                               </div>
                               <div className="text-sm text-foreground font-bold whitespace-pre-wrap leading-relaxed italic opacity-80 uppercase tracking-tight">
                                   &ldquo;{event.description}&rdquo;
@@ -459,24 +470,24 @@ export default function EventDetailModal({
           {isEditing && (
             <form id="edit-event-form" onSubmit={handleUpdate} className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Mission Identifier</label>
+                  <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Task name</label>
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold"
+                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
                     placeholder="Operational designation..."
                     required
                   />
                 </div>
                 
                 <div className="flex items-center gap-4 py-1">
-                   <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.05] transition-all cursor-pointer group">
+                    <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white dark:bg-white/[0.03] border border-card-border hover:bg-foreground/[0.05] transition-all cursor-pointer group">
                       <input 
                         type="checkbox" 
                         id="edit-allday" 
                         checked={allDay} 
                         onChange={(e) => setAllDay(e.target.checked)}
-                        className="rounded-md border-card-border bg-background text-purple-600 focus:ring-purple-500/30 focus:ring-offset-0 h-4 w-4 transition-all"
+                        className="rounded-md border-card-border bg-background text-blue-600 focus:ring-blue-500/30 focus:ring-offset-0 h-4 w-4 transition-all"
                       />
                       <label htmlFor="edit-allday" className="text-[10px] font-black text-text-muted group-hover:text-foreground uppercase tracking-widest cursor-pointer select-none transition-colors">Temporal Mode: Full Duration</label>
                    </div>
@@ -513,22 +524,22 @@ export default function EventDetailModal({
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Operational Coordinates</label>
+                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Office location</label>
                     <input
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
-                        className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold"
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
                         placeholder="Deployment zone..."
                     />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Mission Lead</label>
+                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Assigned to</label>
                         <input
                             value={organizer}
                             onChange={(e) => setOrganizer(e.target.value)}
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold"
+                            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
                             placeholder="Host name"
                         />
                     </div>
@@ -537,7 +548,7 @@ export default function EventDetailModal({
                         <input
                             value={attendees}
                             onChange={(e) => setAttendees(e.target.value)}
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold"
+                            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
                             placeholder="Authorized IDs..."
                         />
                     </div>
@@ -545,11 +556,11 @@ export default function EventDetailModal({
 
                 <div className="grid grid-cols-2 gap-6">
                      <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Operational Status</label>
+                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Status</label>
                         <select 
                             value={status} 
                             onChange={(e) => setStatus(e.target.value as any)}
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none focus:border-purple-500/30 font-bold appearance-none cursor-pointer"
+                            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none focus:border-blue-500/30 font-bold appearance-none cursor-pointer"
                         >
                             <option value="tentative" className="bg-background">Tentative</option>
                             <option value="confirmed" className="bg-background">Confirmed</option>
@@ -557,11 +568,11 @@ export default function EventDetailModal({
                         </select>
                      </div>
                      <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Recurrence Protocol</label>
+                        <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Repeat</label>
                         <select 
                             value={recurrence} 
                             onChange={(e) => setRecurrence(e.target.value as any)}
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none focus:border-purple-500/30 font-bold appearance-none cursor-pointer"
+                            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none focus:border-blue-500/30 font-bold appearance-none cursor-pointer"
                         >
                             <option value="none" className="bg-background">Static</option>
                             <option value="daily" className="bg-background">Daily</option>
@@ -577,7 +588,7 @@ export default function EventDetailModal({
                     <select 
                         value={privacy} 
                         onChange={(e) => setPrivacy(e.target.value as any)}
-                        className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none focus:border-purple-500/30 font-bold appearance-none cursor-pointer"
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none focus:border-blue-500/30 font-bold appearance-none cursor-pointer"
                     >
                         <option value="public" className="bg-background">Public</option>
                         <option value="private" className="bg-background">Private</option>
@@ -587,7 +598,7 @@ export default function EventDetailModal({
 
                 <div className="space-y-3">
                     <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Chromatic Designation</label>
-                    <div className="flex flex-wrap gap-3 p-4 bg-foreground/[0.03] rounded-2xl border border-card-border">
+                    <div className="flex flex-wrap gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
                         {(["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4"] as const).map((c) => (
                         <button
                             type="button"
@@ -603,34 +614,34 @@ export default function EventDetailModal({
                 </div>
 
                 <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Tactical Briefing</label>
+                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Summary</label>
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-purple-500/30 transition-all font-bold resize-none custom-scrollbar min-h-[100px]"
-                        placeholder="Add mission context..."
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold resize-none custom-scrollbar min-h-[100px]"
+                        placeholder="Add a note..."
                     />
                 </div>
 
                 <div className="space-y-4">
                     <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                        <FiBell className="text-purple-500" /> Proactive Notifications
+                        <FiBell className="text-blue-500" /> Proactive Notifications
                     </label>
                     <div className="flex flex-wrap gap-2 mb-2">
                         {reminders.map((r, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 shadow-sm">
+                        <span key={idx} className="inline-flex items-center gap-2 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-sm">
                             {r.days > 0 && `${r.days}D `}
                             {r.hours > 0 && `${r.hours}H `}
                             {r.minutes > 0 && `${r.minutes}M `}
                             Lead Time
-                            <button type="button" onClick={() => setReminders((prev) => prev.filter((_, i) => i !== idx))} className="ml-1 p-0.5 hover:bg-purple-500/20 rounded-full transition-all">
+                            <button type="button" onClick={() => setReminders((prev) => prev.filter((_, i) => i !== idx))} className="ml-1 p-0.5 hover:bg-blue-500/20 rounded-full transition-all">
                              <FiX className="h-3 w-3" />
                             </button>
                         </span>
                         ))}
                     </div>
                     
-                    <div className="flex flex-wrap items-end gap-3 p-5 bg-foreground/[0.03] border border-card-border rounded-2xl shadow-sm">
+                    <div className="flex flex-wrap items-end gap-3 p-5 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl shadow-sm">
                         <div className="flex-1 min-w-[60px]">
                         <label className="block text-[9px] uppercase font-black tracking-[0.2em] text-text-muted mb-2 ml-1">Days</label>
                         <CustomNumberInput
@@ -676,7 +687,7 @@ export default function EventDetailModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex-none p-6 border-t border-card-border bg-foreground/[0.03] flex items-center justify-between">
+        <div className="flex-none p-6 border-t border-card-border bg-white dark:bg-white/[0.03] flex items-center justify-between">
             {isEditing ? (
                 <>
                     <button
@@ -692,7 +703,7 @@ export default function EventDetailModal({
                         <button
                             type="button"
                             onClick={() => setIsEditing(false)}
-                            className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
+                            className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-white dark:bg-white/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
                         >
                             Abort
                         </button>
@@ -701,9 +712,9 @@ export default function EventDetailModal({
                             type="submit"
                             form="edit-event-form"
                             disabled={submitting}
-                            className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-white bg-purple-600 hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-muted hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] transition-all border border-card-border disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
-                            {submitting ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <FiCheck className="h-4 w-4" />}
+                            {submitting ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground/60"></div> : <FiCheck className="h-4 w-4" />}
                             Execute Sync
                         </button>
                     </div>
@@ -713,9 +724,9 @@ export default function EventDetailModal({
                     <button
                         type="button"
                         onClick={handleDelete}
-                        disabled={event.isProject || event.isTask || event.isTimeOff}
+                        disabled={isLocked}
                         className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 transition-all shadow-sm ${
-                            (event.isProject || event.isTask || event.isTimeOff) 
+                            (isLocked) 
                             ? 'opacity-20 bg-foreground/[0.03] border-card-border text-text-muted cursor-not-allowed grayscale' 
                             : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
                         }`}
@@ -727,15 +738,15 @@ export default function EventDetailModal({
                     <button
                         type="button"
                         onClick={() => setIsEditing(true)}
-                        disabled={event.isProject || event.isTask || event.isTimeOff}
+                        disabled={isLocked}
                         className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest border transition-all flex items-center gap-2 shadow-sm ${
-                            (event.isProject || event.isTask || event.isTimeOff)
+                            (isLocked)
                             ? 'bg-foreground/[0.02] border-card-border text-text-muted cursor-not-allowed'
-                            : 'bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-500 shadow-indigo-500/20'
+                            : 'bg-foreground/[0.08] border-card-border text-foreground hover:bg-foreground/[0.12]'
                         }`}
                     >
                         <FiEdit2 className="h-4 w-4" />
-                        { (event.isProject || event.isTask || event.isTimeOff) ? "Locked Record" : "Refine Mission" }
+                        { (isLocked) ? "Locked Record" : "Edit task" }
                     </button>
                 </>
             )}

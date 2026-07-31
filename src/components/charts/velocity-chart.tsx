@@ -34,7 +34,6 @@ const VelocityChart = ({ data }: { data: Array<{ date: string; count: number }> 
             border: '1px solid var(--tooltip-border)',
             borderRadius: '0.75rem',
             fontSize: '11px',
-            backdropFilter: 'blur(8px)',
           }}
           labelStyle={{ color: 'var(--chart-axis)', fontSize: '10px' }}
           formatter={(value: any) => [`${value} tasks`, 'Closed']}

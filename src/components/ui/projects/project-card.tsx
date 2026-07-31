@@ -15,10 +15,12 @@ interface ProjectCardProps {
   users: User[];
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
+  /** False for a project the viewer can see but not change. */
+  canModify?: boolean;
 }
 
 
-export function ProjectCard({ project, users, onEdit, onDelete }: ProjectCardProps) {
+export function ProjectCard({ project, users, onEdit, onDelete, canModify = true }: ProjectCardProps) {
   const confirm = useConfirm();
   const [isDeleting, setIsDeleting] = React.useState(false);
   const statusColors = {
@@ -56,6 +58,8 @@ export function ProjectCard({ project, users, onEdit, onDelete }: ProjectCardPro
             return <TaskDonutChart total={total} done={done} inProgress={inProgress} todo={todo} size={32} />;
           })()}
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {canModify && (
+          <>
           <button
             onClick={() => onEdit(project)}
             className="p-1.5 rounded-lg hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors border border-transparent hover:border-card-border"
@@ -87,6 +91,8 @@ export function ProjectCard({ project, users, onEdit, onDelete }: ProjectCardPro
           >
             {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-rose-400"></div> : <FiTrash2 className="w-3.5 h-3.5" />}
           </button>
+          </>
+          )}
           <Link
             href={`/projects/${project.id}`}
             className="p-1.5 rounded-lg hover:bg-indigo-500/10 text-text-muted hover:text-indigo-400 transition-colors border border-transparent hover:border-indigo-500/20"

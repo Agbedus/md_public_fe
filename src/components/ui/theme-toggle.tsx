@@ -41,7 +41,7 @@ export function ThemeToggle({
     return (
       <button
         onClick={toggleTheme}
-        className="relative p-2 rounded-xl bg-background/50 border border-card-border hover:bg-white/[0.06] hover:border-foreground/10 transition-all duration-300 group overflow-hidden"
+        className="relative p-2 rounded-xl bg-background/50 border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-all duration-300 group overflow-hidden"
         title={`Switch theme (currently ${getLabel()})`}
       >
         <AnimatePresence mode="wait">
@@ -65,7 +65,7 @@ export function ThemeToggle({
       onClick={toggleTheme}
       className={`
         flex items-center gap-3 py-2 px-6 rounded-lg transition-all duration-200 
-        hover:bg-white/[0.03] text-(--text-muted) hover:text-foreground group relative
+        hover:bg-foreground/[0.03] text-(--text-muted) hover:text-foreground group relative
         ${collapsed ? 'justify-center px-0' : 'justify-start'}
       `}
       title={`Switch theme (currently ${getLabel()})`}

@@ -29,9 +29,11 @@ interface ProjectTableProps {
   onCreateProject: (formData: FormData) => Promise<void>;
   onUpdateProject: (existing: Project, formData: FormData) => Promise<void>;
   onDeleteProject: (project: Project) => Promise<void>;
+  /** Per-row gate: false for a project the viewer can see but not change. */
+  canModifyProject?: (project: Project) => boolean;
 }
 
-export function ProjectTable({ projects, users, clients, onSelectProject, onCreateProject, onUpdateProject, onDeleteProject }: ProjectTableProps) {
+export function ProjectTable({ projects, users, clients, onSelectProject, onCreateProject, onUpdateProject, onDeleteProject, canModifyProject = () => true }: ProjectTableProps) {
   const confirm = useConfirm();
   const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -204,7 +206,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
             <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky right-0 z-20 bg-card/90 backdrop-blur-md border-l border-card-border">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-foreground/5">
           {projects.map((project, index) => {
             // Fall back to the row index if a project somehow lacks an id, so the
             // list always has a stable, defined key.
@@ -217,7 +219,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
             if (isEditing) {
               return (
                 <React.Fragment key={rowKey}>
-                <tr className="bg-white/[0.02]">
+                <tr className="bg-foreground/[0.02]">
                   <td colSpan={11} className="p-0">
                     <form onSubmit={handleUpdate} className="contents">
                       <table className="w-full">
@@ -229,7 +231,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                 name="name"
                                 defaultValue={project.name}
                                 required
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                               />
                             </td>
                             <td className="px-4 py-2 w-[100px]">
@@ -237,14 +239,14 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                 type="text"
                                 name="key"
                                 defaultValue={project.key || ''}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                               />
                             </td>
                             <td className="px-4 py-2 w-[120px]">
                               <select
                                 name="status"
                                 defaultValue={project.status}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                               >
                                 <option value="planning">Planning</option>
                                 <option value="in_progress">In Progress</option>
@@ -256,7 +258,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                               <select
                                 name="priority"
                                 defaultValue={project.priority}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                               >
                                 <option value="low">Low</option>
                                 <option value="medium">Medium</option>
@@ -267,7 +269,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                               <select
                                 name="ownerId"
                                 defaultValue={project.ownerId || ''}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                               >
                                 <option value="">None</option>
                                 {users.map(u => (
@@ -279,7 +281,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                               <select
                                 name="clientId"
                                 defaultValue={project.clientId || ''}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                               >
                                 <option value="">None</option>
                                 {clients.map(c => (
@@ -432,6 +434,8 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                 </td>
                 <td className="px-6 py-3 text-right sticky right-0 z-10 bg-card/90 backdrop-blur-md border-l border-card-border">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    {canModifyProject(project) && (
+                    <>
                     <button
                       onClick={(e) => { e.stopPropagation(); startEditing(project); }}
                       className="p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all"
@@ -446,6 +450,8 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                     >
                       <FiTrash2 className="w-3 h-3" />
                     </button>
+                    </>
+                    )}
                     <div className="p-1.5 rounded-xl bg-foreground/[0.03] border border-card-border text-text-muted">
                       <FiChevronRight className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedIds.includes(project.id) ? 'rotate-90 text-indigo-500' : ''}`} />
                     </div>
@@ -481,14 +487,14 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                    name="name" 
                                    placeholder="Task Name *" 
                                    required 
-                                   className="w-full bg-background/50 border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                                   className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06]"
                                  />
                                </div>
                                <div>
                                  <select 
                                    name="priority" 
                                    defaultValue="medium"
-                                   className="w-full bg-background/50 border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500/50 appearance-none cursor-pointer"
+                                   className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06] appearance-none cursor-pointer"
                                  >
                                    <option value="low">Low Priority</option>
                                    <option value="medium">Medium Priority</option>
@@ -511,7 +517,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                    name="description" 
                                    placeholder="Add a description..." 
                                    rows={1}
-                                   className="w-full bg-background/50 border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500/50 resize-none"
+                                   className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06] resize-none"
                                  />
                                </div>
                                <div className="flex gap-2">
@@ -551,7 +557,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                         <th className="px-4 py-2 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/5">
+                                <tbody className="divide-y divide-foreground/5">
                                     {project.tasks?.map(task => (
                                         <TaskCard 
                                             key={task.id} 
@@ -579,7 +585,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
 
           {/* Add New Row */}
           {isAdding && (
-            <tr className="bg-white/[0.02]">
+            <tr className="bg-foreground/[0.02]">
               <td colSpan={11} className="p-0">
                 <form onSubmit={handleCreate} className="contents">
                   <table className="w-full">
@@ -592,7 +598,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                             name="name"
                             required
                             placeholder="Project name"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder:text-text-muted/30"
+                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] placeholder:text-text-muted/30"
                           />
                         </td>
                         <td className="px-4 py-2 w-[100px]">
@@ -600,14 +606,14 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                             type="text"
                             name="key"
                             placeholder="PROJ-123"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder:text-text-muted/30"
+                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] placeholder:text-text-muted/30"
                           />
                         </td>
                         <td className="px-4 py-2 w-[120px]">
                           <select
                             name="status"
                             defaultValue="planning"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                           >
                             <option value="planning">Planning</option>
                             <option value="in_progress">In Progress</option>
@@ -619,7 +625,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                           <select
                             name="priority"
                             defaultValue="medium"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                           >
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
@@ -629,7 +635,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                         <td className="px-4 py-2 w-[120px]">
                           <select
                             name="ownerId"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                           >
                             <option value="">None</option>
                             {users.map(u => (
@@ -641,7 +647,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                         <td className="px-4 py-2 w-[120px]">
                           <select
                             name="clientId"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
                           >
                             <option value="">None</option>
                             {clients.map(c => (
@@ -719,7 +725,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                   <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border">
                     <FiPlus className="w-4 h-4" />
                   </div>
-                  <span className="pr-2 font-bold uppercase tracking-wider text-[11px]">Initialize mission</span>
+                  <span className="pr-2 font-bold uppercase tracking-wider text-[11px]">New project</span>
                 </button>
               </td>
             </tr>
@@ -727,7 +733,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
           {projects.length === 0 && !isAdding && (
             <tr>
               <td colSpan={11} className="px-6 py-12 text-center text-text-muted">
-                No projects found. Click &quot;Initialize mission&quot; to create one.
+                No projects yet. Click &quot;New project&quot; to add one.
               </td>
             </tr>
           )}

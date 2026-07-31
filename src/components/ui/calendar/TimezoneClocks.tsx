@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import { FiClock, FiTrash2, FiPlus, FiChevronUp, FiChevronDown, FiX, FiCheck } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { FiClock, FiTrash2, FiChevronUp, FiChevronDown, FiChevronLeft, FiChevronRight, FiCheck, FiGlobe } from "react-icons/fi";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 interface ClockItem {
   id: string;
@@ -25,6 +25,10 @@ const COMMON_TIMEZONES = [
   { tz: "Australia/Sydney", label: "Sydney (AEST)" },
 ];
 
+function cityLabel(tz: string) {
+  return COMMON_TIMEZONES.find((z) => z.tz === tz)?.label ?? tz.split('/').pop()?.replace('_', ' ') ?? tz;
+}
+
 function formatInTZ(date: Date, tz: string) {
   try {
     const time = new Intl.DateTimeFormat('en-US', {
@@ -33,19 +37,58 @@ function formatInTZ(date: Date, tz: string) {
       hour12: false,
       timeZone: tz,
     }).format(date);
-    const day = new Intl.DateTimeFormat('en-US', {
-      weekday: "short",
-      month: "short",
-      day: "2-digit",
-      timeZone: tz,
-    }).format(date);
-    return { time, day };
+    return { time };
   } catch (e) {
-    return { time: "--:--", day: "Invalid TZ" };
+    return { time: "--:--" };
+  }
+}
+
+/** "UTC+9" / "UTC-5" style offset — the city's difference from UTC at this moment. */
+function offsetLabel(date: Date, tz: string) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      timeZoneName: 'shortOffset',
+    }).formatToParts(date);
+    const zonePart = parts.find((p) => p.type === 'timeZoneName')?.value ?? '';
+    return zonePart.replace('GMT', 'UTC') || 'UTC+0';
+  } catch (e) {
+    return '';
   }
 }
 
 const LS_KEY = "mdp_tz_clocks_v2";
+
+/**
+ * Directional roulette variants for the clock slide.
+ *
+ * `custom` carries which way the user navigated: +1 for next, -1 for prev.
+ * The incoming clock always arrives from the side you're heading toward, and
+ * the outgoing one leaves toward the opposite side — the standard carousel
+ * illusion of "moving through" the list along one axis. Only `x` and
+ * `opacity` are animated (no layout properties), so this stays compositor-only.
+ *
+ * The enter transition is a spring, not a tween — that's what produces the
+ * bounce: a slight overshoot past rest before it settles. The exit is a plain
+ * fast ease-out because it's the thing leaving; bounce reads as hesitation on
+ * an exit, not on an arrival.
+ */
+const slideVariants: Variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 26 : -26,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 420, damping: 18, mass: 0.7 },
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -26 : 26,
+    opacity: 0,
+    transition: { duration: 0.14, ease: 'easeOut' },
+  }),
+};
 
 export default function TimezoneClocks() {
   const [now, setNow] = useState<Date>(new Date());
@@ -56,18 +99,23 @@ export default function TimezoneClocks() {
         if (raw) {
           const arr = JSON.parse(raw);
           if (Array.isArray(arr) && arr.length > 0) {
-            return arr.map(tz => ({ id: Math.random().toString(36).substr(2, 9), tz }));
+            return arr.map((tz: string) => ({ id: tz, tz }));
           }
         }
       }
     } catch (e) {
       console.error("Failed to load clocks from LS", e);
     }
-    return [{ id: 'utc-default', tz: 'UTC' }];
+    return [{ id: 'UTC', tz: 'UTC' }];
   });
-  const [selected, setSelected] = useState<string>("UTC");
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
+  // Which saved clock the compact view is showing. The left/right arrows
+  // step this back and forth; it is not tied to any one timezone (UTC
+  // included) so flipping through the whole list works uniformly.
+  const [currentIndex, setCurrentIndex] = useState(0);
+  // Which way the last step went — read by slideVariants to pick the side
+  // the incoming/outgoing clock animates from/to.
+  const [direction, setDirection] = useState(1);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -81,101 +129,158 @@ export default function TimezoneClocks() {
     }
   }, [clocks]);
 
-  const addClock = () => {
-    if (!selected) return;
-    if (clocks.some(c => c.tz === selected)) {
-        setIsAdding(false);
-        return;
+  // Defensive against `currentIndex` outliving a removal — always resolves
+  // to a real entry rather than reading past the end of the array.
+  const safeIndex = Math.min(currentIndex, clocks.length - 1);
+  const current = clocks[safeIndex] ?? clocks[0];
+  const hasMultiple = clocks.length > 1;
+
+  const goPrev = () => {
+    setDirection(-1);
+    setCurrentIndex((i) => (Math.min(i, clocks.length - 1) - 1 + clocks.length) % clocks.length);
+  };
+  const goNext = () => {
+    setDirection(1);
+    setCurrentIndex((i) => (Math.min(i, clocks.length - 1) + 1) % clocks.length);
+  };
+
+  /**
+   * Toggle a city on or off the saved list.
+   *
+   * Adding inserts the new clock immediately after the one currently on
+   * screen, and moves the display to it — so the newly added city opens to
+   * the right of whatever you were looking at, and stepping left with the
+   * arrow returns you to where you started. Removing always leaves at least
+   * one clock behind; there is nothing meaningful to flip through with zero.
+   */
+  const toggleCity = (tz: string) => {
+    const existingIdx = clocks.findIndex((c) => c.tz === tz);
+    if (existingIdx !== -1) {
+      if (clocks.length === 1) return;
+      setClocks((prev) => prev.filter((c) => c.tz !== tz));
+      return;
     }
-    setClocks(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), tz: selected }]);
-    setIsAdding(false);
-    setIsExpanded(true);
+    const newClock: ClockItem = { id: tz, tz };
+    const insertAt = safeIndex + 1;
+    setDirection(1);
+    setClocks((prev) => [...prev.slice(0, insertAt), newClock, ...prev.slice(insertAt)]);
+    setCurrentIndex(insertAt);
   };
 
-  const removeClock = (id: string) => {
-    setClocks(prev => prev.filter(c => c.id !== id));
+  const removeCurrent = () => {
+    if (clocks.length === 1) return;
+    setClocks((prev) => prev.filter((c) => c.id !== current.id));
   };
 
-  const utcClock = clocks.find(c => c.tz === 'UTC') || { id: 'utc', tz: 'UTC' };
-  const otherClocks = clocks.filter(c => c.tz !== 'UTC');
+  const { time } = formatInTZ(now, current.tz);
+  const offset = offsetLabel(now, current.tz);
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex flex-row-reverse items-end gap-3 pointer-events-none">
-      {/* Main UTC Toggle Button */}
-      <div className="flex items-center gap-2 pointer-events-auto">
+    <div className="relative inline-flex items-stretch gap-2">
+      {/* Clock slider — a fixed height/width on the row itself, and the
+          sliding layers are absolutely positioned within it (both the
+          entering and exiting clock exist in the DOM at once during the
+          crossfade). Without that, two stacked block-level divs would
+          briefly double the row's height mid-slide; with it, the row's
+          box never changes size regardless of what's animating inside. */}
+      <div className="h-16 bg-card border border-card-border rounded-xl flex items-center shadow-sm">
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="bg-background border border-card-border rounded-2xl p-3 flex items-center gap-4 hover:border-card-border transition-all group backdrop-blur-xl shadow-xl shadow-foreground/[0.05]"
+          onClick={goPrev}
+          disabled={!hasMultiple}
+          aria-label="Previous clock"
+          className="h-full px-3 text-text-muted hover:text-foreground hover:bg-foreground/[0.05] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed rounded-l-xl transition-all"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm">
-              <FiClock className="h-4 w-4" />
-            </div>
-            <div className="text-left">
-              <div className="text-foreground text-lg font-black tracking-tightest leading-none">
-                {formatInTZ(now, 'UTC').time}
+          <FiChevronLeft className="h-4 w-4" />
+        </button>
+
+        <div className="relative overflow-hidden h-full w-[188px]">
+          <AnimatePresence initial={false} custom={direction}>
+            <motion.div
+              key={current.id}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="absolute inset-0 flex items-center gap-3 px-3"
+            >
+              <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                <FiClock className="h-4 w-4" />
               </div>
-              <div className="text-text-muted text-[9px] font-black uppercase tracking-[0.2em] mt-1">Universal Time</div>
-            </div>
-          </div>
-          <div className="pl-2 border-l border-card-border">
-            {isExpanded ? <FiChevronDown className="text-text-muted group-hover:text-foreground transition-colors" /> : <FiChevronUp className="text-text-muted group-hover:text-foreground transition-colors" />}
-          </div>
+              <div className="text-left min-w-0">
+                <div className="text-foreground text-lg font-black tracking-tightest leading-none">
+                  {time}
+                </div>
+                <div className="text-text-muted text-[9px] font-bold uppercase tracking-[0.1em] mt-1 whitespace-nowrap">
+                  {cityLabel(current.tz)} · {offset}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <button
+          onClick={goNext}
+          disabled={!hasMultiple}
+          aria-label="Next clock"
+          className="h-full px-3 text-text-muted hover:text-foreground hover:bg-foreground/[0.05] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed rounded-r-xl transition-all"
+        >
+          <FiChevronRight className="h-4 w-4" />
         </button>
       </div>
 
+      {/* Add/remove clocks — its own square button, matching the slider's height */}
+      <button
+        onClick={() => setIsPickerOpen((v) => !v)}
+        aria-label="Add or remove clocks"
+        className="h-16 w-16 shrink-0 bg-card border border-card-border rounded-xl flex items-center justify-center text-text-muted hover:text-foreground hover:bg-foreground/[0.05] shadow-sm transition-all"
+      >
+        {isPickerOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
+      </button>
+
+      {/* City picker — a real list to choose from, not a native <select>.
+          Clicking a city adds it (and jumps the compact view to it, per the
+          insertion rule above); clicking an already-saved city removes it. */}
       <AnimatePresence>
-        {isExpanded && (
+        {isPickerOpen && (
           <motion.div
-            initial={{ opacity: 0, x: 20, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 20, scale: 0.95 }}
-            className="flex flex-row-reverse items-center gap-2 pointer-events-auto"
+            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            className="absolute top-full right-0 mt-2 z-50 w-64 bg-card border border-card-border rounded-2xl shadow-2xl overflow-hidden"
           >
-           {isAdding ? (
-              <div className="bg-background border border-indigo-500/30 rounded-2xl p-2.5 flex items-center gap-2 backdrop-blur-xl shadow-2xl">
-                <select
-                  value={selected}
-                  onChange={(e) => setSelected(e.target.value)}
-                  className="bg-foreground/[0.03] text-foreground text-xs px-3 py-2 rounded-xl border border-card-border outline-none focus:border-indigo-500/30 font-bold appearance-none cursor-pointer"
-                >
-                  {COMMON_TIMEZONES.map((opt) => (
-                    <option key={opt.tz} value={opt.tz} className="bg-background">
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-                <button onClick={addClock} className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20">
-                  <FiCheck className="h-4 w-4" />
-                </button>
-                <button onClick={() => setIsAdding(false)} className="p-2 bg-foreground/[0.05] text-text-muted rounded-xl hover:bg-foreground/[0.1] transition-colors">
-                  <FiX className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => setIsAdding(true)}
-                className="flex items-center justify-center h-[56px] w-[52px] rounded-2xl border border-dashed border-card-border hover:border-indigo-500/50 text-text-muted hover:text-indigo-600 dark:hover:text-indigo-400 transition-all bg-background/50 hover:bg-indigo-500/5 backdrop-blur-md shadow-xl"
-                title="Add Timezone"
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-card-border">
+              <FiGlobe className="h-3.5 w-3.5 text-text-muted" />
+              <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Cities</span>
+            </div>
+            <div className="max-h-72 overflow-y-auto py-1.5">
+              {COMMON_TIMEZONES.map((opt) => {
+                const isSaved = clocks.some((c) => c.tz === opt.tz);
+                const isOnlyOne = isSaved && clocks.length === 1;
+                return (
+                  <button
+                    key={opt.tz}
+                    onClick={() => toggleCity(opt.tz)}
+                    disabled={isOnlyOne}
+                    className={`w-full flex items-center justify-between gap-2 px-4 py-2 text-left text-xs font-medium transition-colors hover:bg-foreground/[0.05] disabled:opacity-40 disabled:cursor-not-allowed ${
+                      isSaved ? 'text-foreground' : 'text-text-muted'
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {isSaved && <FiCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+            {hasMultiple && (
+              <button
+                onClick={removeCurrent}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-xs font-medium text-rose-500 hover:bg-rose-500/10 border-t border-card-border transition-colors"
               >
-                <FiPlus className="h-5 w-5" />
+                <FiTrash2 className="h-3.5 w-3.5" />
+                Remove {cityLabel(current.tz)}
               </button>
             )}
-
-            {otherClocks.map((c) => {
-              const { time, day } = formatInTZ(now, c.tz);
-              return (
-                <div key={c.id} className="bg-background border border-card-border rounded-2xl p-3.5 flex items-center justify-between gap-6 min-w-[180px] backdrop-blur-xl shadow-xl shadow-foreground/[0.02] group/item border-b-2 border-b-indigo-500/20">
-                  <div>
-                    <div className="text-foreground text-base font-black tracking-tightest leading-none">{time}</div>
-                    <div className="text-text-muted text-[9px] font-black uppercase tracking-widest mt-1.5 opacity-70">{day} • {c.tz.split('/').pop()?.replace('_', ' ')}</div>
-                  </div>
-                  <button onClick={() => removeClock(c.id)} className="p-1.5 text-text-muted hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all opacity-0 group-hover/item:opacity-100">
-                    <FiTrash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              );
-            })}
           </motion.div>
         )}
       </AnimatePresence>
