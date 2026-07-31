@@ -1,254 +1,250 @@
-'use client';
-
 import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { FiArrowLeft, FiShield, FiLock, FiCpu, FiGlobe, FiEye, FiServer, FiDatabase, FiCheckCircle } from 'react-icons/fi';
+import {
+  FiShield, FiUsers, FiDatabase, FiMapPin, FiCpu, FiLink2,
+  FiClock, FiLock, FiUserCheck, FiGlobe, FiFileText, FiSettings, FiEye,
+} from 'react-icons/fi';
+import { LegalDocument, type LegalSection } from '@/components/ui/legal/legal-document';
+
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+      {children}
+    </div>
+  );
+}
+
+const sections: LegalSection[] = [
+  {
+    id: 'who-we-are',
+    index: '01',
+    icon: <FiUsers />,
+    title: 'Who this policy covers',
+    children: (
+      <>
+        <p>
+          This Privacy Policy explains how <strong>MyndDesk</strong> collects, uses, and protects information
+          across our marketing site and the dashboard application — attendance, tasks, projects, notes,
+          calendar, clients, and the Pip AI assistant.
+        </p>
+        <p>
+          MyndDesk is a multi-tenant workspace: your data lives inside an <strong>organization</strong>, and
+          what a teammate can see within that organization depends on their role. Section 5 explains exactly
+          how that works.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'information-we-collect',
+    index: '02',
+    icon: <FiDatabase />,
+    title: 'Information we collect',
+    children: (
+      <>
+        <p>We collect information in three ways: what you give us, what your device sends automatically, and what your organization’s admin configures.</p>
+
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiUserCheck className="text-zinc-500" /> Account &amp; profile</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">Full name, email address, password (stored as a salted hash — we never see or store it in plain text), phone number, job title, and profile photo. Creating an organization adds its name, URL slug, website, country, and phone number.</p>
+        </Card>
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiFileText className="text-zinc-500" /> Content you create</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">Tasks, notes, projects, client records, calendar events, decisions, time logs, and any files or comments you add to them. This is your operational data — we store it so the product works, not to read it ourselves.</p>
+        </Card>
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiMapPin className="text-zinc-500" /> Location, only for Attendance</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">If your organization enables the Attendance feature and you grant your browser’s location permission, we read your device’s GPS position (roughly every 5 minutes while the tab is active) to calculate your distance from your office and drive automatic clock-in/out. Nothing is read if the feature is off or permission is denied.</p>
+        </Card>
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiCpu className="text-zinc-500" /> Pip AI conversations</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">When you message the assistant, your prompt and a snapshot of the dashboard data needed to answer it (e.g. your task list) are sent to our AI provider for that single request. See Section&nbsp;3 for how this is handled.</p>
+        </Card>
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiEye className="text-zinc-500" /> Automatic &amp; device data</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">Sign-in sessions, IP address, browser and device type, and basic usage events (pages viewed, features used) if you’ve allowed analytics cookies. See Section&nbsp;6.</p>
+        </Card>
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiSettings className="text-zinc-500" /> Waitlist &amp; contact forms</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">If you join our early-access waitlist: name, company, role, phone number, email, and where you heard about us. This never requires an account.</p>
+        </Card>
+      </>
+    ),
+  },
+  {
+    id: 'how-we-use',
+    index: '03',
+    icon: <FiSettings />,
+    title: 'How we use it, and the AI assistant',
+    children: (
+      <>
+        <p>We use information to operate and secure the platform: authenticate you, enforce your organization’s roles and permissions, run the features you turn on (Attendance, notifications, invitations), send you transactional email and SMS, and fix bugs.</p>
+        <p>
+          <strong>Pip AI</strong> is powered by a cloud model we call through NVIDIA’s inference API. Each query
+          sends only what’s needed to answer it — your message plus the relevant slice of your own dashboard
+          data — for that single exchange. We don’t persist assistant conversations on our servers beyond the
+          request, and neither we nor our AI provider use your data to train models.
+        </p>
+        <p>We do not sell your personal information, and we do not use your operational data (tasks, notes, client records) for advertising.</p>
+      </>
+    ),
+  },
+  {
+    id: 'sharing',
+    index: '04',
+    icon: <FiLink2 />,
+    title: 'Who we share information with',
+    children: (
+      <>
+        <p>We share information only where it’s needed to run the service:</p>
+        <ul className="space-y-2 list-disc pl-5">
+          <li><strong>Inside your organization</strong> — following the role visibility described in Section&nbsp;5, never beyond your organization’s boundary.</li>
+          <li><strong>Service providers</strong> — our AI inference provider (NVIDIA) for assistant queries, our SMS provider for time-off and task alerts, and our email/SMTP provider for transactional messages. Each only receives what a specific feature needs to function.</li>
+          <li><strong>Webhooks your admin configures</strong> — if an organization owner or admin sets up outbound webhooks, attendance events (clock-in, clock-out) are forwarded, HMAC-signed, to the URL they specify. That destination is outside our control — treat it as your organization’s own integration.</li>
+          <li><strong>Legal &amp; safety</strong> — if required to comply with law, enforce our Terms, or protect the rights and safety of our users.</li>
+        </ul>
+        <p>We do not sell personal information to third parties, and we have no advertising or data-broker relationships.</p>
+      </>
+    ),
+  },
+  {
+    id: 'visibility-model',
+    index: '05',
+    icon: <FiShield />,
+    title: 'Who inside your organization can see what',
+    children: (
+      <>
+        <p>MyndDesk enforces role-based visibility on every organization-scoped record:</p>
+        <ul className="space-y-2 list-disc pl-5">
+          <li><strong>Owner &amp; Admin</strong> see every record in the organization, whether or not it was shared with them.</li>
+          <li><strong>Manager</strong> sees everything too, but can only edit or delete records they created (or, for tasks, are assigned to).</li>
+          <li><strong>Member</strong> sees their own records plus anything explicitly shared or assigned to them.</li>
+          <li><strong>Guest</strong> is read-only, and only for what’s been explicitly shared.</li>
+        </ul>
+        <p>This is enforced the same way on our servers as in the interface — a Member’s private note is never returned to another Member’s session, regardless of what the screen shows.</p>
+      </>
+    ),
+  },
+  {
+    id: 'cookies',
+    index: '06',
+    icon: <FiDatabase />,
+    title: 'Cookies & local storage',
+    children: (
+      <>
+        <p>We use three categories of cookies and local storage, matching the choices in our cookie banner:</p>
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-1">Strictly essential — always on</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">Keeps you signed in and your session secure. Without these the app cannot function, so they cannot be turned off.</p>
+        </Card>
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-1">Performance &amp; analytics — optional</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">Helps us see which parts of the product are slow or confusing, in aggregate. Off by default until you opt in.</p>
+        </Card>
+        <Card>
+          <h4 className="text-white font-semibold text-sm mb-1">Personalization — optional</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">Remembers your theme, sidebar layout, and assistant preferences between visits. Off by default until you opt in.</p>
+        </Card>
+        <p>You can change your choice at any time from the cookie settings link in the footer, or by clearing your browser’s local storage for this site.</p>
+      </>
+    ),
+  },
+  {
+    id: 'retention',
+    index: '07',
+    icon: <FiClock />,
+    title: 'How long we keep data',
+    children: (
+      <>
+        <p>We keep information for as long as it’s needed for the purpose it was collected:</p>
+        <ul className="space-y-2 list-disc pl-5">
+          <li><strong>Account &amp; organizational data</strong> — for as long as your account or organization exists, plus a reasonable window for backups and legal obligations after deletion.</li>
+          <li><strong>Notifications</strong> — read notifications are cleared after 7 days, all notifications after 30 days, as a routine housekeeping policy.</li>
+          <li><strong>Location readings</strong> — used to compute a live presence state; historical attendance logs are retained per your organization’s own policy, set by your admin.</li>
+          <li><strong>Pip AI queries</strong> — not persisted server-side beyond the request that generated the response.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    id: 'security',
+    index: '08',
+    icon: <FiLock />,
+    title: 'How we protect it',
+    children: (
+      <>
+        <p>Passwords are hashed, never stored or logged in plain text. Sessions use signed, HTTP-only cookies alongside bearer tokens for API access, so session tokens aren’t reachable from page scripts. Every request is scoped to your organization on the server — widening a query never lets it cross a tenant boundary. Administrative tooling capable of touching raw database tables is restricted to platform super-admins only, never regular organization owners or admins.</p>
+        <p>No system is perfectly secure. If you discover a vulnerability, please report it to the contact below before disclosing it publicly.</p>
+      </>
+    ),
+  },
+  {
+    id: 'your-rights',
+    index: '09',
+    icon: <FiUserCheck />,
+    title: 'Your rights and choices',
+    children: (
+      <>
+        <p>Wherever you’re located, you can ask us to:</p>
+        <ul className="space-y-2 list-disc pl-5">
+          <li><strong>Access or export</strong> the personal data we hold about you.</li>
+          <li><strong>Correct</strong> inaccurate profile information — most of this you can edit directly from Settings.</li>
+          <li><strong>Delete</strong> your account, or ask your organization’s owner to remove you from an organization.</li>
+          <li><strong>Withdraw consent</strong> for Attendance location tracking (by disabling it or revoking browser permission) or for optional cookies at any time.</li>
+        </ul>
+        <p>If data-protection law where you live (such as the GDPR or CCPA/CPRA) gives you additional rights — like lodging a complaint with a supervisory authority — those rights apply in full; nothing here limits them. Contact us using the details at the bottom of this page to exercise any of these.</p>
+      </>
+    ),
+  },
+  {
+    id: 'children',
+    index: '10',
+    icon: <FiUsers />,
+    title: "Children’s privacy",
+    children: (
+      <p>MyndDesk is a workplace tool intended for users 18 and older, consistent with our Terms of Use. We do not knowingly collect information from anyone under 18. If you believe a minor has provided us information, contact us and we’ll remove it.</p>
+    ),
+  },
+  {
+    id: 'international',
+    index: '11',
+    icon: <FiGlobe />,
+    title: 'International data transfers',
+    children: (
+      <p>Because MyndDesk is used by distributed teams, your information may be processed in a country other than the one you live in — including wherever our hosting, database, and service providers operate. Where required, we rely on appropriate contractual safeguards to protect data that crosses borders.</p>
+    ),
+  },
+  {
+    id: 'changes',
+    index: '12',
+    icon: <FiFileText />,
+    title: 'Changes to this policy',
+    children: (
+      <p>We review this policy regularly and will update the “Last updated” date whenever it changes. For material changes — anything that meaningfully affects how we handle your data — we’ll post a notice in the app ahead of the change taking effect.</p>
+    ),
+  },
+];
 
 export default function PrivacyPage() {
-    const fadeIn = {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.6 }
-    };
-
-    return (
-        <div className="min-h-screen bg-[#090a0c] text-zinc-300 font-inter selection:bg-indigo-500/30 selection:text-white noise">
-            {/* Top Navigation */}
-            <nav className="fixed top-0 w-full z-50 bg-[#090a0c]/80 backdrop-blur-md border-b border-white/5">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <Image src="/logo.svg" alt="MD Logo" width={32} height={32} />
-                        <span className="text-xl font-bold tracking-tight text-white">MD<span className="text-emerald-500">Dash</span></span>
-                    </Link>
-                    <Link 
-                        href="/" 
-                        className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-                    >
-                        <FiArrowLeft /> Back to Mission
-                    </Link>
-                </div>
-            </nav>
-
-            <main className="pt-40 pb-24 px-6">
-                <div className="max-w-5xl mx-auto space-y-20">
-                    {/* Header Section */}
-                    <motion.div {...fadeIn} className="space-y-8 border-b border-white/5 pb-16">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
-                            Privacy Policy v2.2
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-[1.1]">Privacy <br /> Policy</h1>
-                        <p className="text-zinc-500 text-xl max-w-2xl">How MD-Dash handles your data, protects your privacy, and ensures transparency in everything we build.</p>
-                        <div className="flex items-center gap-6 pt-4 text-xs font-bold uppercase tracking-widest text-zinc-600">
-                            <span>Revision: 07.06.2026</span>
-                            <span>Status: Active</span>
-                        </div>
-                    </motion.div>
-
-                    {/* Executive Summary / Focus */}
-                    <motion.div 
-                        {...fadeIn} 
-                        transition={{ delay: 0.1 }}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-8"
-                    >
-                        <div className="p-8 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4">
-                            <FiCpu className="text-2xl text-indigo-400" />
-                            <h3 className="font-bold text-white">Data Privacy</h3>
-                            <p className="text-xs text-zinc-500 leading-relaxed">Your dashboard data — tasks, notes, projects — stays encrypted and private. AI queries are sent to NVIDIA NIM cloud models; we never use your data for training.</p>
-                        </div>
-                        <div className="p-8 rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/10 space-y-4">
-                            <FiLock className="text-2xl text-emerald-400" />
-                            <h3 className="font-bold text-white">Zero-Knowledge</h3>
-                            <p className="text-xs text-zinc-500 leading-relaxed">Our synchronization bridge uses client-side encryption. We cannot see, read, or process your synced mission data.</p>
-                        </div>
-                        <div className="p-8 rounded-[2.5rem] bg-zinc-900 border border-white/5 space-y-4">
-                            <FiGlobe className="text-2xl text-zinc-400" />
-                            <h3 className="font-bold text-white">Global Compliance</h3>
-                            <p className="text-xs text-zinc-500 leading-relaxed">Aligned with GDPR, CCPA/CPRA, and NIST privacy frameworks for international operational safety.</p>
-                        </div>
-                    </motion.div>
-
-                    {/* Detailed Content */}
-                    <div className="space-y-24">
-                        {/* Section 1 */}
-                        <motion.section {...fadeIn} className="space-y-8">
-                            <div className="flex items-start gap-6">
-                                <span className="text-4xl font-black text-white/10 shrink-0">01</span>
-                                <div className="space-y-4">
-                                    <h2 className="text-3xl font-bold text-white">Information Taxonomy & Collection</h2>
-                                    <p className="text-zinc-400 leading-relaxed px-1">We categorize data into three distinct operational tiers to ensure minimum necessary collection.</p>
-                                    
-                                    <div className="space-y-6 pt-4">
-                                        <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                                            <h4 className="font-bold text-white flex items-center gap-2">
-                                                <FiEye className="text-indigo-400" /> Tier I: Identity & Access Data
-                                            </h4>
-                                            <p className="text-sm text-zinc-500">Collected during registration and authentication. Includes email address, encrypted password hashes, and session tokens. <strong>Retained until account termination.</strong></p>
-                                        </div>
-                                        <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                                            <h4 className="font-bold text-white flex items-center gap-2">
-                                                <FiDatabase className="text-emerald-400" /> Tier II: Operational Metadata
-                                            </h4>
-                                            <p className="text-sm text-zinc-500">Anonymized logs regarding system performance, feature usage frequency, and local AI error rates. <strong>Retained for 90 days for optimization.</strong></p>
-                                        </div>
-                                        <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
-                                            <h4 className="font-bold text-white flex items-center gap-2">
-                                                <FiServer className="text-zinc-400" /> Tier III: Encrypted Mission Sync
-                                            </h4>
-                                            <p className="text-sm text-zinc-500">End-to-end encrypted mission materials (Tasks, Notes, Projects). We function as a passive conduit. <strong>MD-DASH has no access keys to Tier III data.</strong></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.section>
-
-                        {/* Section 2 */}
-                        <motion.section {...fadeIn} className="space-y-8">
-                            <div className="flex items-start gap-6">
-                                <span className="text-4xl font-black text-white/10 shrink-0">02</span>
-                                <div className="space-y-4">
-                                    <h2 className="text-3xl font-bold text-white">AI Assistant & Data Privacy</h2>
-                                    <p className="text-zinc-400 leading-relaxed">Pip AI, the MD-Dash AI assistant, is powered by NVIDIA NIM (Minimax-M3) cloud models. Here's how your data is handled:</p>
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-                                        <div className="space-y-4">
-                                            <h4 className="font-bold text-white underline decoration-indigo-500/50 underline-offset-4">Query Handling</h4>
-                                            <p className="text-sm text-zinc-500">When you interact with Pip AI, your query is sent securely via encrypted API to NVIDIA NIM. We do not store prompts or responses beyond the current session. No training occurs on your data.</p>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <h4 className="font-bold text-white underline decoration-emerald-500/50 underline-offset-4">Data Isolation</h4>
-                                            <p className="text-sm text-zinc-500">Your organizational data — tasks, notes, projects — remains in our encrypted database. Pip AI only sees what you explicitly ask about in each query. We never bulk-export your data to AI providers.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.section>
-
-                        {/* Section 3 */}
-                        <motion.section {...fadeIn} className="space-y-8">
-                            <div className="flex items-start gap-6">
-                                <span className="text-4xl font-black text-white/10 shrink-0">03</span>
-                                <div className="space-y-4">
-                                    <h2 className="text-3xl font-bold text-white">Legal Processing Bases (GDPR/CCPA)</h2>
-                                    <p className="text-zinc-400 leading-relaxed">Under the General Data Protection Regulation (GDPR) and California Consumer Privacy Act (CCPA), we process your information based on the following legal pillars:</p>
-                                    
-                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-none pl-0">
-                                        {[
-                                            { title: "Contractual Necessity", desc: "To provide the operational intelligence features you signed up for." },
-                                            { title: "Legitimate Interest", desc: "To secure the platform against threats and optimize performance." },
-                                            { title: "Explicit Consent", desc: "For optional features like multi-device cloud synchronization." },
-                                            { title: "Legal Obligation", desc: "When required to comply with binding government directives." }
-                                        ].map((base, i) => (
-                                            <li key={i} className="p-4 rounded-xl bg-white/[0.01] border border-white/5 flex gap-3">
-                                                <FiCheckCircle className="text-emerald-500 shrink-0 mt-1" />
-                                                <div>
-                                                    <span className="font-bold text-white block text-sm">{base.title}</span>
-                                                    <span className="text-xs text-zinc-500">{base.desc}</span>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        </motion.section>
-
-                        {/* Section 4 */}
-                        <motion.section {...fadeIn} className="space-y-8">
-                            <div className="flex items-start gap-6">
-                                <span className="text-4xl font-black text-white/10 shrink-0">04</span>
-                                <div className="space-y-4">
-                                    <h2 className="text-3xl font-bold text-white">International Data Transfers</h2>
-                                    <p className="text-zinc-400 leading-relaxed">MD-Dash is a global platform. While your mission data stays local, Tier I and Tier II data may be processed in several jurisdictions. We utilize Standard Contractual Clauses (SCCs) to ensure equivalent protection levels across all boundaries.</p>
-                                    
-                                    <div className="p-8 rounded-[2rem] border border-white/5 bg-zinc-900/50 backdrop-blur-xl">
-                                        <h4 className="font-bold text-white mb-4">Our Subprocessors</h4>
-                                        <table className="w-full text-left text-sm">
-                                            <thead>
-                                                <tr className="border-b border-white/10">
-                                                    <th className="py-4 font-bold text-zinc-400 uppercase tracking-widest text-[10px]">Entity</th>
-                                                    <th className="py-4 font-bold text-zinc-400 uppercase tracking-widest text-[10px]">Purpose</th>
-                                                    <th className="py-4 font-bold text-zinc-400 uppercase tracking-widest text-[10px]">Jurisdiction</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="text-zinc-500">
-                                                <tr className="border-b border-white/5">
-                                                    <td className="py-4 font-medium text-white">Vercel Inc.</td>
-                                                    <td className="py-4">Edge Infrastructure / Frontend Deployment</td>
-                                                    <td className="py-4">United States / Global</td>
-                                                </tr>
-                                                <tr className="border-b border-white/5">
-                                                    <td className="py-4 font-medium text-white">Neon Database</td>
-                                                    <td className="py-4">Serverless PostgreSQL (Metadata Only)</td>
-                                                    <td className="py-4">United States / EU</td>
-                                                </tr>
-                                                <tr>
-                                                    <td className="py-4 font-medium text-white">Clerk.com</td>
-                                                    <td className="py-4">Identity Management / Authentication</td>
-                                                    <td className="py-4">United States</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.section>
-
-                        {/* Section 5 */}
-                        <motion.section {...fadeIn} className="space-y-8">
-                            <div className="flex items-start gap-6">
-                                <span className="text-4xl font-black text-white/10 shrink-0">05</span>
-                                <div className="space-y-4">
-                                    <h2 className="text-3xl font-bold text-white">Your Absolute Rights</h2>
-                                    <p className="text-zinc-400 leading-relaxed">MD-Dash facilitates your right to be forgotten, right to access, and right to portability with automated tooling.</p>
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {[
-                                            "Right to Access Mission Metadata",
-                                            "Right to Rectification of Profile Info",
-                                            "Right to Erasure (Complete System Reset)",
-                                            "Right to Restrict AI Processing",
-                                            "Right to Personal Intelligence Portability",
-                                            "Right to Object to Telemetry Collection"
-                                        ].map((right, i) => (
-                                            <div key={i} className="flex items-center gap-3 p-4 rounded-xl border border-white/5 bg-white/[0.01]">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                                                <span className="text-sm font-medium">{right}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.section>
-                    </div>
-
-                    {/* Final CTA/Contact */}
-                    <motion.div 
-                        {...fadeIn}
-                        className="p-12 rounded-[3rem] bg-indigo-500/10 border border-indigo-500/20 text-center space-y-6"
-                    >
-                        <h2 className="text-3xl font-bold text-white">Privacy Questions?</h2>
-                        <p className="text-zinc-400 max-w-xl mx-auto">If you have questions about your data or privacy, reach out to our team anytime.</p>
-                        <div className="pt-4 space-y-2">
-                            <Link href="mailto:privacy@md-dash.com" className="text-xl font-bold text-indigo-400 hover:text-indigo-300 block transition-colors">
-                                privacy@md-dash.com
-                            </Link>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">MD-Dash — Privacy Team</span>
-                        </div>
-                    </motion.div>
-                </div>
-            </main>
-
-            <footer className="py-20 border-t border-white/5 bg-[#090a0c]/50">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 text-[10px] font-bold uppercase tracking-widest text-zinc-600">
-                    <div className="flex items-center gap-8">
-                        <span>© 2026 MD-Dash</span>
-                        <span>GDPR COMPLIANT</span>
-                        <span>CCPA ALIGNED</span>
-                    </div>
-                    <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-                </div>
-            </footer>
-        </div>
-    );
+  return (
+    <LegalDocument
+      eyebrow="Privacy Policy"
+      title={<>Privacy<br />Policy</>}
+      subtitle="What MyndDesk collects, why, and how you stay in control of it — written in plain language, covering every feature in the product today."
+      lastUpdated="July 31, 2026"
+      meta={['Version 2.0', 'Applies platform-wide']}
+      highlight={{
+        icon: <FiShield />,
+        title: 'The short version',
+        body: "We collect what’s needed to run your workspace — your account, the content you create, and (only if your org enables it) your location for attendance. We never sell your data, and Pip AI only sees what a query needs to answer it.",
+      }}
+      sections={sections}
+      closing={{
+        title: 'Questions about your data?',
+        body: "Reach out any time — whether it’s a rights request, a security report, or you just want clarity on how something works.",
+        email: 'privacy@agbedus.com',
+      }}
+      siblingHref="/terms"
+      siblingLabel="Terms of Use"
+    />
+  );
 }

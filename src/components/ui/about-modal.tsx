@@ -42,18 +42,24 @@ export function AboutModal({ isOpen, onClose, version }: AboutModalProps) {
 
                             <div className="p-10 lg:p-12 text-center space-y-10">
                                 <div className="space-y-6">
-                                    <div className="mx-auto w-28 h-28 rounded-[2rem] bg-foreground/[0.03] flex items-center justify-center border border-card-border relative group">
+                                    <div className="mx-auto flex items-center justify-center relative group">
                                         <div className="absolute inset-0 bg-indigo-500/10 rounded-[2rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        <Image 
-                                            src="/logo.svg" 
-                                            alt="MD Logo" 
-                                            width={72} 
-                                            height={72} 
-                                            className="w-14 h-14 object-contain relative z-10"
+                                        <Image
+                                            src="/mynd_desk_logo_light.png"
+                                            alt="MyndDesk"
+                                            width={1021}
+                                            height={322}
+                                            className="h-12 w-auto object-contain relative z-10 dark:hidden"
+                                        />
+                                        <Image
+                                            src="/mynd_desk_logo_dark.png"
+                                            alt="MyndDesk"
+                                            width={1020}
+                                            height={323}
+                                            className="h-12 w-auto object-contain relative z-10 hidden dark:block"
                                         />
                                     </div>
                                     <div>
-                                        <h2 className="text-3xl font-black text-foreground uppercase tracking-tight">MD Platform</h2>
                                         <div className="flex items-center justify-center gap-2 mt-4 font-numbers">
                                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">Core Version</span>
                                             <span className="px-3 py-0.5 rounded-full bg-indigo-500 text-white text-[10px] font-black uppercase tracking-wider shadow-sm">{version}</span>
@@ -94,7 +100,7 @@ export function AboutModal({ isOpen, onClose, version }: AboutModalProps) {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em]">
-                                            © 2026 MD TECHNOLOGIES
+                                            © 2026 MYNDDESK
                                         </p>
                                         <p className="text-[8px] font-bold text-text-muted/30 uppercase tracking-[0.2em]">
                                             ALL RIGHTS RESERVED • SUPRA-LEVEL SECURITY ENFORCED

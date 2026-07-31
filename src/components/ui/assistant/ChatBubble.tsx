@@ -65,7 +65,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
     const a = document.createElement('a');
     const dateStr = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = `md-dash-report-${dateStr}.md`;
+    a.download = `mynddesk-report-${dateStr}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };

@@ -28,7 +28,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "MD Platform",
+  title: "MyndDesk",
   description: "A bespoke, secure, and intelligent productivity platform.",
   icons: {
     icon: "/logo.svg",

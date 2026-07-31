@@ -30,7 +30,8 @@ export default auth((req) => {
 
     const isLandingPage = nextUrl.pathname === '/';
     const isWiki = nextUrl.pathname.startsWith('/wiki');
-    const isPublicRoute = isLandingPage || isWiki || nextUrl.pathname.startsWith('/invite') || nextUrl.pathname.startsWith('/api') || nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.startsWith('/static') || nextUrl.pathname.includes('.');
+    const isLegal = nextUrl.pathname.startsWith('/privacy') || nextUrl.pathname.startsWith('/terms');
+    const isPublicRoute = isLandingPage || isWiki || isLegal || nextUrl.pathname.startsWith('/invite') || nextUrl.pathname.startsWith('/api') || nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.startsWith('/static') || nextUrl.pathname.includes('.');
 
     if (isLandingPage && isLoggedIn && nextUrl.searchParams.get('home') !== 'true') {
         return Response.redirect(new URL('/dashboard', nextUrl));

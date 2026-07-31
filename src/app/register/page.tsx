@@ -77,7 +77,7 @@ function RegisterView() {
               animate={{ y: [0, -3, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <Image src="/logo.svg" alt="MD Logo" width={44} height={44} className="w-11 h-11" priority />
+              <Image src="/logo.svg" alt="MyndDesk" width={44} height={44} className="w-11 h-11" priority />
             </motion.div>
           </Link>
         </motion.div>

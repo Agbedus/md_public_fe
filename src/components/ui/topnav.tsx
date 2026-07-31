@@ -117,7 +117,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
              <div className="p-1.5 bg-background/50 rounded-lg border border-card-border">
                <Image 
                  src="/logo.svg" 
-                 alt="MD Logo" 
+                 alt="MyndDesk" 
                  width={24} 
                  height={24} 
                  className="w-6 h-6 object-contain"

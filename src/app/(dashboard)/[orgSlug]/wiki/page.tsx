@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
     FiBookOpen,
@@ -319,6 +320,8 @@ export default function WikiPage() {
             {/* Sidebar */}
             <aside className="hidden w-72 shrink-0 flex-col border-r border-card-border lg:flex">
                 <div className="space-y-4 border-b border-card-border p-5">
+                    <Image src="/mynd_desk_logo_light.png" alt="MyndDesk" width={1021} height={322} className="h-6 w-auto dark:hidden" />
+                    <Image src="/mynd_desk_logo_dark.png" alt="MyndDesk" width={1020} height={323} className="h-6 w-auto hidden dark:block" />
                     <button
                         onClick={() => router.back()}
                         className="group flex items-center gap-1.5 text-xs font-medium text-text-muted transition-colors hover:text-foreground"

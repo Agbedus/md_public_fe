@@ -124,7 +124,7 @@ export default function InvitePage() {
       >
         <motion.div variants={item as Variants} className="flex justify-center mb-10">
           <Link href="/" className="block group">
-            <Image src="/logo.svg" alt="MD Logo" width={44} height={44} className="w-11 h-11" priority />
+            <Image src="/logo.svg" alt="MyndDesk" width={44} height={44} className="w-11 h-11" priority />
           </Link>
         </motion.div>
 
@@ -166,7 +166,7 @@ export default function InvitePage() {
             <div className="space-y-2">
               <h1 className="text-2xl font-semibold text-foreground">You&apos;re Invited!</h1>
               <p className="text-sm text-text-muted">
-                Join <span className="font-semibold text-foreground">{orgInfo.name}</span> on MD Platform
+                Join <span className="font-semibold text-foreground">{orgInfo.name}</span> on MyndDesk
               </p>
             </div>
 

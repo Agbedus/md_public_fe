@@ -167,7 +167,7 @@ export default function LandingPage() {
     const faqs = [
         {
             q: "How does the AI assistant protect my data?",
-            a: "MD-Dash leverages NVIDIA cloud AI (Minimax-M3) for intelligent assistance while keeping your raw data secure. All dashboard data is processed through encrypted API calls, and your privacy remains protected."
+            a: "MyndDesk leverages NVIDIA cloud AI (Minimax-M3) for intelligent assistance while keeping your raw data secure. All dashboard data is processed through encrypted API calls, and your privacy remains protected."
         },
         {
             q: "How does attendance geo-fencing work?",
@@ -199,10 +199,7 @@ export default function LandingPage() {
             <nav className="fixed top-0 inset-x-0 z-50 transition-all duration-300 px-6 pt-6">
                 <div className="max-w-5xl mx-auto rounded-full bg-[#13161b]/70 backdrop-blur-xl border border-white/[0.07] px-6 py-3 flex items-center justify-between shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] shadow-lg shadow-black/20">
                     <Link href="/" className="flex items-center gap-3">
-                        <Image src="/logo.svg" alt="MD Logo" width={26} height={26} className="w-6.5 h-6.5" />
-                        <span className="text-base font-bold tracking-tightest font-sora text-white">
-                            MD<span className="text-emerald-400">Dash</span>
-                        </span>
+                        <Image src="/mynd_desk_logo_dark.png" alt="MyndDesk" width={1020} height={323} className="h-7 w-auto" priority />
                     </Link>
 
                     <div className="hidden md:flex items-center gap-8 font-dm-sans text-xs font-semibold">
@@ -1170,8 +1167,7 @@ export default function LandingPage() {
                     <div className="flex flex-col md:flex-row items-start justify-between gap-12 pb-16 text-left">
                         <div className="space-y-6">
                             <Link href="/" className="flex items-center gap-3">
-                                <Image src="/logo.svg" alt="MD Logo" width={28} height={28} />
-                                <span className="text-xl font-bold tracking-tightest font-sora">MD<span className="text-emerald-400">Dash</span></span>
+                                <Image src="/mynd_desk_logo_dark.png" alt="MyndDesk" width={1020} height={323} className="h-12 w-auto" />
                             </Link>
                             <p className="text-zinc-500 text-sm max-w-xs leading-relaxed font-dm-sans">One workspace for attendance, projects, people and everything in between.</p>
                         </div>
@@ -1198,7 +1194,7 @@ export default function LandingPage() {
                             <div className="space-y-4">
                                 <h4 className="text-white">Connect</h4>
                                 <ul className="space-y-2 text-zinc-500">
-                                    <li><Link href="mailto:intelligence@md-dash.com" className="hover:text-emerald-300 transition-colors">Contact</Link></li>
+                                    <li><Link href="mailto:intelligence@agbedus.com" className="hover:text-emerald-300 transition-colors">Contact</Link></li>
                                     <li><Link href="#" className="hover:text-emerald-300 transition-colors">LinkedIn</Link></li>
                                     <li><Link href="#" className="hover:text-emerald-300 transition-colors">X / Twitter</Link></li>
                                 </ul>
@@ -1206,7 +1202,7 @@ export default function LandingPage() {
                         </div>
                     </div>
                     <div className="pt-8 border-t border-white/[0.04] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-600 font-sora">
-                        <span>© 2026 MD-DASH. ALL RIGHTS RESERVED.</span>
+                        <span>© 2026 MYNDDESK. ALL RIGHTS RESERVED.</span>
                         <div className="flex gap-6 text-zinc-500">
                             <span className="text-emerald-400/50">SYSTEM STATUS: OPTIMAL</span>
                             <span>VERSION 1.2.0</span>

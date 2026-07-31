@@ -181,7 +181,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
             <div className="w-10 h-10 p-1 bg-foreground/[0.04] rounded-lg border border-card-border flex items-center justify-center shrink-0">
               <Image 
                 src="/logo.svg" 
-                alt="MD Logo" 
+                alt="MyndDesk" 
                 width={32} 
                 height={32} 
                 className="w-8 h-8 object-contain"
@@ -392,6 +392,14 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
                 Beta
             </span>
         </div>
+
+        {!isSidebarCollapsed && (
+          <div className="px-6 pb-2 flex items-center gap-3 text-[11px] text-text-muted">
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <span className="text-text-muted/40">·</span>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+          </div>
+        )}
 
         <AboutModal 
             isOpen={isAboutOpen} 
