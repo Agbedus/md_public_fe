@@ -233,9 +233,9 @@ export default function AssistantPage() {
                     <button
                     key={idx}
                     onClick={() => handleSendMessage(item.action)}
-                    className="flex flex-col items-start p-5 bg-card border border-card-border rounded-2xl shadow-sm hover:bg-foreground/[0.03] hover:border-indigo-500/30 transition-all active:scale-[0.98] text-left group"
+                    className="flex flex-col items-start p-5 bg-card border border-card-border rounded-2xl shadow-sm hover:bg-foreground/[0.03] hover:border-foreground/20 transition-all active:scale-[0.98] text-left group"
                     >
-                    <div className="p-2.5 bg-foreground/[0.04] border border-card-border text-text-muted group-hover:text-indigo-400 group-hover:border-indigo-500/30 rounded-xl mb-3 transition-colors">
+                    <div className="p-2.5 bg-foreground/[0.04] border border-card-border text-text-muted group-hover:text-foreground group-hover:border-foreground/20 rounded-xl mb-3 transition-colors">
                         <item.icon className="w-5 h-5" />
                     </div>
                     <h3 className="text-sm font-bold text-foreground mb-1 uppercase tracking-wider">{item.title}</h3>

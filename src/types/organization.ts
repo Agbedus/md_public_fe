@@ -50,10 +50,6 @@ export function toOrgRole(raw: string | null | undefined): OrgRole | null {
   return LEGACY_ROLE_ALIASES[key] ?? null;
 }
 
-/** Anything that should gate org-administration actions (backend: ORG_ADMIN_ROLES). */
-export const PRIVILEGED_ORG_ROLES: string[] = ["OWNER", "ADMIN"];
-export const PRIVILEGED_ORG_ROLES_LOWER: string[] = ["owner", "admin"];
-
 export function isPrivilegedOrgRole(role: string | null | undefined): boolean {
   const normalized = toOrgRole(role);
   return normalized === "owner" || normalized === "admin";
@@ -108,6 +104,8 @@ export interface UserBrief {
   email: string;
   full_name?: string | null;
   avatar_url?: string | null;
+  phone?: string | null;
+  job_title?: string | null;
 }
 
 export interface OrganizationMembershipWithUser {

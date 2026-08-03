@@ -53,7 +53,7 @@ export default function AttendancePageClient({
         revalidateOnFocus: true
     });
 
-    const { data: liveTeamHistory } = useSWR(canReadRawRecords ? 'team-attendance-history' : null, getTeamAttendanceHistory, {
+    const { data: liveTeamHistory } = useSWR(isManager ? 'team-attendance-history' : null, getTeamAttendanceHistory, {
         fallbackData: teamHistory,
         revalidateOnFocus: true
     });
@@ -106,7 +106,7 @@ export default function AttendancePageClient({
                     >
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             <AttendanceStatusCard record={myToday} />
-                            <div className="h-full min-h-[400px] glass rounded-[32px] border border-card-border overflow-hidden relative" style={{ isolation: 'isolate' }}>
+                            <div className="h-full min-h-[400px] glass rounded-2xl border border-card-border overflow-hidden relative" style={{ isolation: 'isolate' }}>
                                 <AttendanceMap officeLocations={officeLocations} />
                             </div>
                         </div>
@@ -125,6 +125,7 @@ export default function AttendancePageClient({
                             initialRecords={liveTeamToday || []}
                             initialHistory={liveTeamHistory || []}
                             users={users}
+                            isManager={isManager}
                             isAdmin={isAdmin}
                             currentUserId={currentUserId}
                         />

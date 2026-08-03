@@ -334,7 +334,7 @@ export default function WeekGrid({ date, events = [], onSelectDateTime, onEventC
               initial={{ opacity: 0, scale: 0.9, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
-              className="w-full max-w-md bg-background/80 border border-card-border rounded-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] backdrop-blur-md p-6 pointer-events-auto flex flex-col gap-4 overflow-hidden max-h-[80vh]"
+              className="w-full max-w-md bg-background/80 border border-card-border rounded-3xl backdrop-blur-md p-6 pointer-events-auto flex flex-col gap-4 overflow-hidden max-h-[80vh]"
             >
               <div className="flex items-center justify-between">
                 <div>

@@ -196,7 +196,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
                 <button
                     type="button"
                     onClick={toggleRecording}
-                    className={`p-2 rounded-full transition-all duration-200 ${isRecording ? 'bg-rose-500/20 text-rose-400 animate-pulse' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06]'}`}
+                    className={`p-2 rounded-full transition-all duration-200 ${isRecording ? 'bg-foreground/[0.1] text-foreground animate-pulse' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06]'}`}
                     aria-pressed={isRecording}
                     aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
                     title={isRecording ? 'Stop' : 'Voice'}
@@ -209,22 +209,26 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
                 <button
                     type="button"
                     onClick={onStop}
-                    className="p-2.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-full hover:bg-rose-500/20 transition-all duration-200 flex items-center gap-1.5 text-[10px] font-bold"
+                    className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 shrink-0"
                     aria-label="Stop generating"
                     title="Stop"
                 >
-                    <FiSquare className="w-4 h-4 fill-current" />
+                    <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+                        <FiSquare className="w-4 h-4 text-rose-500 fill-current" />
+                    </span>
                 </button>
             ) : (
                 <button
                     type="button"
                     onClick={handleSend}
                     disabled={!displayValue.trim()}
-                    className="p-2.5 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-all duration-200 focus:outline-none active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                    className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0"
                     aria-label="Send message"
                     title="Send"
                 >
-                    <FiSend className="w-4 h-4 ml-0.5"/>
+                    <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+                        <FiSend className="w-4 h-4"/>
+                    </span>
                 </button>
             )}
           </div>

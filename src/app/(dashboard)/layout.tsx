@@ -5,6 +5,7 @@ import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getOrganizations } from "@/lib/org-actions";
+import { getFreshAvatarUrl } from "@/lib/server-auth";
 import type { OrgBrief } from "@/types/organization";
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
@@ -46,6 +47,12 @@ export default async function DashboardRouteLayout({
     // Silently fail — the sidebar will render without org switcher
   }
 
+  // session.user.image is a login-time snapshot baked into the JWT. Overlay the
+  // live value so an avatar changed from the Team page (or Profile) shows up
+  // without forcing a re-login.
+  const freshAvatarUrl = await getFreshAvatarUrl();
+  const chromeUser = { ...session.user, image: freshAvatarUrl ?? session.user.image };
+
   const orgSlug = session.user.orgSlug;
   if (orgSlug) {
     try {
@@ -59,10 +66,10 @@ export default async function DashboardRouteLayout({
   }
 
   return (
-    <DashboardLayout 
-      sidebar={<Sidebar user={session.user} organizations={organizations} currentOrgId={session.user.currentOrganizationId} orgSlug={orgSlug} />}
-      topnav={<TopNav user={session.user} orgSlug={orgSlug} organizations={organizations} currentOrgId={session.user.currentOrganizationId} />}
-      user={session.user}
+    <DashboardLayout
+      sidebar={<Sidebar user={chromeUser} organizations={organizations} currentOrgId={session.user.currentOrganizationId} orgSlug={orgSlug} />}
+      topnav={<TopNav user={chromeUser} orgSlug={orgSlug} organizations={organizations} currentOrgId={session.user.currentOrganizationId} />}
+      user={chromeUser}
       orgSlug={orgSlug}
     >
       {children}

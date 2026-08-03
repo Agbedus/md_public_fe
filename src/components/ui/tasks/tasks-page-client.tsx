@@ -958,7 +958,7 @@ export default function TasksPageClient({
                   <tr className="border-b border-card-border bg-foreground/[0.03] text-left">
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky left-0 z-20 bg-card/90 backdrop-blur-md border-r border-card-border"
+                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky left-0 z-20 bg-card border-r border-card-border"
                     >
                       Name
                     </th>
@@ -1024,7 +1024,7 @@ export default function TasksPageClient({
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky right-0 z-20 bg-card/90 backdrop-blur-md border-l border-card-border"
+                      className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky right-0 z-20 bg-card border-l border-card-border"
                     >
                       Actions
                     </th>
@@ -1051,7 +1051,7 @@ export default function TasksPageClient({
 
                     {isLoadingMore && (
                       <tr className="bg-foreground/[0.01] animate-pulse">
-                        <td className="px-6 py-4 sticky left-0 z-20 bg-card/90 backdrop-blur-md border-r border-card-border">
+                        <td className="px-6 py-4 sticky left-0 z-20 bg-card border-r border-card-border">
                           <div className="h-4 w-32 bg-foreground/10 rounded-lg"></div>
                         </td>
                         <td className="px-6 py-4 hidden lg:table-cell">
@@ -1087,7 +1087,7 @@ export default function TasksPageClient({
                         <td className="px-6 py-4">
                           <div className="h-4 w-24 bg-foreground/5 rounded-lg"></div>
                         </td>
-                        <td className="px-6 py-4 sticky right-0 z-20 bg-card/90 backdrop-blur-md border-l border-card-border">
+                        <td className="px-6 py-4 sticky right-0 z-20 bg-card border-l border-card-border">
                           <div className="h-8 w-8 ml-auto rounded-lg bg-foreground/5"></div>
                         </td>
                       </tr>
@@ -1105,7 +1105,7 @@ export default function TasksPageClient({
                       >
                         {/* Name and description match the widths these columns already
                                                     use when displaying a task, so there is room to type. */}
-                        <td className="px-4 py-2 sticky left-0 z-10 bg-card/95 backdrop-blur-md border-r border-card-border min-w-[250px]">
+                        <td className="px-4 py-2 sticky left-0 z-10 bg-card border-r border-card-border min-w-[250px]">
                           <form
                             id="create-task-form"
                             onSubmit={handleCreateSubmit}
@@ -1147,7 +1147,7 @@ export default function TasksPageClient({
                         <td className="px-4 py-2 bg-foreground/[0.03]">
                           {createDependsOnField}
                         </td>
-                        <td className="px-4 py-2 text-right text-xs font-medium sticky right-0 z-10 bg-card/95 backdrop-blur-md border-l border-card-border">
+                        <td className="px-4 py-2 text-right text-xs font-medium sticky right-0 z-10 bg-card border-l border-card-border">
                           <div className="flex items-center justify-end space-x-2">
                             <button
                               type="button"

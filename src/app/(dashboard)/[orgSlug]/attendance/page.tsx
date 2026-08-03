@@ -35,9 +35,13 @@ export default async function AttendancePage() {
         getUsersSafe(),
     ]);
 
-    // Conditionally fetch manager/admin data
+    // Conditionally fetch manager/admin data. Team *history* is a MANAGER-tier
+    // read (matching get_current_org_manager on /attendance/{user_id}/history),
+    // not a platform-SUPER_ADMIN-only one — canReadRawRecords only decides
+    // whether getTeamAttendanceHistory() takes the fast /admin/all-records path
+    // or the per-user fallback, it never gated *whether* to fetch at all.
     const teamToday = isManager ? await getTeamAttendanceToday() : [];
-    const teamHistory = canReadRawRecords ? await getTeamAttendanceHistory() : [];
+    const teamHistory = isManager ? await getTeamAttendanceHistory() : [];
     const officeLocations = isManager ? await getOfficeLocations() : [];
 
     return (

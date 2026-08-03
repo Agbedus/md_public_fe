@@ -4,16 +4,19 @@ import React, { useState, useTransition, useRef, useEffect, useLayoutEffect } fr
 import Image from 'next/image';
 import type { OrganizationMembershipWithUser, OrgRole, MembershipStatus } from '@/types/organization';
 import { isPrivilegedOrgRole, toOrgRole } from '@/types/organization';
-import { FiShield, FiStar, FiUser, FiUserCheck, FiEye, FiClock, FiXCircle, FiCheck, FiUserPlus, FiUserX, FiLink, FiCopy, FiSend, FiChevronDown, FiAlertTriangle, FiTrash2, FiPause, FiPlay, FiSearch, FiFilter } from 'react-icons/fi';
+import { FiShield, FiStar, FiUser, FiUserCheck, FiEye, FiClock, FiXCircle, FiCheck, FiUserPlus, FiUserX, FiLink, FiCopy, FiSend, FiChevronDown, FiAlertTriangle, FiTrash2, FiPause, FiPlay, FiSearch, FiFilter, FiEdit2 } from 'react-icons/fi';
 import { approveMember, rejectMember as rejectMemberAction, updateMemberRole, suspendMember, removeMember as removeMemberAction } from '@/app/(dashboard)/[orgSlug]/team/actions';
+import { canEditMemberProfile } from '@/lib/org-permissions';
 import { toast } from '@/lib/toast';
 import { InviteMemberModal } from '@/components/ui/invite-member-modal';
+import { MemberEditModal } from '@/components/ui/team/member-edit-modal';
 import { Portal } from '@/components/ui/portal';
 
 interface TeamPageClientProps {
   members: OrganizationMembershipWithUser[];
   currentUserId: string;
   currentOrgRole: string | null;
+  currentUserRoles?: string[];
   inviteCode: string | null;
   isSuperAdmin: boolean;
 }
@@ -195,14 +198,36 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
   );
 }
 
-export default function TeamPageClient({ members, currentUserId, currentOrgRole, inviteCode, isSuperAdmin }: TeamPageClientProps) {
+export default function TeamPageClient({ members, currentUserId, currentOrgRole, currentUserRoles, inviteCode, isSuperAdmin }: TeamPageClientProps) {
   const [isPending, startTransition] = useTransition();
   const [localMembers, setLocalMembers] = useState(members);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const canManage = isPrivilegedOrgRole(currentOrgRole) || isSuperAdmin;
   const isOwner = currentOrgRole === 'owner';
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<OrganizationMembershipWithUser | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ userId: string; name: string; action: 'remove' | 'suspend' } | null>(null);
+
+  /**
+   * Profile edits follow a *different* rule from role/status management: they
+   * flow down the chain (see `canEditMemberProfile`), so a MANAGER can edit a
+   * MEMBER even though they can't change roles at all, and everyone can edit
+   * themselves.
+   */
+  const canEditProfileOf = (member: OrganizationMembershipWithUser): boolean =>
+    canEditMemberProfile(
+      { id: currentUserId, roles: currentUserRoles, orgRole: currentOrgRole },
+      { id: member.user_id, orgRole: member.role },
+    );
+
+  const applyProfilePatch = (
+    userId: string,
+    patch: { full_name?: string; job_title?: string; avatar_url?: string },
+  ) => {
+    setLocalMembers(prev =>
+      prev.map(m => (m.user_id === userId ? { ...m, user: { ...m.user, ...patch } } : m)),
+    );
+  };
 
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -418,17 +443,29 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
         onClose={() => setInviteModalOpen(false)}
       />
 
+      {editingMember && (
+        <MemberEditModal
+          member={editingMember}
+          isSelf={editingMember.user_id === currentUserId}
+          onClose={() => setEditingMember(null)}
+          onSaved={(patch) => applyProfilePatch(editingMember.user_id, patch)}
+        />
+      )}
+
       {sorted.length === 0 ? (
         <div className="bg-card border border-card-border rounded-2xl px-5 py-12 text-center">
           <FiUser className="mx-auto text-text-muted/40 mb-3" size={32} />
           <p className="text-text-muted">No team members found</p>
         </div>
       ) : (
-        <div className="bg-card border border-card-border rounded-2xl overflow-hidden">
+        <div className="bg-card border border-card-border rounded-2xl overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-card-border bg-foreground/[0.02]">
                 <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Member</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Job Title</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Email</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Phone</th>
                 <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Role</th>
                 <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Status</th>
                 <th className="text-right px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Actions</th>
@@ -460,20 +497,35 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                             </div>
                           )}
                         </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-medium text-foreground">
-                              {m.user.full_name || m.user.email.split('@')[0]}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-medium text-foreground whitespace-nowrap">
+                            {m.user.full_name || m.user.email.split('@')[0]}
+                          </span>
+                          {isCurrentUser && (
+                            <span className="text-[10px] font-medium text-text-muted bg-foreground/[0.05] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                              You
                             </span>
-                            {isCurrentUser && (
-                              <span className="text-[10px] font-medium text-text-muted bg-foreground/[0.05] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                                You
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-text-muted mt-0.5">{m.user.email}</p>
+                          )}
                         </div>
                       </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs text-text-secondary whitespace-nowrap">
+                        {m.user.job_title || '—'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <a
+                        href={`mailto:${m.user.email}`}
+                        className="text-xs text-text-muted hover:text-foreground transition-colors whitespace-nowrap"
+                      >
+                        {m.user.email}
+                      </a>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs text-text-muted whitespace-nowrap">
+                        {m.user.phone || '—'}
+                      </span>
                     </td>
                     <td className="px-5 py-3">
                       {mayAct ? (
@@ -498,6 +550,15 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-1">
+                        {canEditProfileOf(m) && (
+                          <button
+                            onClick={() => setEditingMember(m)}
+                            className="p-1.5 rounded-lg bg-foreground/[0.03] text-text-muted hover:text-foreground hover:bg-foreground/[0.06] border border-card-border transition-all"
+                            title={isCurrentUser ? 'Edit your profile' : 'Edit member profile'}
+                          >
+                            <FiEdit2 size={14} />
+                          </button>
+                        )}
                         {canManage && m.status === 'pending' && (
                           <>
                             <button

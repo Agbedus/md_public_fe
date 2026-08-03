@@ -126,21 +126,21 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
   /* ---------------- Menus ---------------- */
 
   const mainMenuItems = [
-    { href: "/dashboard", icon: FiHome, label: "Dashboard", color: "text-blue-400" },
-    { href: "/tasks", icon: FiCheckSquare, label: "Tasks", color: "text-purple-400" },
-    { href: "/projects", icon: FiBriefcase, label: "Projects", color: "text-pink-400" },
-    { href: "/notes", icon: FiFileText, label: "Notes", color: "text-yellow-400" },
-    { href: "/calendar", icon: FiCalendar, label: "Calendar", color: "text-green-400" },
+    { href: "/dashboard", icon: FiHome, label: "Dashboard", color: "text-blue-400", tourId: "dashboard" },
+    { href: "/tasks", icon: FiCheckSquare, label: "Tasks", color: "text-purple-400", tourId: "tasks" },
+    { href: "/projects", icon: FiBriefcase, label: "Projects", color: "text-pink-400", tourId: "projects" },
+    { href: "/notes", icon: FiFileText, label: "Notes", color: "text-yellow-400", tourId: "notes" },
+    { href: "/calendar", icon: FiCalendar, label: "Calendar", color: "text-green-400", tourId: "calendar" },
   ];
 
   const toolMenuItems = [
-    { href: "/team", icon: FiUsers, label: "Team", color: "text-teal-400" },
-    { href: "/attendance", icon: FiMapPin, label: "Attendance", color: "text-sky-400" },
+    { href: "/team", icon: FiUsers, label: "Team", color: "text-teal-400", tourId: "team" },
+    { href: "/attendance", icon: FiMapPin, label: "Attendance", color: "text-sky-400", tourId: "attendance" },
     { href: "/focus", icon: FiClock, label: "Focus Mode", color: "text-orange-400" },
   ];
 
   const systemMenuItems = [
-    { href: "/wiki", icon: FiBookOpen, label: "Wiki", color: "text-emerald-400" },
+    { href: "/wiki", icon: FiBookOpen, label: "Wiki", color: "text-emerald-400", tourId: "wiki" },
   ];
 
   const renderMenuItem = (item: any) => {
@@ -150,6 +150,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
       <Link
         key={item.href}
         href={href}
+        data-tour={item.tourId}
         className={`${baseLinkClasses} ${
           isActive ? activeLinkClasses : inactiveLinkClasses
         } ${itemAlignmentClass} ${iconSpacingClass}`}
@@ -363,8 +364,9 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
             </div>
 
             {!isSidebarCollapsed && (
-              <Link 
+              <Link
                 href={orgSlug ? `/${orgSlug}/settings` : "/settings"}
+                data-tour="settings"
                 className="p-2 hover:bg-blue-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors text-text-muted hover:text-foreground shrink-0 ml-auto flex items-center justify-center"
                 title="Settings"
               >

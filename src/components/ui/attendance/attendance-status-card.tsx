@@ -107,7 +107,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
     }, [location, officeLocation]);
 
     return (
-        <div className="glass p-6 rounded-[32px] border border-card-border flex flex-col gap-6 relative overflow-hidden">
+        <div className="glass p-6 rounded-2xl border border-card-border flex flex-col gap-6 relative overflow-hidden">
             {/* Background Gradient */}
             <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[80px] opacity-20 ${pColors.bg}`} />
             
@@ -141,7 +141,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                     <button
                         onClick={refreshLocation}
                         disabled={isLoading}
-                        title="Acquire Precision GPS"
+                        title="Refresh your GPS location"
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
                             isPolling || isLoading 
                                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 animate-pulse' 
@@ -196,8 +196,8 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                         className="group relative w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl bg-emerald-500 text-emerald-950 hover:bg-emerald-400 active:scale-[0.96] transition-all duration-500 shadow-lg shadow-emerald-500/20"
                     >
                         <FiClock className="w-4 h-4" />
-                        <span className="text-base font-black uppercase tracking-wider italic leading-none">
-                            {isLoading ? 'Relocating...' : 'Clock In'}
+                        <span className="text-sm font-bold uppercase tracking-wide leading-none">
+                            {isLoading ? 'Locating...' : 'Clock In'}
                         </span>
                     </button>
                 ) : (
@@ -214,7 +214,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                                     className="group w-full h-full flex items-center justify-center gap-3 rounded-2xl bg-foreground/[0.03] border border-card-border text-foreground hover:bg-foreground/[0.06] active:scale-[0.98] transition-all duration-300"
                                 >
                                     <FiX className="w-4 h-4 group-hover:text-rose-400 transition-colors" />
-                                    <span className="text-base font-black uppercase tracking-wider italic leading-none">
+                                    <span className="text-sm font-bold uppercase tracking-wide leading-none">
                                         {isLoading ? 'Syncing...' : 'Clock Out'}
                                     </span>
                                 </motion.button>
@@ -270,7 +270,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                 <div className="flex flex-col items-center justify-center py-4 bg-foreground/[0.02]">
                     <span className="text-[8px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5 mb-1">
                         <FiActivity className="text-emerald-500/60 w-2.5 h-2.5" />
-                        Pulse
+                        Last update
                     </span>
                     <p className="text-2xl font-numbers font-black text-foreground tracking-tighter" suppressHydrationWarning>
                         {mounted && latestPulse ? latestPulse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
@@ -280,7 +280,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                 <div className="flex flex-col items-center justify-center py-4 bg-foreground/[0.02] border-x border-card-border">
                     <span className="text-[8px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5 mb-1">
                         <FiNavigation className="text-sky-500/60 w-2.5 h-2.5" />
-                        Range
+                        Distance
                     </span>
                     <p className="text-2xl font-numbers font-black text-foreground tracking-tighter">
                         {distance !== null ? formatDistance(distance) : '—'}
@@ -290,7 +290,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                 <div className="flex flex-col items-center justify-center py-4 bg-foreground/[0.02]">
                     <span className="text-[8px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5 mb-1">
                         <FiTarget className="text-rose-500/60 w-2.5 h-2.5" />
-                        Prec.
+                        Accuracy
                     </span>
                     <p className="text-2xl font-numbers font-black text-foreground tracking-tighter">
                         {location?.accuracy ? `${Math.round(location.accuracy)}m` : '—'}
@@ -306,7 +306,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                 >
                     <span className="flex items-center gap-2">
                         <div className={`w-1 h-1 rounded-full ${isLoading || isPolling ? 'bg-emerald-500 animate-pulse' : 'bg-text-muted'}`} />
-                        Telemetry Details
+                        More details
                     </span>
                     {showMetadata ? <FiChevronUp /> : <FiChevronDown />}
                 </button>
@@ -321,7 +321,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                         >
                             <div className="pt-4 grid grid-cols-2 gap-y-4">
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Active Duty</span>
+                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Time today</span>
                                     <span className="text-xs font-numbers text-foreground font-medium tracking-tight">
                                         {mounted ? (
                                             (() => {
@@ -343,21 +343,21 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                                     </span>
                                 </div>
                                 <div className="flex flex-col gap-0.5 items-end">
-                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Confirmed Entry</span>
+                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Clocked in at</span>
                                     <span className="text-xs font-numbers text-foreground font-medium tracking-tight" suppressHydrationWarning>
                                         {mounted && liveRecord?.first_seen_in_office_at ? new Date(liveRecord.first_seen_in_office_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Waiting...'}
                                     </span>
                                 </div>
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Geo Coordinates</span>
+                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Coordinates</span>
                                     <span className="text-[10px] font-numbers text-text-secondary font-medium tracking-tight">
-                                        {location ? `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : 'Scanning...'}
+                                        {location ? `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : 'Locating...'}
                                     </span>
                                 </div>
                                 <div className="flex flex-col gap-0.5 items-end">
-                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Link Status</span>
+                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Connection</span>
                                     <span className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest flex items-center gap-1.5">
-                                        Secure
+                                        Encrypted
                                         <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
                                     </span>
                                 </div>

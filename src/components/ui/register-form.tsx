@@ -2,12 +2,18 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { register } from '@/app/lib/actions';
-import { FiUser, FiMail, FiLock, FiArrowRight, FiArrowLeft, FiLoader, FiEye, FiEyeOff, FiBriefcase, FiLink, FiCheck, FiGlobe, FiPhone } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiArrowRight, FiArrowLeft, FiLoader, FiEye, FiEyeOff, FiBriefcase, FiLink, FiCheck, FiGlobe, FiPhone, FiXCircle } from 'react-icons/fi';
 import Link from 'next/link';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { toast } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import { ALL_COUNTRIES, CODE_TO_DIAL, getFlagEmoji } from '@/lib/countries';
+
+// Public, unauthenticated lookup — same endpoint and same client-exposed base
+// URL the standalone /invite page already uses to preview an invite before
+// the visitor has an account.
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL_LOCAL || process.env.NEXT_PUBLIC_BASE_URL_PRODUCTION || 'http://127.0.0.1:8000';
+const API_BASE_URL = `${BASE_URL}/api/v1`;
 
 const STEPS = [
   { num: 1, label: 'Account' },
@@ -224,6 +230,7 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
   const [step, setStep] = useState(1);
   const [isPending, setIsPending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -242,6 +249,8 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
   const [orgCountry, setOrgCountry] = useState(() => ALL_COUNTRIES.find((c) => c.code === 'GH')?.name || 'Ghana');
   const [orgPhone, setOrgPhone] = useState('');
   const [inviteCode, setInviteCode] = useState(initialInviteCode || '');
+  const [inviteStatus, setInviteStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const [inviteOrgName, setInviteOrgName] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
@@ -254,6 +263,47 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
       setOrgCountry(country.name);
     }
   }, [phoneCode]);
+
+  // Verify the invite code actually resolves to an organization before letting
+  // the visitor proceed — debounced so we're not hammering the endpoint on
+  // every keystroke. Uses the same public GET /organizations/by-invite/{code}
+  // the standalone /invite page already relies on; no auth needed.
+  useEffect(() => {
+    if (orgAction !== 'join') return;
+    const code = inviteCode.trim();
+    if (!code) {
+      setInviteStatus('idle');
+      setInviteOrgName(null);
+      return;
+    }
+
+    setInviteStatus('checking');
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/organizations/by-invite/${encodeURIComponent(code)}`, {
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setInviteOrgName(data.name || null);
+          setInviteStatus('valid');
+        } else {
+          setInviteOrgName(null);
+          setInviteStatus('invalid');
+        }
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+        setInviteOrgName(null);
+        setInviteStatus('invalid');
+      }
+    }, 450);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [inviteCode, orgAction]);
 
   useEffect(() => {
     if (slugManuallyEdited) return;
@@ -281,7 +331,13 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
         if (!validateEmail(email)) newErrors.email = 'Invalid email address';
       } else {
         if (!inviteCode) newErrors.inviteCode = 'Invite code is required';
+        else if (inviteStatus === 'checking') newErrors.inviteCode = 'Still checking this code — wait a moment';
+        else if (inviteStatus !== 'valid') newErrors.inviteCode = 'No organization found with this invite code';
       }
+    }
+
+    if (s === 3) {
+      if (!agreedToTerms) newErrors.agreedToTerms = 'You must agree to the Terms of Use and Privacy Policy';
     }
 
     setErrors(newErrors);
@@ -313,6 +369,7 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
     formData.append('password', password);
     if (phone) formData.append('phone', `+${phoneDial}${phone}`);
     if (jobTitle) formData.append('jobTitle', jobTitle);
+    formData.append('agreedToTerms', String(agreedToTerms));
 
     if (orgAction) formData.append('orgAction', orgAction);
     if (orgAction === 'create') {
@@ -737,15 +794,41 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
                           <FiLink className="h-4 w-4 text-text-muted" />
                         </div>
                         <input
-                          className={`${inputClass(errors.inviteCode)} tracking-wider uppercase font-mono`}
+                          className={`${inputClass(errors.inviteCode)} tracking-wider uppercase font-mono pr-11`}
                           id="inviteCode"
                           type="text"
                           value={inviteCode}
                           onChange={(e) => setInviteCode(e.target.value)}
                           placeholder="Invite code"
+                          autoComplete="off"
                         />
+                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                          {inviteStatus === 'checking' && (
+                            <FiLoader className="h-4 w-4 text-text-muted animate-spin" />
+                          )}
+                          {inviteStatus === 'valid' && (
+                            <FiCheck className="h-4 w-4 text-emerald-500" />
+                          )}
+                          {inviteStatus === 'invalid' && (
+                            <FiXCircle className="h-4 w-4 text-rose-500" />
+                          )}
+                        </div>
                       </div>
-                      {errors.inviteCode && <p className="text-xs text-rose-500 mt-1">{errors.inviteCode}</p>}
+                      {errors.inviteCode ? (
+                        <p className="text-xs text-rose-500 mt-1">{errors.inviteCode}</p>
+                      ) : inviteStatus === 'valid' ? (
+                        <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1.5">
+                          <FiCheck className="h-3 w-3 shrink-0" />
+                          Organization verified{inviteOrgName ? `: ${inviteOrgName}` : ''}
+                        </p>
+                      ) : inviteStatus === 'invalid' ? (
+                        <p className="text-xs text-rose-500 mt-1 flex items-center gap-1.5">
+                          <FiXCircle className="h-3 w-3 shrink-0" />
+                          No organization found with this code
+                        </p>
+                      ) : inviteStatus === 'checking' ? (
+                        <p className="text-xs text-text-muted mt-1">Checking invite code...</p>
+                      ) : null}
                     </div>
                   </motion.div>
                 )}
@@ -847,21 +930,38 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
                 )}
               </motion.div>
 
-              <motion.p
-                variants={reviewItem as Variants}
-                initial="hidden"
-                animate="visible"
-                className="text-xs text-text-muted text-center leading-relaxed"
-              >
-                By creating an account, you agree to our{' '}
-                <Link href="/terms" className="text-emerald-500 hover:text-emerald-400 underline underline-offset-2 transition-colors">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="/privacy" className="text-emerald-500 hover:text-emerald-400 underline underline-offset-2 transition-colors">
-                  Privacy Policy
-                </Link>
-              </motion.p>
+              <motion.div variants={reviewItem as Variants} initial="hidden" animate="visible">
+                <label
+                  htmlFor="agreedToTerms"
+                  className={`flex items-start gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all ${
+                    errors.agreedToTerms ? 'border-rose-500/50 bg-rose-500/5' : 'border-card-border bg-foreground/[0.03] hover:bg-foreground/[0.05]'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    id="agreedToTerms"
+                    checked={agreedToTerms}
+                    onChange={(e) => {
+                      setAgreedToTerms(e.target.checked);
+                      if (e.target.checked) setErrors((prev) => { const next = { ...prev }; delete next.agreedToTerms; return next; });
+                    }}
+                    className="mt-0.5 rounded-md border-card-border bg-background text-emerald-500 focus:ring-emerald-500/30 focus:ring-offset-0 h-4 w-4 shrink-0 transition-all"
+                  />
+                  <span className="text-xs text-text-muted leading-relaxed select-none">
+                    I agree to the{' '}
+                    <Link href="/terms" onClick={(e) => e.stopPropagation()} className="text-emerald-500 hover:text-emerald-400 underline underline-offset-2 transition-colors">
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link href="/privacy" onClick={(e) => e.stopPropagation()} className="text-emerald-500 hover:text-emerald-400 underline underline-offset-2 transition-colors">
+                      Privacy Policy
+                    </Link>
+                  </span>
+                </label>
+                {errors.agreedToTerms && (
+                  <p className="text-rose-500 text-xs mt-1.5 ml-1">{errors.agreedToTerms}</p>
+                )}
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -921,7 +1021,7 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
           >
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || (step === 3 && !agreedToTerms)}
               className="relative w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
             >
               <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>

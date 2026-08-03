@@ -213,6 +213,113 @@ export async function removeMember(userId: string): Promise<ActionResult> {
   }
 }
 
+/**
+ * FastAPI returns `detail` as a plain string for raised HTTPExceptions, but as
+ * an *array* of `{type, loc, msg, input}` objects for 422 request-validation
+ * failures. Passing that array straight into a toast renders an object as a
+ * React child and crashes the tree, so always funnel it through here.
+ */
+function extractErrorDetail(detail: unknown, fallback: string): string {
+  if (typeof detail === 'string' && detail.trim()) return detail;
+  if (Array.isArray(detail)) {
+    const msgs = detail
+      .map((d) => (d && typeof d === 'object' && 'msg' in d ? String((d as { msg: unknown }).msg) : null))
+      .filter(Boolean);
+    if (msgs.length) return msgs.join('; ');
+  }
+  return fallback;
+}
+
+/**
+ * Update a member's basic info (name, job title).
+ *
+ * The edit-down-the-chain rule is enforced on the backend
+ * (`_require_can_edit_member`); the client gates the button with
+ * `canEditMemberProfile` so the two stay in step. Password, phone, and email
+ * are deliberately absent — those stay self-service.
+ */
+export async function updateMemberProfile(
+  userId: string,
+  data: { full_name?: string; job_title?: string },
+): Promise<ActionResult> {
+  const session = await auth();
+  const orgId = session?.user?.currentOrganizationId;
+  if (!orgId) return { success: false, error: 'No organization selected' };
+
+  const headers = await getSessionHeaders();
+  if (!headers) return { success: false, error: 'Unauthorized' };
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/organizations/${orgId}/members/${userId}/profile`, {
+      method: 'PATCH',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      if (await handleUnauthorizedResponse(res)) return { success: false, error: 'Session expired' };
+      const msg = await handleForbiddenResponse(res);
+      if (msg) return { success: false, error: msg };
+      const body = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        error: extractErrorDetail(body.detail, `Failed to update profile (${res.status})`),
+      };
+    }
+
+    revalidatePath('/[orgSlug]/team', 'page');
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating member profile:', error);
+    return { success: false, error: 'Network error' };
+  }
+}
+
+/** Upload a new avatar for a member. Same permission rule as updateMemberProfile. */
+export async function uploadMemberAvatar(
+  userId: string,
+  formData: FormData,
+): Promise<ActionResult & { avatar_url?: string }> {
+  const session = await auth();
+  const orgId = session?.user?.currentOrganizationId;
+  if (!orgId) return { success: false, error: 'No organization selected' };
+
+  const headers = await getSessionHeaders();
+  if (!headers) return { success: false, error: 'Unauthorized' };
+
+  // `getSessionHeaders()` sets `Content-Type: application/json` for the JSON
+  // endpoints. It must be dropped here: this body is multipart, and leaving the
+  // JSON content type on it makes FastAPI fail to parse the upload and reject
+  // the request with a 422.
+  const { 'Content-Type': _jsonContentType, ...uploadHeaders } = headers as Record<string, string>;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/organizations/${orgId}/members/${userId}/avatar`, {
+      method: 'POST',
+      headers: uploadHeaders,
+      body: formData,
+    });
+
+    if (!res.ok) {
+      if (await handleUnauthorizedResponse(res)) return { success: false, error: 'Session expired' };
+      const msg = await handleForbiddenResponse(res);
+      if (msg) return { success: false, error: msg };
+      const body = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        error: extractErrorDetail(body.detail, `Failed to upload avatar (${res.status})`),
+      };
+    }
+
+    const updated = await res.json().catch(() => null);
+    revalidatePath('/[orgSlug]/team', 'page');
+    return { success: true, avatar_url: updated?.user?.avatar_url };
+  } catch (error) {
+    console.error('Error uploading member avatar:', error);
+    return { success: false, error: 'Network error' };
+  }
+}
+
 interface InviteResult {
   success: boolean;
   error?: string;

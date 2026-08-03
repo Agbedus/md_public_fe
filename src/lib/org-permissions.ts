@@ -50,11 +50,6 @@ export const ORG_CREATE_ROLES: OrgRole[] = ['owner', 'admin', 'manager', 'member
 /** Any active membership, guest included (backend: ORG_ANY_ROLE). */
 export const ORG_ANY_ROLE: OrgRole[] = [...ORG_CREATE_ROLES, 'guest'];
 
-/** @deprecated Use ORG_ADMIN_ROLES. Kept so existing imports keep compiling. */
-export const ORG_MANAGE_ROLES = ORG_ADMIN_ROLES;
-/** @deprecated Use ORG_CREATE_ROLES. */
-export const ORG_COLLABORATOR_ROLES = ORG_CREATE_ROLES;
-
 export interface PermissionSubject {
     /** Global platform roles from the session. */
     roles?: string[] | null;
@@ -169,14 +164,30 @@ export const canManageOrg = isOrgAdmin;
  */
 export const canCollaborate = canCreate;
 
-/** @deprecated The org `client` role is now `guest`. */
-export const isOrgClient = isOrgGuest;
+/**
+ * May edit another member's basic profile (name, job title, avatar) from the
+ * team roster.
+ *
+ * Mirrors `_require_can_edit_member` in `md_public_be/.../organizations.py`:
+ * edits flow *down* the chain only. You may always edit yourself; otherwise you
+ * must be OWNER/ADMIN/MANAGER and strictly outrank the target, so a MANAGER may
+ * edit a MEMBER but not a peer MANAGER, and an ADMIN may not touch another
+ * ADMIN or the OWNER. A platform admin always may.
+ *
+ * Note this is a *different* rule from role/status management (`isOrgAdmin`),
+ * which stays OWNER/ADMIN only.
+ */
+export function canEditMemberProfile(
+    subject: (PermissionSubject & { id?: string | null }) | null | undefined,
+    target: { id?: string | null; orgRole?: string | null } | null | undefined,
+): boolean {
+    if (!subject || !target) return false;
+    if (subject.id && target.id && String(subject.id) === String(target.id)) return true;
+    if (isPlatformManager(subject.roles)) return true;
 
-/** May approve/reject time-off. Administration, so org OWNER/ADMIN only. */
-export const canApproveRequests = isOrgAdmin;
-
-/** May view the org-wide roster — a visibility concern, so MANAGER and above. */
-export const canViewOrgMembers = canReadAll;
-
-/** May add, remove, or change the role of a member. Administration. */
-export const canManageMembers = isOrgAdmin;
+    const actorRole = toOrgRole(subject.orgRole);
+    const targetRole = toOrgRole(target.orgRole);
+    if (actorRole === null || targetRole === null) return false;
+    if (!ORG_READ_ALL_ROLES.includes(actorRole)) return false;
+    return ORG_ROLE_RANK[actorRole] > ORG_ROLE_RANK[targetRole];
+}

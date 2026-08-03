@@ -123,10 +123,10 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                  className="w-6 h-6 object-contain"
                />
              </div>
-             <span className="text-lg font-bold text-foreground tracking-tight">MD<span className="text-emerald-500">*</span></span>
+             <span className="text-lg font-bold text-foreground tracking-tight">Mynd<span className="text-emerald-500">Desk</span></span>
           </Link>
 
-          <div className="relative group hidden md:block w-full max-w-md">
+          <div className="relative group hidden md:block w-full max-w-md" data-tour="search">
             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors" />
             <input
               type="text"
@@ -211,8 +211,8 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
         <div className="flex items-center gap-3 md:gap-5">
 
-          <div className="relative" ref={notificationRef}>
-            <button 
+          <div className="relative" ref={notificationRef} data-tour="notifications">
+            <button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               onMouseEnter={() => setIsNotifHovered(true)}
               onMouseLeave={() => setIsNotifHovered(false)}

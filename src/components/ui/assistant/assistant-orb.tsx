@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiMaximize2, FiChevronDown, FiSquare } from 'react-icons/fi';
+import { FiSend, FiMaximize2, FiChevronDown, FiSquare, FiWifi, FiWifiOff } from 'react-icons/fi';
 import { useRouter, usePathname } from 'next/navigation';
 import ChatBubble from './ChatBubble';
 import PipMascot from './pip-mascot';
@@ -35,6 +35,8 @@ export default function AssistantOrb() {
   const [typingDone, setTypingDone] = useState(false);
   const [pipVariantIdx, setPipVariantIdx] = useState(0);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const [showRecovery, setShowRecovery] = useState(false);
   const router = useRouter();
   const orgPath = useOrgPath();
   const pathname = usePathname();
@@ -42,6 +44,8 @@ export default function AssistantOrb() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typingRef = useRef<NodeJS.Timeout | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const wasOfflineRef = useRef(false);
+  const recoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Route is org-scoped (`/[orgSlug]/assistant`), so match on the last path
   // segment rather than the full pathname.
@@ -95,6 +99,40 @@ export default function AssistantOrb() {
       setTimeout(() => inputRef.current?.focus(), 350);
     }
   }, [isMobileOpen]);
+
+  // Internet connectivity: the collapsed chat bubble doubles as the offline
+  // indicator. When the connection drops, the bubble turns red with a message;
+  // when it returns, it briefly shows a restored message before going back to
+  // normal. This replaces the old InternetStatus banner.
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (wasOfflineRef.current) {
+        setShowRecovery(true);
+        if (recoveryTimeoutRef.current) clearTimeout(recoveryTimeoutRef.current);
+        recoveryTimeoutRef.current = setTimeout(() => setShowRecovery(false), 3000);
+      }
+      wasOfflineRef.current = false;
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      wasOfflineRef.current = true;
+      setShowRecovery(false);
+      if (recoveryTimeoutRef.current) clearTimeout(recoveryTimeoutRef.current);
+      recoveryTimeoutRef.current = null;
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (recoveryTimeoutRef.current) clearTimeout(recoveryTimeoutRef.current);
+    };
+  }, []);
 
   const handleStop = useCallback(() => {
     if (abortRef.current) {
@@ -196,17 +234,39 @@ export default function AssistantOrb() {
   }, []);
 
   // The collapsed orb shows a chat bubble: the latest AI reply once a
-  // conversation exists, otherwise the rotating greeting.
+  // conversation exists, otherwise the rotating greeting. While offline it
+  // doubles as the connectivity indicator.
   const hasMessages = messages.length > 0;
   const lastAiText = [...messages].reverse().find(m => !m.isUser && m.text.trim())?.text;
   const bubbleText = hasMessages ? (lastAiText ?? 'Pip is thinking…') : typedText;
+
+  const offline = !isOnline;
+  const recovered = !offline && showRecovery;
+  const connectivityVariant = offline ? 'offline' : recovered ? 'recovery' : 'normal';
+  const displayedBubbleText = offline
+    ? 'No internet connection'
+    : recovered
+      ? 'Connection restored'
+      : bubbleText;
+  const bubbleKey = offline ? 'offline' : recovered ? 'recovered' : hasMessages ? 'msg' : `greet-${greetingIdx}`;
+
+  const bubbleVariantClasses =
+    connectivityVariant === 'offline'
+      ? 'bg-red-500 border-red-500 text-white'
+      : connectivityVariant === 'recovery'
+        ? 'bg-emerald-500 border-emerald-500 text-white'
+        : 'bg-background/95 border-card-border text-foreground hover:border-indigo-500/30';
+  const bubbleTailBorder =
+    offline ? 'border-l-red-500' : recovered ? 'border-l-emerald-500' : 'border-l-card-border';
+  const bubbleTailBg =
+    offline ? 'border-l-red-500' : recovered ? 'border-l-emerald-500' : 'border-l-background';
 
   if (isOnAssistantPage) return null;
 
   return (
     <>
     {/* Desktop AI Assistant — floating orb that expands into a chat box */}
-    <div className="hidden md:block fixed bottom-6 right-6 z-50">
+    <div className="hidden md:block fixed bottom-6 right-6 z-50" data-tour="assistant">
       {/* Dim the page behind the open chat box */}
       <AnimatePresence>
         {isFocused && (
@@ -253,9 +313,9 @@ export default function AssistantOrb() {
                   </span>
                   {isLoading && (
                     <span className="flex gap-1 ml-1">
-                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </span>
                   )}
                 </div>
@@ -297,7 +357,7 @@ export default function AssistantOrb() {
 
               {/* Input */}
               <div className="px-4 pb-4 pt-3 border-t border-card-border shrink-0">
-                <div className="relative rounded-2xl bg-foreground/[0.045] border border-card-border focus-within:border-indigo-500/40 transition-colors overflow-hidden">
+                <div className="relative rounded-2xl bg-foreground/[0.045] border border-card-border focus-within:border-foreground/20 transition-colors overflow-hidden">
                   <div className="absolute inset-0 pointer-events-none z-0 shimmer-sweep" />
                   <div className="flex items-end gap-2 px-4 py-3.5 relative z-10">
                     <textarea
@@ -313,20 +373,24 @@ export default function AssistantOrb() {
                     {isLoading ? (
                       <button
                         onClick={handleStop}
-                        className="p-2.5 bg-rose-500/10 text-rose-400 rounded-xl hover:bg-rose-500/20 transition-all duration-200 shrink-0"
+                        className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 shrink-0"
                         aria-label="Stop generating"
                         title="Stop generating"
                       >
-                        <FiSquare className="w-4 h-4 fill-current" />
+                        <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+                          <FiSquare className="w-4 h-4 text-rose-500 fill-current" />
+                        </span>
                       </button>
                     ) : (
                       <button
                         onClick={handleSend}
                         disabled={!input.trim()}
-                        className="p-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none shrink-0"
+                        className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0"
                         aria-label="Send"
                       >
-                        <FiSend className="w-4 h-4" />
+                        <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+                          <FiSend className="w-4 h-4" />
+                        </span>
                       </button>
                     )}
                   </div>
@@ -346,60 +410,70 @@ export default function AssistantOrb() {
               transition={{ duration: 0.25 }}
               className="flex justify-end"
             >
-              {/* The bubble lives inside the same bobbing wrapper as the mascot, so it
-                  reads as attached to it (talking right next to its face) rather than
-                  a separate element floating nearby. */}
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-                className="relative"
-              >
-                {/* Small tooltip-style bubble anchored right at mouth height — the
-                    `calc()` here needs Tailwind's underscore-for-space syntax
-                    (`calc(100%_+_6px)`); without it the browser drops the whole
-                    `right` value as invalid CSS and the bubble falls back to
-                    rendering flush over the mascot, blanking out its face. */}
-                <AnimatePresence mode="wait">
-                  {bubbleText && (
-                    <motion.button
-                      key={hasMessages ? 'msg' : greetingIdx}
-                      onClick={openChat}
-                      initial={{ opacity: 0, scale: 0.85, x: 6 }}
-                      animate={{ opacity: 1, scale: 1, x: 0 }}
-                      exit={{ opacity: 0, scale: 0.85, x: 6 }}
-                      transition={{ type: 'spring', damping: 22, stiffness: 320 }}
-                      style={{ transformOrigin: 'right center' }}
-                      className="absolute right-[80%] top-[57%] -translate-y-1/2 w-max max-w-[13.5rem] text-left px-3.5 py-2.5 rounded-xl bg-background/95 backdrop-blur-xl border border-card-border shadow-lg text-xs text-foreground font-medium line-clamp-3 hover:border-indigo-500/30 transition-colors"
-                      title="Open chat"
-                    >
-                      {bubbleText}
-                      {!hasMessages && !typingDone && <span className="animate-pulse">|</span>}
-                      {/* Tail pointing at Pip's mouth */}
-                      <span className="absolute top-1/2 -right-[9px] -translate-y-1/2 w-0 h-0 border-y-[9px] border-y-transparent border-l-[10px] border-l-card-border" />
-                      <span className="absolute top-1/2 -right-[7px] -translate-y-1/2 w-0 h-0 border-y-[8px] border-y-transparent border-l-[9px] border-l-background" />
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-
-                {/* Orb button — no card behind it, just the mascot with its own glow */}
-                <button
-                  onClick={openChat}
-                  className="relative shrink-0 flex items-center justify-center active:scale-95 hover:scale-105 transition-transform duration-200"
-                  aria-label="Open AI Assistant"
+                {/* The bubble lives inside the same bobbing wrapper as the mascot, so it
+                    reads as attached to it (talking right next to its face) rather than
+                    a separate element floating nearby. It is vertically centred with the
+                    mascot and has a fixed height so it never changes size as text loads. */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+                  className="relative"
                 >
-                  {hasMessages && (
-                    <span className="absolute top-1 right-1 w-3 h-3 rounded-full bg-indigo-500 border-2 border-background z-10" />
-                  )}
-                  <motion.div
-                    key={pipVariantIdx}
-                    initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.35 }}
+                  {/* Small tooltip-style bubble anchored beside the mascot. The `calc()`
+                      here needs Tailwind's underscore-for-space syntax
+                      (`calc(100%_+_6px)`); without it the browser drops the whole
+                      `right` value as invalid CSS and the bubble falls back to
+                      rendering flush over the mascot, blanking out its face. */}
+                  <AnimatePresence mode="wait">
+                    {displayedBubbleText && (
+                      <motion.button
+                        key={bubbleKey}
+                        onClick={openChat}
+                        initial={{ opacity: 0, scale: 0.85, x: 6 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.85, x: 6 }}
+                        transition={{ type: 'spring', damping: 22, stiffness: 320 }}
+                        style={{ transformOrigin: 'right center' }}
+                        className={`absolute right-[80%] top-1/2 -translate-y-1/2 w-max max-w-[13.5rem] h-11 flex items-center text-left px-3.5 rounded-xl border shadow-lg text-xs font-medium transition-colors ${bubbleVariantClasses}`}
+                        title="Open chat"
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          {connectivityVariant !== 'normal' && (
+                            connectivityVariant === 'offline'
+                              ? <FiWifiOff className="w-4 h-4 shrink-0 text-white" />
+                              : <FiWifi className="w-4 h-4 shrink-0 text-white" />
+                          )}
+                          <span className="line-clamp-2">
+                            {displayedBubbleText}
+                            {!hasMessages && !typingDone && connectivityVariant === 'normal' && <span className="animate-pulse">|</span>}
+                          </span>
+                        </span>
+                        {/* Arrow pointing at Pip */}
+                        <span className={`absolute top-1/2 -right-[9px] -translate-y-1/2 w-0 h-0 border-y-[9px] border-y-transparent border-l-[10px] ${bubbleTailBorder}`} />
+                        <span className={`absolute top-1/2 -right-[7px] -translate-y-1/2 w-0 h-0 border-y-[8px] border-y-transparent border-l-[9px] ${bubbleTailBg}`} />
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Orb button — no card behind it, just the mascot with its own glow */}
+                  <button
+                    onClick={openChat}
+                    className="relative shrink-0 flex items-center justify-center active:scale-95 hover:scale-105 transition-transform duration-200"
+                    aria-label="Open AI Assistant"
                   >
-                    <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="md" errorMessage={hasError ? 'Connection error' : undefined} />
-                  </motion.div>
-                </button>
-              </motion.div>
+                    {hasMessages && (
+                      <span className="absolute top-1 right-1 w-3 h-3 rounded-full bg-indigo-500 border-2 border-background z-10" />
+                    )}
+                    <motion.div
+                      key={pipVariantIdx}
+                      initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="md" errorMessage={hasError ? 'Connection error' : undefined} />
+                    </motion.div>
+                  </button>
+                </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -433,7 +507,26 @@ export default function AssistantOrb() {
             {messages.length > 0 && (
               <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-background z-10" />
             )}
-            <PipMascot variant={PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="sm" errorMessage={hasError ? 'Connection error' : undefined} />
+            {(offline || recovered) && (
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full border-2 border-background flex items-center justify-center z-10 ${offline ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'}`}
+              >
+                {offline ? <FiWifiOff className="w-3 h-3" /> : <FiWifi className="w-3 h-3" />}
+              </span>
+            )}
+            {(offline || recovered) && (
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                className={`absolute -inset-1 rounded-full blur-md ${offline ? 'bg-red-500/25' : 'bg-emerald-500/25'}`}
+              />
+            )}
+            <PipMascot
+              variant={offline ? 'sleepy' : recovered ? 'lovely' : PIP_VARIANTS[pipVariantIdx]}
+              status={offline || hasError ? 'error' : isLoading ? 'thinking' : 'idle'}
+              size="sm"
+              errorMessage={hasError ? 'Connection error' : undefined}
+            />
           </button>
         </div>
       )}
@@ -474,9 +567,9 @@ export default function AssistantOrb() {
                   </span>
                   {isLoading && (
                     <span className="flex gap-1 ml-1">
-                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </span>
                   )}
                 </div>
@@ -529,20 +622,24 @@ export default function AssistantOrb() {
                   {isLoading ? (
                     <button
                       onClick={handleStop}
-                      className="p-2 bg-rose-500/10 text-rose-400 rounded-xl hover:bg-rose-500/20 transition-all duration-200 shrink-0 flex items-center gap-1 text-[10px] font-bold"
+                      className="group flex items-center gap-1.5 p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 shrink-0 text-[10px] font-bold"
                       aria-label="Stop generating"
                     >
-                      <FiSquare className="w-3 h-3 fill-current" />
-                      <span className="hidden sm:inline">Stop</span>
+                      <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+                        <FiSquare className="w-3 h-3 text-rose-500 fill-current" />
+                      </span>
+                      <span className="hidden sm:inline pr-0.5">Stop</span>
                     </button>
                   ) : (
                     <button
                       onClick={handleSend}
                       disabled={!input.trim()}
-                      className="p-2 bg-foreground/[0.08] text-foreground/80 rounded-xl hover:bg-foreground/[0.14] hover:text-foreground transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none shrink-0"
+                      className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0"
                       aria-label="Send"
                     >
-                      <FiSend className="w-3.5 h-3.5" />
+                        <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+                          <FiSend className="w-3.5 h-3.5" />
+                        </span>
                     </button>
                   )}
                 </div>

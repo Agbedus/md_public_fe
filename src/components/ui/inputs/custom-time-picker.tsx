@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
-import { FiClock } from 'react-icons/fi';
+import { FiClock, FiCheck } from 'react-icons/fi';
 import { Portal } from '@/components/ui/portal';
 
 interface CustomTimePickerProps {
@@ -359,8 +359,9 @@ export function CustomTimePicker({
                  <button
                      type="button"
                      onClick={() => setIsOpen(false)}
-                     className="text-[10px] font-bold uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
+                     className="flex items-center justify-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
                  >
+                     <FiCheck className="w-3.5 h-3.5" />
                      Confirm
                  </button>
             </div>

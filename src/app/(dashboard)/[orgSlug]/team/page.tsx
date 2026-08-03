@@ -31,6 +31,7 @@ export default async function TeamPage() {
         members={members}
         currentUserId={session.user.id}
         currentOrgRole={currentOrgRole}
+        currentUserRoles={session.user.roles}
         inviteCode={inviteCode}
         isSuperAdmin={canManageTeam}
       />

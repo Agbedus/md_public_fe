@@ -16,11 +16,14 @@ interface Props {
     initialRecords: AttendanceRecord[];
     initialHistory?: AttendanceRecord[];
     users: any[];
+    /** Read-all tier (OWNER/ADMIN/MANAGER) — may view team history. */
+    isManager?: boolean;
+    /** Admin tier (OWNER/ADMIN) — may additionally override a record. */
     isAdmin?: boolean;
     currentUserId?: string;
 }
 
-export default function TeamAttendanceGrid({ initialRecords, initialHistory = [], users, isAdmin = false, currentUserId }: Props) {
+export default function TeamAttendanceGrid({ initialRecords, initialHistory = [], users, isManager = false, isAdmin = false, currentUserId }: Props) {
     const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
 
     const { data: records, mutate, isValidating } = useSWR(
@@ -34,7 +37,7 @@ export default function TeamAttendanceGrid({ initialRecords, initialHistory = []
     );
 
     const { data: history } = useSWR(
-        isAdmin ? 'team-attendance-history' : null,
+        isManager ? 'team-attendance-history' : null,
         () => getTeamAttendanceHistory(),
         {
             fallbackData: initialHistory,
@@ -112,7 +115,7 @@ export default function TeamAttendanceGrid({ initialRecords, initialHistory = []
                     return (
                         <div
                             key={record.id}
-                            className="bg-card p-5 rounded-[32px] border border-card-border hover:border-foreground/[0.1] transition-all group relative overflow-hidden"
+                            className="bg-card p-5 rounded-2xl border border-card-border hover:border-foreground/[0.1] transition-all group relative overflow-hidden"
                         >
                             {/* Glow effect on hover */}
                             <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-10 transition-opacity ${pColors.bg}`} />
@@ -202,7 +205,7 @@ export default function TeamAttendanceGrid({ initialRecords, initialHistory = []
                 })}
 
                 {hydratedRecords.length === 0 && (
-                    <div className="col-span-full bg-card p-12 rounded-[32px] border border-card-border text-center">
+                    <div className="col-span-full bg-card p-12 rounded-2xl border border-card-border text-center">
                         <div className="w-12 h-12 rounded-2xl bg-foreground/[0.05] flex items-center justify-center mx-auto mb-4 border border-card-border">
                             <FiUsers className="text-text-secondary" />
                         </div>
@@ -220,7 +223,7 @@ export default function TeamAttendanceGrid({ initialRecords, initialHistory = []
                 />
             )}
 
-            {isAdmin && (
+            {isManager && (
                 <div className="mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <TeamAttendanceTable records={hydratedHistory} />
                 </div>

@@ -9,9 +9,9 @@ import type { OfficeLocation } from '@/types/attendance';
 // Dynamic import to prevent SSR issues with Leaflet
 const AttendanceMapInternals = dynamic(
   () => import('./attendance-map-internals').then((mod) => mod.AttendanceMapInternals),
-  { 
+  {
     ssr: false,
-    loading: () => <Skeleton className="h-full w-full rounded-[32px]" />
+    loading: () => <Skeleton className="h-full w-full rounded-2xl" />
   }
 );
 
@@ -39,12 +39,12 @@ export function AttendanceMap({ officeLocations }: { officeLocations?: OfficeLoc
 
   return (
     <div className="h-full w-full relative z-0">
-      <AttendanceMapInternals 
-        center={mapCenter} 
-        officeLocation={mapOffice} 
+      <AttendanceMapInternals
+        center={mapCenter}
+        officeLocation={mapOffice}
         inOfficeRadius={activeOffice?.in_office_radius_meters || 0}
         tempOutRadius={activeOffice?.temporarily_out_radius_meters || 0}
-        userName="Active Session" 
+        userName="Active Session"
       />
     </div>
   );

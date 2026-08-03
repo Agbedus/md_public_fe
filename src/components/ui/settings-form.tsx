@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Toggle } from '@/components/ui/inputs/toggle';
+import { CustomTimePicker } from '@/components/ui/inputs/custom-time-picker';
 import { motion, useReducedMotion } from "framer-motion";
 import { FiBell, FiClock, FiLayout, FiCheck, FiCloud } from "react-icons/fi";
 import { toast } from "@/lib/toast";
@@ -263,20 +264,18 @@ export default function SettingsForm({ user }: SettingsFormProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>Start time</label>
-                  <input
-                    type="time"
+                  <CustomTimePicker
                     value={settings.startHour}
-                    onChange={(e) => updateSetting("startHour", e.target.value)}
-                    className={`${inputClass} cursor-pointer`}
+                    onChange={(val) => updateSetting("startHour", val)}
+                    placeholder="Start time"
                   />
                 </div>
                 <div>
                   <label className={labelClass}>End time</label>
-                  <input
-                    type="time"
+                  <CustomTimePicker
                     value={settings.endHour}
-                    onChange={(e) => updateSetting("endHour", e.target.value)}
-                    className={`${inputClass} cursor-pointer`}
+                    onChange={(val) => updateSetting("endHour", val)}
+                    placeholder="End time"
                   />
                 </div>
               </div>

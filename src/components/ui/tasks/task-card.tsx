@@ -181,7 +181,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
         className={rowClasses} 
         ref={ref}
       >
-        <td className="px-4 py-2 text-xs font-bold text-foreground whitespace-nowrap sticky left-0 z-10 bg-card/95 backdrop-blur-md border-r border-card-border">
+        <td className="px-4 py-2 text-xs font-bold text-foreground whitespace-nowrap sticky left-0 z-10 bg-card border-r border-card-border">
           <form
             ref={formRef}
             id={`update-${task.id}`}
@@ -338,7 +338,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
               className="w-full"
             />
           </td>
-          <td className="px-4 py-2 text-xs font-bold text-right whitespace-nowrap sticky right-0 z-10 bg-card/95 backdrop-blur-md border-l border-card-border">
+          <td className="px-4 py-2 text-xs font-bold text-right whitespace-nowrap sticky right-0 z-10 bg-card border-l border-card-border">
             <div className="flex items-center justify-end space-x-2">
                 <button
                     type="button"
@@ -373,7 +373,8 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
         className={`${rowClasses} transition-colors group items-center ${isNew ? 'new-task-glow' : ''}`} 
         ref={ref}
       >
-        <td className="px-6 py-4 text-xs font-bold text-foreground whitespace-nowrap flex items-center sticky left-0 z-10 bg-card/90 backdrop-blur-md border-r border-card-border">
+        <td className="px-6 py-4 text-xs font-bold text-foreground whitespace-nowrap sticky left-0 z-10 bg-card border-r border-card-border">
+          <div className="flex items-center">
           <div className="relative flex items-center shrink-0">
             <input
               type="checkbox"
@@ -386,6 +387,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
           <span className={`ml-4 truncate max-w-[250px] font-bold tracking-tight ${task.status === "DONE" ? "line-through text-text-muted" : "text-foreground"}`}>
             {task.name}
           </span>
+          </div>
         </td>
         <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap max-w-[300px] truncate hidden lg:table-cell">
           {task.description || <span className="text-text-muted/50 italic">No description</span>}
@@ -491,7 +493,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 </div>
             ) : <span className="text-text-muted/30">-</span>}
         </td>
-                <td className="px-4 py-2 text-xs font-bold text-right whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity sticky right-0 z-10 bg-card/95 backdrop-blur-md border-l border-card-border">
+                <td className="px-4 py-2 text-xs font-bold text-right whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity sticky right-0 z-10 bg-card border-l border-card-border">
           <div className="flex items-center justify-end space-x-1">
             {canUserWorkOnTask(currentUser, task) && (
               <button

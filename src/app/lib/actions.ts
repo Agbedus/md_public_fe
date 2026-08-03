@@ -100,6 +100,11 @@ const RegisterSchema = z.object({
     orgCountry: z.string().optional(),
     orgPhone: z.string().optional(),
     inviteCode: z.string().optional(),
+    // FormData values are always strings — the form only ever sends "true"
+    // once the checkbox is checked, so this doubles as the "must agree"
+    // check. The backend re-validates this independently (UserRegister
+    // rejects agreed_to_terms=false) so a direct API call can't skip it.
+    agreedToTerms: z.literal("true", { message: "You must agree to the Terms of Use and Privacy Policy" }),
 });
 
 export async function register(prevState: string | undefined, formData: FormData) {
@@ -107,15 +112,16 @@ export async function register(prevState: string | undefined, formData: FormData
     const validatedFields = RegisterSchema.safeParse(raw);
 
     if (!validatedFields.success) {
-        return "Invalid fields";
+        return validatedFields.error.issues[0]?.message || "Invalid fields";
     }
 
     const { email, password, fullName, phone, jobTitle, orgAction, orgName, orgSlug, orgIndustry, orgCompanySize, orgWebsite, orgCountry, orgPhone, inviteCode } = validatedFields.data;
 
-    const body: Record<string, string> = {
+    const body: Record<string, string | boolean> = {
         email,
         password,
         full_name: fullName,
+        agreed_to_terms: true,
     };
 
     if (phone) body.phone = phone;

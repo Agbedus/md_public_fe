@@ -21,7 +21,7 @@ function formatTime(iso: string | null | undefined): string {
 export default function TeamAttendanceTable({ records }: { records: AttendanceRecord[] }) {
     if (records.length === 0) {
         return (
-            <div className="bg-card p-12 rounded-[32px] border border-card-border text-center">
+            <div className="bg-card p-12 rounded-2xl border border-card-border text-center">
                 <FiBarChart2 className="text-4xl text-text-muted mx-auto mb-4" />
                 <p className="text-text-muted text-sm font-medium">No team history records found</p>
                 <p className="text-text-secondary text-xs mt-1">Full attendance history will appear here once activity is logged.</p>
@@ -30,14 +30,14 @@ export default function TeamAttendanceTable({ records }: { records: AttendanceRe
     }
 
     return (
-        <div className="bg-card rounded-[32px] border border-card-border overflow-hidden flex flex-col mt-4">
-            <div className="p-4 lg:px-6 py-4 border-b border-card-border bg-foreground/[0.05] flex items-center justify-between">
+        <div className="bg-card rounded-2xl border border-card-border overflow-hidden flex flex-col mt-4">
+            <div className="p-4 lg:px-6 py-4 border-b border-card-border bg-foreground/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <FiBarChart2 className="text-indigo-400 w-4 h-4" />
-                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Historical Oversight</h3>
+                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">History</h3>
                 </div>
                 <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest bg-foreground/[0.05] px-2 py-0.5 rounded-md border border-card-border">
-                    {records.length} Total Records
+                    {records.length} Records
                 </span>
             </div>
             <div className="overflow-x-auto scrollbar-hide">

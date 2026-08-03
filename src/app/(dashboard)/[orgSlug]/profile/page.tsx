@@ -1,6 +1,5 @@
 import { auth } from '@/auth';
-import { FiUser, FiMail, FiShield, FiCalendar, FiClock, FiCheckSquare, FiFileText, FiActivity, FiZap, FiBriefcase, FiUsers, FiCheckCircle } from 'react-icons/fi';
-import Image from 'next/image';
+import { FiClock, FiFileText, FiActivity, FiZap, FiUsers, FiCheckCircle } from 'react-icons/fi';
 import Link from 'next/link';
 import { 
   getSummaryStats, 
@@ -12,8 +11,10 @@ import {
   getActivityData
 } from '@/app/lib/dashboard-actions';
 import { getOrganizations } from '@/lib/org-actions';
+import { getFreshUserProfile } from '@/lib/server-auth';
 import ProfileStats from '@/components/profile/profile-stats';
 import ProfileCharts from '@/components/profile/profile-charts';
+import { ProfileInfoCard } from '@/components/profile/profile-info-card';
 import { ActivityHeatmap } from '@/components/ui/client-charts';
 import { presentOrgRole, orgRoleToneClasses, membershipStatusToneClasses } from '@/types/organization';
 import type { OrgBrief } from '@/types/organization';
@@ -28,6 +29,14 @@ export default async function ProfilePage() {
   }
 
   const orgRole = user.orgRole ? presentOrgRole(user.orgRole) : null;
+
+  // session.user is a login-time JWT snapshot — read live so a profile change
+  // made here or from the Team page's edit modal shows up immediately.
+  const freshProfile = await getFreshUserProfile();
+  const avatarUrl = freshProfile?.avatar_url ?? user.image ?? null;
+  const fullName = freshProfile?.full_name ?? user.name ?? null;
+  const jobTitle = freshProfile?.job_title ?? null;
+  const phone = freshProfile?.phone ?? null;
 
   // Fetch all user-specific data in parallel
   const [
@@ -68,77 +77,16 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: User Info Card */}
         <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-8">
-            <div className="glass p-5 lg:p-8 rounded-3xl border border-foreground/5 bg-foreground/[0.03] backdrop-blur-xl flex flex-col items-center text-center">
-                {/* Avatar Section */}
-                <div className="relative mb-4 lg:mb-6">
-                    {user.image ? (
-                    <div className="relative w-32 h-32 lg:w-40 lg:h-40">
-                        <Image 
-                            src={user.image} 
-                            alt={user.name || 'User'} 
-                            fill
-                            className="rounded-full object-cover border-4 border-foreground/5 "
-                        />
-                    </div>
-                    ) : (
-                    <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-4xl lg:text-5xl font-bold  border-4 border-foreground/5">
-                        {(user.name || user.email || '?').charAt(0).toUpperCase()}
-                    </div>
-                    )}
-                    <div className="absolute bottom-2 right-2 p-2 rounded-full bg-emerald-500 border-4 border-background" />
-                </div>
-
-                <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-1">{user.name || 'User'}</h2>
-                <p className="text-text-muted text-sm font-medium mb-4 lg:mb-6 flex items-center gap-2">
-                    <FiMail className="w-4 h-4" /> {user.email}
-                </p>
-
-                {/* Org Context — replaces generic "Roles" */}
-                <div className="w-full space-y-3 lg:space-y-4 pt-4 lg:pt-6 border-t border-foreground/5">
-                    {currentOrg && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-muted flex items-center gap-2"><FiBriefcase className="w-4 h-4" /> Organization</span>
-                        <span className="text-foreground font-bold text-xs text-right truncate max-w-[140px]">
-                          {currentOrg.name}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-muted flex items-center gap-2"><FiShield className="w-4 h-4" /> Org Role</span>
-                        {orgRole ? (
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider ${orgRoleToneClasses[orgRole.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5 border'}`}>
-                            {orgRole.label}
-                          </span>
-                        ) : (
-                          <span className="text-text-muted text-xs">—</span>
-                        )}
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-muted flex items-center gap-2"><FiCheckCircle className="w-4 h-4" /> Platform Role</span>
-                        <div className="flex gap-1 flex-wrap justify-end">
-                            {user.roles?.map(role => (
-                                <span key={role} className="text-text-muted font-bold uppercase tracking-wider text-[10px] bg-foreground/[0.06] px-1.5 py-0.5 rounded">
-                                    {role.replace('_', ' ')}
-                                </span>
-                            )) || <span className="text-text-muted">None</span>}
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-muted flex items-center gap-2"><FiCalendar className="w-4 h-4" /> Member Since</span>
-                        <span className="text-foreground font-medium text-xs">
-                          {currentOrg?.joined_at ? new Date(currentOrg.joined_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '—'}
-                        </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-muted flex items-center gap-2"><FiCheckSquare className="w-4 h-4" /> Workspace</span>
-                        <span className="text-foreground font-medium text-xs">{currentOrg?.name || 'Personal'}</span>
-                    </div>
-                </div>
-
-                <button className="w-full mt-6 lg:mt-8 py-2.5 lg:py-3 rounded-2xl bg-foreground/[0.03] border border-foreground/5 text-foreground font-semibold hover:bg-foreground/[0.06] transition-all hover:scale-[1.02] active:scale-95 text-sm lg:text-base">
-                    Edit Profile Details
-                </button>
-            </div>
+            <ProfileInfoCard
+              email={user.email || ''}
+              fullName={fullName}
+              jobTitle={jobTitle}
+              phone={phone}
+              avatarUrl={avatarUrl}
+              platformRoles={user.roles}
+              orgRole={orgRole}
+              currentOrg={currentOrg ? { name: currentOrg.name, joined_at: currentOrg.joined_at } : null}
+            />
 
             {/* Organizations Membership Card */}
             {organizations.length > 0 && (
