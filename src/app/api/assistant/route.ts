@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getAggregatedDashboardData } from "@/app/lib/dashboard-actions";
-import { getTasks } from "@/app/(dashboard)/[orgSlug]/tasks/actions";
-import { getNotes } from "@/app/(dashboard)/[orgSlug]/notes/actions";
-import { getProjects } from "@/app/(dashboard)/[orgSlug]/projects/actions";
-import { getEvents } from "@/app/(dashboard)/[orgSlug]/calendar/actions";
+import { getTasks, createTask } from "@/app/(dashboard)/[orgSlug]/tasks/actions";
+import { getNotes, createNote } from "@/app/(dashboard)/[orgSlug]/notes/actions";
+import { getProjects, createProject } from "@/app/(dashboard)/[orgSlug]/projects/actions";
+import { getEvents, createEvent } from "@/app/(dashboard)/[orgSlug]/calendar/actions";
 import { getClients } from "@/app/(dashboard)/[orgSlug]/clients/actions";
 import { getUsersSafe } from "@/app/(dashboard)/[orgSlug]/users/actions";
 import { getTimeOffRequests } from "@/app/(dashboard)/[orgSlug]/time-off/actions";
@@ -98,6 +99,42 @@ const tools = [
           description: { type: "string", description: "Description" },
           dueDate: { type: "string", description: "Due date (YYYY-MM-DD)" },
           priority: { type: "string", enum: ["low", "medium", "high"] },
+        },
+        required: ["name"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "createEvent",
+      description: "Create a new calendar event.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "The event title" },
+          description: { type: "string", description: "Event description" },
+          start: { type: "string", description: "Start date/time, ISO 8601 (e.g. 2026-08-10T14:00:00)" },
+          end: { type: "string", description: "End date/time, ISO 8601. Defaults to one hour after start if omitted." },
+          allDay: { type: "boolean", description: "Whether this is an all-day event" },
+          location: { type: "string", description: "Where the event takes place" },
+        },
+        required: ["title", "start"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "createProject",
+      description: "Create a new project.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "The project name" },
+          description: { type: "string", description: "Project description" },
+          status: { type: "string", enum: ["planning", "in_progress", "completed", "on_hold"], description: "Defaults to 'planning'" },
+          priority: { type: "string", enum: ["low", "medium", "high"], description: "Defaults to 'medium'" },
         },
         required: ["name"],
       },
@@ -314,11 +351,73 @@ async function executeTool(name: string, args: any) {
     }
 
     if (name === "createNote") {
-      return { success: true, message: "Use the UI to finalize note creation.", note: { ...args } };
+      // Goes through the same createNote server action the Notes page form
+      // uses — same org scoping, same backend validation. user_id is set
+      // there from the session, never from the model's arguments, so the
+      // caller is always the owner regardless of what the model was asked.
+      const fd = new FormData();
+      fd.set("title", args.title ?? "Untitled note");
+      fd.set("content", args.content ?? "");
+      fd.set("type", "note");
+      if (args.tags) fd.set("tags", args.tags);
+      const result = await createNote(fd);
+      if (!result.success) {
+        return { success: false, error: result.error || "Failed to create the note." };
+      }
+      return { success: true, message: `Created the note "${args.title ?? "Untitled note"}".` };
     }
 
     if (name === "createTask") {
-      return { success: true, message: "Use the UI to finalize task creation.", task: { ...args, status: "task" } };
+      const fd = new FormData();
+      fd.set("name", args.name ?? "Untitled task");
+      if (args.description) fd.set("description", args.description);
+      if (args.dueDate) fd.set("dueDate", args.dueDate);
+      if (args.priority) fd.set("priority", args.priority);
+      const result = await createTask(fd);
+      if (!result.success) {
+        return { success: false, error: result.error || "Failed to create the task." };
+      }
+      return {
+        success: true,
+        message: `Created the task "${result.task.name}"${args.dueDate ? `, due ${args.dueDate}` : ""}.`,
+        task: result.task,
+      };
+    }
+
+    if (name === "createEvent") {
+      const fd = new FormData();
+      fd.set("title", args.title ?? "Untitled event");
+      if (args.description) fd.set("description", args.description);
+      const start = args.start ?? new Date().toISOString();
+      fd.set("start", start);
+      // createEvent requires an end — default to one hour after start when
+      // the model doesn't give one, rather than failing the whole call.
+      fd.set("end", args.end ?? new Date(new Date(start).getTime() + 60 * 60 * 1000).toISOString());
+      if (args.allDay) fd.set("allDay", "true");
+      if (args.location) fd.set("location", args.location);
+      const result = await createEvent(fd);
+      if (!result.success) {
+        return { success: false, error: result.error || "Failed to create the event." };
+      }
+      return { success: true, message: `Created the event "${args.title ?? "Untitled event"}".` };
+    }
+
+    if (name === "createProject") {
+      // createProject's owner_id has no server-side default (unlike
+      // task/note user_id) — set it explicitly so Pip-created projects are
+      // always owned by whoever asked, never left ownerless.
+      const session = await auth();
+      const fd = new FormData();
+      fd.set("name", args.name ?? "Untitled project");
+      if (args.description) fd.set("description", args.description);
+      fd.set("status", args.status ?? "planning");
+      fd.set("priority", args.priority ?? "medium");
+      if (session?.user?.id) fd.set("ownerId", session.user.id);
+      const result = await createProject(fd);
+      if (!result.success) {
+        return { success: false, error: result.error || "Failed to create the project." };
+      }
+      return { success: true, message: `Created the project "${result.project.name}".`, project: result.project };
     }
 
     if (name === "listProjects") {
@@ -629,10 +728,10 @@ export async function POST(req: Request) {
     const messages: any[] = [
       {
         role: "system",
-        content: `You are an intelligent assistant for a productivity dashboard. 
-        You have full access to the user's dashboard data — you can answer any question about their tasks, projects, notes, events, clients, attendance, and productivity. 
-        You can also generate comprehensive monthly reports.
-        
+        content: `You are an intelligent assistant for a productivity dashboard.
+        You have full access to the user's dashboard data — you can answer any question about their tasks, projects, notes, events, clients, attendance, and productivity.
+        You can also generate comprehensive monthly reports, and create tasks, notes, events, and projects on the user's behalf.
+
         Here is the current status of the user's dashboard:
         ${JSON.stringify(await getAggregatedDashboardData(), null, 2)}
 
@@ -642,6 +741,7 @@ export async function POST(req: Request) {
         3. When the user asks for a "monthly report", "monthly summary", or "end-of-month review", call the generateMonthlyReport tool. Do NOT try to write the report yourself — just call the tool and it will generate a thorough natural-language report. You can optionally specify a month like "June 2026" if the user asks for a specific month.
         4. You can answer ANY question about the user's dashboard data since it is provided in context above.
         5. Be brief and conversational for normal questions. Only use the report tool when explicitly asked.
+        6. When the user asks you to create, add, log, or schedule a task, note, event, or project, call the matching 'createX' tool right away with whatever details were given — don't just describe what you would do. The tool result tells you whether it actually succeeded; report that outcome back to the user plainly (what was created, and its due date/time if relevant). If the tool returns an error, tell the user what went wrong — do not claim success anyway. Every item you create is automatically owned by the user you're talking to, scoped to their organization, and subject to their normal permissions — if they don't have permission to create something, the tool will fail and you should relay why.
         `
       },
       {
