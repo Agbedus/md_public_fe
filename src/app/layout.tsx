@@ -45,6 +45,7 @@ import { CookiePopup } from '@/components/ui/cookie-popup';
 
 import { ThemeProvider } from "@/providers/theme-provider";
 import { GlobalActionProvider } from "@/providers/global-action-provider";
+import { MotionProvider } from "@/providers/motion-provider";
 
 export default async function RootLayout({
   children,
@@ -79,17 +80,19 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${dmSans.variable} ${spaceGrotesk.variable} antialiased`}
       >
         <ThemeProvider>
-          <GlobalActionProvider>
-            <TaskTimerProvider>
-              <LocationProvider initialRecord={initialAttendance}>
-                <div className="min-h-screen bg-background transition-colors duration-300">
-                  {children}
-                </div>
-                <TaskTimerUI />
-                <CookiePopup />
-              </LocationProvider>
-            </TaskTimerProvider>
-          </GlobalActionProvider>
+          <MotionProvider>
+            <GlobalActionProvider>
+              <TaskTimerProvider>
+                <LocationProvider initialRecord={initialAttendance}>
+                  <div className="min-h-screen bg-background transition-colors duration-300">
+                    {children}
+                  </div>
+                  <TaskTimerUI />
+                  <CookiePopup />
+                </LocationProvider>
+              </TaskTimerProvider>
+            </GlobalActionProvider>
+          </MotionProvider>
         </ThemeProvider>
         <Toaster 
           position="bottom-right" 

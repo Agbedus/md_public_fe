@@ -6,6 +6,7 @@ import { createOfficeLocation, updateOfficeLocation } from '@/app/(dashboard)/[o
 import { FiMapPin, FiPlus, FiCheck, FiMap, FiX } from 'react-icons/fi';
 import { toast } from '@/lib/toast';
 import PolicyEditor from './policy-editor';
+import { OfficeLocationFields } from './office-location-fields';
 import dynamic from 'next/dynamic';
 
 const MapComponent = dynamic(() => import('./office-map'), {
@@ -209,20 +210,12 @@ export default function OfficeSettings({ initialLocations }: { initialLocations:
                         </div>
                         
                         <form onSubmit={handleSaveOffice} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="md:col-span-2">
-                                    <label className={labelClass}>Office Name</label>
-                                    <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inputClass} placeholder="Headquarters" required />
-                                </div>
-                                <div>
-                                    <label className={labelClass}>Latitude</label>
-                                    <input type="number" step="any" value={form.latitude} onChange={e => setForm(f => ({ ...f, latitude: e.target.value }))} className={inputClass} placeholder="5.6037" required />
-                                </div>
-                                <div>
-                                    <label className={labelClass}>Longitude</label>
-                                    <input type="number" step="any" value={form.longitude} onChange={e => setForm(f => ({ ...f, longitude: e.target.value }))} className={inputClass} placeholder="-0.1870" required />
-                                </div>
-                            </div>
+                            <OfficeLocationFields
+                                name={form.name}
+                                latitude={form.latitude}
+                                longitude={form.longitude}
+                                onChange={(location) => setForm((current) => ({ ...current, ...location }))}
+                            />
 
                             <div className="grid grid-cols-3 gap-4 p-4 bg-foreground/[0.02] rounded-2xl border border-card-border">
                                 <div>

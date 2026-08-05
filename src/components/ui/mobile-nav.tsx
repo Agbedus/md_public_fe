@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { FiHome, FiCheckSquare, FiSearch, FiCalendar, FiMenu, FiBriefcase, FiFileText, FiClock, FiSettings, FiLogOut, FiMapPin } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useOrgSlug } from '@/hooks/use-org-slug';
+import { spring, springTap } from '@/lib/motion';
 
 export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsCommandOpen: (open: boolean) => void; orgSlug?: string }) {
     const pathname = usePathname();
@@ -53,14 +54,14 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                 <div className="w-56 bg-foreground/[0.03] border border-foreground/5 rounded-2xl  overflow-hidden max-h-[60vh] overflow-y-auto">
                     <div className="flex flex-col">
                         {secondaryItems.map((item, index) => (
-                            <Link 
+                            <Link
                                 key={index} 
                                 href={item.href}
                                 onClick={() => setIsMenuOpen(false)}
-                                className="flex items-center gap-3 p-4 hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-colors border-b border-foreground/5 last:border-0"
+                                className="flex items-center gap-3 p-4 hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 border-b border-foreground/5 last:border-0 active:bg-foreground/[0.04] group"
                             >
-                                <item.icon className={`text-lg ${item.color}`} />
-                                <span className="text-sm font-medium text-text-secondary">{item.label}</span>
+                                <item.icon className={`text-lg ${item.color} transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6`} />
+                                <span className="text-sm font-medium text-text-secondary group-hover:text-foreground transition-colors">{item.label}</span>
                             </Link>
                         ))}
                          <button
@@ -68,9 +69,9 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                                 setIsMenuOpen(false);
                                 // Add logout logic here if needed, or link to a logout route
                              }}
-                            className="flex items-center gap-3 p-4 hover:bg-red-500/10 transition-colors w-full text-left"
+                            className="flex items-center gap-3 p-4 hover:bg-red-500/10 transition-colors w-full text-left group"
                         >
-                            <FiLogOut className="text-lg text-red-400" />
+                            <FiLogOut className="text-lg text-red-400 transition-transform duration-300 group-hover:-translate-x-0.5" />
                             <span className="text-sm font-medium text-red-400">Sign Out</span>
                         </button>
                     </div>
@@ -84,13 +85,19 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                     const Icon = item.icon;
 
                     if (item.isAction) {
+                        const isMenuIcon = item.icon === FiMenu;
                         return (
-                            <button
+                            <motion.button
                                 key={index}
                                 onClick={item.onClick}
-                                className={`flex flex-col items-center justify-center gap-1 transition-colors ${isActive ? 'text-foreground' : 'text-text-muted active:text-foreground'}`}
+                                whileTap={{ scale: 0.88, transition: springTap }}
+                                className={`flex flex-col items-center justify-center gap-1 ${isActive ? 'text-foreground' : 'text-text-muted active:text-foreground'}`}
                             >
-                                <div className={`relative p-1`}>
+                                <motion.div
+                                    animate={{ scale: isActive ? 1.1 : 1, rotate: isMenuIcon && isActive ? 90 : 0 }}
+                                    transition={spring}
+                                    className="relative p-1"
+                                >
                                      <Icon size={20} />
                                      {isActive && (
                                         <motion.div
@@ -98,31 +105,36 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                                             className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-full"
                                         />
                                     )}
-                                </div>
+                                </motion.div>
                                 <span className="text-[11px] font-medium">{item.label}</span>
-                            </button>
+                            </motion.button>
                         );
                     }
 
                     return (
-                        <Link
-                            key={index}
-                            href={item.href || '#'}
-                            className={`flex flex-col items-center justify-center gap-1 transition-colors ${
-                                isActive ? 'text-foreground' : 'text-text-muted'
-                            }`}
-                        >
-                            <div className="relative">
-                                <Icon size={20} />
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="mobile-nav-indicator"
-                                        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-full"
-                                    />
-                                )}
-                            </div>
-                            <span className="text-[11px] font-medium">{item.label}</span>
-                        </Link>
+                        <motion.div key={index} whileTap={{ scale: 0.88, transition: springTap }}>
+                            <Link
+                                href={item.href || '#'}
+                                className={`flex flex-col items-center justify-center gap-1 ${
+                                    isActive ? 'text-foreground' : 'text-text-muted'
+                                }`}
+                            >
+                                <motion.div
+                                    animate={{ scale: isActive ? 1.1 : 1 }}
+                                    transition={spring}
+                                    className="relative"
+                                >
+                                    <Icon size={20} />
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="mobile-nav-indicator"
+                                            className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-full"
+                                        />
+                                    )}
+                                </motion.div>
+                                <span className="text-[11px] font-medium">{item.label}</span>
+                            </Link>
+                        </motion.div>
                     );
                 })}
             </div>

@@ -4,6 +4,7 @@ import React from 'react';
 import { FiSun, FiMoon, FiMonitor } from 'react-icons/fi';
 import { useTheme } from '@/providers/theme-provider';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring, springTap } from '@/lib/motion';
 
 export function ThemeToggle({ 
   collapsed = false, 
@@ -39,9 +40,11 @@ export function ThemeToggle({
 
   if (minimal) {
     return (
-      <button
+      <motion.button
         onClick={toggleTheme}
-        className="relative p-2 rounded-xl bg-background/50 border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-all duration-300 group overflow-hidden"
+        whileHover={{ scale: 1.07, transition: spring }}
+        whileTap={{ scale: 0.88, rotate: -12, transition: springTap }}
+        className="relative p-2 rounded-xl bg-background/50 border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-colors duration-300 group overflow-hidden"
         title={`Switch theme (currently ${getLabel()})`}
       >
         <AnimatePresence mode="wait">
@@ -56,21 +59,23 @@ export function ThemeToggle({
             {getIcon()}
           </motion.div>
         </AnimatePresence>
-      </button>
+      </motion.button>
     );
   }
 
   return (
-    <button
+    <motion.button
       onClick={toggleTheme}
+      whileHover={{ transition: spring }}
+      whileTap={{ scale: 0.97, transition: springTap }}
       className={`
-        flex items-center gap-3 py-2 px-6 rounded-lg transition-all duration-200 
+        flex items-center gap-3 py-2 px-6 rounded-lg transition-colors duration-200
         hover:bg-foreground/[0.03] text-(--text-muted) hover:text-foreground group relative
         ${collapsed ? 'justify-center px-0' : 'justify-start'}
       `}
       title={`Switch theme (currently ${getLabel()})`}
     >
-      <div className={`flex-shrink-0 text-lg transition-transform duration-300 group-hover:scale-110`}>
+      <div className={`flex-shrink-0 text-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12`}>
         {getIcon()}
       </div>
       {!collapsed && (
@@ -78,11 +83,11 @@ export function ThemeToggle({
           {getLabel()}
         </span>
       )}
-      
+
       {/* Visual Indicator of resolved theme if in system mode */}
       {currentTheme === 'system' && !collapsed && (
         <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
       )}
-    </button>
+    </motion.button>
   );
 }

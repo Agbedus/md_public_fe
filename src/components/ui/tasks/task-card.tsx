@@ -344,7 +344,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                     type="button"
                     onClick={handleSubmitClick}
                     disabled={isUpdating}
-                    className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-colors disabled:opacity-50 min-w-[30px] flex items-center justify-center"
+                    className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-colors disabled:opacity-50 min-w-[30px] flex items-center justify-center hover-scale"
                 >
                     {isUpdating ? (
                       <div className="h-3.5 w-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
@@ -355,7 +355,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 <button
                 type="button"
                 onClick={onCancel}
-                className="p-1.5 bg-foreground/[0.03] text-text-muted rounded-lg hover:bg-foreground/[0.06] hover:text-foreground transition-colors"
+                className="p-1.5 bg-foreground/[0.03] text-text-muted rounded-lg hover:bg-foreground/[0.06] hover:text-foreground transition-colors hover-scale"
                 >
                 <FiX className="w-3 h-3" />
                 </button>
@@ -499,7 +499,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
               <button
                 type="button"
                 onClick={() => startTimer(task)}
-                className={`p-1.5 rounded-lg transition-all ${activeTask?.id === task.id ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06] border border-transparent hover:border-card-border'}`}
+                className={`p-1.5 rounded-lg transition-colors hover-scale ${activeTask?.id === task.id ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06] border border-transparent hover:border-card-border'}`}
                 title="Work on Mission"
               >
                 <FiPlay className={`w-3.5 h-3.5 ${activeTask?.id === task.id ? 'fill-current' : ''}`} />
@@ -510,7 +510,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 type="button"
                 onClick={onEdit}
                 disabled={task.id < 0}
-                className="p-1.5 text-text-muted hover:text-foreground hover:bg-foreground/[0.06] rounded-lg border border-transparent hover:border-card-border transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                className="p-1.5 text-text-muted hover:text-foreground hover:bg-foreground/[0.06] rounded-lg border border-transparent hover:border-card-border transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed hover-scale"
                 title={task.id < 0 ? "Saving..." : "Edit"}
             >
                 <FiEdit2 className="w-3.5 h-3.5" />
@@ -547,7 +547,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                         setIsDeleting(false);
                     }
                 }}
-                className="p-1.5 text-text-muted hover:text-rose-500 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/20 transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed" 
+                className="p-1.5 text-text-muted hover:text-rose-500 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/20 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed hover-scale"
                 title={task.id < 0 ? "Saving..." : "Delete"}
             >
                 {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-rose-500"></div> : <FiTrash2 className="w-3.5 h-3.5" />}

@@ -31,6 +31,7 @@ import { useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import OrgSwitcher from "./org-switcher";
 import { isOrgAdmin, canCreate } from "@/lib/org-permissions";
+import { spring, springTap } from "@/lib/motion";
 
 interface OrgBrief {
   id: string;
@@ -147,17 +148,23 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
     const href = orgSlug ? `/${orgSlug}${item.href}` : item.href;
     const isActive = pathname === href || pathname.startsWith(href + '/');
     return (
-      <Link
+      <motion.div
         key={item.href}
-        href={href}
-        data-tour={item.tourId}
-        className={`${baseLinkClasses} ${
-          isActive ? activeLinkClasses : inactiveLinkClasses
-        } ${itemAlignmentClass} ${iconSpacingClass}`}
+        whileHover={{ scale: 1.03, x: 2, transition: spring }}
+        whileTap={{ scale: 0.97, transition: springTap }}
+        className="group/item"
       >
-        <item.icon className={`flex-shrink-0 ${iconSizeClass} ${item.color}`} />
-        <span className={contentVisibilityClass}>{item.label}</span>
-      </Link>
+        <Link
+          href={href}
+          data-tour={item.tourId}
+          className={`${baseLinkClasses} ${
+            isActive ? activeLinkClasses : inactiveLinkClasses
+          } ${itemAlignmentClass} ${iconSpacingClass}`}
+        >
+          <item.icon className={`flex-shrink-0 ${iconSizeClass} ${item.color} transition-transform duration-300 group-hover/item:-rotate-6 group-hover/item:scale-110`} />
+          <span className={contentVisibilityClass}>{item.label}</span>
+        </Link>
+      </motion.div>
     );
   };
 
@@ -168,7 +175,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
       {/* ---------- Header ---------- */}
       <div className={headerClass}>
         <div className={headerInnerClass}>
-          <button
+          <motion.button
             onClick={() => {
               if (typeof window !== "undefined" && window.innerWidth < 768) {
                 setIsMobileExpanded(!isMobileExpanded);
@@ -176,19 +183,21 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
                 setIsDesktopCollapsed(!isDesktopCollapsed);
               }
             }}
-            className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+            whileHover={{ scale: 1.05, transition: spring }}
+            whileTap={{ scale: 0.93, transition: springTap }}
+            className="flex items-center cursor-pointer group/logo"
             title={isExpandedDesktop ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             <div className="w-10 h-10 p-1 bg-foreground/[0.04] rounded-lg border border-card-border flex items-center justify-center shrink-0">
-              <Image 
-                src="/logo.svg" 
-                alt="MyndDesk" 
-                width={32} 
-                height={32} 
+              <Image
+                src="/logo.svg"
+                alt="MyndDesk"
+                width={32}
+                height={32}
                 className="w-8 h-8 object-contain"
               />
             </div>
-          </button>
+          </motion.button>
 
           {!isSidebarCollapsed && (
             <div className="flex items-center gap-1 ml-auto">
@@ -364,26 +373,34 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
             </div>
 
             {!isSidebarCollapsed && (
-              <Link
-                href={orgSlug ? `/${orgSlug}/settings` : "/settings"}
-                data-tour="settings"
-                className="p-2 hover:bg-blue-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors text-text-muted hover:text-foreground shrink-0 ml-auto flex items-center justify-center"
-                title="Settings"
+              <motion.div
+                whileHover={{ scale: 1.08, transition: spring }}
+                whileTap={{ scale: 0.9, transition: springTap }}
+                className="shrink-0 ml-auto group/settings"
               >
-                <FiSettings size={16} className="text-text-muted hover:text-foreground transition-colors" />
-              </Link>
+                <Link
+                  href={orgSlug ? `/${orgSlug}/settings` : "/settings"}
+                  data-tour="settings"
+                  className="p-2 hover:bg-blue-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors duration-200 text-text-muted hover:text-foreground flex items-center justify-center"
+                  title="Settings"
+                >
+                  <FiSettings size={16} className="text-text-muted group-hover/settings:text-foreground transition-all duration-300 group-hover/settings:rotate-45" />
+                </Link>
+              </motion.div>
             )}
           </div>
         )}
 
         <form action={logout} className="w-full">
-          <button
+          <motion.button
             type="submit"
-            className={`flex items-center w-full py-2 rounded-xl text-text-muted hover:bg-red-500/10 hover:text-red-400 ${itemAlignmentClass} ${iconSpacingClass}`}
+            whileHover={{ scale: 1.01, transition: spring }}
+            whileTap={{ scale: 0.96, transition: springTap }}
+            className={`group/logout flex items-center w-full py-2 rounded-xl text-text-muted hover:bg-red-500/10 hover:text-red-400 ${itemAlignmentClass} ${iconSpacingClass} transition-colors duration-200`}
           >
-            <FiLogOut className={iconSizeClass} />
+            <FiLogOut className={`${iconSizeClass} transition-transform duration-300 group-hover/logout:-translate-x-0.5 group-hover/logout:scale-110`} />
             <span className={contentVisibilityClass}>Sign Out</span>
-          </button>
+          </motion.button>
         </form>
 
         <div className={`py-2 flex items-center ${isSidebarCollapsed ? "justify-center" : "justify-between px-6"}`}>

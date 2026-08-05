@@ -13,6 +13,7 @@ import type { PresenceState, AttendanceState, AttendancePolicy, OfficeLocation, 
 const STORAGE_KEY = 'md_location_tracking_enabled';
 const CONFIG_CACHE_KEY = 'md_attendance_config_cache';
 const SYNC_THROTTLE_MS = 5 * 60 * 1000; // Throttle backend sync to once per 5 minutes unless state changes
+const GEOLOCATION_RETRY_DELAYS_MS = [5000, 10000, 30000, 60000];
 
 import { isTimeInWindow, isAfterTime, isBeforeTime, isWithinRadius } from '@/lib/attendance-utils';
 
@@ -235,6 +236,9 @@ export function LocationProvider({
     const attendanceStateRef = useRef<AttendanceState | null>(null);
     const suppressSyncToastRef = useRef(false);
     const isTrackingRef = useRef(false);
+    const trackingRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const trackingRetryAttemptRef = useRef(0);
+    const hasShownUnavailableToastRef = useRef(false);
 
     // Keep ref in sync for callbacks
     useEffect(() => {
@@ -393,33 +397,73 @@ export function LocationProvider({
         }
     }, [mutate]);
 
-    const startTrackingRef = useRef<() => void>(() => {});
+    const startTrackingRef = useRef<(enableHighAccuracy?: boolean) => void>(() => {});
 
-    const startTracking = useCallback(() => {
+    const startTracking = useCallback((enableHighAccuracy = true) => {
         if (!navigator.geolocation) return;
+
+        if (trackingRetryTimeoutRef.current !== null) {
+            clearTimeout(trackingRetryTimeoutRef.current);
+            trackingRetryTimeoutRef.current = null;
+        }
         
         if (watchIdRef.current !== null) {
             navigator.geolocation.clearWatch(watchIdRef.current);
         }
 
         watchIdRef.current = navigator.geolocation.watchPosition(
-            handlePositionUpdate,
+            (position) => {
+                trackingRetryAttemptRef.current = 0;
+                hasShownUnavailableToastRef.current = false;
+                void handlePositionUpdate(position);
+            },
             (error) => {
-                console.error('Geolocation watch error:', error.message);
                 if (error.code === error.PERMISSION_DENIED) {
+                    if (watchIdRef.current !== null) {
+                        navigator.geolocation.clearWatch(watchIdRef.current);
+                        watchIdRef.current = null;
+                    }
+                    setPermissionState('denied');
+                    setPermissionError('Location access is blocked in your browser settings.');
                     toast.error('Location permission denied. Tracking disabled.');
                     setIsTracking(false);
                     localStorage.setItem(STORAGE_KEY, 'false');
-                } else {
-                    // Restart watch on transient errors (POSITION_UNAVAILABLE, TIMEOUT)
-                    navigator.geolocation.clearWatch(watchIdRef.current!);
-                    watchIdRef.current = null;
-                    setTimeout(() => {
-                        if (isTrackingRef.current) startTrackingRef.current();
-                    }, 3000);
+                    return;
                 }
+
+                // POSITION_UNAVAILABLE and TIMEOUT are commonly transient on
+                // laptops and when a tab resumes. Keep tracking enabled, fall
+                // back to network-assisted positioning, and retry with bounded
+                // backoff instead of creating a rapid error loop.
+                if (watchIdRef.current !== null) {
+                    navigator.geolocation.clearWatch(watchIdRef.current);
+                    watchIdRef.current = null;
+                }
+
+                if (!hasShownUnavailableToastRef.current) {
+                    toast.warning('Current position is temporarily unavailable. Retrying in the background.');
+                    hasShownUnavailableToastRef.current = true;
+                }
+
+                const retryIndex = Math.min(
+                    trackingRetryAttemptRef.current,
+                    GEOLOCATION_RETRY_DELAYS_MS.length - 1,
+                );
+                const retryDelay = GEOLOCATION_RETRY_DELAYS_MS[retryIndex];
+                trackingRetryAttemptRef.current += 1;
+
+                trackingRetryTimeoutRef.current = setTimeout(() => {
+                    trackingRetryTimeoutRef.current = null;
+                    if (isTrackingRef.current) {
+                        startTrackingRef.current(false);
+                    }
+                }, retryDelay);
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            {
+                enableHighAccuracy,
+                timeout: enableHighAccuracy ? 20000 : 30000,
+                maximumAge: enableHighAccuracy ? 0 : 60000,
+            }
         );
     }, [handlePositionUpdate]);
 
@@ -428,10 +472,16 @@ export function LocationProvider({
     }, [startTracking]);
 
     const stopTracking = useCallback(() => {
+        if (trackingRetryTimeoutRef.current !== null) {
+            clearTimeout(trackingRetryTimeoutRef.current);
+            trackingRetryTimeoutRef.current = null;
+        }
         if (watchIdRef.current !== null) {
             navigator.geolocation.clearWatch(watchIdRef.current);
             watchIdRef.current = null;
         }
+        trackingRetryAttemptRef.current = 0;
+        hasShownUnavailableToastRef.current = false;
     }, []);
 
     // Keep ref in sync for callbacks

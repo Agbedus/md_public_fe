@@ -1,67 +1,87 @@
-# dependencies
-/node_modules
+# Dependencies and package-manager state
+/node_modules/
 /.pnp
-.pnp.js
+.pnp.*
+.yarn/cache/
+.yarn/install-state.gz
+.yarn/unplugged/
 
-# testing
-/coverage
-
-# next.js
+# Next.js and production output
 /.next/
 /out/
-*.tsbuildinfo
+/build/
+/dist/
 next-env.d.ts
+*.tsbuildinfo
 
-# production
-/build
+# Tests, coverage, and tooling caches
+/coverage/
+/.nyc_output/
+/playwright-report/
+/test-results/
+/storybook-static/
+.eslintcache
+.stylelintcache
+.turbo/
+.swc/
+.cache/
 
-# logs
+# Environment and secret files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Logs and diagnostics
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# env files
-.env
-.env*.local
-.env.local
-.env.production
-.env.development
+# Hosting-provider state
+.vercel/
+.netlify/
+.wrangler/
 
-# vercel
-.vercel
-
-# AI Agent configs (per-developer, not shared)
-.claude/
-
-# IDE - track only shared settings
+# IDEs and editors
 .idea/
 .vscode/*
 !.vscode/settings.json
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# misc
-*.pem
-.eslintcache
-.turbo
-scratch/
-
-# editor swap/backup files
 *.swp
 *.swo
 *~
 *.bak
 *.orig
 
-# local debug scripts
+# Operating-system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
+
+# Local AI-agent configuration
+.agents/
+.codex/
+.claude/
+.cursor/
+.windsurf/
+.continue/
+opencode.json
+
+# Local scratch and debug utilities
+scratch/
 diagnose.ts
 debug_tasks.js
 
-# markdown docs
+# Generated/local project reference documents
 CLAUDE.md
 FEATURES.md
 API_DOCUMENTATION.md

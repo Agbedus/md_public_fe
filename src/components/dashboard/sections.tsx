@@ -99,7 +99,7 @@ export async function SummaryStatsSection() {
             {statCards.map((stat, i) => (
                 <div 
                     key={i} 
-                    className={`bg-card p-3 lg:p-6 rounded-2xl border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col justify-between h-24 lg:h-40 group ${i === 0 ? 'col-span-2 lg:col-span-1' : 'col-span-1'}`}
+                    className={`bg-card p-3 lg:p-6 rounded-2xl border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col justify-between h-24 lg:h-40 group hover-lift ${i === 0 ? 'col-span-2 lg:col-span-1' : 'col-span-1'}`}
                 >
                     <div className="flex justify-between items-start">
                         <div className={`p-1.5 lg:p-3 rounded-xl ${stat.bg} ${stat.color} transition-colors group-hover:bg-foreground/[0.06]`}>
@@ -138,7 +138,7 @@ export async function SummaryStatsSection() {
 export async function AttendanceStatusSection() {
     const stats = await getSummaryStats();
     return (
-        <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+        <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
             <AttendanceStack stats={stats.attendance} />
         </div>
     );
@@ -148,7 +148,7 @@ export async function UserStatSection() {
     const stats = await getSummaryStats();
     
     return (
-        <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 text-left">
+        <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 text-left hover-lift">
             <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
                 <div>
                     <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">People</h2>
@@ -202,7 +202,7 @@ export async function UserStatSection() {
 export async function ProductivitySection({ range }: { range?: string }) {
   const data = await getProductivityData(range);
   return (
-    <div className="col-span-1 lg:col-span-6 h-80 lg:h-96 bg-card p-4 lg:p-6 rounded-2xl flex flex-col group overflow-hidden relative border border-card-border hover:border-foreground/10 transition-all duration-300">
+    <div className="col-span-1 lg:col-span-6 h-80 lg:h-96 bg-card p-4 lg:p-6 rounded-2xl flex flex-col group overflow-hidden relative border border-card-border hover:border-foreground/10 transition-all duration-300 hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-6 shrink-0">
         <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">
           Productivity Trend
@@ -223,7 +223,7 @@ export async function StatsOverviewSection() {
   ]);
 
   return (
-    <div className="col-span-1 lg:col-span-3 h-80 lg:h-96 bg-card p-4 lg:p-6 rounded-2xl flex flex-col overflow-hidden relative border border-card-border hover:border-foreground/10 transition-all duration-300">
+    <div className="col-span-1 lg:col-span-3 h-80 lg:h-96 bg-card p-4 lg:p-6 rounded-2xl flex flex-col overflow-hidden relative border border-card-border hover:border-foreground/10 transition-all duration-300 hover-lift">
       <h2 className="text-lg lg:text-xl font-bold text-foreground mb-4 lg:mb-6 tracking-tight">
         Overview
       </h2>
@@ -290,7 +290,7 @@ export async function StatsOverviewSection() {
 export async function WorkloadSection() {
   const data = await getWorkloadData();
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight mb-3 lg:mb-4 shrink-0">
         Workload
       </h2>
@@ -304,7 +304,7 @@ export async function WorkloadSection() {
 export async function TimeAllocationSection() {
   const data = await getTimeAllocationData();
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight mb-3 lg:mb-4 shrink-0">
         Time Allocation
       </h2>
@@ -319,7 +319,7 @@ export async function KeyTasksSection() {
   const keyTasks = await getKeyTasks();
 
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 hover:border-foreground/10 transition-all duration-300 border border-card-border h-80 lg:h-96 flex flex-col">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 hover:border-foreground/10 transition-all duration-300 border border-card-border h-80 lg:h-96 flex flex-col hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-6">
         <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">
           Key Tasks
@@ -333,7 +333,7 @@ export async function KeyTasksSection() {
           keyTasks.map((task, i) => (
             <div
               key={i}
-              className="flex items-start gap-2.5 p-2.5 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-all cursor-pointer group"
+              className="flex items-start gap-2.5 p-2.5 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-all cursor-pointer group hover-lift"
             >
               <div className="shrink-0 w-2 h-2 mt-1.5 rounded-full bg-blue-400"></div>
               <div className="flex-1 min-w-0">
@@ -380,7 +380,7 @@ export async function PrioritiesSection() {
   const priorities = await getAIPriorities();
 
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-6 shrink-0">
         <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">
           Today&apos;s Priorities
@@ -397,7 +397,7 @@ export async function PrioritiesSection() {
           priorities.map((priority: any, i: number) => {
             const isHigh = priority.priority === "high";
             return (
-              <div key={i} className="group flex items-start gap-3 p-3 rounded-xl bg-foreground/[0.03] border border-card-border hover:border-foreground/10 transition-all hover:bg-foreground/[0.06]">
+              <div key={i} className="group flex items-start gap-3 p-3 rounded-xl bg-foreground/[0.03] border border-card-border hover:border-foreground/10 transition-all hover:bg-foreground/[0.06] hover-lift">
                 <div className={`mt-0.5 shrink-0 ${isHigh ? 'text-[var(--pastel-rose)]' : 'text-(--text-muted)'}`}>
                   {isHigh ? (
                     <FiAlertCircle className="text-sm" />
@@ -436,7 +436,7 @@ export async function RecentNotesSection() {
   const recentNotes = await getRecentNotes();
 
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-6 border border-card-border hover:border-foreground/10 transition-all duration-300 h-80 lg:h-96 flex flex-col">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-6 border border-card-border hover:border-foreground/10 transition-all duration-300 h-80 lg:h-96 flex flex-col hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-6 shrink-0">
         <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">
           Recent Notes
@@ -455,7 +455,7 @@ export async function RecentNotesSection() {
 export async function ProjectProgressSection() {
   const data = await getProjectProgressData();
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-5 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-5 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight mb-3 lg:mb-4 shrink-0">
         Project Progress
       </h2>
@@ -469,7 +469,7 @@ export async function ProjectProgressSection() {
 // Static sections (no async data needed, but good to have as components)
 export function FocusModeSection() {
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col justify-center items-center text-center relative overflow-hidden group h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-3 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col justify-center items-center text-center relative overflow-hidden group h-80 lg:h-96 hover-lift">
       <div className="p-4 rounded-full bg-foreground/[0.03] mb-4 border border-card-border relative z-10">
         <FiClock className="text-3xl text-[var(--pastel-indigo)]" />
       </div>
@@ -493,7 +493,7 @@ export async function UnitLoadSection() {
   const maxTasks = Math.max(...data.map(d => d.activeTasks), 1);
 
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Resource Saturation</h2>
@@ -558,7 +558,7 @@ export async function PriorityMatrixSection() {
   };
 
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Threat Level</h2>
@@ -633,7 +633,7 @@ export async function TemporalBurnRateSection() {
   const sc = statusConfig[data.status as keyof typeof statusConfig];
 
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Temporal Burn Rate</h2>
@@ -692,7 +692,7 @@ export async function CriticalBottlenecksSection() {
   const bottlenecks = await getCriticalBottlenecks();
 
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Delayed Maneuvers</h2>
@@ -753,7 +753,7 @@ export async function OperationVelocitySection() {
   const avgPerDay = totalClosed > 0 ? (totalClosed / data.length).toFixed(1) : '0';
 
   return (
-    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96">
+    <div className="bg-card p-4 lg:p-6 rounded-2xl col-span-1 lg:col-span-4 border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col h-80 lg:h-96 hover-lift">
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Momentum Tracker</h2>

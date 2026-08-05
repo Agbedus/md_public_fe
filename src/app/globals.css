@@ -349,3 +349,67 @@ body {
   color: var(--text-muted);
   padding-left: 0.75rem;
 }
+
+/* ── Delightful micro-interactions ─────────────────────────────────
+   Springy, not bouncy: a small overshoot on hover, a squash on press.
+   These are helper classes on top of the existing design — no visual
+   change at rest, only how elements respond to the cursor.
+
+   The easing below (back-out, 1.56 overshoot) is what gives the
+   slightly-springy settle while staying restrained. */
+
+@keyframes pop-in {
+  0%   { transform: scale(0.94); opacity: 0; }
+  60%  { transform: scale(1.015); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Small controls & icon buttons — gently swell on hover, squash on press. */
+.hover-scale {
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+  will-change: transform;
+}
+.hover-scale:hover { transform: scale(1.07); }
+.hover-scale:active { transform: scale(0.95); }
+
+/* Cards & tiles — lift slightly toward the cursor. */
+.hover-lift {
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+  will-change: transform;
+}
+.hover-lift:hover { transform: translateY(-2px); }
+.hover-lift:active { transform: translateY(0) scale(0.99); }
+
+/* Icon travel — inside a `.group` wrapper, the icon nudges forward on hover. */
+.icon-nudge {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.group:hover .icon-nudge,
+.group-hover .icon-nudge {
+  transform: translateX(2px);
+}
+
+.animate-pop-in {
+  animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-scale,
+  .hover-lift,
+  .icon-nudge {
+    transition: none;
+    transform: none;
+  }
+  .animate-pop-in {
+    animation: none;
+  }
+}

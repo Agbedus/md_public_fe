@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { Portal } from './portal';
+import { spring, springTap } from '@/lib/motion';
 
 interface UserLike {
     id?: string | number;
@@ -54,12 +56,14 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
                 const initials = (name || '?').charAt(0).toUpperCase();
 
                 return (
-                    <div 
-                        key={user.id || index} 
+                    <motion.div
+                        key={user.id || index}
                         ref={(el) => { triggerRefs.current[index] = el; }}
                         onMouseEnter={() => handleMouseEnter(user, index)}
                         onMouseLeave={() => setHoveredUser(null)}
-                        className={`group/avatar relative inline-block ${sizeClasses[size]} rounded-full ring-2 ring-background bg-foreground/[0.03] cursor-pointer`} 
+                        whileHover={{ y: -3, scale: 1.12, zIndex: 10, transition: spring }}
+                        whileTap={{ scale: 0.94, transition: springTap }}
+                        className={`group/avatar relative inline-block ${sizeClasses[size]} rounded-full ring-2 ring-background bg-foreground/[0.03] cursor-pointer transition-colors duration-300 hover:ring-[var(--pastel-purple)]/60`}
                     >
                         {image ? (
                             <Image
@@ -73,7 +77,7 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
                                 {initials}
                             </div>
                         )}
-                    </div>
+                    </motion.div>
                 );
             })}
             
@@ -109,9 +113,12 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
             )}
 
             {remaining > 0 && (
-                <div className={`relative ${sizeClasses[size]} rounded-full ring-2 ring-background bg-foreground/[0.03] flex items-center justify-center font-medium text-text-muted leading-none`}>
+                <motion.div
+                    whileHover={{ y: -3, scale: 1.12, zIndex: 10, transition: spring }}
+                    className={`relative ${sizeClasses[size]} rounded-full ring-2 ring-background bg-foreground/[0.03] flex items-center justify-center font-medium text-text-muted leading-none cursor-default`}
+                >
                     +{remaining}
-                </div>
+                </motion.div>
             )}
         </div>
     );

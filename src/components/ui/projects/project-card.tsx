@@ -37,7 +37,7 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
   };
 
   return (
-    <div className="group relative bg-card hover:bg-card border border-card-border rounded-xl lg:rounded-2xl p-4 lg:p-5 transition-all duration-300 hover:border-foreground/10">
+    <div className="group relative bg-card hover:bg-card border border-card-border rounded-xl lg:rounded-2xl p-4 lg:p-5 transition-colors duration-300 hover:border-foreground/10 hover-lift">
       <div className="flex justify-between items-start mb-2 lg:mb-3">
         <div className="flex items-center gap-2">
           <div className={`px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-lg text-[11px] lg:text-xs font-medium border whitespace-nowrap ${statusColors[project.status]}`}>
@@ -62,7 +62,7 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
           <>
           <button
             onClick={() => onEdit(project)}
-            className="p-1.5 rounded-lg hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors border border-transparent hover:border-card-border"
+            className="p-1.5 rounded-lg hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors border border-transparent hover:border-card-border hover-scale"
             title="Edit project"
           >
             <FiEdit2 className="w-3.5 h-3.5" />
@@ -86,7 +86,7 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
               }
             }}
             disabled={isDeleting}
-            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-text-muted hover:text-rose-400 transition-colors disabled:opacity-50 border border-transparent hover:border-rose-500/20"
+            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-text-muted hover:text-rose-400 transition-colors disabled:opacity-50 border border-transparent hover:border-rose-500/20 hover-scale"
             title="Delete project"
           >
             {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-rose-400"></div> : <FiTrash2 className="w-3.5 h-3.5" />}
@@ -95,14 +95,14 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
           )}
           <Link
             href={`/projects/${project.id}`}
-            className="p-1.5 rounded-lg hover:bg-indigo-500/10 text-text-muted hover:text-indigo-400 transition-colors border border-transparent hover:border-indigo-500/20"
+            className="p-1.5 rounded-lg hover:bg-indigo-500/10 text-text-muted hover:text-indigo-400 transition-colors border border-transparent hover:border-indigo-500/20 hover-scale"
             title="Project Dashboard"
           >
             <FiPieChart className="w-3.5 h-3.5" />
           </Link>
           <Link
             href={`/projects/${project.id}/tasks`}
-            className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-text-muted hover:text-emerald-400 transition-colors border border-transparent hover:border-emerald-500/20"
+            className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-text-muted hover:text-emerald-400 transition-colors border border-transparent hover:border-emerald-500/20 hover-scale"
             title="View project tasks"
           >
             <FiCheckSquare className="w-3.5 h-3.5" />

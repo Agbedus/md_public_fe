@@ -127,13 +127,13 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
           </Link>
 
           <div className="relative group hidden md:block w-full max-w-md" data-tour="search">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors" />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-all duration-300 group-focus-within:scale-110 group-hover:scale-105" />
             <input
               type="text"
               placeholder="Search anything..."
               onClick={() => setIsCommandOpen(true)}
               readOnly
-              className="bg-background/50 border border-card-border rounded-xl pl-10 pr-16 py-2.5 text-sm focus:outline-none focus:bg-foreground/[0.06] focus:border-foreground/10 w-full transition-all duration-300 placeholder:text-text-muted font-bold cursor-pointer hidden md:block"
+              className="bg-background/50 border border-card-border rounded-xl pl-10 pr-16 py-2.5 text-sm focus:outline-none focus:bg-foreground/[0.06] focus:border-foreground/10 w-full transition-all duration-300 placeholder:text-text-muted font-bold cursor-pointer hidden md:block hover:border-foreground/15 hover:bg-foreground/[0.03] focus:scale-[1.01]"
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded border border-card-border bg-background/50 text-[11px] font-bold text-text-muted pointer-events-none font-numbers">
               <span className="text-[12px]">⌘</span>
@@ -148,7 +148,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
             <button
               onClick={() => setIsOrgSwitcherOpen(!isOrgSwitcherOpen)}
               disabled={switching}
-              className="flex items-center gap-2 p-2.5 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-colors text-xs font-bold text-foreground tracking-tight"
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 text-xs font-bold text-foreground tracking-tight hover-scale active:scale-[0.97]"
             >
               <div className="w-5 h-5 rounded-md bg-foreground/[0.08] flex items-center justify-center text-[10px] font-black text-foreground flex-shrink-0">
                 {currentOrg.name.charAt(0).toUpperCase()}
@@ -181,11 +181,11 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                         <button
                           key={org.id}
                           onClick={() => handleSwitchOrg(org.id)}
-                          className={`flex items-center w-full gap-3 px-3 py-2.5 text-sm transition-colors hover:bg-blue-50 dark:hover:bg-white/[0.06] ${
+                          className={`flex items-center w-full gap-3 px-3 py-2.5 text-sm transition-all duration-300 hover:bg-blue-50 dark:hover:bg-white/[0.06] active:bg-foreground/[0.05] ${
                             org.id === currentOrgId ? 'text-foreground font-bold' : 'text-text-secondary'
                           }`}
                         >
-                          <div className="w-6 h-6 rounded-md bg-foreground/[0.08] flex items-center justify-center text-[11px] font-black text-foreground flex-shrink-0">
+                          <div className="w-6 h-6 rounded-md bg-foreground/[0.08] flex items-center justify-center text-[11px] font-black text-foreground flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
                             {org.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0 text-left">
@@ -216,7 +216,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               onMouseEnter={() => setIsNotifHovered(true)}
               onMouseLeave={() => setIsNotifHovered(false)}
-              className="relative p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] group hover-scale"
+              className="relative p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] group hover-scale active:scale-[0.93]"
             >
               <FiBell className={`text-xl group-hover:text-[var(--pastel-yellow)] transition-colors ${isNotificationsOpen ? 'text-[var(--pastel-yellow)]' : ''}`} />
               {unreadCount > 0 && (
@@ -347,7 +347,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               onClick={() => setIsAnnouncementsOpen(!isAnnouncementsOpen)}
               onMouseEnter={() => setIsAnnHovered(true)}
               onMouseLeave={() => setIsAnnHovered(false)}
-              className="relative p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] group hover-scale"
+              className="relative p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] group hover-scale active:scale-[0.93]"
               title="Announcements"
             >
               <FiMessageSquare className={`text-xl group-hover:text-[var(--pastel-yellow)] transition-colors ${isAnnouncementsOpen ? 'text-[var(--pastel-yellow)]' : 'text-text-muted'}`} />
@@ -397,7 +397,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
           </div>
 
           <div className="flex gap-2 hidden md:flex">
-            <button className="p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] hover-scale" title="Help & Support">
+            <button className="p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] hover-scale active:scale-[0.93]" title="Help & Support">
               <FiHelpCircle className="text-xl" />
             </button>
           </div>
@@ -408,7 +408,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
             <div className="relative" ref={dropdownRef}>
               <button 
                   onClick={() => setIsOpen(!isOpen)}
-                  className="flex items-center gap-3 p-1 rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all cursor-pointer group focus:outline-none"
+                  className="flex items-center gap-3 p-1 rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 cursor-pointer group focus:outline-none hover-scale active:scale-[0.96]"
               >
                   <div className="relative">
                   {user.image ? (
@@ -417,10 +417,10 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                           alt="Avatar"
                           width={36}
                           height={36}
-                          className="rounded-lg object-cover border-2 border-background group-hover:border-[var(--pastel-purple)]/50 transition-colors"
+                          className="rounded-lg object-cover border-2 border-background group-hover:border-[var(--pastel-purple)]/50 transition-all duration-300 group-hover:scale-105"
                       />
                   ) : (
-                      <div className="w-9 h-9 rounded-lg bg-background/50 flex items-center justify-center text-foreground font-bold border border-card-border group-hover:border-foreground/10 transition-colors">
+                      <div className="w-9 h-9 rounded-lg bg-background/50 flex items-center justify-center text-foreground font-bold border border-card-border group-hover:border-foreground/10 transition-all duration-300 group-hover:scale-105">
                           {user.name?.charAt(0) || user.email?.charAt(0)}
                       </div>
                   )}
@@ -438,48 +438,48 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/dashboard` : "/dashboard"} 
-                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-colors group"
+                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 active:bg-foreground/[0.04] group"
                       onClick={() => setIsOpen(false)}
                   >
-                      <FiHome className="mr-3 text-[var(--pastel-amber)]" />
+                      <FiHome className="mr-3 text-[var(--pastel-amber)] icon-nudge" />
                       Dashboard
                   </Link>
                   
                   <Link 
                       href={orgSlug ? `/${orgSlug}/profile` : "/profile"} 
-                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-colors group"
+                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 active:bg-foreground/[0.04] group"
                       onClick={() => setIsOpen(false)}
                   >
-                      <FiUser className="mr-3 text-[var(--pastel-blue)]" />
+                      <FiUser className="mr-3 text-[var(--pastel-blue)] icon-nudge" />
                       My Profile
                   </Link>
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/notifications` : "/notifications"} 
-                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-colors group"
+                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 active:bg-foreground/[0.04] group"
                       onClick={() => setIsOpen(false)}
                   >
-                      <FiBell className="mr-3 text-[var(--pastel-rose)]" />
+                      <FiBell className="mr-3 text-[var(--pastel-rose)] icon-nudge" />
                       Notifications
                   </Link>
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/settings` : "/settings"} 
-                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-colors group"
+                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 active:bg-foreground/[0.04] group"
                       onClick={() => setIsOpen(false)}
                   >
-                      <FiSettings className="mr-3 text-[var(--pastel-teal)]" />
+                      <FiSettings className="mr-3 text-[var(--pastel-teal)] icon-nudge" />
                       Settings
                   </Link>
                   
                   <div className="border-t border-card-border my-2"></div>
                   
                   <form action={logout}>
-                      <button 
+                      <button
                           type="submit"
-                          className="flex w-full items-center px-4 py-2.5 text-sm text-rose-500 font-normal hover:bg-rose-500/10 transition-colors group"
+                          className="flex w-full items-center px-4 py-2.5 text-sm text-rose-500 font-normal hover:bg-rose-500/10 transition-colors group active:scale-[0.98]"
                       >
-                          <FiLogOut className="mr-3 group-hover:translate-x-0.5 transition-transform" />
+                          <FiLogOut className="mr-3 icon-nudge" />
                           Sign Out
                       </button>
                   </form>
@@ -487,7 +487,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               )}
             </div>
           ) : (
-            <Link href="/login" className="px-4 py-2 rounded-full bg-foreground/[0.07] hover:bg-foreground/[0.12] text-foreground text-sm font-medium transition-colors border border-card-border">
+            <Link href="/login" className="px-4 py-2 rounded-full bg-foreground/[0.07] hover:bg-foreground/[0.12] text-foreground text-sm font-medium transition-all duration-300 border border-card-border hover-scale active:scale-[0.97]">
               Login
             </Link>
           )}
