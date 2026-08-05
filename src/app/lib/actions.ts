@@ -100,6 +100,8 @@ const RegisterSchema = z.object({
     orgCountry: z.string().optional(),
     orgPhone: z.string().optional(),
     inviteCode: z.string().optional(),
+    referralCode: z.string().optional(),
+    shareClickId: z.string().optional(),
     // FormData values are always strings — the form only ever sends "true"
     // once the checkbox is checked, so this doubles as the "must agree"
     // check. The backend re-validates this independently (UserRegister
@@ -115,7 +117,7 @@ export async function register(prevState: string | undefined, formData: FormData
         return validatedFields.error.issues[0]?.message || "Invalid fields";
     }
 
-    const { email, password, fullName, phone, jobTitle, orgAction, orgName, orgSlug, orgIndustry, orgCompanySize, orgWebsite, orgCountry, orgPhone, inviteCode } = validatedFields.data;
+    const { email, password, fullName, phone, jobTitle, orgAction, orgName, orgSlug, orgIndustry, orgCompanySize, orgWebsite, orgCountry, orgPhone, inviteCode, referralCode, shareClickId } = validatedFields.data;
 
     const body: Record<string, string | boolean> = {
         email,
@@ -126,6 +128,8 @@ export async function register(prevState: string | undefined, formData: FormData
 
     if (phone) body.phone = phone;
     if (jobTitle) body.job_title = jobTitle;
+    if (referralCode) body.referral_code = referralCode;
+    if (shareClickId) body.share_click_id = shareClickId;
 
     if (orgAction) body.org_action = orgAction;
     if (orgAction === "create") {

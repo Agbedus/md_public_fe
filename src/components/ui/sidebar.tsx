@@ -32,6 +32,7 @@ import { ThemeToggle } from "./theme-toggle";
 import OrgSwitcher from "./org-switcher";
 import { isOrgAdmin, canCreate } from "@/lib/org-permissions";
 import { spring, springTap } from "@/lib/motion";
+import { ShareButton } from "@/components/ui/sharing/share-button";
 
 interface OrgBrief {
   id: string;
@@ -323,6 +324,11 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
                 {user?.roles?.includes("super_admin") && (
                   renderMenuItem({ href: "/waitlist", icon: FiInbox, label: "Waitlist", color: "text-indigo-400" })
                 )}
+                <ShareButton
+                  sourceSurface="sidebar"
+                  variant="sidebar"
+                  isCollapsed={isSidebarCollapsed}
+                />
                 <button
                   onClick={() => setIsAboutOpen(true)}
                   className={`${baseLinkClasses} ${inactiveLinkClasses} ${itemAlignmentClass} ${iconSpacingClass} w-full`}

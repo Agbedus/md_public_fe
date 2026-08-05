@@ -226,7 +226,15 @@ const reviewItem = {
   },
 };
 
-export default function RegisterForm({ initialInviteCode }: { initialInviteCode?: string | null }) {
+export default function RegisterForm({
+  initialInviteCode,
+  initialReferralCode,
+  initialShareClickId,
+}: {
+  initialInviteCode?: string | null;
+  initialReferralCode?: string | null;
+  initialShareClickId?: string | null;
+}) {
   const [step, setStep] = useState(1);
   const [isPending, setIsPending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -384,6 +392,8 @@ export default function RegisterForm({ initialInviteCode }: { initialInviteCode?
     } else if (orgAction === 'join') {
       if (inviteCode) formData.append('inviteCode', inviteCode);
     }
+    if (initialReferralCode) formData.append('referralCode', initialReferralCode);
+    if (initialShareClickId) formData.append('shareClickId', initialShareClickId);
 
     try {
       // Store org details in sessionStorage for the verify-otp step

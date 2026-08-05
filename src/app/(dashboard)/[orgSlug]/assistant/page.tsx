@@ -12,9 +12,10 @@ import { useDashboard } from "@/components/ui/dashboard-layout";
 const PIP_VARIANTS = ['classic', 'smart', 'sleepy', 'cool', 'shocked', 'spicy', 'lovely', 'cyber'] as const;
 
 interface Message {
-  id?: number;
+  id?: number | string;
   text: string;
   isUser: boolean;
+  isReport?: boolean;
 }
 
 export default function AssistantPage() {
@@ -23,7 +24,6 @@ export default function AssistantPage() {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showReportThinking, setShowReportThinking] = useState(false);
-  const [reportReady, setReportReady] = useState(false);
   const [pipVariantIdx, setPipVariantIdx] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const { setHideContentScroll } = useDashboard();
@@ -71,16 +71,16 @@ export default function AssistantPage() {
 
   const handleSendMessage = async (text: string) => {
     const isReport = /monthly report|monthly summary|end-of-month|generate.*report/i.test(text);
-    setReportReady(false);
     setHasError(false);
     setErrorMessage("");
 
-    const newUserMessage: Message = { text, isUser: true, id: Date.now() };
+    const interactionId = crypto.randomUUID();
+    const newUserMessage: Message = { text, isUser: true, id: `user-${interactionId}` };
     setMessages((prev) => [...prev, newUserMessage]);
     setIsLoading(true);
     if (isReport) setShowReportThinking(true);
 
-    const aiMessageId = Date.now() + 1;
+    const aiMessageId = `assistant-${interactionId}`;
     setMessages((prev) => [...prev, { text: "", isUser: false, id: aiMessageId }]);
 
     const controller = new AbortController();
@@ -123,12 +123,14 @@ export default function AssistantPage() {
         const chunk = decoder.decode(value, { stream: !done });
         let nextText = accumulatedText + chunk;
 
-        if (isReport && !reportMarkerFound && nextText.includes("__REPORT__")) {
+        if (!reportMarkerFound && nextText.includes("__REPORT__")) {
           reportMarkerFound = true;
           setShowReportThinking(false);
-          setReportReady(true);
           const markerIdx = nextText.indexOf("__REPORT__");
           nextText = nextText.slice(markerIdx + "__REPORT__".length);
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === aiMessageId ? { ...msg, isReport: true } : msg))
+          );
         }
         accumulatedText = nextText;
 
@@ -143,7 +145,7 @@ export default function AssistantPage() {
       setErrorMessage(errString);
       setMessages((prev) => [
         ...prev,
-        { text: `Sorry, I encountered an error: ${errString}`, isUser: false, id: Date.now() + 2 },
+        { text: `Sorry, I encountered an error: ${errString}`, isUser: false, id: `error-${crypto.randomUUID()}` },
       ]);
       setShowReportThinking(false);
     } finally {
@@ -276,7 +278,7 @@ export default function AssistantPage() {
                 )}
                 <AnimatePresence initial={false}>
                 {messages.map((msg) => (
-                    <ChatBubble key={msg.id} message={{ text: msg.text, isUser: msg.isUser, id: msg.id }} />
+                    <ChatBubble key={msg.id} message={msg} />
                 ))}
                 </AnimatePresence>
                 <div ref={bottomRef} />

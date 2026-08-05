@@ -6,6 +6,7 @@ import { CustomTimePicker } from '@/components/ui/inputs/custom-time-picker';
 import { motion, useReducedMotion } from "framer-motion";
 import { FiBell, FiClock, FiLayout, FiCheck, FiCloud } from "react-icons/fi";
 import { toast } from "@/lib/toast";
+import { ShareButton } from '@/components/ui/sharing/share-button';
 
 interface UserSettings {
   emailNotifications: boolean;
@@ -171,6 +172,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Settings</h1>
           <p className="text-text-muted text-sm mt-0.5">Your personal preferences.</p>
         </div>
+        <ShareButton sourceSurface="settings" variant="icon" />
       </div>
 
       <form onSubmit={handleSave} className="space-y-5">

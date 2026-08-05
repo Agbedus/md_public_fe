@@ -34,6 +34,8 @@ const item = {
 function RegisterView() {
   const searchParams = useSearchParams();
   const initialInvite = searchParams.get('invite');
+  const referralCode = searchParams.get('ref');
+  const shareClickId = searchParams.get('click');
   return (
     <main className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background isolate">
       <div className="absolute inset-0 pointer-events-none -z-10">
@@ -88,7 +90,11 @@ function RegisterView() {
         </motion.div>
 
         <motion.div variants={item as Variants}>
-          <RegisterForm initialInviteCode={initialInvite} />
+          <RegisterForm
+            initialInviteCode={initialInvite}
+            initialReferralCode={referralCode}
+            initialShareClickId={shareClickId}
+          />
         </motion.div>
       </motion.div>
     </main>

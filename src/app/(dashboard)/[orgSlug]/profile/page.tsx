@@ -19,6 +19,7 @@ import { ActivityHeatmap } from '@/components/ui/client-charts';
 import { presentOrgRole, orgRoleToneClasses, membershipStatusToneClasses } from '@/types/organization';
 import type { OrgBrief } from '@/types/organization';
 import React from 'react';
+import { ShareButton } from '@/components/ui/sharing/share-button';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -69,8 +70,11 @@ export default async function ProfilePage() {
           <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">My Profile</h1>
           <p className="text-text-muted text-sm">Manage your account and view your performance.</p>
         </div>
-        <div className="text-sm text-text-muted bg-foreground/[0.03] px-4 py-2 rounded-full border border-foreground/5">
-          {currentOrg?.name || 'Workspace'} • {new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+        <div className="flex flex-wrap items-center gap-2">
+          <ShareButton sourceSurface="user_profile" />
+          <div className="text-sm text-text-muted bg-foreground/[0.03] px-4 py-2.5 rounded-lg border border-card-border">
+            {currentOrg?.name || 'Workspace'} • {new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+          </div>
         </div>
       </div>
 

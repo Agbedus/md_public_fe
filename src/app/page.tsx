@@ -37,6 +37,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PipMascot from '@/components/ui/assistant/pip-mascot';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import { ShareButton } from '@/components/ui/sharing/share-button';
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
@@ -318,6 +319,11 @@ export default function LandingPage() {
                                 Sign in
                             </Link>
                         </motion.div>
+                        <ShareButton
+                            sourceSurface="landing_hero"
+                            variant="landing"
+                            className="w-full md:w-auto"
+                        />
                     </motion.div>
 
                     {/* Interface Showcase */}

@@ -64,6 +64,10 @@ const sections: LegalSection[] = [
           <p className="text-xs text-zinc-500 leading-relaxed">Sign-in sessions, IP address, browser and device type, and basic usage events (pages viewed, features used) if you’ve allowed analytics cookies. See Section&nbsp;6.</p>
         </Card>
         <Card>
+          <h4 className="text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiLink2 className="text-zinc-500" /> Share-link attribution</h4>
+          <p className="text-xs text-zinc-500 leading-relaxed">When someone uses a MyndDesk share control or opens one of its unique links, we record the selected channel, source page, time, referring domain when supplied, IP address, approximate IP-based location, browser, operating system, device type, link visits, and whether that visit results in a verified account. We cannot see the recipient, private message, contact list, or destination selected from a device’s general share menu.</p>
+        </Card>
+        <Card>
           <h4 className="text-white font-semibold text-sm mb-2 flex items-center gap-2"><FiSettings className="text-zinc-500" /> Waitlist &amp; contact forms</h4>
           <p className="text-xs text-zinc-500 leading-relaxed">If you join our early-access waitlist: name, company, role, phone number, email, and where you heard about us. This never requires an account.</p>
         </Card>
@@ -98,7 +102,7 @@ const sections: LegalSection[] = [
         <p>We share information only where it’s needed to run the service:</p>
         <ul className="space-y-2 list-disc pl-5">
           <li><strong>Inside your organization</strong> — following the role visibility described in Section&nbsp;5, never beyond your organization’s boundary.</li>
-          <li><strong>Service providers</strong> — our AI inference provider (NVIDIA) for assistant queries, our SMS provider for time-off and task alerts, and our email/SMTP provider for transactional messages. Each only receives what a specific feature needs to function.</li>
+          <li><strong>Service providers</strong> — our AI inference provider (NVIDIA) for assistant queries, our SMS provider for time-off and task alerts, our email/SMTP provider for transactional messages, and our IP geolocation provider for approximate share-link location when that integration is enabled. Each only receives what a specific feature needs to function.</li>
           <li><strong>Webhooks your admin configures</strong> — if an organization owner or admin sets up outbound webhooks, attendance events (clock-in, clock-out) are forwarded, HMAC-signed, to the URL they specify. That destination is outside our control — treat it as your organization’s own integration.</li>
           <li><strong>Legal &amp; safety</strong> — if required to comply with law, enforce our Terms, or protect the rights and safety of our users.</li>
         </ul>
@@ -161,6 +165,7 @@ const sections: LegalSection[] = [
           <li><strong>Notifications</strong> — read notifications are cleared after 7 days, all notifications after 30 days, as a routine housekeeping policy.</li>
           <li><strong>Location readings</strong> — used to compute a live presence state; historical attendance logs are retained per your organization’s own policy, set by your admin.</li>
           <li><strong>Pip AI queries</strong> — not persisted server-side beyond the request that generated the response.</li>
+          <li><strong>Share-link telemetry</strong> — raw IP addresses are removed after 30 days. Hashed identifiers, approximate location, channel, device, click, and registration attribution may be retained in aggregate to measure platform growth and prevent abuse.</li>
         </ul>
       </>
     ),
@@ -230,8 +235,8 @@ export default function PrivacyPage() {
       eyebrow="Privacy Policy"
       title={<>Privacy<br />Policy</>}
       subtitle="What MyndDesk collects, why, and how you stay in control of it — written in plain language, covering every feature in the product today."
-      lastUpdated="July 31, 2026"
-      meta={['Version 2.0', 'Applies platform-wide']}
+      lastUpdated="August 5, 2026"
+      meta={['Version 2.1', 'Applies platform-wide']}
       highlight={{
         icon: <FiShield />,
         title: 'The short version',
