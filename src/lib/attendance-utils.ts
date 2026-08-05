@@ -3,6 +3,8 @@
  * Handles policy-driven time window and radius calculations.
  */
 
+import type { AttendancePolicy } from '@/types/attendance';
+
 /**
  * Parses a HH:MM:SS string from the backend into a Date object for the current day.
  */
@@ -59,4 +61,27 @@ export function isBeforeTime(now: Date, timeStr: string | null): boolean {
  */
 export function isWithinRadius(distance: number, radius: number): boolean {
     return distance <= radius;
+}
+
+/**
+ * Mirrors the backend's automatic clock-in eligibility rules. The explicit
+ * check-in window takes precedence, with the work window as a fallback for
+ * older policies.
+ */
+export function isAutoClockInWindowOpen(now: Date, policy: AttendancePolicy): boolean {
+    if (!policy.auto_clock_in) return false;
+
+    const hasCheckInWindow = Boolean(
+        policy.check_in_open_time && policy.check_in_close_time,
+    );
+    const isWithinConfiguredWindow = hasCheckInWindow
+        ? isTimeInWindow(now, policy.check_in_open_time, policy.check_in_close_time)
+        : isTimeInWindow(now, policy.work_start_time, policy.work_end_time);
+
+    if (!isWithinConfiguredWindow) return false;
+    if (policy.auto_clock_out_time && isAfterTime(now, policy.auto_clock_out_time)) {
+        return false;
+    }
+
+    return true;
 }

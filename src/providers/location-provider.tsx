@@ -3,7 +3,6 @@
 /* eslint-disable react-hooks/immutability */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, startTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSWRConfig } from 'swr';
 import { updateLocation, getOfficeLocations, clockOutManual } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
 import { getDistanceInMeters } from '@/lib/distance-utils';
@@ -14,10 +13,13 @@ const STORAGE_KEY = 'md_location_tracking_enabled';
 const CONFIG_CACHE_KEY = 'md_attendance_config_cache';
 const SYNC_THROTTLE_MS = 5 * 60 * 1000; // Throttle backend sync to once per 5 minutes unless state changes
 const GEOLOCATION_RETRY_DELAYS_MS = [5000, 10000, 30000, 60000];
+const AUTO_CLOCK_IN_CHECK_INTERVAL_MS = 60 * 1000;
+const POLICY_CLOCK_INTERVAL_MS = 30 * 1000;
 
-import { isTimeInWindow, isAfterTime, isBeforeTime, isWithinRadius } from '@/lib/attendance-utils';
+import { isTimeInWindow, isAfterTime, isAutoClockInWindowOpen } from '@/lib/attendance-utils';
 
 export type LocationPermissionState = 'granted' | 'prompt' | 'denied' | 'unsupported' | 'checking';
+export type AutoCheckStatus = 'inactive' | 'permission_required' | 'monitoring' | 'checking' | 'waiting_for_signal' | 'completed';
 
 interface LocationContextType {
     isTracking: boolean;
@@ -39,6 +41,7 @@ interface LocationContextType {
     lastPulse: Date | null;
     location: { latitude: number; longitude: number; accuracy: number | null } | null;
     officeLocation: { latitude: number; longitude: number } | null;
+    autoCheckStatus: AutoCheckStatus;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -93,7 +96,6 @@ export function LocationProvider({
     children: React.ReactNode;
     initialRecord?: AttendanceRecord | null;
 }) {
-    const router = useRouter();
     const { mutate } = useSWRConfig();
     const [isTracking, setIsTracking] = useState(false);
     const [isSupported, setIsSupported] = useState(true);
@@ -191,10 +193,16 @@ export function LocationProvider({
     
     const [offices, setOffices] = useState<OfficeLocation[]>([]);
     const officesRef = useRef<OfficeLocation[]>([]);
+    const [policies, setPolicies] = useState<Record<number, AttendancePolicy>>({});
     const policiesRef = useRef<Record<number, AttendancePolicy>>({});
     const [isInitialized, setIsInitialized] = useState(false);
+    const isInitializedRef = useRef(false);
     const [isPolling, setIsPolling] = useState(false);
     const [lastPulse, setLastPulse] = useState<Date | null>(null);
+    const [policyClock, setPolicyClock] = useState(() => new Date());
+    const [autoCheckActivityStatus, setAutoCheckActivityStatus] = useState<
+        'monitoring' | 'checking' | 'waiting_for_signal'
+    >('monitoring');
 
     // ── Local Presence Derivation ──
     const presenceState = useMemo(() => {
@@ -239,6 +247,8 @@ export function LocationProvider({
     const trackingRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const trackingRetryAttemptRef = useRef(0);
     const hasShownUnavailableToastRef = useRef(false);
+    const syncInFlightRef = useRef(false);
+    const autoCheckRequestInFlightRef = useRef(false);
 
     // Keep ref in sync for callbacks
     useEffect(() => {
@@ -250,12 +260,23 @@ export function LocationProvider({
             // If not forced, try to load from localStorage first for immediate UI hydration
             const cached = localStorage.getItem(CONFIG_CACHE_KEY);
             if (cached && !force) {
-                const { offices, policies } = JSON.parse(cached);
-                officesRef.current = offices;
-                policiesRef.current = policies;
-                if (offices.length > 0) {
-                    setOfficeLocationState({ latitude: offices[0].latitude, longitude: offices[0].longitude });
+                const cachedConfig = JSON.parse(cached) as {
+                    offices?: OfficeLocation[];
+                    policies?: Record<number, AttendancePolicy>;
+                };
+                const cachedOffices = cachedConfig.offices ?? [];
+                const cachedPolicies = cachedConfig.policies ?? {};
+                officesRef.current = cachedOffices;
+                policiesRef.current = cachedPolicies;
+                setOffices(cachedOffices);
+                setPolicies(cachedPolicies);
+                if (cachedOffices.length > 0) {
+                    setOfficeLocationState({
+                        latitude: cachedOffices[0].latitude,
+                        longitude: cachedOffices[0].longitude,
+                    });
                 }
+                isInitializedRef.current = true;
                 setIsInitialized(true);
             }
 
@@ -269,22 +290,25 @@ export function LocationProvider({
             
             const { getAttendancePolicy } = await import('@/app/(dashboard)/[orgSlug]/attendance/actions');
             const newPolicies: Record<number, AttendancePolicy> = {};
-            for (const office of offices) {
+            for (const office of fetchedOffices) {
                 const p = await getAttendancePolicy(office.id);
                 if (p) newPolicies[office.id] = p;
             }
             policiesRef.current = newPolicies;
+            setPolicies(newPolicies);
             
             // Update Cache
             localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify({
-                offices,
+                offices: fetchedOffices,
                 policies: newPolicies,
                 timestamp: Date.now()
             }));
 
+            isInitializedRef.current = true;
             setIsInitialized(true);
         } catch (err) {
             console.error('Failed to sync location config:', err);
+            isInitializedRef.current = true;
             setIsInitialized(true); 
         }
     }, []);
@@ -312,7 +336,10 @@ export function LocationProvider({
     }, [syncConfiguration, checkPermission]);
 
 
-    const handlePositionUpdate = useCallback(async (position: GeolocationPosition) => {
+    const handlePositionUpdate = useCallback(async (
+        position: GeolocationPosition,
+        forceSync = false,
+    ): Promise<boolean> => {
         const { latitude, longitude, accuracy } = position.coords;
         
         // 1. Instant UI Update
@@ -320,7 +347,7 @@ export function LocationProvider({
         setLastPulse(new Date());
 
         const offices = officesRef.current;
-        if (!offices || offices.length === 0) return;
+        if (!offices || offices.length === 0) return false;
 
         // 2. Instant Local Evaluation
         let activeOffice: OfficeLocation | null = null;
@@ -334,7 +361,7 @@ export function LocationProvider({
             }
         }
         
-        if (!activeOffice) return;
+        if (!activeOffice) return false;
 
         let localPresence: PresenceState = 'OUT_OF_OFFICE';
         if (minDistance <= activeOffice.in_office_radius_meters) {
@@ -352,9 +379,16 @@ export function LocationProvider({
 
         // 3. Dynamic Sync (throttled)
         const timeSinceLastSync = Date.now() - lastSyncTimeRef.current;
-        const shouldSync = stateChanged || timeSinceLastSync >= SYNC_THROTTLE_MS;
+        const shouldSync = forceSync || stateChanged || timeSinceLastSync >= SYNC_THROTTLE_MS;
 
-        if (shouldSync && accuracy <= 50 && isInitialized) {
+        if (
+            shouldSync
+            && Number.isFinite(accuracy)
+            && accuracy > 0
+            && isInitializedRef.current
+            && !syncInFlightRef.current
+        ) {
+            syncInFlightRef.current = true;
             setIsPolling(true);
             try {
                 const result = await updateLocation(latitude, longitude, accuracy, activeOffice.id);
@@ -388,13 +422,19 @@ export function LocationProvider({
                         }
                     }
                     suppressSyncToastRef.current = false;
+                    return true;
                 }
+                console.warn('Attendance location sync was rejected:', result.error);
+                return false;
             } catch (err) {
                 console.error('Backend sync failed:', err);
+                return false;
             } finally {
+                syncInFlightRef.current = false;
                 setIsPolling(false);
             }
         }
+        return false;
     }, [mutate]);
 
     const startTrackingRef = useRef<(enableHighAccuracy?: boolean) => void>(() => {});
@@ -498,6 +538,131 @@ export function LocationProvider({
         }
         return () => stopTracking();
     }, [isTracking, isInitialized, startTracking, stopTracking]);
+
+    // Keep policy-window evaluation moving even when the device is stationary
+    // and watchPosition does not emit another reading.
+    useEffect(() => {
+        const updatePolicyClock = () => setPolicyClock(new Date());
+        const intervalId = window.setInterval(updatePolicyClock, POLICY_CLOCK_INTERVAL_MS);
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') updatePolicyClock();
+        };
+
+        window.addEventListener('focus', updatePolicyClock);
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            window.clearInterval(intervalId);
+            window.removeEventListener('focus', updatePolicyClock);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
+    }, []);
+
+    const activeAutoClockInPolicy = useMemo(() => {
+        if (attendanceState === 'CLOCKED_IN') return null;
+
+        for (const office of offices) {
+            const policy = policies[office.id];
+            if (policy && isAutoClockInWindowOpen(policyClock, policy)) {
+                return policy;
+            }
+        }
+        return null;
+    }, [attendanceState, offices, policies, policyClock]);
+
+    const autoCheckStatus: AutoCheckStatus = attendanceState === 'CLOCKED_IN'
+        ? 'completed'
+        : !activeAutoClockInPolicy || !isInitialized
+            ? 'inactive'
+            : permissionState !== 'granted'
+                ? 'permission_required'
+                : autoCheckActivityStatus;
+
+    const runAutoClockInCheck = useCallback(() => {
+        if (!activeAutoClockInPolicy || attendanceStateRef.current === 'CLOCKED_IN') {
+            return;
+        }
+
+        if (!navigator.geolocation) {
+            setAutoCheckActivityStatus('waiting_for_signal');
+            return;
+        }
+        if (autoCheckRequestInFlightRef.current) return;
+
+        autoCheckRequestInFlightRef.current = true;
+        setAutoCheckActivityStatus('checking');
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setPermissionState('granted');
+                setPermissionError(null);
+                void handlePositionUpdate(position, true).then((didSync) => {
+                    setAutoCheckActivityStatus(
+                        didSync ? 'monitoring' : 'waiting_for_signal',
+                    );
+                }).finally(() => {
+                    autoCheckRequestInFlightRef.current = false;
+                });
+            },
+            (error) => {
+                autoCheckRequestInFlightRef.current = false;
+                if (error.code === error.PERMISSION_DENIED) {
+                    setPermissionState('denied');
+                    setPermissionError('Location access is blocked in your browser settings.');
+                    return;
+                }
+                setAutoCheckActivityStatus('waiting_for_signal');
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 20000,
+                maximumAge: 60000,
+            },
+        );
+    }, [activeAutoClockInPolicy, handlePositionUpdate]);
+
+    // Automatic clock-in needs periodic evidence of continuous presence. Run
+    // immediately when the policy window opens, every minute during the
+    // window, and again whenever a suspended tab becomes active or reconnects.
+    useEffect(() => {
+        if (attendanceState === 'CLOCKED_IN') {
+            return;
+        }
+        if (!activeAutoClockInPolicy || !isInitialized) {
+            return;
+        }
+        if (
+            permissionState === 'checking'
+            || permissionState === 'denied'
+            || permissionState === 'unsupported'
+        ) {
+            return;
+        }
+
+        const initialCheckId = window.setTimeout(runAutoClockInCheck, 0);
+        const intervalId = window.setInterval(
+            runAutoClockInCheck,
+            AUTO_CLOCK_IN_CHECK_INTERVAL_MS,
+        );
+        const runWhenVisible = () => {
+            if (document.visibilityState === 'visible') runAutoClockInCheck();
+        };
+
+        window.addEventListener('focus', runAutoClockInCheck);
+        window.addEventListener('online', runAutoClockInCheck);
+        document.addEventListener('visibilitychange', runWhenVisible);
+        return () => {
+            window.clearTimeout(initialCheckId);
+            window.clearInterval(intervalId);
+            window.removeEventListener('focus', runAutoClockInCheck);
+            window.removeEventListener('online', runAutoClockInCheck);
+            document.removeEventListener('visibilitychange', runWhenVisible);
+        };
+    }, [
+        activeAutoClockInPolicy,
+        attendanceState,
+        isInitialized,
+        permissionState,
+        runAutoClockInCheck,
+    ]);
 
     const toggleTracking = useCallback(() => {
         const next = !isTracking;
@@ -754,6 +919,7 @@ export function LocationProvider({
         lastPulse,
         location,
         officeLocation: officeLocationState,
+        autoCheckStatus,
     }), [
         isTracking,
         isSupported,
@@ -773,7 +939,8 @@ export function LocationProvider({
         refreshLocation,
         lastPulse,
         location,
-        officeLocationState
+        officeLocationState,
+        autoCheckStatus,
     ]);
 
     return (

@@ -508,7 +508,7 @@ export async function updateOfficeLocation(id: number, data: Partial<OfficeLocat
     }
 }
 
-// ── Admin: Attendance Policy ────────────────────────────────────────
+// ── Attendance Policy ───────────────────────────────────────────────
 
 export async function getAttendancePolicy(officeLocationId: number): Promise<AttendancePolicy | null> {
     const headers = await getAuthHeaders();

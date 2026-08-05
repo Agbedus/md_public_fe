@@ -43,6 +43,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
         lastPulse,
         location,
         officeLocation,
+        autoCheckStatus,
     } = useLocation();
     
     const { mutate: globalMutate } = useSWRConfig();
@@ -100,6 +101,24 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
     const latestPulse = lastPulse || lastUpdate;
     const pColors = presenceStateColors[currentPresence];
     const aColors = attendanceStateColors[currentAttendance];
+    const autoCheckCopy = {
+        permission_required: {
+            title: 'Auto clock-in needs location access',
+            detail: 'Allow GPS so checks can run throughout the clock-in window.',
+        },
+        monitoring: {
+            title: 'Auto clock-in is monitoring',
+            detail: 'Your location is checked every minute during the clock-in window.',
+        },
+        checking: {
+            title: 'Checking your office location',
+            detail: 'Confirming continuous presence for automatic clock-in.',
+        },
+        waiting_for_signal: {
+            title: 'Waiting for a reliable GPS signal',
+            detail: 'Checks will continue automatically when location becomes available.',
+        },
+    } as const;
 
     const distance = useMemo(() => {
         if (!location || !officeLocation) return null;
@@ -184,6 +203,41 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                     >
                         Allow
                     </button>
+                </div>
+            )}
+
+            {currentAttendance !== 'CLOCKED_IN'
+                && autoCheckStatus in autoCheckCopy
+                && !(autoCheckStatus === 'permission_required' && permissionState === 'denied') && (
+                <div className={`z-10 rounded-xl border p-3.5 flex items-center justify-between gap-3 ${
+                    autoCheckStatus === 'waiting_for_signal'
+                        ? 'bg-amber-500/10 border-amber-500/30'
+                        : 'bg-emerald-500/10 border-emerald-500/30'
+                }`}>
+                    <div className="flex items-start gap-3 min-w-0">
+                        <FiActivity className={`w-4 h-4 mt-0.5 shrink-0 ${
+                            autoCheckStatus === 'waiting_for_signal'
+                                ? 'text-amber-400'
+                                : 'text-emerald-500'
+                        }`} />
+                        <div className="min-w-0">
+                            <p className="text-xs font-semibold text-foreground">
+                                {autoCheckCopy[autoCheckStatus as keyof typeof autoCheckCopy].title}
+                            </p>
+                            <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
+                                {autoCheckCopy[autoCheckStatus as keyof typeof autoCheckCopy].detail}
+                            </p>
+                        </div>
+                    </div>
+                    {autoCheckStatus === 'permission_required' && (
+                        <button
+                            type="button"
+                            onClick={() => requestPermission()}
+                            className="min-h-11 px-3 rounded-md bg-emerald-500 text-emerald-950 text-xs font-semibold hover:bg-emerald-400 active:bg-emerald-600 transition-colors shrink-0"
+                        >
+                            Enable GPS
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -369,4 +423,3 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
         </div>
     );
 }
-
