@@ -3,7 +3,8 @@
 import React, { useState, useMemo, useTransition, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FiSearch, FiCheck, FiX, FiSun, FiFilter, FiCalendar, FiTrash2 } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
+import { FiSearch, FiCheck, FiX, FiSun, FiFilter, FiCalendar, FiTrash2, FiPlus } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/lib/toast';
@@ -14,6 +15,7 @@ import type { User } from '@/types/user';
 import { approveTimeOffRequest, rejectTimeOffRequest, deleteTimeOffRequest } from '@/app/(dashboard)/[orgSlug]/time-off/actions';
 import { useConfirm } from '@/providers/confirmation-provider';
 import TimeOffDetailModal from './time-off-detail-modal';
+import TimeOffModal from '@/components/ui/calendar/TimeOffModal';
 
 interface TimeOffAdminClientProps {
     initialRequests: TimeOffRequest[];
@@ -42,6 +44,7 @@ const typeLabels: Record<string, string> = {
 
 export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAdminClientProps) {
     const confirm = useConfirm();
+    const router = useRouter();
     const orgSlug = useOrgSlug();
     const orgPath = (path: string) => orgSlug ? `/${orgSlug}${path}` : path;
     const [requests, setRequests] = useState(initialRequests);
@@ -50,7 +53,15 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
     const [filterType, setFilterType] = useState<string>('');
     const [actionLoading, setActionLoading] = useState<number | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<TimeOffRequest | null>(null);
+    const [requestModalOpen, setRequestModalOpen] = useState(false);
     const [, startTransition] = useTransition();
+
+    // Server-refetched data (e.g. after submitting a new request via
+    // router.refresh()) lands here as a new `initialRequests` prop — sync it
+    // in, since useState's initial value only applies on mount.
+    React.useEffect(() => {
+        setRequests(initialRequests);
+    }, [initialRequests]);
 
     const getUserById = (id: string) => users.find(u => u.id === id);
 
@@ -152,6 +163,13 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                     </h1>
                     <p className="text-text-muted text-sm">Review and manage team time-off requests.</p>
                 </div>
+                <button
+                    onClick={() => setRequestModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 text-sm font-bold transition-all self-start md:self-auto"
+                >
+                    <FiPlus className="h-4 w-4" />
+                    <span>Request Time Off</span>
+                </button>
             </div>
 
             {/* Stats */}
@@ -378,6 +396,12 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                 onReject={handleReject}
                 onDelete={handleDelete}
                 actionLoading={actionLoading === selectedRequest?.id}
+            />
+
+            <TimeOffModal
+                open={requestModalOpen}
+                onClose={() => setRequestModalOpen(false)}
+                onCreated={() => router.refresh()}
             />
         </>
     );
