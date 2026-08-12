@@ -19,6 +19,8 @@ import type { Task } from '@/types/task';
 import type { Note } from '@/types/note';
 import type { CalendarEvent } from '@/types/calendar';
 import type { Project } from '@/types/project';
+import { PipServiceError } from '@/lib/pip-errors';
+import { startPipCompletion } from '@/lib/pip-model-provider';
 
 export async function getUserName() {
   const session = await auth();
@@ -448,82 +450,125 @@ export async function getAggregatedDashboardData() {
     `;
 }
 
-let prioritiesCache: { data: any[]; timestamp: number } | null = null;
-const CACHE_TTL = 5 * 60 * 1000;
+interface DashboardPriority {
+    action: string;
+    reason: string;
+    priority: 'high' | 'medium' | 'low';
+}
 
-export async function getAIPriorities() {
+let prioritiesCache: { data: DashboardPriority[]; timestamp: number } | null = null;
+let prioritiesRequest: Promise<DashboardPriority[]> | null = null;
+let prioritiesBackoffUntil = 0;
+const CACHE_TTL = 15 * 60 * 1000;
+const RATE_LIMIT_BACKOFF = 10 * 60 * 1000;
+const FAILURE_BACKOFF = 2 * 60 * 1000;
+
+async function getTaskBasedPriorities(): Promise<DashboardPriority[]> {
+    const tasks = await getTasks(undefined, undefined, undefined, undefined, 100);
+    const now = Date.now();
+    const active = tasks
+        .filter((task) => task.status !== 'DONE')
+        .sort((a, b) => {
+            const priorityRank = { high: 0, medium: 1, low: 2 };
+            const rankDifference = priorityRank[a.priority] - priorityRank[b.priority];
+            if (rankDifference !== 0) return rankDifference;
+            const aDue = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
+            const bDue = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
+            return aDue - bDue;
+        })
+        .slice(0, 5);
+
+    return active.map((task) => {
+        const dueTime = task.dueDate ? new Date(task.dueDate).getTime() : null;
+        const isOverdue = dueTime !== null && dueTime < now;
+        const dueSoon = dueTime !== null && dueTime >= now && dueTime - now <= 2 * 24 * 60 * 60 * 1000;
+        const reason = isOverdue
+            ? 'Overdue and still open'
+            : dueSoon
+              ? 'Due within the next two days'
+              : task.status === 'IN_PROGRESS'
+                ? 'High-value work already in progress'
+                : 'Important open work to advance';
+
+        return { action: task.name, reason, priority: task.priority };
+    });
+}
+
+function validPriority(value: unknown): value is DashboardPriority {
+    if (!value || typeof value !== 'object') return false;
+    const priority = value as Record<string, unknown>;
+    return typeof priority.action === 'string'
+        && typeof priority.reason === 'string'
+        && (priority.priority === 'high' || priority.priority === 'medium' || priority.priority === 'low');
+}
+
+async function generateAIPriorities(): Promise<DashboardPriority[]> {
+    const fallback = await getTaskBasedPriorities();
+    const apiKey = process.env.NVIDIA_BUILD_API_KEY?.trim();
+    if (!apiKey || Date.now() < prioritiesBackoffUntil) {
+        return prioritiesCache?.data.length ? prioritiesCache.data : fallback;
+    }
+
+    const dashboardData = await getAggregatedDashboardData();
+
+    try {
+        const completion = await startPipCompletion({
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a strategic productivity assistant. Analyze the dashboard data and select the five most critical priorities for today.
+
+Return only valid JSON in this format: {"priorities":[{"action":"string","reason":"10 words maximum","priority":"high"}]}. Use only high, medium, or low for priority. Be specific and reference real task or project names.`,
+                },
+                { role: 'user', content: `Dashboard context:\n${dashboardData}` },
+            ],
+            temperature: 0.1,
+            max_tokens: 1024,
+            stream: false,
+        }, AbortSignal.timeout(45_000));
+
+        const result = await completion.response.json() as {
+            choices?: Array<{ message?: { content?: string } }>;
+        };
+        const prioritiesText = result.choices?.[0]?.message?.content;
+        if (!prioritiesText) throw new Error('NVIDIA returned no priority content.');
+
+        const cleaned = prioritiesText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+        const parsed = JSON.parse(cleaned) as { priorities?: unknown; items?: unknown } | unknown[];
+        const candidates = Array.isArray(parsed)
+            ? parsed
+            : Array.isArray(parsed.priorities)
+              ? parsed.priorities
+              : Array.isArray(parsed.items)
+                ? parsed.items
+                : [];
+        const priorities = candidates.filter(validPriority).slice(0, 5);
+        if (!priorities.length) throw new Error('NVIDIA returned no valid priorities.');
+
+        prioritiesCache = { data: priorities, timestamp: Date.now() };
+        prioritiesBackoffUntil = 0;
+        return priorities;
+    } catch (error) {
+        prioritiesBackoffUntil = Date.now() + (
+            error instanceof PipServiceError && error.code === 'rate_limited'
+                ? RATE_LIMIT_BACKOFF
+                : FAILURE_BACKOFF
+        );
+        return prioritiesCache?.data.length ? prioritiesCache.data : fallback;
+    }
+}
+
+export async function getAIPriorities(): Promise<DashboardPriority[]> {
     if (prioritiesCache && Date.now() - prioritiesCache.timestamp < CACHE_TTL) {
         return prioritiesCache.data;
     }
 
-    const dashboardData = await getAggregatedDashboardData();
-    const apiKey = process.env.NVIDIA_BUILD_API_KEY;
-    
-    if (!apiKey) {
-        console.error("NVIDIA_BUILD_API_KEY not set for priorities");
-        return [];
-    }
-
-    try {
-        const model = "minimaxai/minimax-m3";
-        const baseUrl = "https://integrate.api.nvidia.com/v1/chat/completions";
-
-        const response = await fetch(baseUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a strategic productivity assistant. Analyze the user's dashboard data (tasks, projects, events) and determine the top 5 most critical "Priorities" for today.
-
-RULES:
-1. Be specific. Mention project names or task titles.
-2. Provide a short "reason" (max 10 words) for each priority.
-3. Assign a priority level: 'high', 'medium', or 'low'.
-4. Return ONLY valid JSON in this format: {"priorities": [{"action": "string", "reason": "string", "priority": "high" | "medium" | "low"}]}`
-                    },
-                    {
-                        role: "user",
-                        content: `Here is the dashboard context: ${dashboardData}`
-                    }
-                ],
-                temperature: 0.1,
-                max_tokens: 1024
-            }),
+    if (!prioritiesRequest) {
+        prioritiesRequest = generateAIPriorities().finally(() => {
+            prioritiesRequest = null;
         });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Failed to fetch priorities from NVIDIA:", errorText);
-            if (prioritiesCache) return prioritiesCache.data;
-            return [];
-        }
-
-        const result = await response.json();
-        const prioritiesStr = result.choices?.[0]?.message?.content;
-        
-        if (!prioritiesStr) {
-            if (prioritiesCache) return prioritiesCache.data;
-            return [];
-        }
-
-        const cleaned = prioritiesStr.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-        const parsed = JSON.parse(cleaned);
-        const priorities = parsed.priorities || parsed.items || (Array.isArray(parsed) ? parsed : []);
-        const sliced = priorities.slice(0, 5);
-
-        prioritiesCache = { data: sliced, timestamp: Date.now() };
-        return sliced;
-    } catch (error) {
-        console.error("Error generating AI priorities:", error);
-        if (prioritiesCache) return prioritiesCache.data;
-        return [];
     }
+    return prioritiesRequest;
 }
 
 // ── NEW TACTICAL INSIGHT FUNCTIONS ──────────────────────────────────

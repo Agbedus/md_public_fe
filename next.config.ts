@@ -2,6 +2,10 @@ import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // PDFKit loads Node-specific font and binary assets at runtime. Keeping it
+  // external prevents the App Router bundler from dropping those files in
+  // production deployments.
+  serverExternalPackages: ['pdfkit'],
   images: {
     remotePatterns: [
       {

@@ -8,12 +8,12 @@ type PipStatus = 'idle' | 'thinking' | 'error';
 interface PipMascotProps {
   variant?: PipVariant;
   status?: PipStatus;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   errorMessage?: string;
   className?: string;
 }
 
-const SIZES = { sm: 64, md: 96, lg: 128, xl: 200 };
+const SIZES = { xs: 28, sm: 64, md: 96, lg: 128, xl: 200 };
 
 /** Each variant's signature accent — taken directly from the Pip Assets
  *  (glow flood-color and feature color both match this per file). Fixed

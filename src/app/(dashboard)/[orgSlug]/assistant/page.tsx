@@ -1,12 +1,12 @@
 "use client";
 
-/* eslint-disable react-hooks/immutability */
 import { useState, useEffect, useRef } from "react";
 import ChatBubble from "@/components/ui/assistant/ChatBubble";
 import ChatInput from "@/components/ui/assistant/ChatInput";
 import PipMascot from "@/components/ui/assistant/pip-mascot";
+import type { PipActivity } from "@/components/ui/assistant/pip-status-indicator";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiMessageSquare, FiList, FiTrendingUp, FiCpu, FiCalendar, FiClock } from "react-icons/fi";
+import { FiMessageSquare, FiList, FiTrendingUp, FiCalendar } from "react-icons/fi";
 import { useDashboard } from "@/components/ui/dashboard-layout";
 
 const PIP_VARIANTS = ['classic', 'smart', 'sleepy', 'cool', 'shocked', 'spicy', 'lovely', 'cyber'] as const;
@@ -18,12 +18,30 @@ interface Message {
   isReport?: boolean;
 }
 
+interface AssistantErrorPayload {
+  message?: string;
+}
+
+const PIP_ERROR_MARKER = '__PIP_ERROR__';
+const DEFAULT_PIP_ERROR = 'Pip couldn’t connect right now. Please try again in a moment.';
+
+function cleanAssistantError(payload: unknown): string {
+  if (!payload || typeof payload !== 'object') return DEFAULT_PIP_ERROR;
+  const error = (payload as Record<string, unknown>).error;
+  if (error && typeof error === 'object') {
+    const message = (error as AssistantErrorPayload).message;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+  return DEFAULT_PIP_ERROR;
+}
+
 export default function AssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [showReportThinking, setShowReportThinking] = useState(false);
+  const [pipActivity, setPipActivity] = useState<PipActivity>('ready');
+  const [activeResponseId, setActiveResponseId] = useState<string | null>(null);
   const [pipVariantIdx, setPipVariantIdx] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const { setHideContentScroll } = useDashboard();
@@ -57,8 +75,11 @@ export default function AssistantPage() {
   }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading, showReportThinking]);
+    const frame = window.requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ behavior: isLoading ? 'auto' : 'smooth', block: 'end' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [messages, isLoading]);
 
   const handleStop = () => {
     if (abortRef.current) {
@@ -66,7 +87,8 @@ export default function AssistantPage() {
       abortRef.current = null;
     }
     setIsLoading(false);
-    setShowReportThinking(false);
+    setPipActivity('ready');
+    setActiveResponseId(null);
   };
 
   const handleSendMessage = async (text: string) => {
@@ -78,13 +100,16 @@ export default function AssistantPage() {
     const newUserMessage: Message = { text, isUser: true, id: `user-${interactionId}` };
     setMessages((prev) => [...prev, newUserMessage]);
     setIsLoading(true);
-    if (isReport) setShowReportThinking(true);
+    setPipActivity(isReport ? 'analyzing' : 'thinking');
 
     const aiMessageId = `assistant-${interactionId}`;
+    setActiveResponseId(aiMessageId);
     setMessages((prev) => [...prev, { text: "", isUser: false, id: aiMessageId }]);
 
     const controller = new AbortController();
     abortRef.current = controller;
+    let didFail = false;
+    let hasStartedWriting = false;
 
     try {
       const response = await fetch("/api/assistant", {
@@ -95,37 +120,25 @@ export default function AssistantPage() {
       });
 
       if (!response.ok) {
-        const bodyText = await response.text();
-        let errorMsg = "Failed to fetch response";
-        try {
-          const errData = JSON.parse(bodyText);
-          errorMsg = errData.error || errorMsg;
-        } catch {
-          errorMsg = bodyText || errorMsg;
-        }
-        throw new Error(errorMsg);
+        const errorPayload = await response.json().catch(() => null);
+        throw new Error(cleanAssistantError(errorPayload));
       }
 
       if (!response.body) return;
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let done = false;
       let accumulatedText = "";
       let reportMarkerFound = false;
+      let protocolBuffer = '';
 
-      while (!done) {
-        if (controller.signal.aborted) {
-          reader.cancel();
-          break;
-        }
-        const { value, done: doneReading } = await reader.read();
-        const chunk = decoder.decode(value, { stream: !done });
-        let nextText = accumulatedText + chunk;
+      const appendAssistantText = (textChunk: string) => {
+        if (!textChunk) return;
+        let nextText = accumulatedText + textChunk;
 
         if (!reportMarkerFound && nextText.includes("__REPORT__")) {
           reportMarkerFound = true;
-          setShowReportThinking(false);
+          setPipActivity('writing');
           const markerIdx = nextText.indexOf("__REPORT__");
           nextText = nextText.slice(markerIdx + "__REPORT__".length);
           setMessages((prev) =>
@@ -133,24 +146,69 @@ export default function AssistantPage() {
           );
         }
         accumulatedText = nextText;
-
         setMessages((prev) =>
           prev.map((msg) => (msg.id === aiMessageId ? { ...msg, text: accumulatedText } : msg))
         );
+      };
+
+      while (true) {
+        if (controller.signal.aborted) {
+          await reader.cancel();
+          break;
+        }
+        const { value, done: doneReading } = await reader.read();
+        if (doneReading) {
+          decoder.decode();
+          break;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        if (chunk && !hasStartedWriting) {
+          hasStartedWriting = true;
+          setPipActivity('writing');
+        }
+        protocolBuffer += chunk;
+        const errorStart = protocolBuffer.indexOf(PIP_ERROR_MARKER);
+        if (errorStart >= 0) {
+          appendAssistantText(protocolBuffer.slice(0, errorStart));
+          protocolBuffer = protocolBuffer.slice(errorStart);
+          const payloadStart = PIP_ERROR_MARKER.length;
+          const errorEnd = protocolBuffer.indexOf(PIP_ERROR_MARKER, payloadStart);
+          if (errorEnd < 0) continue;
+          const payloadText = protocolBuffer.slice(payloadStart, errorEnd);
+          const payload = JSON.parse(payloadText) as AssistantErrorPayload;
+          throw new Error(typeof payload.message === 'string' && payload.message.trim() ? payload.message : DEFAULT_PIP_ERROR);
+        }
+
+        let retainedLength = 0;
+        const maxPrefix = Math.min(PIP_ERROR_MARKER.length - 1, protocolBuffer.length);
+        for (let length = maxPrefix; length > 0; length -= 1) {
+          if (protocolBuffer.endsWith(PIP_ERROR_MARKER.slice(0, length))) {
+            retainedLength = length;
+            break;
+          }
+        }
+        const safeLength = protocolBuffer.length - retainedLength;
+        appendAssistantText(protocolBuffer.slice(0, safeLength));
+        protocolBuffer = protocolBuffer.slice(safeLength);
       }
+      if (protocolBuffer.startsWith(PIP_ERROR_MARKER)) throw new Error(DEFAULT_PIP_ERROR);
+      appendAssistantText(protocolBuffer);
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
-      const errString = error instanceof Error ? error.message : "Unknown error";
+      const errString = error instanceof Error && error.message ? error.message : DEFAULT_PIP_ERROR;
+      didFail = true;
       setHasError(true);
       setErrorMessage(errString);
-      setMessages((prev) => [
-        ...prev,
-        { text: `Sorry, I encountered an error: ${errString}`, isUser: false, id: `error-${crypto.randomUUID()}` },
-      ]);
-      setShowReportThinking(false);
+      setPipActivity('error');
+      setMessages((prev) => prev.map((msg) => (
+        msg.id === aiMessageId
+          ? { ...msg, text: `**I couldn’t complete that request.**\n\n${errString}\n\n*You can try sending it again.*` }
+          : msg
+      )));
     } finally {
       setIsLoading(false);
-      setShowReportThinking(false);
+      if (!didFail) setPipActivity('ready');
+      setActiveResponseId(null);
       abortRef.current = null;
     }
   };
@@ -165,7 +223,7 @@ export default function AssistantPage() {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-background">
       {/* ── Header — Fixed at the top ── */}
-      <div className="z-20 flex-shrink-0 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-card-border flex items-center justify-between">
+      <div className="z-20 flex-shrink-0 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-card-border flex items-center">
         <div className="flex items-center gap-3">
             <motion.div
               key={hasError ? 'error' : pipVariantIdx}
@@ -175,7 +233,7 @@ export default function AssistantPage() {
             >
               <PipMascot
                 variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]}
-                status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'}
+                status={pipActivity === 'thinking' || pipActivity === 'analyzing' ? 'thinking' : hasError ? 'error' : 'idle'}
                 size="sm"
                 errorMessage={hasError ? errorMessage : undefined}
               />
@@ -184,24 +242,6 @@ export default function AssistantPage() {
             <h1 className="text-lg font-bold text-foreground leading-none">Pip AI</h1>
             <p className="text-[10px] text-text-muted uppercase tracking-widest font-bold mt-1">Intelligent Copilot</p>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {hasError ? (
-            <div className="px-2 py-1 rounded-full bg-red-500/10 border border-red-500/20 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Error</span>
-            </div>
-          ) : isLoading ? (
-            <div className="px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Thinking</span>
-            </div>
-          ) : (
-            <div className="px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Ready</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -248,37 +288,13 @@ export default function AssistantPage() {
             </div>
           ) : (
             <div className="max-w-4xl mx-auto w-full space-y-4">
-                {showReportThinking && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="flex items-start gap-4 px-5 py-5 rounded-3xl bg-card/80 backdrop-blur-xl border border-card-border/60 max-w-2xl"
-                  >
-                    <div className="relative w-10 h-10 flex-shrink-0 flex items-center justify-center">
-                      <motion.div
-                        animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.6, 0.3] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute inset-0 rounded-full bg-indigo-500 blur-lg"
-                      />
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                      >
-                        <FiClock className="w-5 h-5 text-indigo-400 relative z-10" />
-                      </motion.div>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-bold text-foreground">Generating your monthly report</p>
-                      <p className="text-xs text-text-muted font-medium">
-                        Analyzing tasks, projects, attendance, and more...
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
                 <AnimatePresence initial={false}>
                 {messages.map((msg) => (
-                    <ChatBubble key={msg.id} message={msg} />
+                    <ChatBubble
+                      key={msg.id}
+                      message={msg}
+                      activity={msg.id === activeResponseId ? pipActivity : undefined}
+                    />
                 ))}
                 </AnimatePresence>
                 <div ref={bottomRef} />

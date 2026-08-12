@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { auth } from '@/auth';
-import { createAssistantReportPdf } from '@/lib/assistant-report-pdf';
+import { createAssistantReportPdf, createFallbackAssistantReportPdf } from '@/lib/assistant-report-pdf';
 
 export const runtime = 'nodejs';
 
@@ -33,13 +33,20 @@ export async function POST(request: Request) {
 
   try {
     const generatedAt = new Date();
-    const pdf = await createAssistantReportPdf({
+    const reportInput = {
       content: parsed.data.content,
       title: parsed.data.title,
       generatedAt,
       organizationName: session.user.orgName,
       preparedFor: session.user.name || session.user.email,
-    });
+    };
+    let pdf: Buffer;
+    try {
+      pdf = await createAssistantReportPdf(reportInput);
+    } catch (richPdfError) {
+      console.error('Rich assistant PDF generation failed; using safe fallback:', richPdfError);
+      pdf = await createFallbackAssistantReportPdf(reportInput);
+    }
     const title = parsed.data.title || 'MyndDesk AI Report';
     const filename = `${safeFilename(title)}-${generatedAt.toISOString().slice(0, 10)}.pdf`;
 
@@ -48,6 +55,7 @@ export async function POST(request: Request) {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': String(pdf.byteLength),
         'Cache-Control': 'private, no-store, max-age=0',
         'X-Content-Type-Options': 'nosniff',
       },

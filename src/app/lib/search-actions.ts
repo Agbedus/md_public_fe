@@ -68,14 +68,16 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
 
     // 2. Static Wiki Search
     const wikiTopics = [
-        { id: 'platform-vision', title: 'Platform Vision' },
-        { id: 'technical-specs', title: 'Technical Requirements' },
-        { id: 'security-auth', title: 'Security & Auth' },
-        { id: 'how-to-clock-in', title: 'How to Clock In' },
-        { id: 'geofencing-logic', title: 'Geofencing Logic' },
-        { id: 'kanban-mastery', title: 'Kanban Mastery' },
-        { id: 'task-dynamics', title: 'Priority Dynamics' },
-        { id: 'ai-briefing', title: 'Mission Control AI' },
+        { id: 'clocking-in', title: 'Clocking In and Automatic Attendance' },
+        { id: 'office-locations', title: 'Office Locations and Geofencing' },
+        { id: 'board-and-table', title: 'Task Board and Table Views' },
+        { id: 'assistant-basics', title: 'Questions You Can Ask Pip AI' },
+        { id: 'assistant-actions', title: 'Pip AI Actions and Workspace Data' },
+        { id: 'assistant-reports', title: 'AI Reports and PDF Downloads' },
+        { id: 'assistant-connection', title: 'Pip NVIDIA Connection and Errors' },
+        { id: 'sharing-options', title: 'Sharing MyndDesk' },
+        { id: 'sharing-qr', title: 'Custom QR Codes' },
+        { id: 'sharing-privacy', title: 'Share Analytics and Privacy' },
     ];
 
     wikiTopics.filter(w => w.title.toLowerCase().includes(lowerQuery)).forEach(w => {

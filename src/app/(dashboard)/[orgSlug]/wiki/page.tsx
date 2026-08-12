@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
     FiBookOpen,
     FiChevronLeft,
+    FiChevronRight,
     FiSearch,
     FiUsers,
     FiCheckSquare,
@@ -20,6 +21,8 @@ import {
     FiInfo,
     FiAlertTriangle,
     FiShield,
+    FiShare2,
+    FiDownload,
 } from 'react-icons/fi';
 
 /* ────────────────────────────────────────────────────────────────
@@ -253,10 +256,26 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
     },
     {
         id: 'assistant',
-        title: 'Assistant',
+        title: 'Pip AI assistant',
         icon: FiCpu,
         color: 'text-fuchsia-400',
-        topics: [{ id: 'assistant-basics', title: 'Asking questions' }],
+        topics: [
+            { id: 'assistant-basics', title: 'What you can ask' },
+            { id: 'assistant-actions', title: 'Actions and workspace data' },
+            { id: 'assistant-reports', title: 'Reports and downloads' },
+            { id: 'assistant-connection', title: 'Connection and errors' },
+        ],
+    },
+    {
+        id: 'sharing',
+        title: 'Sharing MyndDesk',
+        icon: FiShare2,
+        color: 'text-emerald-400',
+        topics: [
+            { id: 'sharing-options', title: 'Ways to share' },
+            { id: 'sharing-qr', title: 'Custom QR codes' },
+            { id: 'sharing-privacy', title: 'Tracking and privacy' },
+        ],
     },
     {
         id: 'focus',
@@ -368,13 +387,20 @@ export default function WikiPage() {
                                     <button
                                         key={topic.id}
                                         onClick={() => scrollTo(topic.id)}
-                                        className={`block w-full rounded-md border-l-2 py-1.5 pl-4 pr-2 text-left text-sm transition-colors ${
+                                        aria-current={activeId === topic.id ? 'location' : undefined}
+                                        className={`grid min-h-8 w-full grid-cols-[16px_1fr] items-center gap-1.5 py-1.5 pr-2 text-left text-sm transition-colors ${
                                             activeId === topic.id
-                                                ? 'border-emerald-500 bg-emerald-500/[0.07] font-medium text-foreground'
-                                                : 'border-transparent text-text-muted hover:bg-foreground/[0.03] hover:text-foreground'
+                                                ? 'font-medium text-foreground'
+                                                : 'text-text-muted hover:text-foreground'
                                         }`}
                                     >
-                                        {topic.title}
+                                        <FiChevronRight
+                                            aria-hidden="true"
+                                            className={`h-3.5 w-3.5 transition-opacity ${
+                                                activeId === topic.id ? 'text-emerald-500 opacity-100' : 'opacity-0'
+                                            }`}
+                                        />
+                                        <span>{topic.title}</span>
                                     </button>
                                 ))}
                             </div>
@@ -627,12 +653,22 @@ export default function WikiPage() {
                                 If you deny location access, attendance cannot record your hours. You
                                 can change this in your browser&apos;s site settings.
                             </Callout>
+                            <P>
+                                Automatic clock-in starts checking during your office&apos;s clock-in
+                                window and keeps listening while attendance tracking is active. If a
+                                device temporarily cannot determine its position, MyndDesk keeps the
+                                experience recoverable instead of treating the first unavailable
+                                update as a permanent permission failure.
+                            </P>
                         </Topic>
 
                         <Topic id="office-locations" title="Office locations">
                             <P>
-                                Owners and Admins set up offices by placing a point on the map and
-                                choosing a radius. Anyone inside that radius counts as present.
+                                Owners and Admins give each office a name, latitude and longitude,
+                                then choose its attendance radius. They can enter the coordinates or
+                                use their current device location without replacing the office name.
+                                The same name-and-coordinate data is sent to the existing locations
+                                API, so no separate location record is required.
                             </P>
                             <P>
                                 Attendance rules — expected start time, how much lateness is
@@ -708,17 +744,120 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="assistant" title="Assistant" icon={FiCpu} color="text-fuchsia-400">
-                        <Topic id="assistant-basics" title="Asking questions">
+                    <Section id="assistant" title="Pip AI assistant" icon={FiCpu} color="text-fuchsia-400">
+                        <Topic id="assistant-basics" title="What you can ask">
                             <P>
-                                The assistant answers questions about your organization&apos;s work in
-                                plain language — what is overdue, who is working on what, how a
-                                project is tracking. You do not need to learn a query syntax.
+                                Ask Pip in ordinary language. It can find, summarize, compare and
+                                explain tasks, projects, notes, calendar events, clients, attendance,
+                                time off, team information and dashboard metrics. You do not need to
+                                learn commands or query syntax.
                             </P>
                             <P>
                                 It can only reach data you already have permission to see, so its
                                 answers respect your role.
                             </P>
+                            <Table
+                                headers={['Try asking', 'What Pip will do']}
+                                rows={[
+                                    ['“Show my overdue high-priority tasks.”', 'Open a native task view with the relevant records.'],
+                                    ['“Which projects are at risk, and why?”', 'Inspect project and task data, then summarize the evidence.'],
+                                    ['“Summarize my recent notes and decisions.”', 'Read the notes you can access and return a concise summary.'],
+                                    ['“Who has time off next week?”', 'Check permission-scoped team and time-off information.'],
+                                    ['“What should I focus on today?”', 'Combine relevant deadlines, priorities and current work into recommendations.'],
+                                ]}
+                            />
+                        </Topic>
+
+                        <Topic id="assistant-actions" title="Actions and workspace data">
+                            <P>
+                                Pip can display tasks, notes, projects, events and productivity
+                                statistics in native MyndDesk widgets. It can also create tasks,
+                                notes, projects and calendar events when you ask directly, for
+                                example, “Create a high-priority task to review the budget on
+                                Friday.”
+                            </P>
+                            <Callout title="Your permissions still apply">
+                                Pip uses the same organization scope and privileges as the rest of
+                                MyndDesk. It cannot see hidden records or complete an action your role
+                                is not allowed to perform. It reports the real result of each action.
+                            </Callout>
+                        </Topic>
+
+                        <Topic id="assistant-reports" title="Reports and downloads">
+                            <P>
+                                Ask Pip to generate a monthly report or end-of-month review. It
+                                analyzes the available workspace data and streams the report into the
+                                conversation as it writes. Use the download action on the response to
+                                save a formal A4 PDF.
+                            </P>
+                            <P>
+                                Downloaded reports include a MyndDesk cover treatment, workspace and
+                                recipient details, an executive summary, structured tables and
+                                sections, confidentiality labels, and consistent page headers and
+                                footers.
+                            </P>
+                            <Callout title="Keep a copy">
+                                AI conversations are not intended to be the permanent record. Use the
+                                <FiDownload className="mx-1 inline h-3.5 w-3.5" /> download action or
+                                copy the response when you need to retain it, and review important
+                                details before acting.
+                            </Callout>
+                        </Topic>
+
+                        <Topic id="assistant-connection" title="Connection and errors">
+                            <P>
+                                Pip connects through NVIDIA and automatically tries the configured
+                                fallback models when a model is unavailable, slow to start, rate
+                                limited or retired. Thinking, analysis and writing progress appears
+                                inside the active response bubble so the page stays uncluttered.
+                            </P>
+                            <P>
+                                If every connection fails, Pip shows a short, readable message with
+                                a retry suggestion. Technical provider responses and raw JSON stay in
+                                server logs rather than appearing in the conversation.
+                            </P>
+                        </Topic>
+                    </Section>
+
+                    <Section id="sharing" title="Sharing MyndDesk" icon={FiShare2} color="text-emerald-400">
+                        <Topic id="sharing-options" title="Ways to share">
+                            <P>
+                                Share MyndDesk from the landing page, sidebar, your profile or
+                                Settings. The share panel supports Facebook, Instagram, LinkedIn,
+                                Telegram, WhatsApp, Email, Threads, X, your device&apos;s share menu,
+                                copying the link, and a QR code for moving the link from desktop to
+                                mobile.
+                            </P>
+                            <P>
+                                Some platforms open a prepared share composer. Instagram copies the
+                                tracked link so you can paste it into a message, story or bio.
+                            </P>
+                        </Topic>
+
+                        <Topic id="sharing-qr" title="Custom QR codes">
+                            <P>
+                                The QR option opens inside the same share panel. It uses rounded dots,
+                                circular corner eyes and the MyndDesk logo in the center. You can
+                                download it as a PNG or copy the image for a website, presentation,
+                                poster or social post. Scanning it still uses the same tracked share
+                                link and takes the visitor to MyndDesk.
+                            </P>
+                        </Topic>
+
+                        <Topic id="sharing-privacy" title="Tracking and privacy">
+                            <P>
+                                Each share creates a coded link so MyndDesk can measure which surface
+                                and channel were selected, whether the link was copied, and when the
+                                destination was opened. General request metadata such as browser,
+                                device, referrer and approximate network location can be used to
+                                understand campaign performance.
+                            </P>
+                            <Callout title="No identity is required for a click">
+                                Share analytics are intended to measure acquisition and channel
+                                performance. A visitor&apos;s name is not required simply because they
+                                opened a shared link. Normal account and privacy rules apply if they
+                                later register.
+                            </Callout>
                         </Topic>
                     </Section>
 

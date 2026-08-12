@@ -1,7 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import qrcode from 'qrcode-generator';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   EmailShareButton,
@@ -12,7 +12,6 @@ import {
   TwitterShareButton,
   WhatsappShareButton,
 } from 'react-share';
-import QRCode from 'react-qr-code';
 import {
   FaFacebookF,
   FaInstagram,
@@ -24,7 +23,9 @@ import {
 } from 'react-icons/fa6';
 import {
   FiCheck,
+  FiArrowLeft,
   FiCopy,
+  FiDownload,
   FiGrid,
   FiLoader,
   FiMail,
@@ -71,16 +72,71 @@ interface TileContentProps {
 
 const SHARE_TITLE = 'Discover MyndDesk';
 const SHARE_TEXT = 'Run attendance, projects, tasks, notes, and team operations from one intelligent workspace.';
-const TILE_CLASS = 'group flex min-h-20 w-full flex-col items-center justify-center gap-2 rounded-xl border border-card-border bg-foreground/[0.025] px-2 py-3 text-center transition-all duration-200 hover:border-emerald-500/30 hover:bg-emerald-500/[0.06] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 active:scale-[0.98]';
+const TILE_CLASS = 'group flex min-h-20 w-full flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 text-center transition-all duration-200 hover:bg-foreground/[0.045] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 active:scale-[0.97]';
 
 function TileContent({ icon, label, iconClass }: TileContentProps) {
   return (
     <>
-      <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${iconClass}`} aria-hidden="true">
+      <span className={`flex h-10 w-10 items-center justify-center transition-transform duration-200 group-hover:scale-110 ${iconClass}`} aria-hidden="true">
         {icon}
       </span>
       <span className="text-xs font-medium text-foreground">{label}</span>
     </>
+  );
+}
+
+function CustomQrCode({ value }: { value: string }) {
+  const qr = useMemo(() => {
+    const code = qrcode(0, 'H');
+    code.addData(value, 'Byte');
+    code.make();
+    return code;
+  }, [value]);
+  const count = qr.getModuleCount();
+  const quietZone = 2;
+  const size = count + quietZone * 2;
+  const finderCenters = [
+    { x: quietZone + 3.5, y: quietZone + 3.5 },
+    { x: quietZone + count - 3.5, y: quietZone + 3.5 },
+    { x: quietZone + 3.5, y: quietZone + count - 3.5 },
+  ];
+  const isFinderModule = (row: number, column: number) => (
+    (row < 7 && column < 7)
+    || (row < 7 && column >= count - 7)
+    || (row >= count - 7 && column < 7)
+  );
+
+  const dots: ReactNode[] = [];
+  for (let row = 0; row < count; row += 1) {
+    for (let column = 0; column < count; column += 1) {
+      if (qr.isDark(row, column) && !isFinderModule(row, column)) {
+        dots.push(
+          <circle
+            key={`${row}-${column}`}
+            cx={quietZone + column + 0.5}
+            cy={quietZone + row + 0.5}
+            r="0.42"
+            fill="#172033"
+          />,
+        );
+      }
+    }
+  }
+
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${size} ${size}`} className="h-full w-full" aria-hidden="true">
+      <rect width={size} height={size} fill="#FFFFFF" />
+      {dots}
+      {finderCenters.map((center) => (
+        <g key={`${center.x}-${center.y}`}>
+          <circle cx={center.x} cy={center.y} r="3.5" fill="#6366F1" />
+          <circle cx={center.x} cy={center.y} r="2.25" fill="#FFFFFF" />
+          <circle cx={center.x} cy={center.y} r="1.35" fill="#172033" />
+        </g>
+      ))}
+      <rect x={size / 2 - 4.1} y={size / 2 - 4.1} width="8.2" height="8.2" rx="1.7" fill="#FFFFFF" />
+      <image href="/logo.svg" x={size / 2 - 3.25} y={size / 2 - 3.25} width="6.5" height="6.5" preserveAspectRatio="xMidYMid meet" />
+    </svg>
   );
 }
 
@@ -120,8 +176,11 @@ export function ShareButton({
   const [share, setShare] = useState<ShareRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isQrVisible, setIsQrVisible] = useState(false);
+  const [isPreparingQr, setIsPreparingQr] = useState(false);
+  const [isQrCopied, setIsQrCopied] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const qrCodeRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
 
   const createShare = useCallback(async () => {
@@ -254,7 +313,84 @@ export function ShareButton({
 
   const showQrCode = () => {
     setIsQrVisible(true);
+    setIsQrCopied(false);
     record('qr_displayed', 'qr_code', 'qr_code');
+  };
+
+  const createQrPng = useCallback(async (): Promise<Blob> => {
+    const svg = qrCodeRef.current?.querySelector('svg');
+    if (!svg) throw new Error('The QR image could not be prepared.');
+
+    const loadImage = (source: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new window.Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('The QR image could not be prepared.'));
+      image.src = source;
+    });
+    const clone = svg.cloneNode(true) as SVGElement;
+    clone.querySelector('image')?.remove();
+    const serialized = new XMLSerializer().serializeToString(clone);
+    const svgUrl = URL.createObjectURL(new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' }));
+
+    try {
+      const [qrImage, logoImage] = await Promise.all([loadImage(svgUrl), loadImage('/logo.svg')]);
+      const canvas = document.createElement('canvas');
+      canvas.width = 1200;
+      canvas.height = 1200;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('This browser cannot prepare the QR image.');
+      context.fillStyle = '#FFFFFF';
+      context.fillRect(0, 0, 1200, 1200);
+      context.drawImage(qrImage, 0, 0, 1200, 1200);
+      context.drawImage(logoImage, 510, 510, 180, 180);
+      return await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('The PNG could not be created.')), 'image/png');
+      });
+    } finally {
+      URL.revokeObjectURL(svgUrl);
+    }
+  }, []);
+
+  const downloadQrPng = async () => {
+    if (isPreparingQr) return;
+    setIsPreparingQr(true);
+    try {
+      const blob = await createQrPng();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `mynddesk-share-${share?.code || 'qr'}.png`;
+      anchor.style.display = 'none';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      toast.success('QR code downloaded as a PNG');
+    } catch (reason) {
+      toast.error(reason instanceof Error ? reason.message : 'The QR code could not be downloaded.');
+    } finally {
+      setIsPreparingQr(false);
+    }
+  };
+
+  const copyQrPng = async () => {
+    if (isPreparingQr) return;
+    if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
+      toast.info('Image copying is not available in this browser. Download the PNG instead.');
+      return;
+    }
+    setIsPreparingQr(true);
+    try {
+      const blob = await createQrPng();
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      setIsQrCopied(true);
+      window.setTimeout(() => setIsQrCopied(false), 2000);
+      toast.success('QR image copied');
+    } catch {
+      toast.error('The QR image could not be copied. Download the PNG instead.');
+    } finally {
+      setIsPreparingQr(false);
+    }
   };
 
   const triggerClass = variant === 'landing'
@@ -338,77 +474,91 @@ export function ShareButton({
 
                   {share && urls && !isLoading && !error && (
                     <div className="space-y-5">
-                      <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+                      <AnimatePresence mode="wait" initial={false}>
+                      {!isQrVisible ? (
+                      <motion.div key="share-options" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-3 gap-1 sm:grid-cols-4">
                         <FacebookShareButton url={urls.facebook} hashtag="#MyndDesk" onClick={() => record('platform_selected', 'facebook', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaFacebookF className="h-4 w-4" />} label="Facebook" iconClass="bg-blue-500/10 text-blue-500" />
+                          <TileContent icon={<FaFacebookF className="h-6 w-6" />} label="Facebook" iconClass="text-blue-500" />
                         </FacebookShareButton>
 
                         <button type="button" onClick={() => void handleInstagram()} className={TILE_CLASS}>
-                          <TileContent icon={<FaInstagram className="h-4 w-4" />} label="Instagram" iconClass="bg-rose-500/10 text-rose-500" />
+                          <TileContent icon={<FaInstagram className="h-6 w-6" />} label="Instagram" iconClass="text-rose-500" />
                         </button>
 
                         <LinkedinShareButton url={urls.linkedin} title={SHARE_TITLE} summary={SHARE_TEXT} source="MyndDesk" onClick={() => record('platform_selected', 'linkedin', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaLinkedinIn className="h-4 w-4" />} label="LinkedIn" iconClass="bg-blue-500/10 text-blue-500" />
+                          <TileContent icon={<FaLinkedinIn className="h-6 w-6" />} label="LinkedIn" iconClass="text-blue-500" />
                         </LinkedinShareButton>
 
                         <TelegramShareButton url={urls.telegram} title={SHARE_TEXT} onClick={() => record('platform_selected', 'telegram', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaTelegram className="h-4 w-4" />} label="Telegram" iconClass="bg-sky-500/10 text-sky-500" />
+                          <TileContent icon={<FaTelegram className="h-6 w-6" />} label="Telegram" iconClass="text-sky-500" />
                         </TelegramShareButton>
 
                         <WhatsappShareButton url={urls.whatsapp} title={SHARE_TEXT} separator=" " onClick={() => record('platform_selected', 'whatsapp', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaWhatsapp className="h-4 w-4" />} label="WhatsApp" iconClass="bg-emerald-500/10 text-emerald-500" />
+                          <TileContent icon={<FaWhatsapp className="h-6 w-6" />} label="WhatsApp" iconClass="text-emerald-500" />
                         </WhatsappShareButton>
 
                         <div onClick={() => record('platform_selected', 'email', 'email')}>
                           <EmailShareButton url={urls.email} subject={SHARE_TITLE} body={SHARE_TEXT} className={TILE_CLASS} resetButtonStyle={false}>
-                            <TileContent icon={<FiMail className="h-4 w-4" />} label="Email" iconClass="bg-amber-500/10 text-amber-500" />
+                            <TileContent icon={<FiMail className="h-6 w-6" />} label="Email" iconClass="text-amber-500" />
                           </EmailShareButton>
                         </div>
 
                         <ThreadsShareButton url={urls.threads} title={SHARE_TEXT} onClick={() => record('platform_selected', 'threads', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaThreads className="h-4 w-4" />} label="Threads" iconClass="bg-foreground/[0.08] text-foreground" />
+                          <TileContent icon={<FaThreads className="h-6 w-6" />} label="Threads" iconClass="text-foreground" />
                         </ThreadsShareButton>
 
                         <TwitterShareButton url={urls.x} title={SHARE_TEXT} hashtags={['MyndDesk']} onClick={() => record('platform_selected', 'x', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaXTwitter className="h-4 w-4" />} label="X" iconClass="bg-foreground/[0.08] text-foreground" />
+                          <TileContent icon={<FaXTwitter className="h-6 w-6" />} label="X" iconClass="text-foreground" />
                         </TwitterShareButton>
 
                         <button type="button" onClick={() => void handleNativeShare()} className={TILE_CLASS}>
-                          <TileContent icon={<FiSmartphone className="h-4 w-4" />} label="Your device" iconClass="bg-indigo-500/10 text-indigo-500" />
+                          <TileContent icon={<FiSmartphone className="h-6 w-6" />} label="Your device" iconClass="text-indigo-500" />
                         </button>
 
                         <button type="button" onClick={() => void handleCopy()} className={TILE_CLASS}>
-                          <TileContent icon={isCopied ? <FiCheck className="h-4 w-4" /> : <FiCopy className="h-4 w-4" />} label={isCopied ? 'Copied' : 'Copy link'} iconClass="bg-emerald-500/10 text-emerald-500" />
+                          <TileContent icon={isCopied ? <FiCheck className="h-6 w-6" /> : <FiCopy className="h-6 w-6" />} label={isCopied ? 'Copied' : 'Copy link'} iconClass="text-emerald-500" />
                         </button>
 
                         <button type="button" onClick={showQrCode} className={`${TILE_CLASS} sm:col-span-2`}>
-                          <TileContent icon={<FiGrid className="h-4 w-4" />} label="QR code" iconClass="bg-purple-500/10 text-purple-500" />
+                          <TileContent icon={<FiGrid className="h-6 w-6" />} label="QR code" iconClass="text-purple-500" />
                         </button>
-                      </div>
-
-                      <AnimatePresence initial={false}>
-                        {isQrVisible && (
+                      </motion.div>
+                      ) : (
                           <motion.div
+                            key="qr-code"
                             initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 8 }}
-                            className="flex flex-col items-center gap-3 rounded-xl border border-card-border bg-foreground/[0.025] p-5 text-center"
+                            className="flex min-h-[25rem] flex-col items-center justify-center gap-5 text-center"
                           >
-                            <div className="relative rounded-xl bg-white p-3 shadow-sm">
-                              <QRCode value={urls.qrCode} size={156} level="H" aria-label="QR code for sharing MyndDesk" />
-                              <span
-                                aria-hidden="true"
-                                className="absolute left-1/2 top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg bg-white p-1.5 shadow-sm ring-1 ring-black/5"
-                              >
-                                <Image src="/logo.svg" alt="" width={32} height={32} className="h-8 w-8 object-contain" />
-                              </span>
+                            <button type="button" onClick={() => setIsQrVisible(false)} className="absolute left-5 top-[6.5rem] inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground sm:left-6">
+                              <FiArrowLeft className="h-4 w-4" />
+                              All options
+                            </button>
+                            <div
+                              ref={qrCodeRef}
+                              role="img"
+                              aria-label="Custom QR code with rounded dots, circular corner eyes, and the MyndDesk logo"
+                              className="flex h-[236px] w-[236px] items-center justify-center overflow-hidden rounded-2xl bg-white p-2 shadow-sm ring-1 ring-black/5 [&_canvas]:max-h-full [&_canvas]:max-w-full [&_svg]:max-h-full [&_svg]:max-w-full"
+                            >
+                              <CustomQrCode value={urls.qrCode} />
                             </div>
                             <div>
                               <p className="text-sm font-medium text-foreground">Scan with a phone camera</p>
                               <p className="mt-1 text-xs text-text-muted">The scan uses the same tracked MyndDesk invitation link.</p>
                             </div>
+                            <div className="flex flex-wrap items-center justify-center gap-2">
+                              <button type="button" onClick={() => void downloadQrPng()} disabled={isPreparingQr} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500/90 disabled:cursor-wait disabled:opacity-60">
+                                {isPreparingQr ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiDownload className="h-4 w-4" />}
+                                Download PNG
+                              </button>
+                              <button type="button" onClick={() => void copyQrPng()} disabled={isPreparingQr} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-foreground ring-1 ring-inset ring-card-border transition-colors hover:bg-foreground/[0.05] disabled:cursor-wait disabled:opacity-60">
+                                {isQrCopied ? <FiCheck className="h-4 w-4 text-emerald-500" /> : <FiCopy className="h-4 w-4" />}
+                                {isQrCopied ? 'Copied' : 'Copy image'}
+                              </button>
+                            </div>
                           </motion.div>
-                        )}
+                      )}
                       </AnimatePresence>
 
                       <p className="text-center text-xs leading-relaxed text-text-muted">
