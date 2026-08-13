@@ -36,6 +36,8 @@ function RegisterView() {
   const initialInvite = searchParams.get('invite');
   const referralCode = searchParams.get('ref');
   const shareClickId = searchParams.get('click');
+  const invitedEmail = searchParams.get('email');
+  const invitationToken = searchParams.get('token');
   return (
     <main className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background isolate">
       <div className="absolute inset-0 pointer-events-none -z-10">
@@ -94,6 +96,8 @@ function RegisterView() {
             initialInviteCode={initialInvite}
             initialReferralCode={referralCode}
             initialShareClickId={shareClickId}
+            initialEmail={invitedEmail}
+            initialInvitationToken={invitationToken}
           />
         </motion.div>
       </motion.div>

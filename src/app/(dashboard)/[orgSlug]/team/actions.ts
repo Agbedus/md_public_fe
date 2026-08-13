@@ -5,10 +5,15 @@ import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse 
 import type { OrganizationMembershipWithUser } from '@/types/organization';
 import { isPrivilegedOrgRole } from '@/types/organization';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import type { ActionResult } from '@/types/api';
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
 const API_BASE_URL = `${BASE_URL}/api/v1`;
+
+async function selectedOrganizationId(session: { user?: { currentOrganizationId?: string | null } } | null): Promise<string | undefined> {
+  return (await cookies()).get('current_organization_id')?.value || session?.user?.currentOrganizationId || undefined;
+}
 
 function isSuperAdmin(session: any): boolean {
   return !!(session?.user as any)?.roles?.includes('super_admin');
@@ -20,7 +25,7 @@ function canManage(currentRole: string | null, session: any): boolean {
 
 export async function getOrgMembers(): Promise<OrganizationMembershipWithUser[]> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   if (!orgId) return [];
 
   const headers = await getSessionHeaders();
@@ -51,7 +56,7 @@ export async function getCurrentUserOrgRole(): Promise<string | null> {
 /** Approve a pending member — sets status to active. Backend expects user_id in URL. */
 export async function approveMember(userId: string): Promise<ActionResult> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   const currentRole = await getCurrentUserOrgRole();
   if (!canManage(currentRole, session)) {
     return { success: false, error: 'Only owners, admins, and super admins can approve members' };
@@ -84,7 +89,7 @@ export async function approveMember(userId: string): Promise<ActionResult> {
 /** Reject/remove a member. Backend expects user_id in URL. */
 export async function rejectMember(userId: string): Promise<ActionResult> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   const currentRole = await getCurrentUserOrgRole();
   if (!canManage(currentRole, session)) {
     return { success: false, error: 'Only owners, admins, and super admins can reject members' };
@@ -116,7 +121,7 @@ export async function rejectMember(userId: string): Promise<ActionResult> {
 /** Update a member's role. Backend expects user_id in URL. */
 export async function updateMemberRole(userId: string, role: string): Promise<ActionResult> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   const currentRole = await getCurrentUserOrgRole();
   if (!canManage(currentRole, session)) {
     return { success: false, error: 'Only owners, admins, and super admins can update roles' };
@@ -151,7 +156,7 @@ export async function updateMemberRole(userId: string, role: string): Promise<Ac
 /** Suspend a member. Backend expects user_id in URL. */
 export async function suspendMember(userId: string): Promise<ActionResult> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   const currentRole = await getCurrentUserOrgRole();
   if (!canManage(currentRole, session)) {
     return { success: false, error: 'Only owners, admins, and super admins can suspend members' };
@@ -184,7 +189,7 @@ export async function suspendMember(userId: string): Promise<ActionResult> {
 /** Remove a member from the org entirely. Backend expects user_id in URL. */
 export async function removeMember(userId: string): Promise<ActionResult> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   const currentRole = await getCurrentUserOrgRole();
   if (!canManage(currentRole, session)) {
     return { success: false, error: 'Only owners, admins, and super admins can remove members' };
@@ -243,7 +248,7 @@ export async function updateMemberProfile(
   data: { full_name?: string; job_title?: string },
 ): Promise<ActionResult> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   if (!orgId) return { success: false, error: 'No organization selected' };
 
   const headers = await getSessionHeaders();
@@ -281,7 +286,7 @@ export async function uploadMemberAvatar(
   formData: FormData,
 ): Promise<ActionResult & { avatar_url?: string }> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   if (!orgId) return { success: false, error: 'No organization selected' };
 
   const headers = await getSessionHeaders();
@@ -326,42 +331,84 @@ interface InviteResult {
   results: { email: string; success: boolean; error?: string }[];
 }
 
-export async function sendInvitation(emails: string[]): Promise<InviteResult> {
+export async function sendInvitation(
+  emails: string[],
+  options: { role?: string; personalMessage?: string } = {},
+): Promise<InviteResult> {
   const session = await auth();
-  const orgId = session?.user?.currentOrganizationId;
+  const orgId = await selectedOrganizationId(session);
   if (!orgId) return { success: false, error: 'No organization selected', results: [] };
 
   const headers = await getSessionHeaders();
   if (!headers) return { success: false, error: 'Unauthorized', results: [] };
 
-  const results = await Promise.all(
-    emails.map(async (email) => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/invitations/send`, {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, organization_id: orgId }),
-        });
+  try {
+    const res = await fetch(`${API_BASE_URL}/invitations/bulk-send`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        emails,
+        organization_id: orgId,
+        role: options.role || 'member',
+        personal_message: options.personalMessage?.trim() || null,
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return { success: false, error: extractErrorDetail(body.detail, 'Failed to send invitations'), results: [] };
+    revalidatePath('/[orgSlug]/team', 'page');
+    return { success: !!body.success, error: body.success ? undefined : 'Some invitations need attention', results: body.results || [] };
+  } catch {
+    return { success: false, error: 'Network error', results: emails.map(email => ({ email, success: false, error: 'Network error' })) };
+  }
+}
 
-        if (!res.ok) {
-          if (res.status === 403) {
-            return { email, success: false, error: 'Only owners and admins can send invitations' };
-          }
-          const body = await res.json().catch(() => ({}));
-          return { email, success: false, error: body.detail || 'Failed to send invitation' };
-        }
+export interface PendingInvitation {
+  id: string; email: string; role: string; status: string;
+  created_at: string; expires_at: string; sent_at?: string | null;
+}
 
-        return { email, success: true };
-      } catch {
-        return { email, success: false, error: 'Network error' };
-      }
-    })
-  );
+export interface InvitationStats {
+  total: number; delivered: number; delivery_failed: number; pending: number;
+  accepted: number; revoked: number; expired: number; acceptance_rate: number;
+}
 
-  const allOk = results.every(r => r.success);
-  return {
-    success: allOk,
-    error: allOk ? undefined : 'Some invitations failed',
-    results,
-  };
+export async function getPendingInvitations(): Promise<PendingInvitation[]> {
+  const session = await auth();
+  const orgId = await selectedOrganizationId(session);
+  if (!orgId) return [];
+  try {
+    const res = await fetch(`${API_BASE_URL}/invitations?organization_id=${encodeURIComponent(orgId)}`, {
+      headers: await getSessionHeaders(), cache: 'no-store',
+    });
+    return res.ok ? await res.json() : [];
+  } catch { return []; }
+}
+
+export async function getInvitationStats(): Promise<InvitationStats | null> {
+  const session = await auth();
+  const orgId = await selectedOrganizationId(session);
+  if (!orgId) return null;
+  try {
+    const res = await fetch(`${API_BASE_URL}/invitations/stats?organization_id=${encodeURIComponent(orgId)}`, {
+      headers: await getSessionHeaders(), cache: 'no-store',
+    });
+    return res.ok ? await res.json() : null;
+  } catch { return null; }
+}
+
+export async function resendInvitation(id: string): Promise<ActionResult> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/invitations/${id}/resend`, { method: 'POST', headers: await getSessionHeaders() });
+    const body = await res.json().catch(() => ({}));
+    revalidatePath('/[orgSlug]/team', 'page');
+    return res.ok ? { success: true } : { success: false, error: body.detail || body.error || 'Could not resend invitation.' };
+  } catch { return { success: false, error: 'Network error' }; }
+}
+
+export async function revokeInvitation(id: string): Promise<ActionResult> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/invitations/${id}`, { method: 'DELETE', headers: await getSessionHeaders() });
+    revalidatePath('/[orgSlug]/team', 'page');
+    return res.ok ? { success: true } : { success: false, error: 'Could not revoke invitation.' };
+  } catch { return { success: false, error: 'Network error' }; }
 }

@@ -13,12 +13,15 @@ interface EmailChipInputProps {
 
 export function EmailChipInput({ emails, onChange, placeholder = 'Enter email addresses...' }: EmailChipInputProps) {
   const [input, setInput] = useState('');
+  const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const addEmail = (value: string) => {
     const trimmed = value.trim().toLowerCase();
-    if (!trimmed || !EMAIL_RE.test(trimmed)) return;
-    if (emails.includes(trimmed)) return;
+    if (!trimmed) return;
+    if (!EMAIL_RE.test(trimmed)) { setError(`“${trimmed}” is not a valid email.`); return; }
+    if (emails.includes(trimmed)) { setError('That email is already in the list.'); return; }
+    setError('');
     onChange([...emails, trimmed]);
   };
 
@@ -27,7 +30,7 @@ export function EmailChipInput({ emails, onChange, placeholder = 'Enter email ad
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ';' || e.key === ' ') {
       e.preventDefault();
       addEmail(input);
       setInput('');
@@ -54,8 +57,9 @@ export function EmailChipInput({ emails, onChange, placeholder = 'Enter email ad
   };
 
   return (
+    <div>
     <div
-      className="flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-xl border border-card-border bg-foreground/[0.02] focus-within:border-foreground/30 transition-colors cursor-text min-h-[42px]"
+      className={`flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-xl border bg-foreground/[0.02] focus-within:border-foreground/30 transition-colors cursor-text min-h-[42px] ${error ? 'border-rose-500/50' : 'border-card-border'}`}
       onClick={() => inputRef.current?.focus()}
     >
       <FiMail size={14} className="text-text-muted flex-shrink-0" />
@@ -90,6 +94,8 @@ export function EmailChipInput({ emails, onChange, placeholder = 'Enter email ad
         placeholder={emails.length === 0 ? placeholder : ''}
         className="flex-1 min-w-[120px] bg-transparent text-sm text-foreground placeholder:text-text-muted outline-none border-none py-0.5"
       />
+    </div>
+    {error && <p className="mt-1.5 text-xs text-rose-500">{error}</p>}
     </div>
   );
 }

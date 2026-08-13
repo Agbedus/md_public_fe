@@ -25,6 +25,8 @@ export default function VerifyOtpForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const email = searchParams.get('email') || '';
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const organizationName = searchParams.get('organizationName') || '';
 
   const [digits, setDigits] = useState<string[]>(Array(6).fill(''));
   const [isPending, setIsPending] = useState(false);
@@ -134,7 +136,9 @@ export default function VerifyOtpForm() {
       if (result.success) {
         sessionStorage.removeItem('pendingOrg');
         toast.success('Account verified! Please sign in.');
-        router.push(`/login?email=${encodeURIComponent(email)}&verified=1`);
+        const loginParams = new URLSearchParams({ email, verified: '1', callbackUrl });
+        if (organizationName) loginParams.set('organizationName', organizationName);
+        router.push(`/login?${loginParams.toString()}`);
       } else {
         toast.error(result.error || 'Verification failed');
         setDigits(Array(6).fill(''));

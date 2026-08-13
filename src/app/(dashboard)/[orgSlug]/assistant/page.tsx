@@ -92,6 +92,7 @@ export default function AssistantPage() {
   };
 
   const handleSendMessage = async (text: string) => {
+    localStorage.setItem('md_pip_used', 'true');
     const isReport = /monthly report|monthly summary|end-of-month|generate.*report/i.test(text);
     setHasError(false);
     setErrorMessage("");

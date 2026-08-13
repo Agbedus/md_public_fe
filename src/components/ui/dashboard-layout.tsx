@@ -37,12 +37,14 @@ export default function DashboardLayout({
   children,
   user,
   orgSlug,
+  isOnboardingTourBlocked,
 }: {
   sidebar: React.ReactNode;
   topnav: React.ReactNode;
   children: React.ReactNode;
   user?: any;
   orgSlug?: string;
+  isOnboardingTourBlocked?: boolean;
 }) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
@@ -84,7 +86,10 @@ export default function DashboardLayout({
               <AnnouncementDrawer />
               <AssistantOrb />
               {(user?.email || user?.id) && (
-                <OnboardingTour userKey={user.email || user.id} />
+                <OnboardingTour
+                  userKey={user.email || user.id}
+                  isInitiallyBlocked={isOnboardingTourBlocked}
+                />
               )}
             </div>
           </ConfirmationProvider>

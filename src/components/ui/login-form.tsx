@@ -3,7 +3,7 @@
 import { useActionState, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { authenticateWithDetail } from '@/app/lib/actions';
-import { FiMail, FiLock, FiArrowRight, FiLoader, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiMail, FiLock, FiArrowRight, FiLoader, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle, FiUsers } from 'react-icons/fi';
 import { toast } from '@/lib/toast';
 import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
@@ -25,6 +25,9 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const verified = searchParams.get('verified') === '1';
   const prefillEmail = searchParams.get('email') || '';
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const organizationName = searchParams.get('organizationName') || '';
+  const invitationToken = searchParams.get('invitationToken') || '';
 
   const [state, dispatch, isPending] = useActionState(authenticateWithDetail, undefined);
   const [showPassword, setShowPassword] = useState(false);
@@ -40,6 +43,24 @@ export default function LoginForm() {
 
   return (
     <form action={dispatch} className="space-y-5">
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      <input type="hidden" name="invitationToken" value={invitationToken} />
+      {organizationName && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+          className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3"
+        >
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
+            <FiUsers className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 text-left">
+            <p className="text-sm font-semibold text-foreground">Join {organizationName}</p>
+            <p className="mt-0.5 text-xs leading-5 text-text-muted">Sign in once. We’ll add this workspace and open it for you automatically.</p>
+          </div>
+        </motion.div>
+      )}
       {verified && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
@@ -63,7 +84,7 @@ export default function LoginForm() {
           <span>
             Email not verified.{' '}
             <Link
-              href={`/verify-otp?email=${encodeURIComponent(state.email || email)}`}
+              href={`/verify-otp?email=${encodeURIComponent(state.email || email)}&callbackUrl=${encodeURIComponent(callbackUrl)}${organizationName ? `&organizationName=${encodeURIComponent(organizationName)}` : ''}`}
               className="underline underline-offset-2 font-medium hover:text-amber-600 dark:hover:text-amber-200"
             >
               Resend verification code
@@ -84,6 +105,7 @@ export default function LoginForm() {
             name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            readOnly={Boolean(organizationName && prefillEmail)}
             placeholder="name@example.com"
             autoComplete="email"
             required
@@ -129,13 +151,13 @@ export default function LoginForm() {
           className="relative w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
         >
           <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
-            Sign in
+            {organizationName ? 'Sign in and join' : 'Sign in'}
             <FiArrowRight className="h-4 w-4" />
           </span>
           {isPending && (
             <span className="absolute inset-0 flex items-center justify-center gap-2">
               <FiLoader className="h-4 w-4 animate-spin" />
-              <span>Signing in...</span>
+              <span>{organizationName ? 'Joining workspace…' : 'Signing in...'}</span>
             </span>
           )}
         </button>

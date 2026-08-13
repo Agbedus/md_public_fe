@@ -65,15 +65,16 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                             </Link>
                         ))}
                          <button
+                            type="button"
                             onClick={() => {
                                 setIsMenuOpen(false);
-                                // Add logout logic here if needed, or link to a logout route
-                             }}
+                                window.location.assign('/logout');
+                            }}
                             className="flex items-center gap-3 p-4 hover:bg-red-500/10 transition-colors w-full text-left group"
                         >
                             <FiLogOut className="text-lg text-red-400 transition-transform duration-300 group-hover:-translate-x-0.5" />
                             <span className="text-sm font-medium text-red-400">Sign Out</span>
-                        </button>
+                         </button>
                     </div>
                 </div>
             </div>

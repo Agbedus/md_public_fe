@@ -19,9 +19,12 @@ import {
   UserStatSection,
 } from '@/components/dashboard/sections';
 import { ChartSkeleton, ListSkeleton, CardSkeleton, SummarySkeleton } from '@/components/dashboard/skeletons';
+import WorkspaceOnboarding from '@/components/dashboard/workspace-onboarding';
+import { getOrganizations, getWorkspaceOnboardingStatus } from '@/lib/org-actions';
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
-  const params = await searchParams;
+export default async function Home({ searchParams, params }: { searchParams: Promise<{ range?: string }>; params: Promise<{ orgSlug: string }> }) {
+  const rangeParams = await searchParams;
+  const route = await params;
   const session = await auth();
   
   if (!session?.user?.id) {
@@ -38,6 +41,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
   // Greet by first name only — "Good morning, Yaw" reads like a colleague,
   // "Good morning, Yaw Donkor Mensah" reads like a form letter.
   const firstName = (session.user.name || '').trim().split(/\s+/)[0] || 'there';
+  const organizations = await getOrganizations();
+  const currentOrganization = organizations.find(org => org.slug === route.orgSlug);
+  const onboardingStatus = currentOrganization
+    ? await getWorkspaceOnboardingStatus(currentOrganization.id)
+    : { workspace: true, invite: false, office: false, attendance_policy: false, first_work: false };
   
   // Determine greeting based on time
   const hour = new Date().getHours();
@@ -52,6 +60,18 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
         <p className="text-text-muted text-sm lg:text-base">Here&apos;s what&apos;s happening across your organization today.</p>
       </div>
 
+      {currentOrganization?.slug && (
+        <WorkspaceOnboarding
+          organizationId={currentOrganization.id}
+          orgSlug={currentOrganization.slug}
+          role={currentOrganization.role}
+          initialMemberCount={currentOrganization.member_count || 1}
+          inviteDismissed={!!currentOrganization.onboarding_invite_dismissed_at}
+          checklistDismissed={!!currentOrganization.onboarding_checklist_dismissed_at}
+          status={onboardingStatus}
+        />
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Summary Stats */}
         <Suspense fallback={<SummarySkeleton />}>
@@ -60,7 +80,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ r
 
         {/* Row 1 */}
         <Suspense fallback={<div className="col-span-1 lg:col-span-6 h-96"><ChartSkeleton /></div>}>
-            <ProductivitySection range={params.range} />
+            <ProductivitySection range={rangeParams.range} />
         </Suspense>
 
         <Suspense fallback={<div className="col-span-1 lg:col-span-3 h-96"><CardSkeleton /></div>}>

@@ -5,10 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { logout } from '@/app/lib/actions';
 import { switchOrganization } from '@/lib/org-actions';
 import { useDashboard } from './dashboard-layout';
-import { FiBell, FiSearch, FiUser, FiSettings, FiLogOut, FiHelpCircle, FiMessageSquare, FiChevronDown, FiCheck, FiAlertCircle, FiX, FiHome } from 'react-icons/fi';
+import { FiBell, FiSearch, FiUser, FiSettings, FiLogOut, FiHelpCircle, FiMessageSquare, FiChevronDown, FiCheck, FiAlertCircle, FiX, FiHome, FiPlus } from 'react-icons/fi';
 import { useNotifications } from './notifications/notification-provider';
 import { useAnnouncements } from './announcements/announcement-provider';
 import { AnnouncementDropdown } from './announcements/announcement-dropdown';
@@ -43,7 +42,9 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
   const router = useRouter();
 
   const currentOrg = organizations.find(o => o.id === currentOrgId);
-  const orgRoleDisplay = user?.orgRole ? presentOrgRole(user.orgRole) : null;
+  const orgRoleDisplay = currentOrg?.role
+    ? presentOrgRole(currentOrg.role)
+    : user?.orgRole ? presentOrgRole(user.orgRole) : null;
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const { unreadCount: announcementUnreadCount, isDropdownOpen: isAnnouncementsOpen, setIsDropdownOpen: setIsAnnouncementsOpen } = useAnnouncements();
   const { isMobileExpanded, setIsMobileExpanded, setIsCommandOpen } = useDashboard();
@@ -81,8 +82,6 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
     setSwitching(false);
     if (result.success && result.slug) {
       router.push(`/${result.slug}/dashboard`);
-    } else {
-      window.location.reload();
     }
   };
 
@@ -202,6 +201,12 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                         </button>
                       );
                     })}
+                  </div>
+                  <div className="border-t border-card-border p-1.5">
+                    <button onClick={() => { setIsOrgSwitcherOpen(false); router.push('/create-workspace'); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-text-secondary transition hover:bg-foreground/[0.05] hover:text-foreground">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-500"><FiPlus size={14} /></span>
+                      Create workspace
+                    </button>
                   </div>
                 </motion.div>
               )}
@@ -474,7 +479,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                   
                   <div className="border-t border-card-border my-2"></div>
                   
-                  <form action={logout}>
+                  <form action="/logout" method="get">
                       <button
                           type="submit"
                           className="flex w-full items-center px-4 py-2.5 text-sm text-rose-500 font-normal hover:bg-rose-500/10 transition-colors group active:scale-[0.98]"

@@ -1,23 +1,31 @@
 'use server';
 
-import { signIn, signOut } from '@/auth';
+import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { updateTag } from 'next/cache';
 import { z } from 'zod';
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
 const API_BASE_URL = `${BASE_URL}/api/v1`;
 
+function safeRedirectPath(value: FormDataEntryValue | null): string {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return '/dashboard';
+  return value;
+}
+
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData,
 ) {
-  try {
-    await signIn('credentials', { ...Object.fromEntries(formData), redirectTo: '/dashboard' });
-  } catch (error) {
-    if ((error as any).message === 'NEXT_REDIRECT' || (error as any).digest?.startsWith('NEXT_REDIRECT')) {
-      throw error;
-    }
+  const callbackUrl = safeRedirectPath(formData.get('callbackUrl'));
 
+  try {
+    await signIn('credentials', {
+      ...Object.fromEntries(formData),
+      redirect: false,
+    });
+  } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
         case 'CredentialsSignin':
@@ -30,6 +38,8 @@ export async function authenticate(
     console.error("Unhandled authenticate error:", error);
     return 'An unexpected error occurred. Please try again.';
   }
+
+  redirect(callbackUrl);
 }
 
 export async function authenticateWithDetail(
@@ -38,6 +48,11 @@ export async function authenticateWithDetail(
 ) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
+  const callbackUrl = safeRedirectPath(formData.get('callbackUrl'));
+  const invitationToken = typeof formData.get('invitationToken') === 'string'
+    ? String(formData.get('invitationToken')).trim()
+    : '';
+  let destination = callbackUrl;
 
   if (!email || !password) {
     return { error: 'Email and password are required.', needsVerification: false };
@@ -68,14 +83,43 @@ export async function authenticateWithDetail(
       return { error: 'Invalid credentials.', needsVerification: false };
     }
 
-    await signIn('credentials', { email, password, redirectTo: '/dashboard' });
+    const loginData = await checkRes.json().catch(() => ({}));
+    const accessToken = loginData.access_token as string | undefined;
 
-    return { error: undefined, needsVerification: false };
-  } catch (error) {
-    if ((error as any)?.message === 'NEXT_REDIRECT' || (error as any)?.digest?.startsWith('NEXT_REDIRECT')) {
-      throw error;
+    if (invitationToken) {
+      if (!accessToken) {
+        return { error: 'Sign-in succeeded, but the workspace invitation could not be verified.', needsVerification: false };
+      }
+
+      const acceptance = await fetch(
+        `${API_BASE_URL}/invitations/accept/${encodeURIComponent(invitationToken)}`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${accessToken}` },
+          cache: 'no-store',
+        },
+      );
+      const acceptanceBody = await acceptance.json().catch(() => ({}));
+      if (!acceptance.ok) {
+        return {
+          error: acceptanceBody.detail || 'We could not add you to that workspace. Please open the invitation again.',
+          needsVerification: false,
+        };
+      }
+
+      if (acceptanceBody.slug) {
+        destination = `/${acceptanceBody.slug}/dashboard`;
+      }
+      updateTag('organizations');
     }
 
+    // Auth.js now signs in after invitation acceptance, so its JWT snapshots
+    // the newly selected organization instead of the user's previous one.
+    // Keeping that redirect inside this action's error boundary is brittle and can
+    // make Next.js report an "unexpected response" instead of navigating. Finish
+    // the sign-in first, then redirect explicitly after the try/catch below.
+    await signIn('credentials', { email, password, redirect: false });
+  } catch (error) {
     if (error instanceof AuthError) {
       return { error: 'Invalid credentials.', needsVerification: false };
     }
@@ -83,6 +127,8 @@ export async function authenticateWithDetail(
     console.error("Unhandled authenticate error:", error);
     return { error: 'An unexpected error occurred. Please try again.', needsVerification: false };
   }
+
+  redirect(destination);
 }
 
 const RegisterSchema = z.object({
@@ -100,6 +146,7 @@ const RegisterSchema = z.object({
     orgCountry: z.string().optional(),
     orgPhone: z.string().optional(),
     inviteCode: z.string().optional(),
+    invitationToken: z.string().optional(),
     referralCode: z.string().optional(),
     shareClickId: z.string().optional(),
     // FormData values are always strings — the form only ever sends "true"
@@ -117,7 +164,7 @@ export async function register(prevState: string | undefined, formData: FormData
         return validatedFields.error.issues[0]?.message || "Invalid fields";
     }
 
-    const { email, password, fullName, phone, jobTitle, orgAction, orgName, orgSlug, orgIndustry, orgCompanySize, orgWebsite, orgCountry, orgPhone, inviteCode, referralCode, shareClickId } = validatedFields.data;
+    const { email, password, fullName, phone, jobTitle, orgAction, orgName, orgSlug, orgIndustry, orgCompanySize, orgWebsite, orgCountry, orgPhone, inviteCode, invitationToken, referralCode, shareClickId } = validatedFields.data;
 
     const body: Record<string, string | boolean> = {
         email,
@@ -128,6 +175,7 @@ export async function register(prevState: string | undefined, formData: FormData
 
     if (phone) body.phone = phone;
     if (jobTitle) body.job_title = jobTitle;
+    if (invitationToken) body.invitation_token = invitationToken;
     if (referralCode) body.referral_code = referralCode;
     if (shareClickId) body.share_click_id = shareClickId;
 
@@ -261,8 +309,5 @@ export async function resendOtp(email: string) {
 }
 
 export async function logout() {
-    try {
-        await fetch(`${API_BASE_URL}/auth/logout`, { method: 'GET' });
-    } catch {}
-    await signOut({ redirectTo: '/' });
+    redirect('/logout');
 }

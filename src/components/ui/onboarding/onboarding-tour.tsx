@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiX, FiArrowLeft, FiArrowRight, FiCompass } from 'react-icons/fi';
 import { Portal } from '@/components/ui/portal';
+import { ONBOARDING_TOUR_READY_EVENT } from '@/lib/onboarding-events';
 
 interface TourStep {
   /** Matches a `data-tour="<id>"` attribute somewhere in the dashboard chrome. */
@@ -36,17 +37,24 @@ function storageKey(userKey: string) {
   return `md_onboarding_${userKey}`;
 }
 
-export function OnboardingTour({ userKey }: { userKey: string }) {
+export function OnboardingTour({ userKey, isInitiallyBlocked = false }: { userKey: string; isInitiallyBlocked?: boolean }) {
   const [active, setActive] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(isInitiallyBlocked);
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const attemptsRef = useRef(0);
 
-  // Decide once, on mount, whether this user has already been through the
-  // tour (finished or skipped) — either way we never show it again
-  // unprompted. A simple localStorage flag is intentionally all this is for
-  // now; nothing server-side to keep in sync.
   useEffect(() => {
+    if (!isBlocked) return;
+    const release = () => setIsBlocked(false);
+    window.addEventListener(ONBOARDING_TOUR_READY_EVENT, release);
+    return () => window.removeEventListener(ONBOARDING_TOUR_READY_EVENT, release);
+  }, [isBlocked]);
+
+  // Start only after the workspace's initial invitation step is complete.
+  // Finishing or skipping the tour still stores the existing per-user flag.
+  useEffect(() => {
+    if (isBlocked) return;
     try {
       const seen = localStorage.getItem(storageKey(userKey));
       if (!seen) {
@@ -58,7 +66,7 @@ export function OnboardingTour({ userKey }: { userKey: string }) {
       // localStorage unavailable (private browsing, etc.) — just skip the tour
       // rather than risk throwing on every page load.
     }
-  }, [userKey]);
+  }, [isBlocked, userKey]);
 
   const finish = useCallback((outcome: 'done' | 'skipped') => {
     try {

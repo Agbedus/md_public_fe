@@ -129,6 +129,8 @@ export interface OrgBrief {
   joined_at?: string | null;
   member_count?: number;
   invite_code?: string | null;
+  onboarding_invite_dismissed_at?: string | null;
+  onboarding_checklist_dismissed_at?: string | null;
 }
 
 export interface OrgMember {

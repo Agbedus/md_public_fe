@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { switchOrganization } from '@/lib/org-actions';
-import { FiChevronDown, FiCheck } from 'react-icons/fi';
+import { FiChevronDown, FiCheck, FiPlus } from 'react-icons/fi';
 import type { OrgBrief } from '@/types/organization';
 
 interface OrgSwitcherProps {
@@ -50,8 +50,6 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
     }
   };
 
-  if (organizations.length <= 1 && currentOrg) return null;
-
   return (
     <div ref={dropdownRef} className="relative">
       <button
@@ -69,9 +67,7 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
             {currentOrg?.name || 'Select Org'}
           </span>
         </div>
-        {organizations.length > 1 && (
-          <FiChevronDown size={14} className={`${contentVisibilityClass} transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-        )}
+        <FiChevronDown size={14} className={`${contentVisibilityClass} transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -100,6 +96,12 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
                 )}
               </button>
             ))}
+            <div className="border-t border-sidebar-border p-1.5">
+              <button onClick={() => { setIsOpen(false); router.push('/create-workspace'); }} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-text-muted transition hover:bg-foreground/[0.05] hover:text-foreground">
+                <span className="flex h-5 w-5 items-center justify-center rounded bg-emerald-500/10 text-emerald-500"><FiPlus size={13} /></span>
+                Create workspace
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

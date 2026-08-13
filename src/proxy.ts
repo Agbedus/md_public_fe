@@ -14,6 +14,11 @@ function isRootDashboardPath(pathname: string): boolean {
   return dashboardPrefixes.some(p => pathname === p || pathname.startsWith(p + '/'));
 }
 
+function safeCallbackPath(value: string | null): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard';
+  return value;
+}
+
 export default auth((req) => {
     const { nextUrl } = req;
     const pathname = nextUrl.pathname;
@@ -31,7 +36,7 @@ export default auth((req) => {
     const isLandingPage = nextUrl.pathname === '/';
     const isWiki = nextUrl.pathname.startsWith('/wiki');
     const isLegal = nextUrl.pathname.startsWith('/privacy') || nextUrl.pathname.startsWith('/terms');
-    const isPublicRoute = isLandingPage || isWiki || isLegal || nextUrl.pathname.startsWith('/invite') || nextUrl.pathname.startsWith('/api') || nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.startsWith('/static') || nextUrl.pathname.includes('.');
+    const isPublicRoute = isLandingPage || isWiki || isLegal || nextUrl.pathname === '/logout' || nextUrl.pathname.startsWith('/invite') || nextUrl.pathname.startsWith('/api') || nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.startsWith('/static') || nextUrl.pathname.includes('.');
 
     if (isLandingPage && isLoggedIn && nextUrl.searchParams.get('home') !== 'true') {
         return Response.redirect(new URL('/dashboard', nextUrl));
@@ -39,7 +44,7 @@ export default auth((req) => {
 
     if (isAuthRoute) {
         if (isLoggedIn) {
-            return Response.redirect(new URL('/dashboard', nextUrl));
+            return Response.redirect(new URL(safeCallbackPath(nextUrl.searchParams.get('callbackUrl')), nextUrl));
         }
         return;
     }

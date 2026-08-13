@@ -230,10 +230,14 @@ export default function RegisterForm({
   initialInviteCode,
   initialReferralCode,
   initialShareClickId,
+  initialEmail,
+  initialInvitationToken,
 }: {
   initialInviteCode?: string | null;
   initialReferralCode?: string | null;
   initialShareClickId?: string | null;
+  initialEmail?: string | null;
+  initialInvitationToken?: string | null;
 }) {
   const [step, setStep] = useState(1);
   const [isPending, setIsPending] = useState(false);
@@ -241,7 +245,7 @@ export default function RegisterForm({
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmail || '');
   const [password, setPassword] = useState('');
   const [phoneCode, setPhoneCode] = useState('GH');
   const [phone, setPhone] = useState('');
@@ -394,6 +398,7 @@ export default function RegisterForm({
     }
     if (initialReferralCode) formData.append('referralCode', initialReferralCode);
     if (initialShareClickId) formData.append('shareClickId', initialShareClickId);
+    if (initialInvitationToken) formData.append('invitationToken', initialInvitationToken);
 
     try {
       // Store org details in sessionStorage for the verify-otp step
@@ -420,7 +425,12 @@ export default function RegisterForm({
       const msg = await register(undefined, formData as any);
       if (msg === "Verification code sent") {
         toast.success("Verification code sent to your email");
-        setTimeout(() => router.push(`/verify-otp?email=${encodeURIComponent(email)}`), 1000);
+        const verifyParams = new URLSearchParams({ email });
+        if (initialInvitationToken) {
+          verifyParams.set('callbackUrl', '/dashboard');
+          if (inviteOrgName) verifyParams.set('organizationName', inviteOrgName);
+        }
+        setTimeout(() => router.push(`/verify-otp?${verifyParams.toString()}`), 1000);
       } else if (msg) {
         toast.error(msg);
         sessionStorage.removeItem('pendingOrg');
@@ -525,16 +535,18 @@ export default function RegisterForm({
                         <FiMail className="h-4 w-4 text-text-muted" />
                       </div>
                       <input
-                        className={inputClass(errors.email)}
+                        className={`${inputClass(errors.email)} ${initialInvitationToken ? 'cursor-not-allowed opacity-70' : ''}`}
                         id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        readOnly={!!initialInvitationToken}
                         placeholder="Email address"
                         autoComplete="email"
                       />
                     </div>
                     {errors.email && <p className="text-xs text-rose-500 mt-1">{errors.email}</p>}
+                    {initialInvitationToken && !errors.email && <p className="text-xs text-text-muted">This invitation is reserved for this email address.</p>}
                   </div>
 
                   <div className="space-y-1.5">
@@ -625,9 +637,10 @@ export default function RegisterForm({
                   <button
                     type="button"
                     onClick={() => setOrgAction('create')}
+                    disabled={!!initialInvitationToken}
                     className={`relative z-10 flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
                       orgAction === 'create' ? 'text-emerald-600 dark:text-emerald-400' : 'text-text-muted hover:text-foreground'
-                    }`}
+                    } ${initialInvitationToken ? 'cursor-not-allowed opacity-40' : ''}`}
                   >
                     <FiBriefcase className="h-4 w-4" />
                     Create new

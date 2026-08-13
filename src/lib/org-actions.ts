@@ -1,9 +1,9 @@
 'use server';
 
-import { auth } from '@/auth';
+import { auth, updateSession } from '@/auth';
 import { getSessionHeaders } from '@/lib/server-auth';
 import { cookies } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
 const API_BASE_URL = `${BASE_URL}/api/v1`;
@@ -15,6 +15,31 @@ import type {
 } from '@/types/organization';
 import { normalizeRoleValue } from '@/types/organization';
 import type { ActionResult } from '@/types/api';
+
+async function syncCurrentOrganizationSession(organization: {
+  id?: string;
+  slug?: string;
+  name?: string | null;
+  role?: string;
+}): Promise<void> {
+  if (!organization.id) return;
+
+  try {
+    await updateSession({
+      user: {
+        currentOrganizationId: organization.id,
+        orgSlug: organization.slug,
+        orgName: organization.name ?? null,
+        orgRole: organization.role,
+      },
+    });
+  } catch (error) {
+    // The backend membership and current-workspace selection have already been
+    // committed. Cookies remain the source of truth for the next dashboard
+    // render, so a JWT refresh problem must not report a false invite failure.
+    console.error('Could not refresh the organization session snapshot:', error);
+  }
+}
 
 export async function getOrganizations(): Promise<OrgBrief[]> {
   const session = await auth();
@@ -47,6 +72,8 @@ export async function getOrganizations(): Promise<OrgBrief[]> {
         joined_at: joinedAt,
         member_count: typeof memberCount === 'number' ? memberCount : undefined,
         invite_code: (org.invite_code as string) ?? null,
+        onboarding_invite_dismissed_at: (membership?.onboarding_invite_dismissed_at as string) ?? null,
+        onboarding_checklist_dismissed_at: (membership?.onboarding_checklist_dismissed_at as string) ?? null,
       };
     });
   } catch (error) {
@@ -110,9 +137,9 @@ export async function switchOrganization(orgId: string): Promise<{ success: bool
       cache: 'no-store',
     });
 
+    const switchedOrganization = await resp.json().catch(() => ({}));
     if (!resp.ok) {
-      const err = await resp.text();
-      console.error('Backend organization switch failed:', resp.status, err);
+      return { success: false, error: switchedOrganization.detail || 'You cannot access that workspace.' };
     }
 
     // Pull the slug — first try the local orgs cache, then hit the backend
@@ -149,11 +176,104 @@ export async function switchOrganization(orgId: string): Promise<{ success: bool
       });
     }
 
+    await syncCurrentOrganizationSession({
+      id: orgId,
+      slug,
+      name: local?.name ?? switchedOrganization.name,
+      role: local?.role,
+    });
+
     revalidatePath('/', 'layout');
     return { success: true, slug };
   } catch (error) {
     console.error('Error switching organization:', error);
     return { success: false, error: 'Failed to switch organization' };
+  }
+}
+
+export async function createOrganization(input: {
+  name: string;
+  slug: string;
+  description?: string;
+}): Promise<{ success: boolean; error?: string; slug?: string }> {
+  const session = await auth();
+  if (!session?.user?.accessToken) return { success: false, error: 'Unauthorized' };
+  try {
+    const response = await fetch(`${API_BASE_URL}/organizations`, {
+      method: 'POST',
+      headers: await getSessionHeaders(),
+      body: JSON.stringify({ ...input, is_public: false }),
+      cache: 'no-store',
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) return { success: false, error: body.detail || 'Could not create the workspace.' };
+    const cookieStore = await cookies();
+    cookieStore.set('current_organization_id', body.id, { path: '/', maxAge: 31536000, sameSite: 'lax' });
+    cookieStore.set('org_slug', body.slug, { path: '/', maxAge: 31536000, sameSite: 'lax' });
+    await syncCurrentOrganizationSession({ id: body.id, slug: body.slug, name: body.name, role: 'owner' });
+    updateTag('organizations');
+    revalidatePath('/', 'layout');
+    return { success: true, slug: body.slug };
+  } catch {
+    return { success: false, error: 'Could not connect to the server.' };
+  }
+}
+
+export async function updateWorkspaceOnboarding(
+  orgId: string,
+  update: { invite_dismissed?: boolean; checklist_dismissed?: boolean },
+): Promise<ActionResult> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/organizations/${orgId}/onboarding`, {
+      method: 'PATCH',
+      headers: await getSessionHeaders(),
+      body: JSON.stringify(update),
+      cache: 'no-store',
+    });
+    if (!response.ok) return { success: false, error: 'Could not save onboarding progress.' };
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Could not connect to the server.' };
+  }
+}
+
+export interface WorkspaceOnboardingStatus {
+  workspace: boolean; invite: boolean; office: boolean;
+  attendance_policy: boolean; first_work: boolean;
+}
+
+export async function getWorkspaceOnboardingStatus(orgId: string): Promise<WorkspaceOnboardingStatus> {
+  const empty = { workspace: true, invite: false, office: false, attendance_policy: false, first_work: false };
+  try {
+    const response = await fetch(`${API_BASE_URL}/organizations/${orgId}/onboarding-status`, {
+      headers: await getSessionHeaders(), cache: 'no-store',
+    });
+    return response.ok ? await response.json() : empty;
+  } catch { return empty; }
+}
+
+export async function acceptOrganizationInvitation(token: string): Promise<{ success: boolean; error?: string; slug?: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/invitations/accept/${encodeURIComponent(token)}`, {
+      method: 'POST', headers: await getSessionHeaders(), cache: 'no-store',
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) return { success: false, error: body.detail || 'Could not accept the invitation.' };
+    const cookieStore = await cookies();
+    cookieStore.set('current_organization_id', body.organization_id, { path: '/', maxAge: 31536000, sameSite: 'lax' });
+    cookieStore.set('org_slug', body.slug, { path: '/', maxAge: 31536000, sameSite: 'lax' });
+    await syncCurrentOrganizationSession({
+      id: body.organization_id,
+      slug: body.slug,
+      name: body.name,
+      role: body.role,
+    });
+    updateTag('organizations');
+    revalidatePath('/', 'layout');
+    return { success: true, slug: body.slug };
+  } catch {
+    return { success: false, error: 'Could not connect to the server.' };
   }
 }
 
@@ -265,7 +385,7 @@ export async function getOrgMembersCount(orgId: string): Promise<number> {
  * Join an organization via invite code.
  * Only works for users who already have an account (are logged in).
  */
-export async function joinOrganizationByInvite(inviteCode: string): Promise<ActionResult> {
+export async function joinOrganizationByInvite(inviteCode: string): Promise<ActionResult & { slug?: string }> {
   const session = await auth();
   if (!session?.user?.accessToken) {
     return { success: false, error: 'You must be logged in to join an organization.' };
@@ -284,8 +404,21 @@ export async function joinOrganizationByInvite(inviteCode: string): Promise<Acti
       return { success: false, error: body.detail || 'Failed to join organization' };
     }
 
+    const organization = await res.json().catch(() => ({}));
+    const cookieStore = await cookies();
+    if (organization.id) cookieStore.set('current_organization_id', organization.id, { path: '/', maxAge: 31536000, sameSite: 'lax' });
+    if (organization.slug) cookieStore.set('org_slug', organization.slug, { path: '/', maxAge: 31536000, sameSite: 'lax' });
+    if (organization.id) {
+      await syncCurrentOrganizationSession({
+        id: organization.id,
+        slug: organization.slug,
+        name: organization.name,
+        role: organization.membership?.role ?? 'MEMBER',
+      });
+    }
+    updateTag('organizations');
     revalidatePath('/', 'layout');
-    return { success: true };
+    return { success: true, slug: organization.slug };
   } catch {
     return { success: false, error: 'Network error' };
   }

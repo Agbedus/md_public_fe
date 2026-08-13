@@ -1,7 +1,8 @@
-import { auth, signOut } from '@/auth';
+import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getOrganizations } from '@/lib/org-actions';
 import NoOrgPageClient from './no-org-page-client';
+import Link from 'next/link';
 
 export default async function NoOrganizationPage() {
   const session = await auth();
@@ -26,19 +27,10 @@ export default async function NoOrganizationPage() {
           </div>
           <h1 className="text-2xl font-bold text-foreground">No Organization Found</h1>
           <p className="text-text-muted leading-relaxed">
-            You are not a member of any organization yet. Contact your admin to get invited, or check back later.
+            You are not a member of a workspace yet. Accept an invitation or create a workspace of your own.
           </p>
-          <form action={async () => {
-            'use server';
-            await signOut({ redirectTo: '/login' });
-          }}>
-            <button
-              type="submit"
-              className="px-6 py-2.5 rounded-xl bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
-            >
-              Sign Out
-            </button>
-          </form>
+          <Link href="/create-workspace" className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-600 px-6 text-sm font-semibold text-white hover:bg-emerald-500">Create a workspace</Link>
+          <Link href="/logout" className="inline-flex h-11 items-center justify-center rounded-xl bg-foreground px-6 text-sm font-medium text-background transition-opacity hover:opacity-90">Sign Out</Link>
         </div>
       </div>
     );

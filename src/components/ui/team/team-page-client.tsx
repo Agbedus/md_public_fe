@@ -11,6 +11,8 @@ import { toast } from '@/lib/toast';
 import { InviteMemberModal } from '@/components/ui/invite-member-modal';
 import { MemberEditModal } from '@/components/ui/team/member-edit-modal';
 import { Portal } from '@/components/ui/portal';
+import PendingInvitations from '@/components/ui/team/pending-invitations';
+import type { InvitationStats, PendingInvitation } from '@/app/(dashboard)/[orgSlug]/team/actions';
 
 interface TeamPageClientProps {
   members: OrganizationMembershipWithUser[];
@@ -19,6 +21,8 @@ interface TeamPageClientProps {
   currentUserRoles?: string[];
   inviteCode: string | null;
   isSuperAdmin: boolean;
+  invitations: PendingInvitation[];
+  invitationStats: InvitationStats | null;
 }
 
 type RoleDisplay = { label: string; hint: string; icon: React.ReactNode; color: string; bg: string };
@@ -198,7 +202,7 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
   );
 }
 
-export default function TeamPageClient({ members, currentUserId, currentOrgRole, currentUserRoles, inviteCode, isSuperAdmin }: TeamPageClientProps) {
+export default function TeamPageClient({ members, currentUserId, currentOrgRole, currentUserRoles, inviteCode, isSuperAdmin, invitations, invitationStats }: TeamPageClientProps) {
   const [isPending, startTransition] = useTransition();
   const [localMembers, setLocalMembers] = useState(members);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -391,6 +395,8 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
         )}
       </div>
 
+      {canManage && <PendingInvitations invitations={invitations} stats={invitationStats} />}
+
       <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
         <div className="relative flex-1 min-w-[140px] max-w-sm group">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5"/>
@@ -441,6 +447,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
       <InviteMemberModal
         isOpen={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
+        canInviteAdmin={isOwner}
       />
 
       {editingMember && (

@@ -1,10 +1,10 @@
 import Sidebar from "@/components/ui/sidebar";
 import TopNav from "@/components/ui/topnav";
 import DashboardLayout from "@/components/ui/dashboard-layout";
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getOrganizations } from "@/lib/org-actions";
+import { getOrganizations, getWorkspaceOnboardingStatus } from "@/lib/org-actions";
 import { getFreshAvatarUrl } from "@/lib/server-auth";
 import type { OrgBrief } from "@/types/organization";
 
@@ -18,26 +18,28 @@ export default async function DashboardRouteLayout({
   const session = await auth();
 
   if (!session) {
-    redirect("/login");
+    redirect('/logout');
   }
 
-  if (!session.user.currentOrganizationId) {
+  const cookieStore = await cookies();
+  const selectedOrganizationId = cookieStore.get('current_organization_id')?.value || session.user.currentOrganizationId;
+
+  if (!selectedOrganizationId) {
     redirect("/no-organization");
   }
 
   const token = session?.user?.accessToken;
   if (token) {
+    let isSessionValid = false;
     try {
       const res = await fetch(`${BASE_URL}/api/v1/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` },
         cache: 'no-store',
       });
-      if (!res.ok) {
-        await signOut({ redirectTo: '/login' });
-      }
-    } catch {
-      await signOut({ redirectTo: '/login' });
-    }
+      isSessionValid = res.ok;
+    } catch {}
+
+    if (!isSessionValid) redirect('/logout');
   }
 
   let organizations: OrgBrief[] = [];
@@ -53,24 +55,22 @@ export default async function DashboardRouteLayout({
   const freshAvatarUrl = await getFreshAvatarUrl();
   const chromeUser = { ...session.user, image: freshAvatarUrl ?? session.user.image };
 
-  const orgSlug = session.user.orgSlug;
-  if (orgSlug) {
-    try {
-      const cookieStore = await cookies();
-      cookieStore.set('org_slug', orgSlug, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 365,
-        sameSite: 'lax',
-      });
-    } catch {}
-  }
+  const selectedOrganization = organizations.find(org => org.id === selectedOrganizationId);
+  const orgSlug = selectedOrganization?.slug || session.user.orgSlug;
+  const normalizedRole = selectedOrganization?.role?.toLowerCase();
+  const canInvite = normalizedRole === 'owner' || normalizedRole === 'admin';
+  const onboardingStatus = selectedOrganization && canInvite && (selectedOrganization.member_count ?? 1) <= 1
+    ? await getWorkspaceOnboardingStatus(selectedOrganization.id)
+    : null;
+  const isOnboardingTourBlocked = Boolean(onboardingStatus && !onboardingStatus.invite);
 
   return (
     <DashboardLayout
-      sidebar={<Sidebar user={chromeUser} organizations={organizations} currentOrgId={session.user.currentOrganizationId} orgSlug={orgSlug} />}
-      topnav={<TopNav user={chromeUser} orgSlug={orgSlug} organizations={organizations} currentOrgId={session.user.currentOrganizationId} />}
+      sidebar={<Sidebar user={chromeUser} organizations={organizations} currentOrgId={selectedOrganizationId} orgSlug={orgSlug} />}
+      topnav={<TopNav user={chromeUser} orgSlug={orgSlug} organizations={organizations} currentOrgId={selectedOrganizationId} />}
       user={chromeUser}
       orgSlug={orgSlug}
+      isOnboardingTourBlocked={isOnboardingTourBlocked}
     >
       {children}
     </DashboardLayout>

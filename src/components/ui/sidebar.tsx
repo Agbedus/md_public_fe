@@ -25,7 +25,6 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { logout } from "@/app/lib/actions";
 import { AboutModal } from "./about-modal";
 import { useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
@@ -397,7 +396,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
           </div>
         )}
 
-        <form action={logout} className="w-full">
+        <form action="/logout" method="get" className="w-full">
           <motion.button
             type="submit"
             whileHover={{ scale: 1.01, transition: spring }}

@@ -6,13 +6,13 @@ import { z } from "zod";
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
 const API_BASE_URL = `${BASE_URL}/api/v1`;
 
-export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
+export const { auth, signIn, signOut, unstable_update: updateSession, handlers: { GET, POST } } = NextAuth({
   ...authConfig,
   secret: process.env.AUTH_SECRET,
   session: { strategy: "jwt" },
   providers: [
     Credentials({
-      name: "Fast Dash",
+      name: "MyndDesk",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "user@example.com" },
         password: { label: "Password", type: "password" }
@@ -143,10 +143,19 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
             }
 
             if (trigger === "update" && session) {
-                if (session.currentOrganizationId !== undefined) {
-                    token.currentOrganizationId = session.currentOrganizationId;
+                const updatedUser = session.user as Partial<{
+                    currentOrganizationId: string | null;
+                    orgRole: string;
+                    orgSlug: string;
+                    orgName: string | null;
+                }> | undefined;
+
+                if (updatedUser?.currentOrganizationId !== undefined) {
+                    token.currentOrganizationId = updatedUser.currentOrganizationId;
                 }
-                token = { ...token, ...session };
+                if (updatedUser?.orgRole !== undefined) token.orgRole = updatedUser.orgRole;
+                if (updatedUser?.orgSlug !== undefined) token.orgSlug = updatedUser.orgSlug;
+                if (updatedUser?.orgName !== undefined) token.orgName = updatedUser.orgName;
             }
 
             return token;
