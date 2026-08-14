@@ -45,6 +45,19 @@ and clean up subscriptions, timers, and animation frames. Display-only state is
 derived during rendering where possible, keeping React updates predictable across
 assistant, calendar, notification, location, onboarding, and optimistic workflows.
 
+## Search visibility
+
+Public search metadata is centralized in `src/lib/seo.ts`. The App Router exposes
+`/robots.txt`, `/sitemap.xml`, `/manifest.webmanifest`, and a generated
+`/opengraph-image` for search engines and social previews. The landing page includes
+Organization, WebSite, SoftwareApplication, and FAQ structured data. Authentication,
+onboarding, and organization dashboard routes explicitly use `noindex` metadata.
+
+Set `NEXT_PUBLIC_SITE_URL` to the canonical production frontend origin. Optional
+`GOOGLE_SITE_VERIFICATION` and `BING_SITE_VERIFICATION` values add their ownership
+verification tags without code changes. Never place secret analytics credentials in
+client-visible environment variables.
+
 ## Quality checks
 
 Run both checks before pushing:

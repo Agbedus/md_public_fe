@@ -1,0 +1,11 @@
+import type { Metadata } from 'next';
+import { privatePageMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  ...privatePageMetadata,
+  title: 'Sign in',
+};
+
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
+  return children;
+}

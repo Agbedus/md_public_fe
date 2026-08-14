@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Sora, DM_Sans, Space_Grotesk } from "next/font/google";
+import { siteConfig, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,11 +29,72 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "MyndDesk",
-  description: "A bespoke, secure, and intelligent productivity platform.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: siteConfig.title,
+    template: "%s | MyndDesk",
+  },
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
+  keywords: [...siteConfig.keywords],
+  authors: [{ name: "MyndDesk", url: siteUrl }],
+  creator: "MyndDesk",
+  publisher: "MyndDesk",
+  category: "business software",
+  referrer: "origin-when-cross-origin",
+  alternates: {
+    canonical: "/",
+    languages: {
+      "en-GH": "/",
+      "en": "/",
+    },
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: siteConfig.name,
+    title: siteConfig.title,
+    description: siteConfig.description,
+    locale: siteConfig.locale,
+    alternateLocale: ["en_US", "en_GB"],
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "MyndDesk — focused team attendance and work management",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    images: ["/opengraph-image"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+      : undefined,
+  },
   icons: {
     icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
   },
+  manifest: "/manifest.webmanifest",
 };
 
 import { auth } from "@/auth";
@@ -56,7 +118,7 @@ export default async function RootLayout({
   const initialAttendance = session ? await getMyAttendanceToday() : null;
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en-GH" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

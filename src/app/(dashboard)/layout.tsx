@@ -7,8 +7,15 @@ import { cookies } from "next/headers";
 import { getOrganizations, getWorkspaceOnboardingStatus } from "@/lib/org-actions";
 import { getFreshAvatarUrl } from "@/lib/server-auth";
 import type { OrgBrief } from "@/types/organization";
+import type { Metadata } from "next";
+import { privatePageMetadata } from "@/lib/seo";
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
+
+export const metadata: Metadata = {
+  ...privatePageMetadata,
+  title: "Workspace",
+};
 
 export default async function DashboardRouteLayout({
   children,

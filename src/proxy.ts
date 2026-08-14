@@ -36,7 +36,8 @@ export default auth((req) => {
     const isLandingPage = nextUrl.pathname === '/';
     const isWiki = nextUrl.pathname.startsWith('/wiki');
     const isLegal = nextUrl.pathname.startsWith('/privacy') || nextUrl.pathname.startsWith('/terms');
-    const isPublicRoute = isLandingPage || isWiki || isLegal || nextUrl.pathname === '/logout' || nextUrl.pathname.startsWith('/invite') || nextUrl.pathname.startsWith('/api') || nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.startsWith('/static') || nextUrl.pathname.includes('.');
+    const isPublicMetadata = nextUrl.pathname === '/opengraph-image';
+    const isPublicRoute = isLandingPage || isWiki || isLegal || isPublicMetadata || nextUrl.pathname === '/logout' || nextUrl.pathname.startsWith('/invite') || nextUrl.pathname.startsWith('/api') || nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.startsWith('/static') || nextUrl.pathname.includes('.');
 
     if (isLandingPage && isLoggedIn && nextUrl.searchParams.get('home') !== 'true') {
         return Response.redirect(new URL('/dashboard', nextUrl));
@@ -74,5 +75,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|opengraph-image|.*\\..*).*)'],
 };

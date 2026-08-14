@@ -38,6 +38,7 @@ import PipMascot from '@/components/ui/assistant/pip-mascot';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { ShareButton } from '@/components/ui/sharing/share-button';
+import { landingPageStructuredData } from '@/lib/seo';
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
@@ -185,11 +186,35 @@ export default function LandingPage() {
         }
     ];
 
+    const structuredData = {
+        '@context': 'https://schema.org',
+        '@graph': [
+            ...landingPageStructuredData['@graph'],
+            {
+                '@type': 'FAQPage',
+                mainEntity: faqs.map((faq) => ({
+                    '@type': 'Question',
+                    name: faq.q,
+                    acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: faq.a,
+                    },
+                })),
+            },
+        ],
+    };
+
     const sectionBg = "bg-[#0b0d12]";
     const sectionAlt = "bg-[#11141a]";
 
     return (
-        <div className="min-h-screen bg-[#090a0c] text-white selection:bg-emerald-500/30 overflow-x-hidden">
+        <main className="min-h-screen bg-[#090a0c] text-white selection:bg-emerald-500/30 overflow-x-hidden">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
+                }}
+            />
             <div className="absolute top-0 inset-x-0 h-[80rem] pointer-events-none -z-10"
                 style={{
                     backgroundImage: 'radial-gradient(circle at 30% 0%, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.01) 50%, transparent 60%), radial-gradient(circle at 70% 10%, rgba(99, 102, 241, 0.04) 0%, transparent 50%)'
@@ -284,9 +309,9 @@ export default function LandingPage() {
                         lets the size actually apply. */}
                     <motion.h1 {...fadeIn} className="font-sora">
                         <span className="block text-5xl leading-[1.05] font-bold tracking-tight text-white">
-                            Run your team
+                            Track the work that matters.
                             <br />
-                            from one place.
+                            Run your team from one place.
                         </span>
                     </motion.h1>
 
@@ -295,8 +320,8 @@ export default function LandingPage() {
                         transition={{ delay: 0.1 }}
                         className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg leading-relaxed font-dm-sans"
                     >
-                        Attendance, projects, tasks and time off in one workspace,
-                        built for how teams actually work day to day.
+                        Simple attendance, projects, tasks and time off for small businesses
+                        and startups in Ghana, across Africa and wherever growing teams work.
                     </motion.p>
 
                     <motion.div
@@ -1154,7 +1179,7 @@ export default function LandingPage() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-r from-emerald-500/5 via-indigo-500/5 to-emerald-500/5 blur-[120px] rounded-full pointer-events-none -z-10" />
                 <div className="max-w-4xl mx-auto text-center space-y-10">
                     <h2 className="text-4xl md:text-8xl font-bold tracking-tightest leading-[0.95] text-white font-sora">Take Control of <br /> Your Operations</h2>
-                    <p className="text-zinc-500 text-lg max-w-2xl mx-auto leading-relaxed font-dm-sans">Create your organization, invite your team, and start commanding in minutes. No credit card required.</p>
+                    <p className="text-zinc-500 text-lg max-w-2xl mx-auto leading-relaxed font-dm-sans">Create your workspace, invite your team and focus on the few operational details that move the business forward. No credit card required.</p>
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <Link href="/register" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-emerald-400 text-[#07090c] hover:bg-emerald-300 text-sm font-semibold tracking-tight transition-colors duration-200 active:scale-[0.98]">
                             Create Your Account <FiArrowRight />
@@ -1176,7 +1201,7 @@ export default function LandingPage() {
                             <Link href="/" className="flex items-center gap-3">
                                 <Image src="/mynd_desk_logo_dark.png" alt="MyndDesk" width={1020} height={323} className="h-12 w-auto" />
                             </Link>
-                            <p className="text-zinc-500 text-sm max-w-xs leading-relaxed font-dm-sans">One workspace for attendance, projects, people and everything in between.</p>
+                            <p className="text-zinc-500 text-sm max-w-xs leading-relaxed font-dm-sans">One focused workspace for attendance, projects, tasks and people.</p>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-16 font-sora text-sm">
                             <div className="space-y-4">
@@ -1217,6 +1242,6 @@ export default function LandingPage() {
                     </div>
                 </div>
             </footer>
-        </div>
+        </main>
     );
 }

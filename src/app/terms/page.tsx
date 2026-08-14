@@ -1,10 +1,23 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import {
   FiFileText, FiUserCheck, FiUsers, FiSlash, FiDatabase, FiMapPin, FiCpu,
   FiLink2, FiAlertTriangle, FiXOctagon, FiShield, FiClipboard,
 } from 'react-icons/fi';
 import { LegalDocument, type LegalSection } from '@/components/ui/legal/legal-document';
+
+export const metadata: Metadata = {
+  title: 'Terms of Use',
+  description:
+    'Read the terms for using MyndDesk team attendance, work management and AI-assistant features.',
+  alternates: { canonical: '/terms' },
+  openGraph: {
+    title: 'MyndDesk Terms of Use',
+    description: 'The agreement governing MyndDesk accounts, workspaces and product features.',
+    url: '/terms',
+  },
+};
 
 function Card({ children }: { children: React.ReactNode }) {
   return (

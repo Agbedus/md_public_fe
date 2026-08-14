@@ -1,9 +1,23 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import {
   FiShield, FiUsers, FiDatabase, FiMapPin, FiCpu, FiLink2,
   FiClock, FiLock, FiUserCheck, FiGlobe, FiFileText, FiSettings, FiEye,
 } from 'react-icons/fi';
 import { LegalDocument, type LegalSection } from '@/components/ui/legal/legal-document';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description:
+    'Learn how MyndDesk protects account, workspace, attendance, location and AI-assistant data.',
+  alternates: { canonical: '/privacy' },
+  openGraph: {
+    title: 'MyndDesk Privacy Policy',
+    description:
+      'Plain-language details on how MyndDesk collects, uses and protects your workplace data.',
+    url: '/privacy',
+  },
+};
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
