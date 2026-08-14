@@ -63,22 +63,24 @@ export default function AssistantOrb() {
   useEffect(() => {
     const greeting = GREETINGS[greetingIdx];
     let charIdx = 0;
-    setTypedText('');
-    setTypingDone(false);
+    const frame = window.requestAnimationFrame(() => {
+      setTypedText('');
+      setTypingDone(false);
 
-    if (typingRef.current) clearInterval(typingRef.current);
-
-    typingRef.current = setInterval(() => {
-      charIdx++;
-      if (charIdx <= greeting.length) {
-        setTypedText(greeting.slice(0, charIdx));
-      } else {
-        setTypingDone(true);
-        if (typingRef.current) clearInterval(typingRef.current);
-      }
-    }, 35);
+      if (typingRef.current) clearInterval(typingRef.current);
+      typingRef.current = setInterval(() => {
+        charIdx++;
+        if (charIdx <= greeting.length) {
+          setTypedText(greeting.slice(0, charIdx));
+        } else {
+          setTypingDone(true);
+          if (typingRef.current) clearInterval(typingRef.current);
+        }
+      }, 35);
+    });
 
     return () => {
+      window.cancelAnimationFrame(frame);
       if (typingRef.current) clearInterval(typingRef.current);
     };
   }, [greetingIdx]);
@@ -105,7 +107,7 @@ export default function AssistantOrb() {
   // when it returns, it briefly shows a restored message before going back to
   // normal. This replaces the old InternetStatus banner.
   useEffect(() => {
-    setIsOnline(navigator.onLine);
+    const frame = window.requestAnimationFrame(() => setIsOnline(navigator.onLine));
 
     const handleOnline = () => {
       setIsOnline(true);
@@ -130,6 +132,7 @@ export default function AssistantOrb() {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.cancelAnimationFrame(frame);
       if (recoveryTimeoutRef.current) clearTimeout(recoveryTimeoutRef.current);
     };
   }, []);

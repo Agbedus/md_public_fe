@@ -3,6 +3,7 @@
 import React from 'react';
 import { FiSend, FiMic, FiMicOff, FiPaperclip, FiGlobe, FiSquare } from 'react-icons/fi';
 import TextareaAutosize from 'react-textarea-autosize';
+import { useIsClient } from '@/hooks/use-is-client';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -42,7 +43,11 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
   const [baseText, setBaseText] = React.useState('');
   const [interimText, setInterimText] = React.useState('');
   const [isRecording, setIsRecording] = React.useState(false);
-  const [isSpeechSupported, setIsSpeechSupported] = React.useState(false);
+  const isClient = useIsClient();
+  const isSpeechSupported = isClient && Boolean(
+    (window as unknown as WindowWithSpeech).SpeechRecognition
+    || (window as unknown as WindowWithSpeech).webkitSpeechRecognition
+  );
   const recognitionRef = React.useRef<SpeechRecognition | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const lastFinalRef = React.useRef<string>('');
@@ -52,8 +57,6 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
     const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
     
-    setIsSpeechSupported(true);
-
     const recog = new SpeechRecognition();
     recog.interimResults = true;
     recog.continuous = false;

@@ -300,7 +300,7 @@ export default function ProjectsPageClient({
             Projects
           </h1>
           <p className="text-text-muted text-sm">
-            Track your team's projects, budgets and progress.
+            Track your team&apos;s projects, budgets and progress.
           </p>
         </div>
         <div className="flex items-center gap-4">

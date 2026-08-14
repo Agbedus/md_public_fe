@@ -58,40 +58,43 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
 
   useEffect(() => {
     if (open) {
-      setTitle("");
-      setDescription("");
-      setAllDay(false);
       const base = initialStart ?? new Date();
       const startLocal = toLocalISOString(base);
       const endBase = new Date(base.getTime() + 60*60*1000); // Default 1 hour duration
       const endLocal = toLocalISOString(endBase);
-      
-      setStart(startLocal);
-      setEnd(endLocal);
-      setLocation("");
-      setOrganizer("");
-      setAttendees("");
-      setStatus("tentative");
-      setPrivacy("public");
-      setRecurrence("none");
-      setReminders([]);
-      setColor("#6366f1");
-      setRDays(0);
-      setRHours(0);
-      setRMinutes(0);
-      setSubmitting(false);
+      const frame = window.requestAnimationFrame(() => {
+        setTitle("");
+        setDescription("");
+        setAllDay(false);
+        setStart(startLocal);
+        setEnd(endLocal);
+        setLocation("");
+        setOrganizer("");
+        setAttendees("");
+        setStatus("tentative");
+        setPrivacy("public");
+        setRecurrence("none");
+        setReminders([]);
+        setColor("#6366f1");
+        setRDays(0);
+        setRHours(0);
+        setRMinutes(0);
+        setSubmitting(false);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
   }, [open, initialStart]);
 
-  useEffect(() => {
-    if (allDay) {
+  const handleAllDayChange = (nextAllDay: boolean) => {
+    setAllDay(nextAllDay);
+    if (nextAllDay) {
       setStart((prev) => toDateOnly(prev));
       setEnd((prev) => toDateOnly(prev));
     } else {
       setStart((prev) => toDateTime(prev, "09:00"));
       setEnd((prev) => toDateTime(prev, "10:00"));
     }
-  }, [allDay]);
+  };
 
   if (!open) return null;
 
@@ -203,7 +206,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                 <button
                 type="button"
                 id="allday"
-                onClick={() => setAllDay((v) => !v)}
+                onClick={() => handleAllDayChange(!allDay)}
                 aria-pressed={allDay}
                 className={`relative inline-flex h-10 items-center rounded-xl border p-1 transition-all duration-300 ${
                     allDay ? "bg-foreground/[0.08] border-foreground/20" : "bg-background border-card-border"

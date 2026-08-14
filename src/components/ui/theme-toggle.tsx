@@ -5,6 +5,7 @@ import { FiSun, FiMoon, FiMonitor } from 'react-icons/fi';
 import { useTheme } from '@/providers/theme-provider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { spring, springTap } from '@/lib/motion';
+import { useIsClient } from '@/hooks/use-is-client';
 
 export function ThemeToggle({ 
   collapsed = false, 
@@ -14,11 +15,7 @@ export function ThemeToggle({
   minimal?: boolean;
 }) {
   const { theme, toggleTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useIsClient();
 
   const currentTheme = mounted ? theme : 'system';
 

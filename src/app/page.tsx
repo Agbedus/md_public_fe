@@ -43,6 +43,9 @@ if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 }
 
+const PIP_VARIANTS = ['cyber', 'smart', 'classic', 'cool', 'shocked', 'spicy', 'lovely', 'sleepy'] as const;
+type PipVariant = typeof PIP_VARIANTS[number];
+
 export default function LandingPage() {
     const [activeTab, setActiveTab] = useState('Dashboard');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -75,15 +78,13 @@ export default function LandingPage() {
     const containerRef = useRef<HTMLDivElement>(null);
     const zoomRef = useRef<HTMLDivElement>(null);
 
-    const pipVariants = ['cyber', 'smart', 'classic', 'cool', 'shocked', 'spicy', 'lovely', 'sleepy'] as const;
-    type PipVariant = typeof pipVariants[number];
     const [pipVariant, setPipVariant] = useState<PipVariant>('cyber');
 
     useEffect(() => {
         const interval = setInterval(() => {
             setPipVariant(prev => {
-                const idx = pipVariants.indexOf(prev);
-                return pipVariants[(idx + 1) % pipVariants.length];
+                const idx = PIP_VARIANTS.indexOf(prev);
+                return PIP_VARIANTS[(idx + 1) % PIP_VARIANTS.length];
             });
         }, 3000);
         return () => clearInterval(interval);

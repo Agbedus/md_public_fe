@@ -1,5 +1,6 @@
 import type { Task } from "@/types/task";
 import Link from "next/link";
+import { useState } from "react";
 
 interface TaskWidgetProps {
   task: Task;
@@ -19,20 +20,21 @@ const priorityConfig: Record<string, { label: string; color: string }> = {
 };
 
 export default function TaskWidget({ task }: TaskWidgetProps) {
+  const [renderedAt] = useState(() => Date.now());
   const status = statusConfig[task.status] ?? { label: task.status, color: "text-text-muted", bg: "bg-zinc-400/10" };
   const priority = priorityConfig[task.priority] ?? { label: task.priority, color: "text-text-muted" };
 
   const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return "No due date";
     const date = new Date(dateStr);
-    const diffDays = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil((date.getTime() - renderedAt) / (1000 * 60 * 60 * 24));
     if (diffDays < 0) return `Overdue by ${Math.abs(diffDays)}d`;
     if (diffDays === 0) return "Due today";
     if (diffDays === 1) return "Due tomorrow";
     return `Due in ${diffDays}d`;
   };
 
-  const isOverdue = task.dueDate && new Date(task.dueDate).getTime() < Date.now();
+  const isOverdue = task.dueDate && new Date(task.dueDate).getTime() < renderedAt;
 
   return (
     <div className="bg-foreground/[0.03] border border-card-border rounded-xl hover:bg-foreground/[0.06] hover:border-indigo-500/20 transition-all px-4 py-3">

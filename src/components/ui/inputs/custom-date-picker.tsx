@@ -91,7 +91,6 @@ export function CustomDatePicker({
 
   useLayoutEffect(() => {
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       updateCoords();
     }
   }, [isOpen]);

@@ -6,6 +6,7 @@ import useSWR from 'swr';
 import { Announcement, AnnouncementCreate, AnnouncementUpdate } from '@/types/announcement';
 import { HiSpeakerphone } from 'react-icons/hi';
 import { on } from '@/lib/event-bus';
+import Image from 'next/image';
 import { playNotificationSound, getSoundEffectsEnabled } from '@/lib/notification-sounds';
 import { 
   getAnnouncements,
@@ -134,9 +135,12 @@ export const AnnouncementProvider: React.FC<{ children: React.ReactNode, user?: 
                 boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
               }}
             >
-              <img
+              <Image
                 src={creatorImage}
                 alt=""
+                width={36}
+                height={36}
+                unoptimized
                 className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-card-border"
               />
               <div className="flex-1 min-w-0">
@@ -157,7 +161,7 @@ export const AnnouncementProvider: React.FC<{ children: React.ReactNode, user?: 
         });
       }
     });
-  }, [user?.id, mutateAnnouncements]);
+  }, [user, mutateAnnouncements]);
 
   return (
     <AnnouncementContext.Provider value={{ 

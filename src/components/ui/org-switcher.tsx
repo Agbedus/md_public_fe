@@ -19,13 +19,7 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
   const [switching, setSwitching] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const [currentOrg, setCurrentOrg] = useState<OrgBrief | undefined>(
-    () => organizations.find(o => o.id === currentOrgId)
-  );
-
-  useEffect(() => {
-    setCurrentOrg(organizations.find(o => o.id === currentOrgId));
-  }, [currentOrgId, organizations]);
+  const currentOrg = organizations.find(o => o.id === currentOrgId);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

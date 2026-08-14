@@ -108,18 +108,22 @@ export default function SettingsForm({ user }: SettingsFormProps) {
 
   // Load settings on mount
   useEffect(() => {
+    let frame: number | undefined;
     try {
       const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const merged = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+      const merged = saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+      frame = window.requestAnimationFrame(() => {
         setSettings(merged);
         setSavedSettings(merged);
-      }
+        setIsLoaded(true);
+      });
     } catch (e) {
       console.error("Failed to load settings:", e);
-    } finally {
-      setIsLoaded(true);
+      frame = window.requestAnimationFrame(() => setIsLoaded(true));
     }
+    return () => {
+      if (frame !== undefined) window.cancelAnimationFrame(frame);
+    };
   }, [storageKey]);
 
   const isDirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);

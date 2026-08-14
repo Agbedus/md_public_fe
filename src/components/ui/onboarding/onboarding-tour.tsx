@@ -120,12 +120,13 @@ export function OnboardingTour({ userKey, isInitiallyBlocked = false }: { userKe
 
   useEffect(() => {
     if (!active) return;
-    measure();
+    const frame = window.requestAnimationFrame(measure);
     window.addEventListener('resize', measure);
     window.addEventListener('scroll', measure, true);
     return () => {
       window.removeEventListener('resize', measure);
       window.removeEventListener('scroll', measure, true);
+      window.cancelAnimationFrame(frame);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
     };
   }, [active, measure]);

@@ -57,17 +57,23 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
   useEffect(() => {
     if (unreadCount > 0) {
-      setNotifMinimized(false);
+      const frame = window.requestAnimationFrame(() => setNotifMinimized(false));
       const timer = setTimeout(() => setNotifMinimized(true), 15000);
-      return () => clearTimeout(timer);
+      return () => {
+        window.cancelAnimationFrame(frame);
+        clearTimeout(timer);
+      };
     }
   }, [unreadCount]);
 
   useEffect(() => {
     if (announcementUnreadCount > 0) {
-      setAnnouncementMinimized(false);
+      const frame = window.requestAnimationFrame(() => setAnnouncementMinimized(false));
       const timer = setTimeout(() => setAnnouncementMinimized(true), 15000);
-      return () => clearTimeout(timer);
+      return () => {
+        window.cancelAnimationFrame(frame);
+        clearTimeout(timer);
+      };
     }
   }, [announcementUnreadCount]);
 

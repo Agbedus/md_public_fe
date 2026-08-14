@@ -268,13 +268,13 @@ export default function RegisterForm({
   const router = useRouter();
   const countryManuallyChanged = useRef(false);
 
-  useEffect(() => {
-    if (countryManuallyChanged.current) return;
-    const country = ALL_COUNTRIES.find((c) => c.code === phoneCode);
-    if (country && country.name !== orgCountry) {
-      setOrgCountry(country.name);
+  const handlePhoneCodeChange = (code: string) => {
+    setPhoneCode(code);
+    if (!countryManuallyChanged.current) {
+      const country = ALL_COUNTRIES.find((candidate) => candidate.code === code);
+      if (country) setOrgCountry(country.name);
     }
-  }, [phoneCode]);
+  };
 
   // Verify the invite code actually resolves to an organization before letting
   // the visitor proceed — debounced so we're not hammering the endpoint on
@@ -284,12 +284,14 @@ export default function RegisterForm({
     if (orgAction !== 'join') return;
     const code = inviteCode.trim();
     if (!code) {
-      setInviteStatus('idle');
-      setInviteOrgName(null);
-      return;
+      const frame = window.requestAnimationFrame(() => {
+        setInviteStatus('idle');
+        setInviteOrgName(null);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
 
-    setInviteStatus('checking');
+    const frame = window.requestAnimationFrame(() => setInviteStatus('checking'));
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
@@ -313,18 +315,10 @@ export default function RegisterForm({
 
     return () => {
       clearTimeout(timer);
+      window.cancelAnimationFrame(frame);
       controller.abort();
     };
   }, [inviteCode, orgAction]);
-
-  useEffect(() => {
-    if (slugManuallyEdited) return;
-    if (orgName.trim()) {
-      setOrgSlug(orgName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''));
-    } else {
-      setOrgSlug('');
-    }
-  }, [orgName, slugManuallyEdited]);
 
   function validateStep(s: number) {
     const newErrors: Record<string, string> = {};
@@ -582,7 +576,7 @@ export default function RegisterForm({
                   <div className="space-y-1.5">
                     <PhoneInput
                       code={phoneCode}
-                      onCodeChange={setPhoneCode}
+                      onCodeChange={handlePhoneCodeChange}
                       value={phone}
                       onChange={setPhone}
                       placeholder="555 123 4567"
@@ -680,8 +674,12 @@ export default function RegisterForm({
                             type="text"
                             value={orgName}
                             onChange={(e) => {
-                              setOrgName(e.target.value);
-                              if (!e.target.value) {
+                              const nextName = e.target.value;
+                              setOrgName(nextName);
+                              if (!slugManuallyEdited) {
+                                setOrgSlug(nextName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''));
+                              }
+                              if (!nextName) {
                                 setOrgSlug('');
                                 setSlugManuallyEdited(false);
                               }

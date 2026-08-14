@@ -9,6 +9,7 @@ import { FiMaximize2, FiMinimize2 } from "react-icons/fi";
 import UserAvatarGroup from "@/components/ui/user-avatar-group";
 import { Portal } from "@/components/ui/portal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsClient } from '@/hooks/use-is-client';
 
 import type { ActionResult } from '@/types/api';
 
@@ -89,11 +90,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
     const [hoveredOwner, setHoveredOwner] = useState(false);
     const [ownerCoords, setOwnerCoords] = useState({ top: 0, left: 0 });
     const ownerRef = useRef<HTMLDivElement>(null);
-    const [hasMounted, setHasMounted] = useState(false);
-
-    useEffect(() => {
-        setHasMounted(true);
-    }, []);
+    const hasMounted = useIsClient();
 
     const handleOwnerMouseEnter = () => {
         if (ownerRef.current) {

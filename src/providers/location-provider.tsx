@@ -234,7 +234,8 @@ export function LocationProvider({
             attendanceStateRef.current = initialRecord.attendance_state;
             const initPres = deriveInitialPresence(initialRecord);
             presenceStateRef.current = initPres;
-            setConfirmedPresenceState(initPres);
+            const frame = window.requestAnimationFrame(() => setConfirmedPresenceState(initPres));
+            return () => window.cancelAnimationFrame(frame);
         }
     }, [initialRecord]);
     

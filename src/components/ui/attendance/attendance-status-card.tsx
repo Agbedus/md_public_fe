@@ -9,14 +9,11 @@ import { presenceStateLabels, presenceStateColors, attendanceStateLabels, attend
 import { useLocation } from '@/providers/location-provider';
 import { getDistanceInMeters, formatDistance } from '@/lib/distance-utils';
 import { FiMapPin, FiClock, FiTarget, FiActivity, FiNavigation, FiZap, FiChevronDown, FiChevronUp, FiX, FiCheck, FiAlertTriangle } from 'react-icons/fi';
+import { useIsClient } from '@/hooks/use-is-client';
 
 export default function AttendanceStatusCard({ record: initialRecord }: { record: AttendanceRecord | null }) {
-    const [mounted, setMounted] = React.useState(false);
+    const mounted = useIsClient();
     const [showMetadata, setShowMetadata] = useState(false);
-
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const { data: liveRecord, mutate, isValidating } = useSWR('my-attendance-today', fetchMyAttendanceLive, {
         fallbackData: initialRecord,

@@ -3,6 +3,7 @@
 import { FiX as IconX, FiCommand as IconCmd, FiInfo as IconInfo } from 'react-icons/fi';
 import { Portal } from '@/components/ui/portal';
 import { useEffect, useState } from 'react';
+import { useIsClient } from '@/hooks/use-is-client';
 
 interface KeyboardShortcutsModalProps {
     isOpen: boolean;
@@ -10,11 +11,7 @@ interface KeyboardShortcutsModalProps {
 }
 
 export default function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsModalProps) {
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const mounted = useIsClient();
 
     // Prevent scrolling when modal is open
     useEffect(() => {

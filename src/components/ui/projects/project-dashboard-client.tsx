@@ -51,8 +51,14 @@ export default function ProjectDashboardClient({
     // the server props change (e.g. after a navigation).
     const [tasks, setTasks] = useState<Task[]>(initialTasks);
     const [notes, setNotes] = useState<Note[]>(initialNotes);
-    useEffect(() => { setTasks(initialTasks); }, [initialTasks]);
-    useEffect(() => { setNotes(initialNotes); }, [initialNotes]);
+    useEffect(() => {
+        const frame = window.requestAnimationFrame(() => setTasks(initialTasks));
+        return () => window.cancelAnimationFrame(frame);
+    }, [initialTasks]);
+    useEffect(() => {
+        const frame = window.requestAnimationFrame(() => setNotes(initialNotes));
+        return () => window.cancelAnimationFrame(frame);
+    }, [initialNotes]);
 
     // Optimistic wrappers: apply the change to local state immediately, persist in
     // the background, and roll back with an error toast only if the write fails.

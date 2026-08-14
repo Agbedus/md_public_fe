@@ -56,7 +56,6 @@ export function Combobox({
 
   useLayoutEffect(() => {
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       updateCoords();
     }
   }, [isOpen]);

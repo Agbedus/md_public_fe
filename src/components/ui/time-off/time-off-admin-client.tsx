@@ -60,7 +60,8 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
     // router.refresh()) lands here as a new `initialRequests` prop — sync it
     // in, since useState's initial value only applies on mount.
     React.useEffect(() => {
-        setRequests(initialRequests);
+        const frame = window.requestAnimationFrame(() => setRequests(initialRequests));
+        return () => window.cancelAnimationFrame(frame);
     }, [initialRequests]);
 
     const getUserById = (id: string) => users.find(u => u.id === id);

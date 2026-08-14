@@ -14,6 +14,7 @@ import { getUsersSafe } from '@/app/(dashboard)/[orgSlug]/users/actions';
 import { playNotificationSound, getSoundEffectsEnabled } from '@/lib/notification-sounds';
 import { emit } from '@/lib/event-bus';
 import { isRecentAction } from '@/lib/recent-actions';
+import Image from 'next/image';
 
 export interface Notification {
   id: string;
@@ -180,9 +181,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
                 boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
               }}
             >
-              <img
+              <Image
                 src={sender.image}
                 alt=""
+                width={36}
+                height={36}
+                unoptimized
                 className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-card-border"
               />
               <div className="flex-1 min-w-0">
@@ -206,7 +210,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
 
   useEffect(() => {
     if (!user?.id || !user?.accessToken) {
-      setIsConnected(false);
+      queueMicrotask(() => setIsConnected(false));
       return;
     }
 
@@ -318,7 +322,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
         socketRef.current.close();
       }
     };
-  }, [user?.id, user?.accessToken, baseUrl, mutateNotifications]);
+  }, [
+    user?.id,
+    user?.accessToken,
+    user?.currentOrganizationId,
+    baseUrl,
+    mutate,
+    mutateNotifications,
+    enqueueToast,
+    isToastShown,
+    showNotificationToast,
+  ]);
 
   const contextValue = React.useMemo(() => ({ 
     notifications, 

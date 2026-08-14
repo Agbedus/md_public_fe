@@ -81,43 +81,46 @@ export default function EventDetailModal({
   // Initialize state when event opens
   useEffect(() => {
     if (event && open) {
-      setIsEditing(false); // Start in view mode
-      setTitle(event.title);
-      setDescription(event.description || "");
-      setAllDay(Boolean(event.allDay));
-      
+      let nextStart = "";
+      let nextEnd = "";
       try {
           const s = new Date(event.start);
           const e = new Date(event.end);
-          if(!isNaN(s.getTime())) setStart(toLocalISOString(s));
-          if(!isNaN(e.getTime())) setEnd(toLocalISOString(e));
+          if(!isNaN(s.getTime())) nextStart = toLocalISOString(s);
+          if(!isNaN(e.getTime())) nextEnd = toLocalISOString(e);
       } catch (e) {
           console.error("Invalid dates", e);
       }
-
-      setLocation(event.location || "");
-      setOrganizer(event.organizer || "");
-      setAttendees(event.attendees ? event.attendees.join(", ") : "");
-      
-      setStatus((event.status as any) || "confirmed");
-      setPrivacy((event.privacy as any) || "public");
-      setRecurrence((event.recurrence as any) || "none");
-      
-      setReminders(event.reminders || []);
-      setColor(event.color || "#6366f1");
+      const frame = window.requestAnimationFrame(() => {
+        setIsEditing(false); // Start in view mode
+        setTitle(event.title);
+        setDescription(event.description || "");
+        setAllDay(Boolean(event.allDay));
+        setStart(nextStart);
+        setEnd(nextEnd);
+        setLocation(event.location || "");
+        setOrganizer(event.organizer || "");
+        setAttendees(event.attendees ? event.attendees.join(", ") : "");
+        setStatus((event.status as any) || "confirmed");
+        setPrivacy((event.privacy as any) || "public");
+        setRecurrence((event.recurrence as any) || "none");
+        setReminders(event.reminders || []);
+        setColor(event.color || "#6366f1");
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
   }, [event, open]);
 
-  // Handle all-day toggle
-  useEffect(() => {
-    if (allDay) {
+  const handleAllDayChange = (nextAllDay: boolean) => {
+    setAllDay(nextAllDay);
+    if (nextAllDay) {
       setStart((prev) => toDateOnly(prev));
       setEnd((prev) => toDateOnly(prev));
     } else {
       setStart((prev) => toDateTime(prev, "09:00"));
       setEnd((prev) => toDateTime(prev, "10:00"));
     }
-  }, [allDay]);
+  };
 
 
   if (!open || !event) return null;
@@ -486,7 +489,7 @@ export default function EventDetailModal({
                         type="checkbox" 
                         id="edit-allday" 
                         checked={allDay} 
-                        onChange={(e) => setAllDay(e.target.checked)}
+                        onChange={(e) => handleAllDayChange(e.target.checked)}
                         className="rounded-md border-card-border bg-background text-blue-600 focus:ring-blue-500/30 focus:ring-offset-0 h-4 w-4 transition-all"
                       />
                       <label htmlFor="edit-allday" className="text-[10px] font-black text-text-muted group-hover:text-foreground uppercase tracking-widest cursor-pointer select-none transition-colors">Temporal Mode: Full Duration</label>

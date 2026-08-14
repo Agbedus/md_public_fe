@@ -55,16 +55,20 @@ export default function AssistantPage() {
   }, [setHideContentScroll]);
 
   useEffect(() => {
+    let frame: number | undefined;
     try {
       const saved = localStorage.getItem('md_assistant_chat_messages');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed);
+          frame = window.requestAnimationFrame(() => setMessages(parsed));
         }
         localStorage.removeItem('md_assistant_chat_messages');
       }
     } catch {}
+    return () => {
+      if (frame !== undefined) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {

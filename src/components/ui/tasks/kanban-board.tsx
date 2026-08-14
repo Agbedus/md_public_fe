@@ -127,7 +127,8 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
         next['TODO'].push(t);
       }
     });
-    setGrouped(next);
+    const frame = window.requestAnimationFrame(() => setGrouped(next));
+    return () => window.cancelAnimationFrame(frame);
   }, [tasks, columns]);
 
   const [highlightedIds, setHighlightedIds] = useState<Record<string, boolean>>({});

@@ -32,7 +32,12 @@ export default function WorkspaceOnboarding({ organizationId, orgSlug, role, ini
     }
   }, [canInvite, memberCount, inviteDismissed, status.invite]);
 
-  useEffect(() => { setPipUsed(localStorage.getItem('md_pip_used') === 'true'); }, []);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setPipUsed(localStorage.getItem('md_pip_used') === 'true');
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   const items = useMemo(() => [
     { label: 'Workspace created', done: true, href: `/${orgSlug}/settings` },
