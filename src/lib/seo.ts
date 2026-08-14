@@ -13,11 +13,11 @@ export const siteConfig = {
   title: 'MyndDesk | Simple Team Attendance & Work Management',
   description:
     'MyndDesk helps small businesses and startups track team attendance, tasks, projects and time off—without tracking everything.',
-  locale: 'en_GH',
+  locale: 'en_US',
   keywords: [
     'team attendance software',
-    'employee attendance software Ghana',
-    'attendance management software Africa',
+    'employee attendance software Africa',
+    'global team attendance software',
     'small business task management',
     'startup project management software',
     'hybrid team management',
@@ -38,7 +38,7 @@ export const landingPageStructuredData = {
       url: siteUrl,
       logo: `${siteUrl}/logo.svg`,
       description: siteConfig.description,
-      areaServed: ['Ghana', 'Africa', 'Worldwide'],
+      areaServed: ['Africa', 'Worldwide'],
     },
     {
       '@type': 'WebSite',
@@ -47,7 +47,7 @@ export const landingPageStructuredData = {
       name: siteConfig.name,
       description: siteConfig.description,
       publisher: { '@id': `${siteUrl}/#organization` },
-      inLanguage: 'en-GH',
+      inLanguage: 'en',
     },
     {
       '@type': 'SoftwareApplication',

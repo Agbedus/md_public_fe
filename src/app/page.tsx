@@ -321,7 +321,7 @@ export default function LandingPage() {
                         className="max-w-xl mx-auto text-zinc-400 text-base md:text-lg leading-relaxed font-dm-sans"
                     >
                         Simple attendance, projects, tasks and time off for small businesses
-                        and startups in Ghana, across Africa and wherever growing teams work.
+                        and startups across Africa and around the world.
                     </motion.p>
 
                     <motion.div

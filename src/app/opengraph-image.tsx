@@ -108,7 +108,7 @@ export default function OpenGraphImage() {
               padding: '13px 24px',
             }}
           >
-            Built in Ghana. Ready for teams everywhere.
+            Built for Africa. Ready for teams everywhere.
           </div>
         </div>
       </div>

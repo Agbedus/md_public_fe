@@ -45,7 +45,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
     languages: {
-      "en-GH": "/",
       "en": "/",
     },
   },
@@ -56,7 +55,7 @@ export const metadata: Metadata = {
     title: siteConfig.title,
     description: siteConfig.description,
     locale: siteConfig.locale,
-    alternateLocale: ["en_US", "en_GB"],
+    alternateLocale: ["en_GB"],
     images: [
       {
         url: "/opengraph-image",
@@ -118,7 +117,7 @@ export default async function RootLayout({
   const initialAttendance = session ? await getMyAttendanceToday() : null;
 
   return (
-    <html lang="en-GH" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
