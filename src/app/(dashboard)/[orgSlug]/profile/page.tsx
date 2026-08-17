@@ -26,7 +26,7 @@ export default async function ProfilePage() {
   const user = session?.user;
 
   if (!user) {
-    return <div className="p-8 text-foreground">Please log in to view your profile.</div>;
+    return <div className="p-4 text-foreground md:p-8">Please log in to view your profile.</div>;
   }
 
   const orgRole = user.orgRole ? presentOrgRole(user.orgRole) : null;
@@ -64,7 +64,7 @@ export default async function ProfilePage() {
   const otherOrgs = organizations.filter(o => o.id !== user.currentOrganizationId);
 
   return (
-    <div className="px-4 py-6 md:py-8 max-w-[1600px] mx-auto min-h-screen space-y-6 md:space-y-8 pb-20">
+    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] space-y-4 px-3 py-4 pb-6 sm:px-4 md:min-h-screen md:space-y-8 md:py-8 md:pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">My Profile</h1>

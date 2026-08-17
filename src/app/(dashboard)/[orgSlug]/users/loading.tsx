@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function UsersLoading() {
   return (
-    <div className="p-4 md:p-8 pt-24 min-h-screen bg-transparent">
+    <div className="min-h-[calc(100dvh-8rem)] bg-transparent px-3 py-4 sm:px-4 md:min-h-screen md:p-8 md:pt-24">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header Skeleton */}

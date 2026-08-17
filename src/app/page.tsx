@@ -11,7 +11,6 @@ import {
     FiShield,
     FiCpu,
     FiServer,
-    FiChevronDown,
     FiHelpCircle,
     FiMapPin,
     FiClock,
@@ -31,7 +30,10 @@ import {
     FiCrosshair,
     FiRadio,
     FiTrendingUp,
-    FiAward
+    FiAward,
+    FiMail,
+    FiPhoneCall,
+    FiArrowUpRight
 } from 'react-icons/fi';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PipMascot from '@/components/ui/assistant/pip-mascot';
@@ -47,11 +49,53 @@ if (typeof window !== 'undefined') {
 const PIP_VARIANTS = ['cyber', 'smart', 'classic', 'cool', 'shocked', 'spicy', 'lovely', 'sleepy'] as const;
 type PipVariant = typeof PIP_VARIANTS[number];
 
+interface PricingCurrency {
+    country: string;
+    currency: string;
+    rate: number;
+}
+
+const PRICING_TIERS = [
+    {
+        name: 'Startups',
+        priceUsd: 0,
+        priceGhs: 0,
+        desc: 'For founders and small teams building their operating rhythm.',
+        features: ['Up to 7 team members', 'One team workspace', 'Geo-fenced attendance', 'Tasks, projects and clients', 'Core Pip AI assistance'],
+        popular: false,
+    },
+    {
+        name: 'Teams',
+        priceUsd: 8,
+        priceGhs: 90,
+        desc: 'For growing teams that need deeper visibility and smarter reporting.',
+        features: ['Up to 50 team members', 'Advanced Pip AI reports', 'Downloadable PDF reports', 'Multiple office locations', 'Priority support'],
+        popular: true,
+    },
+    {
+        name: 'Business',
+        priceUsd: 15,
+        priceGhs: 165,
+        desc: 'For established businesses coordinating more people, offices and work.',
+        features: ['Unlimited team members', 'Everything in Teams', 'Expanded AI reporting', 'Advanced workspace controls', 'Priority onboarding support'],
+        popular: false,
+    },
+    {
+        name: 'Scale',
+        priceUsd: null,
+        priceGhs: null,
+        desc: 'For larger organizations with tailored deployment and support needs.',
+        features: ['Unlimited team members', 'Dedicated deployment options', 'Tailored AI configuration', 'Compliance and audit support', 'Guided onboarding'],
+        popular: false,
+    },
+] as const;
+
 export default function LandingPage() {
     const [activeTab, setActiveTab] = useState('Dashboard');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [billingCycle, setBillingCycle] = useState('Monthly');
-    const [activeFaq, setActiveFaq] = useState<number | null>(null);
+    const [activeFaq, setActiveFaq] = useState(0);
+    const [pricingCurrency, setPricingCurrency] = useState<PricingCurrency>({ country: 'US', currency: 'USD', rate: 1 });
 
     const reduceMotion = useReducedMotion();
 
@@ -90,6 +134,31 @@ export default function LandingPage() {
         }, 3000);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        const locale = navigator.language;
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const params = new URLSearchParams({ locale, timezone });
+
+        fetch(`/api/pricing/currency?${params.toString()}`)
+            .then((response) => response.ok ? response.json() : null)
+            .then((data: PricingCurrency | null) => {
+                if (data?.currency && Number.isFinite(data.rate) && data.rate > 0) setPricingCurrency(data);
+            })
+            .catch(() => {});
+    }, []);
+
+    const formatPrice = (usdPrice: number, ghsPrice: number) => {
+        const billingMultiplier = billingCycle === 'Annual' ? 0.9 : 1;
+        const regionalPrice = pricingCurrency.currency === 'GHS' ? ghsPrice : usdPrice * pricingCurrency.rate;
+
+        return new Intl.NumberFormat(undefined, {
+            style: 'currency',
+            currency: pricingCurrency.currency,
+            currencyDisplay: 'narrowSymbol',
+            maximumFractionDigits: pricingCurrency.currency === 'GHS' ? 0 : 2,
+        }).format(regionalPrice * billingMultiplier);
+    };
 
     useEffect(() => {
         fetch('/api/auth/session')
@@ -169,20 +238,54 @@ export default function LandingPage() {
 
     const faqs = [
         {
-            q: "How does the AI assistant protect my data?",
-            a: "MyndDesk leverages NVIDIA cloud AI (Minimax-M3) for intelligent assistance while keeping your raw data secure. All dashboard data is processed through encrypted API calls, and your privacy remains protected."
+            category: 'Platform',
+            q: 'What does MyndDesk bring together?',
+            a: 'MyndDesk gives your team one workspace for attendance, tasks, projects, clients, notes, calendars, time off and operational reporting. Tasks can roll into projects, logged time contributes to project visibility, approved leave appears on the shared calendar, and relevant activity reaches the right people through live notifications. Each organization keeps its own records, membership and permissions, so day-to-day work stays connected without exposing one workspace to another.'
         },
         {
-            q: "How does attendance geo-fencing work?",
-            a: "Admins define office perimeters as geo-fenced zones with configurable radiuses. When team members clock in via the mobile web app, GPS coordinates are cross-referenced against the defined boundaries. Three zones (In Office, Grace, and Out of Range) determine attendance status automatically."
+            category: 'Attendance',
+            q: 'How does automatic attendance work?',
+            a: 'Owners and Admins register each office with a name, coordinates, attendance radius, working days, expected start time and clock-in window. During the configured window, MyndDesk checks the member’s device location and can clock them in when they arrive within range, then clock them out when they leave. The attendance view distinguishes whether someone is in the office, within an allowed grace area, or outside the configured range. Location permission is required, and Managers can monitor team attendance without gaining permission to rewrite organization-wide rules.'
         },
         {
-            q: "What can Pip AI do for my team?",
-            a: "Pip generates monthly productivity reports, answers operational questions, analyzes task completion rates, identifies bottlenecks, and provides proactive recommendations, all through natural conversation. Powered by NVIDIA NIM (Minimax-M3) with enterprise-grade encryption."
+            category: 'Attendance',
+            q: 'What happens if a device cannot get its location?',
+            a: 'A temporary unavailable-position response is not treated as a permanent denial or an automatic clock-out. MyndDesk keeps attendance tracking recoverable and continues checking while tracking is active, which helps when GPS briefly drops indoors or a mobile connection changes. A genuine permission denial is handled separately: attendance cannot record location until the member restores access in the browser’s site settings. The office name is preserved when an administrator uses the current-location helper to capture coordinates.'
         },
         {
-            q: "How is data sync secured across devices?",
-            a: "Your data is encrypted at rest and in transit. Role-based access controls ensure team members only see what they need. No third-party access to your organizational data."
+            category: 'AI',
+            q: 'What can I ask Pip?',
+            a: 'Ask in ordinary language about tasks, projects, notes, clients, events, attendance, time off, people or dashboard metrics—there is no query syntax to learn. Pip can find overdue work, compare project progress, summarize notes and decisions, identify upcoming leave, explain operational trends, or recommend what deserves attention today. It can also present concrete records in native MyndDesk widgets and create supported tasks, notes, projects or calendar events when you ask directly. Every result stays within your active organization and your role permissions.'
+        },
+        {
+            category: 'AI',
+            q: 'Can Pip create and download reports?',
+            a: 'Yes. Ask for a monthly review, end-of-month summary or a focused operational report and Pip analyzes the workspace information you are allowed to access. The response streams into the conversation as it is written, so you can follow its progress instead of waiting on a frozen page. When it is complete, you can download a formal A4 PDF containing workspace and recipient details, an executive summary, structured sections, tables, confidentiality treatment, and consistent page headers and footers. Important figures should still be reviewed before the report is shared externally.'
+        },
+        {
+            category: 'Permissions',
+            q: 'Does Pip see everything in the company?',
+            a: 'No. Pip follows the same organization boundary and role permissions as the rest of MyndDesk. Owners and Admins have broad operational access, Managers can see organization-wide work without inheriting every administrative power, Members work with their own or assigned records, and Guests remain read-only on explicitly shared information. Pip cannot reveal a hidden record, cross into another organization, or complete an action your role could not perform through the normal interface. It reports the actual result of supported actions rather than pretending a change succeeded.'
+        },
+        {
+            category: 'Organizations',
+            q: 'Can one person belong to multiple organizations?',
+            a: 'Yes. A person can join an invited organization or create another organization with the same account, without registering again. If an existing user opens an invitation while signed out, they sign in once and continue into the invited workspace; if already signed in, the membership can be accepted directly. The organization switcher then lists every workspace they belong to, including their role in each one. Switching changes the active tasks, projects, people, attendance and notifications so records never blend across organizations.'
+        },
+        {
+            category: 'Teams',
+            q: 'How do invitations and roles work?',
+            a: 'Owners and Admins invite colleagues by email or organization link and choose the role they should receive. A new person completes registration, while an existing account signs in and joins without creating duplicate credentials. Roles range from Owner and Admin through Manager, Member and Guest, and the same visibility rules apply across tasks, projects, notes, clients, attendance and notifications. Access can later be changed or suspended without deleting the person’s historical work.'
+        },
+        {
+            category: 'Collaboration',
+            q: 'Do teammates need to refresh to see changes?',
+            a: 'No. Tasks, shared notes, projects, announcements and notifications update live as colleagues work, so most changes appear without a page refresh. Notifications are permission-scoped: you are only alerted about a record you are allowed to open. If the live connection drops, MyndDesk reconnects and catches up rather than requiring the user to restart the workspace. Personal notification preferences can be adjusted from Settings.'
+        },
+        {
+            category: 'Pricing',
+            q: 'How do plans and seat pricing work?',
+            a: 'Startups is free for teams of up to 7 people and includes the core workspace, attendance, project tools and Pip assistance. Teams supports up to 50 people, while Business supports unlimited members and adds broader reporting and operational controls. Paid plans are priced per seat per month; choosing annual billing reduces the displayed monthly equivalent by 10% and the subscription is billed annually. Ghana has reduced fixed local prices, other supported regions receive an approximate local conversion, and organizations needing tailored deployment, AI configuration, compliance support or guided onboarding can book a custom-plan conversation.'
         }
     ];
 
@@ -445,7 +548,7 @@ export default function LandingPage() {
                         viewport={{ once: true }}
                         className="max-w-3xl space-y-6 mb-20"
                     >
-                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-bold tracking-tight leading-[1.02] text-white font-sora">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.02] text-white font-sora">
                             Attendance that<br />
                             <span className="text-emerald-300">checks itself.</span>
                         </h2>
@@ -728,7 +831,7 @@ export default function LandingPage() {
                         viewport={{ once: true }}
                         className="max-w-3xl space-y-6 mb-20"
                     >
-                        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-bold tracking-tight leading-[1.02] text-white font-sora">
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.02] text-white font-sora">
                             Ask Pip what your<br />
                             <span className="text-emerald-300">team is working on.</span>
                         </h2>
@@ -771,8 +874,7 @@ export default function LandingPage() {
                         >
                             <div className="space-y-5">
                                 <p className="text-zinc-400 text-lg leading-relaxed font-dm-sans">
-                                    Pip is an intelligent AI assistant purpose-built for operational command. 
-                                    Powered by <span className="text-white font-bold">NVIDIA NIM (Minimax-M3)</span>, Pip understands your organization&apos;s data and answers questions in plain language, so nobody needs to learn a query syntax.
+                                    Pip is an intelligent AI assistant purpose-built for operational command. It understands the workspace information you are allowed to access and answers questions in plain language, so nobody needs to learn query syntax.
                                 </p>
                             </div>
 
@@ -799,7 +901,7 @@ export default function LandingPage() {
                                     {
                                         icon: <FiGlobe size={16} />,
                                         title: "Enterprise-Grade Security",
-                                        desc: "All queries are processed through encrypted API calls to NVIDIA NIM. Your organizational data is never used for model training or stored beyond your session.",
+                                        desc: "Pip follows the same organization boundaries and role permissions as the rest of MyndDesk, so answers and actions stay within the information you are allowed to access.",
                                         color: "text-indigo-300", bg: "bg-indigo-400/10", border: "border-indigo-400/20"
                                     }
                                 ].map((item, i) => (
@@ -843,7 +945,7 @@ export default function LandingPage() {
                             <FiLayers size={12} />
                             One workspace
                         </div>
-                        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] text-white font-sora">Everything else<br className="md:hidden" /> your team needs</h2>
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05] text-white font-sora">Everything else<br className="md:hidden" /> your team needs</h2>
                         <p className="text-zinc-400 text-base leading-relaxed font-dm-sans max-w-xl mx-auto">Everything your organisation runs on, without stitching five tools together.</p>
                     </div>
 
@@ -1001,7 +1103,7 @@ export default function LandingPage() {
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/3 blur-[100px] rounded-full pointer-events-none -z-10" />
                 <div className="max-w-7xl mx-auto space-y-16">
                     <div className="max-w-3xl mx-auto text-center space-y-6">
-                        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] text-white font-sora">Up and running in three steps</h2>
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05] text-white font-sora">Up and running in three steps</h2>
                         <p className="text-zinc-400 text-base leading-relaxed font-dm-sans max-w-xl mx-auto">Get your team up and running in minutes, not days.</p>
                     </div>
 
@@ -1042,14 +1144,14 @@ export default function LandingPage() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-emerald-500/3 blur-[140px] rounded-full pointer-events-none -z-10" />
                 <div className="max-w-7xl mx-auto space-y-16">
                     <div className="max-w-3xl space-y-6 text-left">
-                        <h2 className="text-4xl md:text-6xl font-bold tracking-tightest leading-tight text-white font-sora">Data You Control, <br />Always</h2>
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tightest leading-tight text-white font-sora">Data You Control, <br />Always</h2>
                         <p className="text-zinc-400 text-lg leading-relaxed font-dm-sans">Your workflows, tasks, logs, and calendar items remain completely encrypted. Enterprise-grade AI inference with zero telemetry leakage.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
                             { icon: <FiShield className="text-xl text-emerald-300" />, title: "100% Data Sovereignty", desc: "Your data stays on your infrastructure. No third-party cloud storage, no unauthorized access, complete control." },
-                            { icon: <FiCpu className="text-xl text-emerald-300" />, title: "Encrypted AI Processing", desc: "Powered by NVIDIA NIM (Minimax-M3) with enterprise-grade encryption. Your prompts and data are never used for training." },
+                            { icon: <FiCpu className="text-xl text-emerald-300" />, title: "Permission-Aware AI", desc: "Pip works within your active organization and respects the same role-based access rules as the rest of the platform." },
                             { icon: <FiServer className="text-xl text-emerald-300" />, title: "Role-Based Access Control", desc: "Granular permissions across Owner, Admin, Member, and Client roles. Full audit logging for every action taken." }
                         ].map((card, i) => (
                             <motion.div
@@ -1075,8 +1177,8 @@ export default function LandingPage() {
                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/3 blur-[120px] rounded-full pointer-events-none -z-10" />
                 <div className="max-w-7xl mx-auto space-y-16 text-center">
                     <div className="space-y-6 max-w-3xl mx-auto text-center">
-                        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] text-white font-sora">Simple, transparent pricing</h2>
-                        <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-dm-sans">Start free. Add people as the team grows.</p>
+                        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.05] text-white font-sora">Simple, transparent pricing</h2>
+                        <p className="text-zinc-400 text-base md:text-lg leading-relaxed font-dm-sans">Start with the essentials. Add deeper intelligence and support as your team grows.</p>
                     </div>
 
                     <div className="relative flex items-center bg-white/[0.03] border border-white/[0.08] rounded-full p-1 w-fit mx-auto z-10">
@@ -1084,21 +1186,18 @@ export default function LandingPage() {
                             <button
                                 key={cycle}
                                 onClick={() => setBillingCycle(cycle)}
-                                className="px-5 py-2 rounded-full text-sm font-semibold tracking-tight relative z-30 transition-all font-sora"
-                                style={{ color: billingCycle === cycle ? '#09090b' : '#71717a' }}
+                                aria-pressed={billingCycle === cycle}
+                                className={`relative z-30 flex min-h-11 items-center gap-2 rounded-full px-5 py-2 font-sora text-sm font-semibold tracking-tight transition-colors ${billingCycle === cycle ? 'text-zinc-950' : 'text-zinc-500'}`}
                             >
                                 {billingCycle === cycle && <motion.div layoutId="billing-pill" className="absolute inset-0 bg-white rounded-full -z-10" transition={{ type: "spring", stiffness: 380, damping: 30 }} />}
                                 <span className="relative z-40">{cycle}</span>
+                                {cycle === 'Annual' && <span className={`relative z-40 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${billingCycle === cycle ? 'bg-emerald-500/15 text-emerald-700' : 'bg-emerald-400/10 text-emerald-300'}`}>Save 10%</span>}
                             </button>
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto pt-10 text-left items-stretch">
-                        {[
-                            { name: "Starter", price: "0", desc: "For small teams getting started with operational command.", features: ["Up to 10 team members", "Geo-fenced attendance", "Task & project management", "Basic Pip AI access"] },
-                            { name: "Professional", price: "15", desc: "For growing teams needing advanced features and AI insights.", features: ["Unlimited team members", "Advanced Pip AI reports", "Custom geo-fence zones", "Priority support"], popular: true },
-                            { name: "Enterprise", price: "Custom", desc: "For organizations requiring dedicated infrastructure and SLAs.", features: ["Self-hosted deployment", "Custom AI model training", "Dedicated compliance", "24/7 support SLA"] }
-                        ].map((tier, idx) => (
+                    <div className="mx-auto grid max-w-5xl grid-cols-1 items-stretch gap-6 pt-10 text-left md:grid-cols-3">
+                        {PRICING_TIERS.slice(0, 3).map((tier, idx) => (
                             <motion.div
                                 key={idx}
                                 whileHover={{ y: -8 }}
@@ -1114,11 +1213,11 @@ export default function LandingPage() {
                                         </div>
                                         <div className="space-y-1.5">
                                             <div className="flex items-baseline gap-1 text-white font-sora">
-                                                <span className="text-4xl font-extrabold tracking-tight">{tier.price === 'Custom' ? 'Custom' : `$${tier.price}`}</span>
-                                                {tier.price !== 'Custom' && <span className="text-zinc-500 text-xs font-semibold">/month</span>}
+                                                <span className="text-4xl font-extrabold tracking-tight">{tier.priceUsd === null || tier.priceGhs === null ? 'Custom' : formatPrice(tier.priceUsd, tier.priceGhs)}</span>
+                                                {tier.priceUsd !== null && tier.priceUsd > 0 && <span className="text-zinc-500 text-xs font-semibold">/seat/month</span>}
                                             </div>
                                             <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 font-sora block">
-                                                {tier.price === 'Custom' ? 'Contact for pricing' : (tier.price === '0' ? 'Free forever' : (billingCycle === 'Monthly' ? 'Billed monthly' : 'Billed annually'))}
+                                                {tier.priceUsd === null ? 'Tailored to your organization' : (tier.priceUsd === 0 ? 'Free for startup teams' : (billingCycle === 'Monthly' ? 'Billed monthly' : '10% off · billed annually'))}
                                             </span>
                                         </div>
                                     </div>
@@ -1137,39 +1236,107 @@ export default function LandingPage() {
                             </motion.div>
                         ))}
                     </div>
+
+                    <div className="mx-auto grid max-w-5xl overflow-hidden rounded-[2.5rem] border border-white/[0.08] bg-white/[0.02] text-left md:grid-cols-[1.1fr_0.9fr]">
+                        <div className="space-y-5 p-7 sm:p-9">
+                            <div className="flex items-center gap-3">
+                                <span className="rounded-full border border-indigo-400/20 bg-indigo-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-indigo-300">Custom</span>
+                                <span className="text-xs text-zinc-500">For complex or specialized operations</span>
+                            </div>
+                            <div className="space-y-3">
+                                <h3 className="max-w-xl font-sora text-2xl font-bold tracking-tight text-white sm:text-3xl">Need something shaped around your organization?</h3>
+                                <p className="max-w-2xl text-sm leading-relaxed text-zinc-400">Talk to support about tailored deployment, AI configuration, compliance requirements, onboarding, or a service arrangement that fits how your team operates.</p>
+                            </div>
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                                <a href="mailto:intelligence@agbedus.com?subject=MyndDesk%20custom%20plan%20call" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-zinc-950 transition-transform duration-150 active:scale-[0.97]">
+                                    <FiPhoneCall className="h-4 w-4" /> Book a support call
+                                </a>
+                                <a href="mailto:intelligence@agbedus.com?subject=MyndDesk%20custom%20plan" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/[0.1] px-5 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white active:scale-[0.97]">
+                                    <FiMail className="h-4 w-4" /> Email support
+                                </a>
+                            </div>
+                        </div>
+                        <div className="border-t border-white/[0.06] bg-white/[0.015] p-7 sm:p-9 md:border-l md:border-t-0">
+                            <p className="mb-5 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Custom plan benefits</p>
+                            <ul className="grid gap-4 sm:grid-cols-2 md:grid-cols-1">
+                                {PRICING_TIERS[3].features.map((feature) => (
+                                    <li key={feature} className="flex items-center gap-3 text-sm text-zinc-300">
+                                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-400/10 text-emerald-300"><FiCheck className="h-3 w-3" /></span>
+                                        {feature}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                    <p className="mx-auto max-w-2xl text-xs leading-relaxed text-zinc-500">
+                        {pricingCurrency.currency === 'GHS'
+                            ? 'Ghana monthly prices are GH₵90 for Teams and GH₵165 for Business per seat. Annual billing saves 10%.'
+                            : pricingCurrency.currency === 'USD'
+                                ? 'Teams costs $8 and Business costs $15 per seat each month. Annual billing saves 10%.'
+                                : `Prices are shown in ${pricingCurrency.currency} for your region and are approximate conversions from the USD seat prices. Annual billing saves 10%.`}
+                        {' '}Exchange rates update daily via{' '}
+                        <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer" className="text-zinc-400 underline decoration-white/20 underline-offset-4 hover:text-white">
+                            ExchangeRate-API
+                        </a>.
+                    </p>
                 </div>
             </section>
 
             {/* FAQ */}
             <section className={`py-40 px-6 relative overflow-hidden ${sectionAlt} border-t border-white/[0.04]`}>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-emerald-500/3 blur-[120px] rounded-full pointer-events-none -z-10" />
-                <div className="max-w-4xl mx-auto space-y-16">
-                    <div className="space-y-6 text-center">
-                        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.05] text-white font-sora">Questions, answered</h2>
-                        <p className="text-zinc-500 text-sm leading-relaxed max-w-xl mx-auto font-dm-sans">Everything you need to know about the platform, security, and getting started.</p>
+                <div className="mx-auto max-w-7xl space-y-14">
+                    <div className="grid gap-6 text-left lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+                        <div className="space-y-5">
+                            <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-300"><FiHelpCircle className="h-4 w-4" /> MyndDesk guide</span>
+                            <h2 className="font-sora text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl md:text-5xl">Clear answers,<br />without the fine print.</h2>
+                        </div>
+                        <p className="max-w-2xl text-sm leading-relaxed text-zinc-400 md:text-base">Practical answers drawn from the product guide—from attendance and permissions to Pip, organizations, reports and pricing.</p>
                     </div>
 
-                    <div className="space-y-4">
-                        {faqs.map((faq, index) => (
-                            <div key={index} className="rounded-3xl border border-white/[0.06] bg-white/[0.015] overflow-hidden transition-all duration-300 hover:border-white/[0.12]">
-                                <button onClick={() => setActiveFaq(activeFaq === index ? null : index)} className="w-full px-8 py-6 flex items-center justify-between text-left group">
-                                    <div className="flex items-center gap-4">
-                                        <FiHelpCircle className="text-zinc-500 group-hover:text-emerald-300 transition-colors" />
-                                        <span className="text-base md:text-lg font-semibold text-white/90 tracking-tight font-sora group-hover:text-white transition-colors text-left">{faq.q}</span>
+                    <div className="grid overflow-hidden rounded-[2.5rem] border border-white/[0.07] bg-white/[0.015] lg:min-h-[34rem] lg:grid-cols-[1fr_1.15fr]">
+                        <div className="flex min-h-80 flex-col justify-between bg-[radial-gradient(circle_at_top_left,rgba(52,211,153,0.09),transparent_52%)] p-6 sm:p-9 lg:min-h-0 lg:p-11">
+                            <AnimatePresence mode="wait" initial={false}>
+                                <motion.div
+                                    key={activeFaq}
+                                    initial={{ opacity: 0, transform: 'translateY(6px)' }}
+                                    animate={{ opacity: 1, transform: 'translateY(0)' }}
+                                    exit={{ opacity: 0, transform: 'translateY(-4px)' }}
+                                    transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+                                    className="space-y-6"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">{faqs[activeFaq].category}</span>
+                                        <span className="font-sora text-xs text-zinc-600">{String(activeFaq + 1).padStart(2, '0')} / {String(faqs.length).padStart(2, '0')}</span>
                                     </div>
-                                    <motion.div animate={{ rotate: activeFaq === index ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                                        <FiChevronDown className="text-zinc-500 group-hover:text-white transition-colors" />
-                                    </motion.div>
-                                </button>
-                                <AnimatePresence initial={false}>
-                                    {activeFaq === index && (
-                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}>
-                                            <div className="px-8 pb-6 text-xs text-zinc-400 leading-relaxed font-dm-sans border-t border-white/[0.06] pt-4">{faq.a}</div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                    <div className="space-y-4">
+                                        <h3 className="max-w-lg font-sora text-2xl font-semibold leading-tight text-white sm:text-3xl">{faqs[activeFaq].q}</h3>
+                                        <p className="max-w-xl text-sm leading-7 text-zinc-300 sm:text-base">{faqs[activeFaq].a}</p>
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                            <a href="mailto:intelligence@agbedus.com?subject=MyndDesk%20question" className="mt-10 inline-flex w-fit items-center gap-2 text-sm font-medium text-zinc-400 transition-colors hover:text-white">
+                                Still have a question? Ask support <FiArrowUpRight className="h-4 w-4" />
+                            </a>
+                        </div>
+
+                        <div className="border-t border-white/[0.06] p-3 sm:p-5 lg:border-l lg:border-t-0">
+                            <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
+                                {faqs.map((faq, index) => (
+                                    <button
+                                        key={faq.q}
+                                        type="button"
+                                        onClick={() => setActiveFaq(index)}
+                                        aria-pressed={activeFaq === index}
+                                        className={`group flex min-h-14 items-center gap-4 rounded-2xl px-4 py-3 text-left transition-colors duration-150 active:scale-[0.99] sm:px-5 ${activeFaq === index ? 'bg-white/[0.07] text-white' : 'text-zinc-400 hover:bg-white/[0.035] hover:text-zinc-200'}`}
+                                    >
+                                        <span className={`font-sora text-[10px] ${activeFaq === index ? 'text-emerald-300' : 'text-zinc-600'}`}>{String(index + 1).padStart(2, '0')}</span>
+                                        <span className="min-w-0 flex-1 text-sm font-medium leading-snug">{faq.q}</span>
+                                        <FiArrowUpRight className={`h-4 w-4 shrink-0 transition-opacity duration-150 ${activeFaq === index ? 'text-emerald-300 opacity-100' : 'opacity-0 group-hover:opacity-60'}`} />
+                                    </button>
+                                ))}
                             </div>
-                        ))}
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1178,7 +1345,7 @@ export default function LandingPage() {
             <section className={`py-40 px-6 relative overflow-hidden ${sectionBg} border-t border-white/[0.04]`}>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-r from-emerald-500/5 via-indigo-500/5 to-emerald-500/5 blur-[120px] rounded-full pointer-events-none -z-10" />
                 <div className="max-w-4xl mx-auto text-center space-y-10">
-                    <h2 className="text-4xl md:text-8xl font-bold tracking-tightest leading-[0.95] text-white font-sora">Take Control of <br /> Your Operations</h2>
+                    <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tightest leading-[0.95] text-white font-sora">Take Control of <br /> Your Operations</h2>
                     <p className="text-zinc-500 text-lg max-w-2xl mx-auto leading-relaxed font-dm-sans">Create your workspace, invite your team and focus on the few operational details that move the business forward. No credit card required.</p>
                     <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <Link href="/register" className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-emerald-400 text-[#07090c] hover:bg-emerald-300 text-sm font-semibold tracking-tight transition-colors duration-200 active:scale-[0.98]">
@@ -1187,7 +1354,7 @@ export default function LandingPage() {
                     </motion.div>
                     <div className="flex flex-wrap items-center justify-center gap-6 text-zinc-500 text-xs font-medium pt-4">
                         <span className="flex items-center gap-2"><FiCheck className="text-emerald-400" /> No credit card required</span>
-                        <span className="flex items-center gap-2"><FiCheck className="text-emerald-400" /> Free starter plan</span>
+                        <span className="flex items-center gap-2"><FiCheck className="text-emerald-400" /> Startups plan included</span>
                         <span className="flex items-center gap-2"><FiCheck className="text-emerald-400" /> Cancel anytime</span>
                     </div>
                 </div>

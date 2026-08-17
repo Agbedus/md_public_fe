@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function NotesLoading() {
   return (
-    <div className="flex flex-col h-screen px-4 py-8 max-w-[1600px] mx-auto space-y-8">
+    <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-[1600px] flex-col space-y-5 px-3 py-4 sm:px-4 md:h-screen md:space-y-8 md:py-8">
       {/* Page Header Skeleton */}
       <div className="mb-10 space-y-2">
         <Skeleton className="h-10 w-48" />

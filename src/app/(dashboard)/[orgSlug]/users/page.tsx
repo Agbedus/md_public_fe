@@ -11,7 +11,7 @@ export default async function UsersPage() {
   ]);
   
   return (
-    <div className="px-4 py-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
       <UsersPageClient initialUsers={allUsers} currentUser={session?.user} timeOffRequests={timeOffRequests} />
     </div>
   );

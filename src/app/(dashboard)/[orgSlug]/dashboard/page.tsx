@@ -29,7 +29,7 @@ export default async function Home({ searchParams, params }: { searchParams: Pro
   
   if (!session?.user?.id) {
     return (
-      <div className="px-4 py-8 max-w-[1600px] mx-auto">
+      <div className="mx-auto max-w-[1600px] px-3 py-4 sm:px-4 md:py-8">
         <div className="bg-card p-6 rounded-2xl text-center border border-card-border">
           <h2 className="text-xl font-bold text-foreground mb-2">Please log in</h2>
           <p className="text-text-muted">You need to be logged in to view the dashboard.</p>
@@ -54,7 +54,7 @@ export default async function Home({ searchParams, params }: { searchParams: Pro
   else if (hour >= 18) greeting = 'Good evening';
 
   return (
-    <div className="px-4 py-8 max-w-[1600px] mx-auto">
+    <div className="mx-auto max-w-[1600px] px-3 py-4 sm:px-4 md:py-8">
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">{greeting}, {firstName}</h1>
         <p className="text-text-muted text-sm lg:text-base">Here&apos;s what&apos;s happening across your organization today.</p>

@@ -65,7 +65,7 @@ export default function DashboardLayout({
       <NotificationProvider user={user}>
         <AnnouncementProvider user={user}>
           <ConfirmationProvider>
-            <div className="flex h-screen bg-background overflow-hidden relative">
+            <div className="relative flex h-dvh overflow-hidden bg-background md:h-screen">
               {/* Sidebar container */}
               <div className="z-30">
                   {sidebar}
@@ -78,7 +78,10 @@ export default function DashboardLayout({
                 `}
               >
                 {topnav}
-                <div className={`flex-1 ${hideContentScroll ? 'overflow-hidden' : 'overflow-y-auto'} w-full pb-20 md:pb-0`}>
+                <div
+                  data-dashboard-scroll
+                  className={`w-full flex-1 overscroll-y-contain ${hideContentScroll ? 'overflow-hidden' : 'overflow-y-auto'} pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0`}
+                >
                   {children}
                 </div>
               </div>

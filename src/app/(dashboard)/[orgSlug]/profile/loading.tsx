@@ -3,10 +3,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProfileLoading() {
   return (
-    <div className="p-8 max-w-4xl mx-auto min-h-screen space-y-8">
+    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-4xl space-y-5 p-3 sm:p-4 md:min-h-screen md:space-y-8 md:p-8">
       <Skeleton className="h-10 w-48 mb-8" />
 
-      <div className="glass p-8 rounded-3xl border border-card-border backdrop-blur-xl">
+      <div className="glass rounded-3xl border border-card-border p-4 backdrop-blur-xl sm:p-6 md:p-8">
         <div className="flex flex-col md:flex-row items-start gap-8">
           {/* Avatar Section Skeleton */}
           <div className="flex-shrink-0">

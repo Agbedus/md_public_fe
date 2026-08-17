@@ -413,3 +413,23 @@ body {
     animation: none;
   }
 }
+
+/* Mobile dashboard ergonomics: avoid iOS form zoom, reduce accidental
+   double-tap zoom on controls, and keep momentum scrolling within the app. */
+@media (max-width: 767px) {
+  [data-dashboard-scroll] {
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  [data-dashboard-scroll] input,
+  [data-dashboard-scroll] select,
+  [data-dashboard-scroll] textarea {
+    font-size: max(1rem, 1em);
+  }
+
+  [data-dashboard-scroll] button,
+  [data-dashboard-scroll] a {
+    touch-action: manipulation;
+  }
+}

@@ -155,18 +155,18 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
 
     return (
         <>
-        <div className="space-y-8">
+        <div className="space-y-5 md:space-y-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
+                    <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                         Time off requests
                     </h1>
                     <p className="text-text-muted text-sm">Review and manage team time-off requests.</p>
                 </div>
                 <button
                     onClick={() => setRequestModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 text-sm font-bold transition-all self-start md:self-auto"
+                    className="flex min-h-11 items-center gap-2 self-start rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-bold text-amber-600 transition-all hover:bg-amber-500/20 dark:text-amber-400 md:self-auto"
                 >
                     <FiPlus className="h-4 w-4" />
                     <span>Request Time Off</span>
@@ -174,7 +174,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 {[
                     { label: 'Pending', value: pending, color: 'amber' },
                     { label: 'Approved', value: approved, color: 'emerald' },
@@ -190,13 +190,13 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                             key={label}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-card rounded-2xl p-5 border border-card-border"
+                            className="rounded-2xl border border-card-border bg-card p-3 sm:p-5"
                         >
-                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border mb-3 ${colorClasses[color]}`}>
+                            <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-xl border sm:h-9 sm:w-9 ${colorClasses[color]}`}>
                                 <FiSun className="w-4 h-4" />
                             </div>
                             <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">{label}</p>
-                            <p className="text-3xl font-bold font-numbers text-foreground">{value}</p>
+                            <p className="font-numbers text-2xl font-bold text-foreground sm:text-3xl">{value}</p>
                         </motion.div>
                     );
                 })}

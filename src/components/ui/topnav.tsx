@@ -115,11 +115,11 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
   return (
     <>
-      <nav className="h-20 px-4 md:px-8 flex items-center justify-between sticky top-0 z-40 bg-background border-b border-card-border">
-        <div className="flex items-center gap-6 flex-1">
+      <nav className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-card-border bg-background px-3 md:h-20 md:px-8">
+        <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-6">
           {/* Mobile Logo */}
-          <Link href={orgSlug ? `/${orgSlug}/dashboard` : (user ? "/dashboard" : "/")} className="md:hidden flex items-center gap-2">
-             <div className="p-1.5 bg-background/50 rounded-lg border border-card-border">
+          <Link href={orgSlug ? `/${orgSlug}/dashboard` : (user ? "/dashboard" : "/")} className="flex min-h-11 shrink-0 items-center gap-2 md:hidden">
+             <div className="rounded-lg border border-card-border bg-card p-1.5">
                <Image 
                  src="/logo.svg" 
                  alt="MyndDesk" 
@@ -128,7 +128,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                  className="w-6 h-6 object-contain"
                />
              </div>
-             <span className="text-lg font-bold text-foreground tracking-tight">Mynd<span className="text-emerald-500">Desk</span></span>
+             <span className="hidden text-lg font-bold tracking-tight text-foreground min-[440px]:inline">Mynd<span className="text-emerald-500">Desk</span></span>
           </Link>
 
           <div className="relative group hidden md:block w-full max-w-md" data-tour="search">
@@ -149,18 +149,18 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
         {/* Org Badge + Inline Switcher */}
         {currentOrg && (
-          <div className="relative hidden md:block md:mr-5" ref={orgSwitcherRef}>
+          <div className="relative mr-1 block md:mr-5" ref={orgSwitcherRef}>
             <button
               onClick={() => setIsOrgSwitcherOpen(!isOrgSwitcherOpen)}
               disabled={switching}
-              className="flex items-center gap-2 p-2.5 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 text-xs font-bold text-foreground tracking-tight hover-scale active:scale-[0.97]"
+              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-card-border bg-card p-2 text-xs font-bold tracking-tight text-foreground transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08] md:gap-2 md:p-2.5"
             >
               <div className="w-5 h-5 rounded-md bg-foreground/[0.08] flex items-center justify-center text-[10px] font-black text-foreground flex-shrink-0">
                 {currentOrg.name.charAt(0).toUpperCase()}
               </div>
-              <span className="max-w-[120px] truncate">{currentOrg.name}</span>
+              <span className="hidden max-w-[92px] truncate sm:inline md:max-w-[120px]">{currentOrg.name}</span>
               {orgRoleDisplay && (
-                <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${orgRoleToneClasses[orgRoleDisplay.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5'}`}>
+                <span className={`hidden px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider md:inline ${orgRoleToneClasses[orgRoleDisplay.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5'}`}>
                   {orgRoleDisplay.label}
                 </span>
               )}
@@ -174,7 +174,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute left-0 mt-1.5 w-64 bg-background border border-card-border rounded-xl overflow-hidden z-50"
+                  className="absolute right-0 z-50 mt-1.5 w-[min(18rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-card-border bg-card shadow-lg md:left-0 md:right-auto md:w-64"
                 >
                   <div className="px-3 py-2 border-b border-card-border">
                     <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Switch Organization</p>
@@ -220,14 +220,14 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
           </div>
         )}
 
-        <div className="flex items-center gap-3 md:gap-5">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-1.5 md:gap-5">
 
           <div className="relative" ref={notificationRef} data-tour="notifications">
             <button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               onMouseEnter={() => setIsNotifHovered(true)}
               onMouseLeave={() => setIsNotifHovered(false)}
-              className="relative p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] group hover-scale active:scale-[0.93]"
+              className="group relative flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-card-border bg-card p-2 text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:bg-foreground/[0.08] md:p-2.5"
             >
               <FiBell className={`text-xl group-hover:text-[var(--pastel-yellow)] transition-colors ${isNotificationsOpen ? 'text-[var(--pastel-yellow)]' : ''}`} />
               {unreadCount > 0 && (
@@ -358,7 +358,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               onClick={() => setIsAnnouncementsOpen(!isAnnouncementsOpen)}
               onMouseEnter={() => setIsAnnHovered(true)}
               onMouseLeave={() => setIsAnnHovered(false)}
-              className="relative p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] group hover-scale active:scale-[0.93]"
+              className="group relative flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-card-border bg-card p-2 text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:bg-foreground/[0.08] md:p-2.5"
               title="Announcements"
             >
               <FiMessageSquare className={`text-xl group-hover:text-[var(--pastel-yellow)] transition-colors ${isAnnouncementsOpen ? 'text-[var(--pastel-yellow)]' : 'text-text-muted'}`} />
@@ -419,7 +419,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
             <div className="relative" ref={dropdownRef}>
               <button 
                   onClick={() => setIsOpen(!isOpen)}
-                  className="flex items-center gap-3 p-1 rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 cursor-pointer group focus:outline-none hover-scale active:scale-[0.96]"
+                  className="group flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-3 rounded-xl p-1 transition-colors hover:bg-foreground/[0.05] focus:outline-none active:bg-foreground/[0.08]"
               >
                   <div className="relative">
                   {user.image ? (

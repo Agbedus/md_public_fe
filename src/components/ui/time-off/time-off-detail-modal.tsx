@@ -85,7 +85,7 @@ export default function TimeOffDetailModal({
                 </div>
 
                 {/* Body */}
-                <div className="p-8 space-y-6">
+                <div className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
                     {/* Employee */}
                     <div className="flex items-center gap-4 pb-6 border-b border-card-border">
                         {user?.avatarUrl ? (
@@ -104,7 +104,7 @@ export default function TimeOffDetailModal({
                     </div>
 
                     {/* Detail Grid */}
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                         <div>
                             <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Type</p>
                             <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${typeColors[request.type] || typeColors.other}`}>
@@ -145,7 +145,7 @@ export default function TimeOffDetailModal({
 
                 {/* Footer */}
                 {request.status === 'pending' && (
-                    <div className="flex items-center justify-between px-8 py-5 border-t border-card-border bg-foreground/[0.02]">
+                    <div className="flex items-center justify-between border-t border-card-border bg-foreground/[0.02] px-4 py-4 sm:px-6 md:px-8 md:py-5">
                         <button
                             onClick={() => onDelete(request.id)}
                             disabled={actionLoading}
@@ -183,7 +183,7 @@ export default function TimeOffDetailModal({
                 )}
 
                 {request.status !== 'pending' && (
-                    <div className="flex items-center justify-between px-8 py-5 border-t border-card-border bg-foreground/[0.02]">
+                    <div className="flex items-center justify-between border-t border-card-border bg-foreground/[0.02] px-4 py-4 sm:px-6 md:px-8 md:py-5">
                         <button
                             onClick={() => onDelete(request.id)}
                             disabled={actionLoading}

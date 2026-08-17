@@ -63,7 +63,7 @@ export const AnnouncementForm = () => {
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
           className="relative w-full max-w-lg bg-background border border-card-border rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden"
         >
-          <div className="p-8 space-y-6">
+          <div className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-bold text-foreground italic flex items-center gap-3 tracking-tight">
                 <HiSpeakerphone className="text-[var(--pastel-yellow)]" />

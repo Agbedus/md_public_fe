@@ -187,7 +187,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                         </div>
                     </div>
 
-                    <div className="p-8 flex-grow overflow-y-auto notes-scroll custom-scrollbar">
+                    <div className="notes-scroll custom-scrollbar flex-grow overflow-y-auto p-4 sm:p-6 md:p-8">
                         <input
                             ref={titleRef}
                             type="text"

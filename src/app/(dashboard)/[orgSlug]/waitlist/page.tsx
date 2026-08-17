@@ -69,7 +69,7 @@ export default function WaitlistPage() {
 
     if (isLoading) {
         return (
-            <div className="px-4 py-8 max-w-[1600px] mx-auto min-h-screen">
+            <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
                 <div className="animate-pulse space-y-6">
                     <div className="h-8 w-48 bg-foreground/[0.03] rounded-xl" />
                     <div className="h-4 w-64 bg-foreground/[0.03] rounded-xl" />
@@ -85,7 +85,7 @@ export default function WaitlistPage() {
     }
 
     return (
-        <div className="px-4 py-8 max-w-[1600px] mx-auto min-h-screen">
+        <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
 
             {/* Header */}
             <div className="hidden lg:flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-10">

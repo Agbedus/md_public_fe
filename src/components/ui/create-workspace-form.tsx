@@ -30,10 +30,10 @@ export default function CreateWorkspaceForm() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-4 py-12">
+    <main className="min-h-dvh bg-background px-3 py-6 sm:px-4 sm:py-12">
       <div className="mx-auto max-w-xl">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm text-text-muted hover:text-foreground"><FiArrowLeft /> Back</Link>
-        <div className="rounded-3xl border border-card-border bg-card p-7 sm:p-9 shadow-sm">
+        <Link href="/" className="mb-5 inline-flex min-h-11 items-center gap-2 text-sm text-text-muted hover:text-foreground sm:mb-8"><FiArrowLeft /> Back</Link>
+        <div className="rounded-3xl border border-card-border bg-card p-5 shadow-sm sm:p-9">
           <div className="mb-7 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500"><FiBriefcase size={22} /></div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Create a workspace</h1>
           <p className="mt-2 text-sm leading-6 text-text-muted">Create another team without registering again. You can switch between all your workspaces at any time.</p>

@@ -71,7 +71,7 @@ export default function AnnouncementsPage() {
     };
 
     return (
-        <div className="px-4 py-8 max-w-[1600px] mx-auto min-h-screen">
+        <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
             {/* Header */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
                 <div>

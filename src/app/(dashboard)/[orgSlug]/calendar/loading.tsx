@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CalendarLoading() {
   return (
-    <div className="px-4 py-8 max-w-[1600px] mx-auto space-y-8">
+    <div className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4 md:space-y-8 md:py-8">
       <div className="mb-10 space-y-2">
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-5 w-64" />

@@ -44,21 +44,21 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
         <div className="fixed inset-y-0 right-0 w-full max-w-2xl z-[100] animate-in slide-in-from-right duration-500 shadow-2xl">
             <div className="h-full bg-background border-l border-card-border flex flex-col">
                 {/* Header */}
-                <div className="p-8 border-b border-card-border relative overflow-hidden bg-foreground/[0.02]">
-                    <div className="absolute top-0 right-0 p-8 flex items-center gap-2">
+                <div className="relative overflow-hidden border-b border-card-border bg-foreground/[0.02] p-4 sm:p-6 md:p-8">
+                    <div className="absolute right-0 top-0 flex items-center gap-2 p-4 sm:p-6 md:p-8">
                         <Link 
                             href={`/projects/${project.id}`}
                             className="flex items-center gap-2 h-10 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[10px] font-black text-text-muted hover:text-foreground uppercase tracking-widest transition-all"
                         >
                             <FiMaximize2 className="w-3.5 h-3.5" />
-                            <span>Overview</span>
+                            <span className="hidden sm:inline">Overview</span>
                         </Link>
                         <button onClick={onClose} className="p-2.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-card-border">
                             <FiX className="w-5 h-5" />
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="mb-6 flex items-center gap-3 pr-24 sm:pr-36">
                         <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
                             project.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20' :
                             project.status === 'in_progress' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
@@ -71,11 +71,11 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                         </div>
                     </div>
 
-                    <h2 className="text-4xl font-black text-foreground tracking-tightest leading-none mb-8 uppercase italic">
+                    <h2 className="mb-6 text-2xl font-black uppercase italic leading-none text-foreground sm:text-3xl md:mb-8 md:text-4xl">
                         {project.name}
                     </h2>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
                         <div className="flex flex-col gap-1.5">
                             <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Client</span>
                             <span className="text-xs font-bold text-foreground uppercase tracking-tight truncate">
@@ -116,23 +116,23 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                 </div>
 
                 {/* Tabs */}
-                <div className="flex px-8 border-b border-card-border bg-background">
+                <div className="flex border-b border-card-border bg-background px-2 sm:px-4 md:px-8">
                     <button 
                         onClick={() => setActiveTab('tasks')}
-                        className={`py-6 px-6 text-[10px] font-black uppercase tracking-[0.2em] border-b-2 transition-all ${activeTab === 'tasks' ? 'border-indigo-500 text-foreground' : 'border-transparent text-text-muted hover:text-foreground'}`}
+                        className={`min-h-11 flex-1 border-b-2 px-3 py-4 text-[10px] font-black uppercase tracking-[0.14em] transition-all sm:flex-none sm:px-6 sm:py-6 sm:tracking-[0.2em] ${activeTab === 'tasks' ? 'border-indigo-500 text-foreground' : 'border-transparent text-text-muted hover:text-foreground'}`}
                     >
                         Roadmap ({projectTasks.length})
                     </button>
                     <button 
                         onClick={() => setActiveTab('notes')}
-                        className={`py-6 px-6 text-[10px] font-black uppercase tracking-[0.2em] border-b-2 transition-all ${activeTab === 'notes' ? 'border-indigo-500 text-foreground' : 'border-transparent text-text-muted hover:text-foreground'}`}
+                        className={`min-h-11 flex-1 border-b-2 px-3 py-4 text-[10px] font-black uppercase tracking-[0.14em] transition-all sm:flex-none sm:px-6 sm:py-6 sm:tracking-[0.2em] ${activeTab === 'notes' ? 'border-indigo-500 text-foreground' : 'border-transparent text-text-muted hover:text-foreground'}`}
                     >
                         Intelligence ({projectNotes.length})
                     </button>
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-background">
+                <div className="custom-scrollbar flex-1 overflow-y-auto bg-background p-4 sm:p-6 md:p-8">
                     {activeTab === 'tasks' ? (
                         <div className="space-y-6">
                             <div className="flex items-center justify-between mb-2">
@@ -203,12 +203,12 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                 </div>
                 
                 {/* Footer / Stats */}
-                <div className="p-8 border-t border-card-border bg-foreground/[0.02]">
-                    <div className="flex items-center justify-between">
+                <div className="border-t border-card-border bg-foreground/[0.02] p-4 sm:p-6 md:p-8">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex flex-col gap-2">
                             <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Progress</span>
                             <div className="flex items-center gap-4">
-                                <div className="w-48 h-1.5 bg-foreground/[0.05] rounded-full overflow-hidden">
+                                <div className="h-1.5 w-36 overflow-hidden rounded-full bg-foreground/[0.05] sm:w-48">
                                     <div 
                                         className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
                                         style={{ width: `${taskProgress}%` }}
@@ -217,7 +217,7 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                                 <span className="text-xs font-black text-foreground tracking-widest uppercase">{Math.round(taskProgress)}%</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center justify-between gap-4 sm:gap-8">
                             <div className="flex flex-col items-end gap-1">
                                 <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Created</span>
                                 <span className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">{project.createdAt ? format(new Date(project.createdAt), 'MMM dd, yyyy') : '-'}</span>

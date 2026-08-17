@@ -285,7 +285,7 @@ export default function ClientsPageClient({
                 <FiX size={20} />
               </button>
             </div>
-            <form action={handleCreate} className="p-8 space-y-6">
+            <form action={handleCreate} className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
               <div>
                 <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
                   Company name *
@@ -373,7 +373,7 @@ export default function ClientsPageClient({
                 <FiX size={20} />
               </button>
             </div>
-            <form action={handleUpdate} className="p-8 space-y-6">
+            <form action={handleUpdate} className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
               <div>
                 <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
                   Company name *

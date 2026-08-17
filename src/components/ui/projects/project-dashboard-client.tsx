@@ -129,35 +129,53 @@ export default function ProjectDashboardClient({
     const totalHoursLogged = tasks.reduce((sum, t) => sum + (t.totalHours ?? 0), 0);
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="flex min-h-[calc(100dvh-8rem)] flex-col bg-background md:min-h-screen">
             {/* Top Command Bar */}
-            <div className="h-16 px-6 border-b border-card-border bg-background/40 backdrop-blur-md flex items-center justify-between sticky top-0 z-50">
-                <div className="flex items-center gap-6">
-                    <Link href={orgPath('/projects')} className="p-2 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-card-border">
+            <div className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-card-border bg-background/85 px-3 backdrop-blur-md sm:px-4 md:px-6">
+                <div className="flex min-w-0 items-center gap-3 md:gap-6">
+                    <Link href={orgPath('/projects')} aria-label="Back to projects" className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-card-border bg-foreground/[0.03] text-text-muted transition-all hover:bg-foreground/[0.06] hover:text-foreground">
                         <FiArrowLeft className="w-5 h-5" />
                     </Link>
-                    <div className="flex flex-col">
+                    <div className="flex min-w-0 flex-col">
                         <div className="flex items-center gap-2 text-[11px] font-medium text-text-muted uppercase tracking-wider">
                             <span>Project</span>
                             <FiChevronRight className="w-3 h-3" />
                             <span className="text-text-muted opacity-80">{project.key}</span>
                         </div>
-                        <h1 className="text-lg font-medium text-foreground tracking-tight uppercase leading-none">{project.name}</h1>
+                        <h1 className="truncate text-sm font-medium uppercase leading-none tracking-tight text-foreground sm:text-lg">{project.name}</h1>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-foreground/[0.03] border border-card-border">
+                <div className="ml-2 flex items-center gap-2 md:gap-3">
+                    <div className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border border-card-border bg-foreground/[0.03] px-2 md:px-3">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[11px] font-medium text-foreground uppercase tracking-wider">Active</span>
+                        <span className="hidden text-[11px] font-medium uppercase tracking-wider text-foreground sm:inline">Active</span>
                     </div>
-                    <button className="flex items-center gap-2 h-10 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[11px] font-medium text-text-muted hover:text-foreground uppercase tracking-wider transition-all">
+                    <button onClick={() => setActiveView('settings')} aria-label="Project settings" className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border border-card-border bg-foreground/[0.03] px-3 text-[11px] font-medium uppercase tracking-wider text-text-muted transition-all hover:bg-foreground/[0.06] hover:text-foreground md:px-4">
                         <FiSettings className="w-4 h-4" />
-                        <span>Settings</span>
+                        <span className="hidden md:inline">Settings</span>
                     </button>
-                    <div className="w-px h-6 bg-foreground/[0.06] mx-2" />
-                    {owner && <UserAvatarGroup users={[owner]} size="sm" limit={1} />}
+                    <div className="mx-2 hidden h-6 w-px bg-foreground/[0.06] md:block" />
+                    <div className="hidden md:block">{owner && <UserAvatarGroup users={[owner]} size="sm" limit={1} />}</div>
                 </div>
+            </div>
+
+            <div className="sticky top-16 z-40 flex gap-1 overflow-x-auto border-b border-card-border bg-background/95 px-3 py-2 backdrop-blur-md lg:hidden">
+                {([
+                    ['overview', FiPieChart, 'Overview'],
+                    ['tasks', FiLayout, 'Tasks'],
+                    ['notes', FiFileText, 'Notes'],
+                    ['settings', FiActivity, 'History'],
+                ] as const).map(([view, Icon, label]) => (
+                    <button
+                        key={view}
+                        onClick={() => setActiveView(view)}
+                        className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-medium transition-colors ${activeView === view ? 'bg-foreground/[0.07] text-foreground' : 'text-text-muted hover:bg-foreground/[0.03] hover:text-foreground'}`}
+                    >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                    </button>
+                ))}
             </div>
 
             <div className="flex flex-1 overflow-hidden">
@@ -205,11 +223,11 @@ export default function ProjectDashboardClient({
 
                 {/* Main Content Area */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.03),transparent_40%)]">
-                    <div className="px-6 py-8 max-w-[1600px] mx-auto space-y-8">
+                    <div className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4 md:space-y-8 md:px-6 md:py-8">
                         {activeView === 'overview' && (
                             <>
                                 {/* Impact Stats Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
                                     <StatCard icon={FiCheckSquare} color="indigo" label="Tasks completed" value={`${completedTasks}/${tasks.length}`} subValue={`${Math.round(taskProgress)}% done`} />
                                     <StatCard icon={FiDollarSign} color="emerald" label="Budget spent" value={`$${(project.spent || 0).toLocaleString()}`} subValue={`of $${(project.budget || 0).toLocaleString()} budget`} />
                                     <StatCard icon={FiClock} color="amber" label="Due date" value={project.endDate ? format(new Date(project.endDate), 'MMM dd') : 'N/A'} subValue="Target completion" />

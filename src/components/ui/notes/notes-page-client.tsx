@@ -339,7 +339,7 @@ export default function NotesPageClient({
   }
 
   return (
-    <div className="flex flex-col h-screen px-4 py-8 max-w-[1600px] mx-auto text-foreground">
+    <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-[1600px] flex-col px-3 py-4 text-foreground sm:px-4 md:h-screen md:py-8">
       {/* Non-scrolling Header */}
       <div>
         {/* Page Header */}

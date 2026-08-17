@@ -88,7 +88,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
 
             <div className="relative bg-background border border-card-border w-full max-w-lg mx-4 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-8 py-5 border-b border-card-border bg-foreground/[0.03]">
+                <div className="flex items-center justify-between border-b border-card-border bg-foreground/[0.03] px-4 py-4 sm:px-6 md:px-8 md:py-5">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                             <FiCalendar className="w-5 h-5 text-amber-600 dark:text-amber-500" />
@@ -104,7 +104,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
                     {/* Type */}
                     <div className="space-y-3">
                         <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Exemptions</label>
@@ -128,7 +128,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                     </div>
 
                     {/* Date Range */}
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Commencement</label>
                             <CustomDatePicker

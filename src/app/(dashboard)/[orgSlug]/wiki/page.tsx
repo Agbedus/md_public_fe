@@ -335,7 +335,7 @@ export default function WikiPage() {
         : NAV;
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] md:h-[calc(100vh-6rem)] overflow-hidden border-t border-card-border bg-background">
+        <div className="flex h-[calc(100dvh-8rem)] overflow-hidden border-t border-card-border bg-background md:h-[calc(100vh-6rem)]">
             {/* Sidebar */}
             <aside className="hidden w-72 shrink-0 flex-col border-r border-card-border lg:flex">
                 <div className="space-y-4 border-b border-card-border p-5">
@@ -414,9 +414,9 @@ export default function WikiPage() {
 
             {/* Content */}
             <main ref={mainRef} className="custom-scrollbar flex-1 overflow-y-auto scroll-smooth">
-                <div className="mx-auto max-w-3xl space-y-16 px-6 py-12 md:px-10">
+                <div className="mx-auto max-w-3xl space-y-10 px-3 py-6 sm:px-5 md:space-y-16 md:px-10 md:py-12">
                     <header className="space-y-2 border-b border-card-border pb-8">
-                        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Documentation</h1>
+                        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Documentation</h1>
                         <P>
                             How this platform works, what each part is for, and who can do what. If
                             you are new here, start with Getting started and Roles.

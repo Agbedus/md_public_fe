@@ -176,9 +176,9 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
         onClick={onClose}
       />
 
-      <div className="relative w-full md:max-w-3xl bg-background border border-card-border rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-3xl border border-card-border bg-background shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] md:max-h-[90vh] md:max-w-3xl md:rounded-[2.5rem]">
         {/* Header */}
-        <div className="flex-none px-8 py-5 border-b border-card-border flex items-center justify-between bg-white dark:bg-white/[0.03]">
+        <div className="flex flex-none items-center justify-between border-b border-card-border bg-card px-4 py-4 sm:px-6 md:px-8 md:py-5">
           <div id="create-event-title" className="text-foreground font-black tracking-tight text-lg uppercase italic">Add event</div>
           <button
             type="button"
@@ -191,7 +191,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
         </div>
 
         {/* Scrollable Form Body */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+        <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
             <form id="create-event-form" onSubmit={handleSubmit} className="space-y-8">
             {/* All-day toggle at top */}
             <div className="flex items-center justify-between gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">

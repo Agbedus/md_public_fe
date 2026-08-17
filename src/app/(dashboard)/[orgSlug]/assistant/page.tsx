@@ -228,7 +228,7 @@ export default function AssistantPage() {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-background">
       {/* ── Header — Fixed at the top ── */}
-      <div className="z-20 flex-shrink-0 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-card-border flex items-center">
+      <div className="z-20 flex flex-shrink-0 items-center border-b border-card-border bg-background/80 px-3 py-3 backdrop-blur-md sm:px-4 md:px-6 md:py-4">
         <div className="flex items-center gap-3">
             <motion.div
               key={hasError ? 'error' : pipVariantIdx}
@@ -251,9 +251,9 @@ export default function AssistantPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-hide relative" ref={containerRef}>
-        <div className="min-h-full px-4 pt-6 pb-4 md:pb-36 flex flex-col justify-end">
+        <div className="flex min-h-full flex-col justify-end px-3 pb-4 pt-4 sm:px-4 md:pb-36 md:pt-6">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-center space-y-6 py-10 max-w-5xl mx-auto">
+            <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-5 py-5 text-center md:space-y-6 md:py-10">
                 <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -274,19 +274,19 @@ export default function AssistantPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="grid grid-cols-1 md:grid-cols-4 gap-3 max-w-4xl mx-auto w-full mt-4"
+                className="mx-auto mt-2 grid w-full max-w-4xl grid-cols-2 gap-2 sm:gap-3 md:mt-4 md:grid-cols-4"
                 >
                 {quickActions.map((item, idx) => (
                     <button
                     key={idx}
                     onClick={() => handleSendMessage(item.action)}
-                    className="flex flex-col items-start p-5 bg-card border border-card-border rounded-2xl shadow-sm hover:bg-foreground/[0.03] hover:border-foreground/20 transition-all active:scale-[0.98] text-left group"
+                    className="group flex min-h-32 flex-col items-start rounded-2xl border border-card-border bg-card p-3 text-left shadow-sm transition-all hover:border-foreground/20 hover:bg-foreground/[0.03] active:scale-[0.98] sm:p-4 md:p-5"
                     >
                     <div className="p-2.5 bg-foreground/[0.04] border border-card-border text-text-muted group-hover:text-foreground group-hover:border-foreground/20 rounded-xl mb-3 transition-colors">
                         <item.icon className="w-5 h-5" />
                     </div>
                     <h3 className="text-sm font-bold text-foreground mb-1 uppercase tracking-wider">{item.title}</h3>
-                    <p className="text-xs text-text-muted">{item.desc}</p>
+                    <p className="hidden text-xs text-text-muted sm:block">{item.desc}</p>
                     </button>
                 ))}
                 </motion.div>
@@ -308,8 +308,8 @@ export default function AssistantPage() {
         </div>
 
         {/* ── Input bar (sticky at bottom) ── */}
-        <div className="sticky bottom-0 z-10 pt-8 bg-gradient-to-t from-background via-background/95 to-transparent">
-            <div className="max-w-4xl mx-auto w-full px-4">
+        <div className="sticky bottom-0 z-10 bg-gradient-to-t from-background via-background/95 to-transparent pt-5 md:pt-8">
+            <div className="mx-auto w-full max-w-4xl px-3 sm:px-4">
                 <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onStop={handleStop} />
             </div>
         </div>

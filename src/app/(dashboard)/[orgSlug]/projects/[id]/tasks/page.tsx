@@ -31,7 +31,7 @@ export default async function ProjectTasksPage({ params }: ProjectTasksPageProps
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="px-8 pt-8">
+            <div className="px-3 pt-4 sm:px-4 md:px-8 md:pt-8">
                 <div className="flex items-center gap-2 text-text-muted text-sm mb-2">
                     <Link href={`/${orgSlug}/projects`} className="hover:text-foreground transition-colors">Projects</Link>
                     <span>/</span>

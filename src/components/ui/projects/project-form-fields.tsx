@@ -103,7 +103,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
             Executive Oversight
         </h3>
         
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
           <div>
             <label htmlFor="status" className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
               Status
@@ -187,7 +187,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
             Resource Intelligence
         </h3>
         
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
           <div>
             <label htmlFor="budget" className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
               Budget
@@ -257,7 +257,7 @@ export function ProjectFormFields({ defaultValues, users, clients }: ProjectForm
             Personnel Assignment
         </h3>
         
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
           {/* Owner */}
           <div>
             <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">

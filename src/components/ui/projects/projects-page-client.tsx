@@ -292,7 +292,7 @@ export default function ProjectsPageClient({
   }
 
   return (
-    <div className="px-4 py-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
       {/* Header Section */}
       <div className="hidden lg:flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-10">
         <div>
@@ -316,13 +316,13 @@ export default function ProjectsPageClient({
         </div>
       </div>
 
-      <div className="md:hidden flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-foreground tracking-tight m-1.5">
+      <div className="flex items-center justify-between mb-5 md:hidden">
+        <h1 className="m-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Projects
         </h1>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 p-1.5 h-9 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-xs text-text-muted hover:text-foreground transition-all duration-200 group"
+          className="group flex min-h-11 items-center gap-2 rounded-xl border border-card-border bg-foreground/[0.03] px-3 text-xs text-text-muted transition-all duration-200 hover:bg-foreground/[0.06] hover:text-foreground"
         >
           <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
             <FiPlus className="w-3.5 h-3.5" />
@@ -625,7 +625,7 @@ export default function ProjectsPageClient({
                 <FiX size={20} />
               </button>
             </div>
-            <form action={handleCreate} className="p-8">
+            <form action={handleCreate} className="p-4 sm:p-6 md:p-8">
               <div className="max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
                 <ProjectFormFields users={users} clients={clients} />
               </div>
@@ -673,7 +673,7 @@ export default function ProjectsPageClient({
                 <FiX size={20} />
               </button>
             </div>
-            <form action={handleUpdate} className="p-8">
+            <form action={handleUpdate} className="p-4 sm:p-6 md:p-8">
               <div className="max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
                 <ProjectFormFields
                   defaultValues={editingProject}

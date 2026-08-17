@@ -183,7 +183,7 @@ export default function NotificationsPage() {
   }, [notifications]);
 
   return (
-    <div className="px-4 py-8 max-w-[1600px] mx-auto h-[calc(100vh-40px)] flex flex-col overflow-hidden">
+    <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-[1600px] flex-col overflow-hidden px-3 py-4 sm:px-4 md:h-[calc(100vh-40px)] md:py-8">
       <div className="mb-4 flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0 px-1">
         <div>
           <h1 className="text-xl font-bold text-foreground mb-0.5 tracking-tight">

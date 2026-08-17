@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TasksLoading() {
   return (
-    <div className="px-4 py-8 max-w-[1600px] mx-auto">
+    <div className="mx-auto max-w-[1600px] px-3 py-4 sm:px-4 md:py-8">
       <div className="space-y-8">
         
         {/* Header Skeleton */}

@@ -232,9 +232,9 @@ export default function EventDetailModal({
         onClick={onClose}
       />
 
-      <div className="relative w-full md:max-w-3xl bg-background border border-card-border rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-3xl border border-card-border bg-background shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] md:max-h-[90vh] md:max-w-3xl md:rounded-[2.5rem]">
         {/* Header */}
-        <div className="flex-none px-8 py-5 border-b border-card-border flex items-center justify-between bg-white dark:bg-white/[0.03]">
+        <div className="flex flex-none items-center justify-between border-b border-card-border bg-card px-4 py-4 sm:px-6 md:px-8 md:py-5">
           <div className="text-foreground font-black tracking-tightest truncate pr-4 text-lg uppercase italic">
             {isEditing ? "Refine Objective" : event.title.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()}
           </div>
@@ -248,7 +248,7 @@ export default function EventDetailModal({
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+        <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
           
           {/* View Mode */}
           {!isEditing && (
@@ -283,7 +283,7 @@ export default function EventDetailModal({
                   {/* Time Off Specific Details */}
                   {event.isTimeOff && (
                     <div className="space-y-6 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                      <div className="grid grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                         <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
                           <div className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
                             <FiCoffee className="w-3.5 h-3.5" /> Exemption Type
@@ -318,7 +318,7 @@ export default function EventDetailModal({
                   {/* Project Specific Details */}
                   {event.isProject && (
                     <div className="space-y-6 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                      <div className="grid grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                         <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl">
                           <div className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
                             <FiTrello className="w-3.5 h-3.5" /> Mission Key / Client
@@ -353,7 +353,7 @@ export default function EventDetailModal({
                   {/* Task Specific Details */}
                   {event.isTask && (
                     <div className="space-y-6 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                      <div className="grid grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                         <div className="p-4 bg-sky-500/5 border border-sky-500/10 rounded-2xl">
                           <div className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5">
                             <FiCheckCircle className="w-3.5 h-3.5 text-indigo-500" /> Operational State
@@ -496,7 +496,7 @@ export default function EventDetailModal({
                    </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                     <div className="space-y-2">
                         <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Commencement</label>
                         <CustomDatePicker
@@ -557,7 +557,7 @@ export default function EventDetailModal({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                      <div className="space-y-2">
                         <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Status</label>
                         <select 
