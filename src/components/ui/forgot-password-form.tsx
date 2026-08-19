@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
-import { FiMail, FiArrowRight, FiLoader, FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
-import { requestPasswordReset } from '@/app/lib/actions';
+import { FiMail, FiArrowRight, FiLoader, FiArrowLeft, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { requestPasswordReset, checkEmailExists } from '@/app/lib/actions';
 import { toast } from '@/lib/toast';
 
 const formItem = {
@@ -20,16 +20,62 @@ const formItem = {
   }),
 };
 
+const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CHECK_DEBOUNCE_MS = 500;
+
+type EmailStatus = 'idle' | 'bad-format' | 'checking' | 'found' | 'not-found' | 'unknown';
+
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<EmailStatus>('idle');
   const [isPending, setIsPending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = useRef(0);
 
-  const inputBase = 'block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] border-card-border';
+  const inputBase = 'block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)]';
+  const borderClass = status === 'not-found' || status === 'bad-format'
+    ? 'border-rose-500/40'
+    : status === 'found'
+    ? 'border-emerald-500/40'
+    : 'border-card-border';
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setStatus('idle');
+      return;
+    }
+    if (!EMAIL_FORMAT.test(trimmed)) {
+      setStatus('bad-format');
+      return;
+    }
+
+    setStatus('checking');
+    const thisRequestId = ++requestIdRef.current;
+
+    debounceRef.current = setTimeout(async () => {
+      const exists = await checkEmailExists(trimmed);
+      // Stale response guard — user may have kept typing while this was in flight.
+      if (thisRequestId !== requestIdRef.current) return;
+      if (exists === null) {
+        // Network hiccup on the check itself — don't block submission over it.
+        setStatus('unknown');
+      } else {
+        setStatus(exists ? 'found' : 'not-found');
+      }
+    }, CHECK_DEBOUNCE_MS);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email || status === 'bad-format' || status === 'not-found' || status === 'checking') return;
 
     setIsPending(true);
     try {
@@ -38,10 +84,6 @@ export default function ForgotPasswordForm() {
         toast.error(result.error || 'Something went wrong. Please try again.');
         return;
       }
-      // Always show the same success state regardless of whether the email
-      // matched an account — the backend deliberately returns a generic
-      // response for this reason, and the UI must not contradict that by
-      // revealing which emails exist.
       setSubmitted(true);
     } catch {
       toast.error('Something went wrong. Please try again.');
@@ -66,8 +108,8 @@ export default function ForgotPasswordForm() {
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-foreground">Check your email</h2>
           <p className="text-sm text-text-muted leading-relaxed">
-            If an account exists for <span className="text-foreground font-medium">{email}</span>, a password reset
-            link has been sent. It expires in 60 minutes.
+            A password reset link has been sent to <span className="text-foreground font-medium">{email}</span>. It
+            expires in 60 minutes.
           </p>
         </div>
         <Link
@@ -81,6 +123,8 @@ export default function ForgotPasswordForm() {
     );
   }
 
+  const canSubmit = !isPending && status !== 'bad-format' && status !== 'not-found' && status !== 'checking' && email.length > 0;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <motion.div custom={0} variants={formItem as Variants} initial="hidden" animate="visible" className="space-y-1.5">
@@ -89,7 +133,7 @@ export default function ForgotPasswordForm() {
             <FiMail className="h-4 w-4 text-text-muted" />
           </div>
           <input
-            className={inputBase}
+            className={`${inputBase} ${borderClass} border pr-10`}
             id="email"
             type="email"
             name="email"
@@ -100,13 +144,24 @@ export default function ForgotPasswordForm() {
             autoFocus
             required
           />
+          <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+            {status === 'checking' && <FiLoader className="h-4 w-4 text-text-muted animate-spin" />}
+            {status === 'found' && <FiCheckCircle className="h-4 w-4 text-emerald-500" />}
+            {(status === 'not-found' || status === 'bad-format') && <FiAlertCircle className="h-4 w-4 text-rose-500" />}
+          </div>
         </div>
+        {status === 'bad-format' && (
+          <p className="text-xs text-rose-500 ml-1">Enter a valid email address.</p>
+        )}
+        {status === 'not-found' && (
+          <p className="text-xs text-rose-500 ml-1">No account found with this email.</p>
+        )}
       </motion.div>
 
       <motion.div custom={1} variants={formItem as Variants} initial="hidden" animate="visible">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={!canSubmit}
           className="relative w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
         >
           <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>

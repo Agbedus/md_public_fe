@@ -308,6 +308,26 @@ export async function resendOtp(email: string) {
     }
 }
 
+/**
+ * Live "does this account exist" check for the forgot-password form, so a
+ * mistyped email is caught before a reset request is submitted. This is a
+ * deliberate, narrow exception — requestPasswordReset() below stays
+ * generic-response by design (an enumeration protection), and this is the
+ * one place that trade-off was explicitly asked for instead.
+ */
+export async function checkEmailExists(email: string): Promise<boolean | null> {
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/check-email?email=${encodeURIComponent(email)}`, {
+            method: 'GET',
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return Boolean(data.exists);
+    } catch {
+        return null;
+    }
+}
+
 export async function requestPasswordReset(email: string) {
     try {
         const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
@@ -329,6 +349,28 @@ export async function requestPasswordReset(email: string) {
     } catch (error) {
         console.error("Request password reset error:", error);
         return { success: false, error: "Network error" };
+    }
+}
+
+/**
+ * Resolves a reset token to the email it belongs to, so the reset-password
+ * page can show "Resetting password for <email>" instead of a bare form.
+ * Read-only on the backend — does not consume the token.
+ */
+export async function getResetTokenInfo(token: string): Promise<{ email: string } | { error: string }> {
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/reset-password?token=${encodeURIComponent(token)}`, {
+            method: 'GET',
+        });
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            return { error: body.detail || 'This reset link is invalid or has expired.' };
+        }
+        const data = await res.json();
+        return { email: data.email };
+    } catch (error) {
+        console.error("Get reset token info error:", error);
+        return { error: 'Network error' };
     }
 }
 

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
-import { FiLock, FiArrowRight, FiLoader, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { resetPassword } from '@/app/lib/actions';
+import { FiLock, FiArrowRight, FiLoader, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle, FiMail } from 'react-icons/fi';
+import { resetPassword, getResetTokenInfo } from '@/app/lib/actions';
 import { toast } from '@/lib/toast';
 
 const formItem = {
@@ -21,9 +21,35 @@ const formItem = {
   }),
 };
 
+function InvalidLinkState({ message }: { message: string }) {
+  return (
+    <div className="space-y-6 text-center">
+      <div className="flex justify-center">
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500">
+          <FiAlertCircle className="h-6 w-6" />
+        </span>
+      </div>
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold text-foreground">Invalid reset link</h2>
+        <p className="text-sm text-text-muted leading-relaxed">{message}</p>
+      </div>
+      <Link
+        href="/forgot-password"
+        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all"
+      >
+        Request a new link
+      </Link>
+    </div>
+  );
+}
+
 export default function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token') || '';
+
+  const [resolving, setResolving] = useState(true);
+  const [email, setEmail] = useState<string | null>(null);
+  const [resolveError, setResolveError] = useState<string | null>(null);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -33,28 +59,42 @@ export default function ResetPasswordForm() {
 
   const inputBase = 'block w-full pl-12 pr-10 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] border-card-border';
 
+  useEffect(() => {
+    if (!token) {
+      setResolving(false);
+      return;
+    }
+    let cancelled = false;
+    setResolving(true);
+    getResetTokenInfo(token).then((result) => {
+      if (cancelled) return;
+      if ('error' in result) {
+        setResolveError(result.error);
+      } else {
+        setEmail(result.email);
+      }
+      setResolving(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
   if (!token) {
+    return <InvalidLinkState message="This link is missing its reset token. Request a new one to continue." />;
+  }
+
+  if (resolving) {
     return (
-      <div className="space-y-6 text-center">
-        <div className="flex justify-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500">
-            <FiAlertCircle className="h-6 w-6" />
-          </span>
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground">Invalid reset link</h2>
-          <p className="text-sm text-text-muted leading-relaxed">
-            This link is missing its reset token. Request a new one to continue.
-          </p>
-        </div>
-        <Link
-          href="/forgot-password"
-          className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all"
-        >
-          Request a new link
-        </Link>
+      <div className="flex flex-col items-center justify-center gap-3 py-10 text-text-muted">
+        <FiLoader className="h-6 w-6 animate-spin" />
+        <p className="text-sm">Checking your reset link...</p>
       </div>
     );
+  }
+
+  if (resolveError || !email) {
+    return <InvalidLinkState message={resolveError || 'This reset link is invalid or has expired. Request a new one to continue.'} />;
   }
 
   if (succeeded) {
@@ -77,7 +117,7 @@ export default function ResetPasswordForm() {
           </p>
         </div>
         <Link
-          href="/login"
+          href={`/login?email=${encodeURIComponent(email)}`}
           className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all"
         >
           Continue to sign in
@@ -115,7 +155,20 @@ export default function ResetPasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <motion.div custom={0} variants={formItem as Variants} initial="hidden" animate="visible" className="space-y-1.5">
+      <motion.div
+        custom={0}
+        variants={formItem as Variants}
+        initial="hidden"
+        animate="visible"
+        className="flex items-center gap-2.5 rounded-xl border border-card-border bg-foreground/[0.03] px-4 py-3"
+      >
+        <FiMail className="h-4 w-4 text-text-muted shrink-0" />
+        <p className="text-sm text-text-muted truncate">
+          Resetting password for <span className="text-foreground font-medium">{email}</span>
+        </p>
+      </motion.div>
+
+      <motion.div custom={1} variants={formItem as Variants} initial="hidden" animate="visible" className="space-y-1.5">
         <label htmlFor="password" className="block text-xs font-medium text-text-muted ml-1">New password</label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -144,7 +197,7 @@ export default function ResetPasswordForm() {
         </div>
       </motion.div>
 
-      <motion.div custom={1} variants={formItem as Variants} initial="hidden" animate="visible" className="space-y-1.5">
+      <motion.div custom={2} variants={formItem as Variants} initial="hidden" animate="visible" className="space-y-1.5">
         <label htmlFor="confirmPassword" className="block text-xs font-medium text-text-muted ml-1">Confirm password</label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -164,7 +217,7 @@ export default function ResetPasswordForm() {
         </div>
       </motion.div>
 
-      <motion.div custom={2} variants={formItem as Variants} initial="hidden" animate="visible">
+      <motion.div custom={3} variants={formItem as Variants} initial="hidden" animate="visible">
         <button
           type="submit"
           disabled={isPending}
