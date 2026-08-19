@@ -15,6 +15,7 @@ import { getFreshUserProfile } from '@/lib/server-auth';
 import ProfileStats from '@/components/profile/profile-stats';
 import ProfileCharts from '@/components/profile/profile-charts';
 import { ProfileInfoCard } from '@/components/profile/profile-info-card';
+import { ChangePasswordCard } from '@/components/profile/change-password-card';
 import { ActivityHeatmap } from '@/components/ui/client-charts';
 import { presentOrgRole, orgRoleToneClasses, membershipStatusToneClasses } from '@/types/organization';
 import type { OrgBrief } from '@/types/organization';
@@ -91,6 +92,8 @@ export default async function ProfilePage() {
               orgRole={orgRole}
               currentOrg={currentOrg ? { name: currentOrg.name, joined_at: currentOrg.joined_at } : null}
             />
+
+            <ChangePasswordCard />
 
             {/* Organizations Membership Card */}
             {organizations.length > 0 && (

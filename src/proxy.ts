@@ -31,7 +31,7 @@ export default auth((req) => {
       }
     }
 
-    const isAuthRoute = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register') || nextUrl.pathname.startsWith('/verify-otp');
+    const isAuthRoute = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register') || nextUrl.pathname.startsWith('/verify-otp') || nextUrl.pathname.startsWith('/forgot-password') || nextUrl.pathname.startsWith('/reset-password');
 
     const isLandingPage = nextUrl.pathname === '/';
     const isWiki = nextUrl.pathname.startsWith('/wiki');

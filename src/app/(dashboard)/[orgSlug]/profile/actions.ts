@@ -57,6 +57,41 @@ export async function updateMyProfile(data: {
   }
 }
 
+/**
+ * Change the signed-in user's own password. Requires the current password —
+ * the backend rejects this without it, precisely so a bare access token is
+ * never enough by itself to take over the account (see
+ * `POST /users/me/change-password` in md_public_be).
+ */
+export async function changeMyPassword(data: {
+  current_password: string;
+  new_password: string;
+}): Promise<ActionResult> {
+  const headers = await getSessionHeaders();
+  if (!headers.Authorization) return { success: false, error: 'Unauthorized' };
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/users/me/change-password`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      if (await handleUnauthorizedResponse(res)) return { success: false, error: 'Session expired' };
+      const msg = await handleForbiddenResponse(res);
+      if (msg) return { success: false, error: msg };
+      const body = await res.json().catch(() => ({}));
+      return { success: false, error: extractErrorDetail(body.detail, `Failed to change password (${res.status})`) };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error changing password:', error);
+    return { success: false, error: 'Network error' };
+  }
+}
+
 /** Upload a new avatar for the signed-in user. */
 export async function uploadMyAvatar(formData: FormData): Promise<ActionResult & { avatar_url?: string }> {
   const headers = await getSessionHeaders();

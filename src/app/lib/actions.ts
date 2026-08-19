@@ -308,6 +308,65 @@ export async function resendOtp(email: string) {
     }
 }
 
+export async function requestPasswordReset(email: string) {
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+
+        // The backend always returns the same generic message whether or
+        // not the email matched an account — that's deliberate (a
+        // forgot-password endpoint that confirms which emails exist is an
+        // enumeration vector), so the frontend must never try to tell the
+        // two cases apart either.
+        if (!res.ok) {
+            return { success: false, error: 'Something went wrong. Please try again.' };
+        }
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error("Request password reset error:", error);
+        return { success: false, error: "Network error" };
+    }
+}
+
+const ResetPasswordSchema = z.object({
+    token: z.string().min(1),
+    newPassword: z.string().min(8, "Password must be at least 8 characters long."),
+});
+
+export async function resetPassword(token: string, newPassword: string) {
+    const validated = ResetPasswordSchema.safeParse({ token, newPassword });
+    if (!validated.success) {
+        return { success: false, error: validated.error.issues[0]?.message || "Invalid input" };
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, new_password: newPassword }),
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            try {
+                const errorJson = JSON.parse(errorText);
+                return { success: false, error: errorJson.detail || "Failed to reset password" };
+            } catch {
+                return { success: false, error: "Failed to reset password" };
+            }
+        }
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error("Reset password error:", error);
+        return { success: false, error: "Network error" };
+    }
+}
+
 export async function logout() {
     redirect('/logout');
 }
