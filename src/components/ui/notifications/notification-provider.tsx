@@ -23,8 +23,9 @@ export interface Notification {
   title: string;
   message: string;
   type: 'info' | 'success' | 'warning' | 'error';
-  resource_type?: 'task' | 'note' | 'project' | 'system' | 'attendance' | null;
+  resource_type?: 'task' | 'note' | 'project' | 'system' | 'attendance' | 'invitation' | 'time_off' | 'event' | 'announcement' | 'user' | null;
   resource_id?: string | null;
+  organization_id?: string | null;
   is_read: boolean;
   created_at: string;
 }

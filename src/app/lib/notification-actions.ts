@@ -68,15 +68,16 @@ export async function markAllNotificationsAsRead(): Promise<ActionResult> {
 
     const headers = { ...(await getSessionHeaders())! };
     try {
-        const notifications = await getNotifications();
-        const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
-
-        await Promise.all(unreadIds.map(id => 
-            fetch(`${API_BASE_URL}/notifications/${id}/read`, {
-                method: 'PUT',
-                headers,
-            })
-        ));
+        const response = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+            method: 'PUT',
+            headers,
+        });
+        if (!response.ok) {
+            if (await handleUnauthorizedResponse(response)) return { success: false, error: "Session expired" };
+            const forbiddenMsg = await handleForbiddenResponse(response);
+            if (forbiddenMsg) return { success: false, error: forbiddenMsg };
+            return { success: false, error: "Failed to mark notifications as read" };
+        }
 
         safeRevalidate(() => {
             revalidateTag('notifications', 'max');

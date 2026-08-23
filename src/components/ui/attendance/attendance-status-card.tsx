@@ -8,14 +8,14 @@ import type { AttendanceRecord } from '@/types/attendance';
 import { presenceStateLabels, presenceStateColors, attendanceStateLabels, attendanceStateColors } from '@/types/attendance';
 import { useLocation } from '@/providers/location-provider';
 import { getDistanceInMeters, formatDistance } from '@/lib/distance-utils';
-import { FiMapPin, FiClock, FiTarget, FiActivity, FiNavigation, FiZap, FiChevronDown, FiChevronUp, FiX, FiCheck, FiAlertTriangle } from 'react-icons/fi';
+import { FiMapPin, FiClock, FiTarget, FiActivity, FiNavigation, FiZap, FiChevronDown, FiChevronUp, FiX, FiCheck, FiAlertTriangle, FiLoader } from 'react-icons/fi';
 import { useIsClient } from '@/hooks/use-is-client';
 
 export default function AttendanceStatusCard({ record: initialRecord }: { record: AttendanceRecord | null }) {
     const mounted = useIsClient();
     const [showMetadata, setShowMetadata] = useState(false);
 
-    const { data: liveRecord, mutate, isValidating } = useSWR('my-attendance-today', fetchMyAttendanceLive, {
+    const { data: liveRecord } = useSWR('my-attendance-today', fetchMyAttendanceLive, {
         fallbackData: initialRecord,
         revalidateOnFocus: true,
     });
@@ -35,6 +35,7 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
         manualClockIn,
         manualClockOut,
         isLoading,
+        clockInPhase,
         isPolling,
         refreshLocation,
         lastPulse,
@@ -244,11 +245,20 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
                     <button
                         onClick={handleClockIn}
                         disabled={isLoading}
-                        className="group relative w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl bg-emerald-500 text-emerald-950 hover:bg-emerald-400 active:scale-[0.96] transition-all duration-500 shadow-lg shadow-emerald-500/20"
+                        aria-busy={clockInPhase !== 'idle'}
+                        className="group relative w-full min-h-11 flex items-center justify-center gap-3 py-3.5 rounded-2xl bg-emerald-500 text-emerald-950 hover:bg-emerald-400 active:scale-[0.98] transition-[transform,opacity,background-color] duration-200 shadow-lg shadow-emerald-500/20 disabled:cursor-wait disabled:opacity-80"
                     >
-                        <FiClock className="w-4 h-4" />
+                        {clockInPhase !== 'idle' ? (
+                            <FiLoader className="w-4 h-4 animate-spin" aria-hidden="true" />
+                        ) : (
+                            <FiClock className="w-4 h-4" aria-hidden="true" />
+                        )}
                         <span className="text-sm font-bold uppercase tracking-wide leading-none">
-                            {isLoading ? 'Locating...' : 'Clock In'}
+                            {clockInPhase === 'locating'
+                                ? 'Finding your location...'
+                                : clockInPhase === 'checking_server'
+                                    ? 'Checking with server...'
+                                    : 'Clock In'}
                         </span>
                     </button>
                 ) : (

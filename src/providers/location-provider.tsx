@@ -20,6 +20,7 @@ import { isTimeInWindow, isAfterTime, isAutoClockInWindowOpen } from '@/lib/atte
 
 export type LocationPermissionState = 'granted' | 'prompt' | 'denied' | 'unsupported' | 'checking';
 export type AutoCheckStatus = 'inactive' | 'permission_required' | 'monitoring' | 'checking' | 'waiting_for_signal' | 'completed';
+export type ClockInPhase = 'idle' | 'locating' | 'checking_server';
 
 interface LocationContextType {
     isTracking: boolean;
@@ -36,6 +37,7 @@ interface LocationContextType {
     manualClockIn: () => Promise<void>;
     manualClockOut: (force?: boolean) => Promise<{ success?: boolean; confirmRequired?: boolean; message?: string }>;
     isLoading: boolean;
+    clockInPhase: ClockInPhase;
     isPolling: boolean;
     refreshLocation: () => Promise<void>;
     lastPulse: Date | null;
@@ -188,6 +190,7 @@ export function LocationProvider({
     const [clockOutTime, setClockOutTime] = useState<string | null>(initialRecord?.clock_out_at || initialRecord?.clock_out || null);
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [clockInPhase, setClockInPhase] = useState<ClockInPhase>('idle');
     const [location, setLocation] = useState<{ latitude: number; longitude: number; accuracy: number | null } | null>(null);
     const [officeLocationState, setOfficeLocationState] = useState<{ latitude: number; longitude: number } | null>(null);
     
@@ -678,11 +681,11 @@ export function LocationProvider({
 
     const manualClockIn = useCallback(async () => {
         setIsLoading(true);
+        setClockInPhase('locating');
         suppressSyncToastRef.current = true;
         try {
             if (!navigator.geolocation) {
                 toast.error('Geolocation not supported');
-                setIsLoading(false);
                 return;
             }
             toast.loading("Acquiring accurate GPS signal...", { id: 'gps-lock' });
@@ -694,14 +697,12 @@ export function LocationProvider({
                 // Manual Accuracy Gate: Lenient up to 100m for intended actions
                 if (accuracy > 100) {
                     toast.error('GPS signal too unstable for secure clock-in.');
-                    setIsLoading(false);
                     return;
                 }
 
                 const offices = officesRef.current;
                 if (!offices || offices.length === 0) {
                     toast.error('No office locations configured.');
-                    setIsLoading(false);
                     return;
                 }
 
@@ -717,7 +718,6 @@ export function LocationProvider({
 
                 if (validOfficeId === null) {
                     toast.error('Not strictly in the office geofence.');
-                    setIsLoading(false);
                     return;
                 }
 
@@ -734,30 +734,19 @@ export function LocationProvider({
                     );
                     if (!inArrivalWindow) {
                         toast.error(`Arrival window is closed (${policy.check_in_open_time?.slice(0,5)} - ${policy.check_in_close_time?.slice(0,5)}).`);
-                        setIsLoading(false);
                         return;
                     }
 
                     // 2. Auto-Out Check
                     if (policy.auto_clock_out_time && isAfterTime(now, policy.auto_clock_out_time)) {
                         toast.error(`Automatic checkout period has started (${policy.auto_clock_out_time.slice(0,5)}).`);
-                        setIsLoading(false);
                         return;
                     }
                 }
 
-                // ── 3. Optimistic Update (Instant Feedback) ──
-                const previousAttendance = attendanceStateRef.current;
-                const previousPresence = presenceStateRef.current;
-                const previousClockIn = clockInTime;
-
-                setAttendanceState('CLOCKED_IN');
-                setConfirmedPresenceState('IN_OFFICE');
-                attendanceStateRef.current = 'CLOCKED_IN';
-                presenceStateRef.current = 'IN_OFFICE';
-                setClockInTime(new Date().toISOString());
-                setLastUpdate(new Date());
-
+                // Keep the existing attendance state visible until the backend
+                // validates the location and confirms the clock-in.
+                setClockInPhase('checking_server');
                 const result = await updateLocation(latitude, longitude, accuracy, validOfficeId || undefined, true);
                 
                 if (result.success && result.record) {
@@ -780,24 +769,19 @@ export function LocationProvider({
                         toast.info('Location updated, but clock-in was not confirmed by the server.');
                     }
                 } else {
-                    // ── Rollback on Failure ──
-                    setAttendanceState(previousAttendance);
-                    setConfirmedPresenceState(previousPresence);
-                    attendanceStateRef.current = previousAttendance;
-                    presenceStateRef.current = previousPresence;
-                    setClockInTime(previousClockIn);
                     toast.error(result.error || 'Failed to clock in');
                 }
-                setIsLoading(false);
             } catch (error) {
                 toast.dismiss('gps-lock');
                 toast.error('GPS error or timeout.');
-                setIsLoading(false);
             }
         } catch {
+            toast.error('An unexpected error occurred while clocking in.');
+        } finally {
             setIsLoading(false);
+            setClockInPhase('idle');
         }
-    }, [mutate, clockInTime]);
+    }, [mutate]);
 
     const manualClockOut = useCallback(async (force = false) => {
         setIsLoading(true);
@@ -915,6 +899,7 @@ export function LocationProvider({
         manualClockIn,
         manualClockOut,
         isLoading,
+        clockInPhase,
         isPolling,
         refreshLocation,
         lastPulse,
@@ -936,6 +921,7 @@ export function LocationProvider({
         manualClockIn,
         manualClockOut,
         isLoading,
+        clockInPhase,
         isPolling,
         refreshLocation,
         lastPulse,

@@ -32,7 +32,8 @@ to `http://127.0.0.1:8000`.
 - Multi-organization registration, invitations, membership, and workspace switching
 - Projects, tasks, kanban workflows, notes, calendar events, and time tracking
 - Geofenced attendance with window-aware automatic clock-in monitoring
-- Time-off requests, approval workflows, announcements, and live notifications
+- Time-off requests, approval workflows, announcements, and live notification inbox
+- Invite acceptance, attendance exit, and time-off/task conflict alerts
 - Team profiles, organization settings, onboarding, and guided setup
 - Pip AI chat, streamed responses, structured widgets, and downloadable reports
 - Attributed social sharing through major platforms, native share, copy, and QR code

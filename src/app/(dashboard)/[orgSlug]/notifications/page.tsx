@@ -1,414 +1,240 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useNotifications, Notification } from '@/components/ui/notifications/notification-provider';
-import { 
-  FiBell, 
-  FiCheck, 
-  FiX, 
-  FiAlertCircle, 
-  FiClock, 
-  FiCheckCircle, 
-  FiSearch, 
-  FiInbox, 
-  FiFileText, 
-  FiLayers, 
-  FiCpu, 
-  FiFilter,
-  FiUser,
-  FiMaximize2,
-  FiChevronRight,
-  FiShare2,
-  FiTag
+import { useMemo, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import {
+  FiAlertCircle, FiBell, FiCalendar, FiCheck, FiCheckCircle,
+  FiChevronLeft, FiChevronRight, FiClock, FiFileText, FiInbox,
+  FiLayers, FiSearch, FiUsers, FiX,
 } from 'react-icons/fi';
-import Image from 'next/image';
-import { Portal } from '@/components/ui/portal';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
+import { Notification, useNotifications } from '@/components/ui/notifications/notification-provider';
 
-type Category = 'all' | 'tasks' | 'notes' | 'projects' | 'system' | 'attendance';
+type InboxView = 'all' | 'attention' | 'unread';
+type Category = 'all' | 'attendance' | 'tasks' | 'projects' | 'notes' | 'team' | 'time_off' | 'events' | 'system';
 
-interface TabItem {
-  id: Category;
-  label: string;
-  icon: React.ElementType;
+interface DirectoryUser {
+  id: string;
+  fullName?: string | null;
+  name?: string | null;
+  email?: string | null;
 }
 
-const tabs: TabItem[] = [
-  { id: 'all', label: 'Inbox', icon: FiInbox },
-  { id: 'attendance', label: 'Presence', icon: FiClock },
-  { id: 'tasks', label: 'Tasks', icon: FiCheckCircle },
-  { id: 'notes', label: 'Notes', icon: FiFileText },
-  { id: 'projects', label: 'Projects', icon: FiLayers },
-  { id: 'system', label: 'System', icon: FiCpu },
+const categories: Array<{ value: Category; label: string }> = [
+  { value: 'all', label: 'All categories' },
+  { value: 'attendance', label: 'Attendance' },
+  { value: 'tasks', label: 'Tasks' },
+  { value: 'projects', label: 'Projects' },
+  { value: 'notes', label: 'Notes' },
+  { value: 'team', label: 'Team' },
+  { value: 'time_off', label: 'Time off' },
+  { value: 'events', label: 'Events' },
+  { value: 'system', label: 'System' },
 ];
 
-// SenderAvatar helper component with hover card logic
-function SenderAvatar({ user, size = 'sm' }: { user: any, size?: 'xs' | 'sm' | 'md' }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const triggerRef = React.useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState({ top: 0, left: 0 });
+function categoryFor(notification: Notification): Category {
+  const resource = notification.resource_type;
+  if (resource === 'task') return 'tasks';
+  if (resource === 'project') return 'projects';
+  if (resource === 'note') return 'notes';
+  if (resource === 'attendance') return 'attendance';
+  if (resource === 'invitation' || resource === 'user') return 'team';
+  if (resource === 'time_off') return 'time_off';
+  if (resource === 'event' || resource === 'announcement') return 'events';
+  return 'system';
+}
 
-  const handleMouseEnter = () => {
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setCoords({
-        top: rect.top,
-        left: rect.left + rect.width / 2,
-      });
-      setIsHovered(true);
-    }
-  };
+function iconFor(notification: Notification) {
+  const category = categoryFor(notification);
+  if (category === 'attendance') return FiClock;
+  if (category === 'tasks') return FiCheckCircle;
+  if (category === 'projects') return FiLayers;
+  if (category === 'notes') return FiFileText;
+  if (category === 'team') return FiUsers;
+  if (category === 'time_off' || category === 'events') return FiCalendar;
+  return notification.type === 'warning' || notification.type === 'error' ? FiAlertCircle : FiBell;
+}
 
-  const name = user?.fullName || user?.name || 'System';
-  const initials = name.charAt(0).toUpperCase();
-  const avatar = user?.avatarUrl || user?.image;
+function destinationFor(notification: Notification, orgSlug: string): string | null {
+  const base = `/${orgSlug}`;
+  switch (notification.resource_type) {
+    case 'task': return `${base}/tasks`;
+    case 'project': return `${base}/projects`;
+    case 'note': return `${base}/notes`;
+    case 'attendance': return `${base}/attendance`;
+    case 'invitation':
+    case 'user': return `${base}/team`;
+    case 'time_off': return `${base}/time-off`;
+    case 'event': return `${base}/calendar`;
+    case 'announcement': return `${base}/announcements`;
+    default: return null;
+  }
+}
 
-  const sizeClasses = {
-    xs: 'h-6 w-6 text-[11px]',
-    sm: 'h-8 w-8 text-xs',
-    md: 'h-10 w-10 text-sm',
-  };
-
-  return (
-    <>
-      <div 
-        ref={triggerRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => setIsHovered(false)}
-        className={`relative rounded-full ring-2 ring-background bg-foreground/[0.05] flex-shrink-0 flex items-center justify-center overflow-hidden cursor-pointer ${sizeClasses[size]}`}
-      >
-        {avatar ? (
-          <Image src={avatar} alt={name} fill className="object-cover" />
-        ) : (
-          <span className="font-bold text-emerald-500">{initials}</span>
-        )}
-      </div>
-
-      {isHovered && user && (
-        <Portal>
-          <div 
-            style={{
-              position: 'fixed',
-              top: `${coords.top - 8}px`,
-              left: `${coords.left}px`,
-              transform: 'translate(-50%, -100%)',
-            }}
-            className="w-48 p-3 bg-card border border-card-border rounded-xl shadow-xl z-[9999] animate-in fade-in slide-in-from-bottom-1 duration-200"
-          >
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                  {initials}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-foreground truncate">{name}</p>
-                  <p className="text-[11px] text-text-muted truncate">{user.email}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {user.roles?.map((role: string) => (
-                  <span key={role} className="px-1.5 py-0.5 rounded-md bg-foreground/[0.03] border border-card-border text-[11px] font-medium uppercase tracking-wider text-text-muted">
-                    {role}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Portal>
-      )}
-    </>
-  );
+function dateGroup(value: string): string {
+  const date = new Date(value);
+  if (isToday(date)) return 'Today';
+  if (isYesterday(date)) return 'Yesterday';
+  return format(date, 'MMMM d, yyyy');
 }
 
 export default function NotificationsPage() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, user, users } = useNotifications();
-  const [activeTab, setActiveTab] = useState<Category>('all');
+  const router = useRouter();
+  const params = useParams<{ orgSlug: string }>();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, users } = useNotifications();
+  const [activeView, setActiveView] = useState<InboxView>('all');
+  const [category, setCategory] = useState<Category>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const filteredNotifications = useMemo(() => {
-    return notifications.filter(n => {
-      const matchesSearch = 
-        n.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        n.message.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      if (!matchesSearch) return false;
-      if (activeTab === 'all') return true;
+  const filtered = useMemo(() => notifications.filter((notification) => {
+    if (activeView === 'unread' && notification.is_read) return false;
+    if (activeView === 'attention' && !['warning', 'error'].includes(notification.type)) return false;
+    if (category !== 'all' && categoryFor(notification) !== category) return false;
+    const query = searchQuery.trim().toLowerCase();
+    return !query || `${notification.title} ${notification.message}`.toLowerCase().includes(query);
+  }), [activeView, category, notifications, searchQuery]);
 
-      if (activeTab === 'attendance') return n.resource_type === 'attendance' || n.title.toLowerCase().includes('attendance') || n.message.toLowerCase().includes('clock');
-      if (activeTab === 'tasks') return n.resource_type === 'task' || n.title.toLowerCase().includes('task');
-      if (activeTab === 'notes') return n.resource_type === 'note' || n.title.toLowerCase().includes('note');
-      if (activeTab === 'projects') return n.resource_type === 'project' || n.title.toLowerCase().includes('project');
-      if (activeTab === 'system') return n.resource_type === 'system' || (!n.resource_type && !n.title.toLowerCase().match(/task|note|project|attendance|clock/));
-      
-      return true;
-    }).map(n => ({
-      ...n,
-      sender: users.find(u => u.id === n.sender_id)
-    }));
-  }, [notifications, activeTab, searchQuery, users]);
-
-  // Track filtered notifications to auto-select the first one if none is selected during render
-  const [prevFilteredCount, setPrevFilteredCount] = useState(0);
-  
-  if (filteredNotifications.length !== prevFilteredCount) {
-    setPrevFilteredCount(filteredNotifications.length);
-    if (filteredNotifications.length > 0 && !selectedId) {
-      setSelectedId(filteredNotifications[0].id);
+  const grouped = useMemo(() => {
+    const result = new Map<string, Notification[]>();
+    for (const notification of filtered) {
+      const label = dateGroup(notification.created_at);
+      result.set(label, [...(result.get(label) ?? []), notification]);
     }
-  }
+    return Array.from(result.entries());
+  }, [filtered]);
 
-  const selectedNotification = useMemo(() => 
-    filteredNotifications.find(n => n.id === selectedId) || null
-  , [filteredNotifications, selectedId]);
+  const selected = notifications.find((notification) => notification.id === selectedId) ?? null;
+  const selectedSender = selected?.sender_id
+    ? (users as DirectoryUser[]).find((person) => person.id === selected.sender_id)
+    : null;
 
-  const handleSelect = (idx: string) => {
-    setSelectedId(idx);
-    const notification = notifications.find(n => n.id === idx);
-    if (notification && !notification.is_read) {
-      markAsRead(idx);
-    }
+  const selectNotification = (notification: Notification) => {
+    setSelectedId(notification.id);
+    if (!notification.is_read) void markAsRead(notification.id);
   };
 
-  const notificationStats = useMemo(() => {
-    const stats = {
-      all: notifications.length,
-      attendance: notifications.filter(n => n.resource_type === 'attendance' || n.title.toLowerCase().includes('attendance') || n.message.toLowerCase().includes('clock')).length,
-      tasks: notifications.filter(n => n.resource_type === 'task' || n.title.toLowerCase().includes('task')).length,
-      notes: notifications.filter(n => n.resource_type === 'note' || n.title.toLowerCase().includes('note')).length,
-      projects: notifications.filter(n => n.resource_type === 'project' || n.title.toLowerCase().includes('project')).length,
-      system: notifications.filter(n => n.resource_type === 'system' || (!n.resource_type && !n.title.toLowerCase().match(/task|note|project|attendance|clock/))).length,
-    };
-    return stats;
-  }, [notifications]);
+  const openResource = (notification: Notification) => {
+    const destination = destinationFor(notification, params.orgSlug);
+    if (destination) router.push(destination);
+  };
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-[1600px] flex-col overflow-hidden px-3 py-4 sm:px-4 md:h-[calc(100vh-40px)] md:py-8">
-      <div className="mb-4 flex flex-col md:flex-row md:items-end justify-between gap-4 shrink-0 px-1">
+    <main className="mx-auto flex min-h-[calc(100dvh-8rem)] w-full max-w-6xl flex-col gap-4 px-3 py-4 sm:px-4 md:py-8">
+      <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-foreground mb-0.5 tracking-tight">
-            Notifications
-          </h1>
-          <p className="text-text-muted text-[11px] font-bold uppercase tracking-wider">Recent activity</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifications</h1>
+          <p className="mt-1 text-sm text-text-muted">Updates that need your attention across this workspace.</p>
         </div>
-        <div className="flex items-center gap-3">
-            {unreadCount > 0 && (
-              <button 
-                onClick={markAllAsRead}
-                className="px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg border border-emerald-500/20 transition-all active:scale-95"
-              >
-                Mark all read
-              </button>
-            )}
-        </div>
-      </div>
+        {unreadCount > 0 && (
+          <button type="button" onClick={() => void markAllAsRead()} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-card-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-foreground/[0.05] active:scale-[0.98]">
+            <FiCheck className="h-4 w-4 text-emerald-500" /> Mark all read
+          </button>
+        )}
+      </header>
 
-      <div className="bg-card rounded-[2rem] overflow-hidden border border-card-border flex flex-col md:flex-row flex-1 mb-12 shadow-xl">
-        {/* Leftmost Sidebar - Categories */}
-        <div className="w-full md:w-20 lg:w-24 border-r border-card-border flex md:flex-col bg-foreground/[0.02] p-2 gap-2 overflow-x-auto md:overflow-x-hidden no-scrollbar">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 md:flex-none flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 gap-1.5 group ${
-                activeTab === tab.id 
-                  ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
-                  : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03] border border-transparent hover:border-card-border'
-              }`}
-            >
-              <tab.icon className={`w-5 h-5 group-hover:scale-110 transition-transform ${activeTab === tab.id ? 'fill-current opacity-20' : ''}`} />
-              <span className="text-[9px] font-black uppercase tracking-[0.15em]">{tab.label}</span>
-              {notificationStats[tab.id] > 0 && (
-                <div className={`mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-black ${
-                  activeTab === tab.id ? 'bg-emerald-500 text-white dark:text-zinc-950' : 'bg-foreground/[0.05] text-text-muted'
-                }`}>
-                  {notificationStats[tab.id]}
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
+      <section className="grid min-h-[620px] flex-1 overflow-hidden rounded-2xl border border-card-border bg-card shadow-sm md:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.3fr)]">
+        <div className={`${selected ? 'hidden md:flex' : 'flex'} min-w-0 flex-col border-card-border md:border-r`}>
+          <div className="space-y-3 border-b border-card-border p-3 sm:p-4">
+            <div className="flex rounded-lg bg-foreground/[0.04] p-1" aria-label="Notification views">
+              {(['all', 'attention', 'unread'] as InboxView[]).map((view) => (
+                <button type="button" key={view} onClick={() => setActiveView(view)} className={`min-h-11 flex-1 rounded-md px-3 py-2 text-sm font-medium capitalize transition-colors ${activeView === view ? 'bg-card text-foreground shadow-sm' : 'text-text-muted hover:text-foreground'}`}>
+                  {view}{view === 'unread' && unreadCount > 0 ? ` ${unreadCount}` : ''}
+                </button>
+              ))}
+            </div>
 
-        {/* List Pane */}
-        <div className="w-full md:w-80 lg:w-96 border-r border-card-border flex flex-col bg-foreground/[0.01]">
-          <div className="p-4 border-b border-card-border bg-foreground/[0.01]">
-            <div className="relative group">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-emerald-500 transition-colors w-3.5 h-3.5" />
-              <input 
-                type="text"
-                placeholder="Search resources..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl pl-9 pr-3 py-2.5 text-xs text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all placeholder:text-text-muted/50 font-medium"
-              />
+            <div className="flex gap-2">
+              <label className="relative min-w-0 flex-1">
+                <span className="sr-only">Search notifications</span>
+                <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search notifications" className="h-11 w-full rounded-md border border-card-border bg-input-bg pl-10 pr-10 text-sm text-foreground outline-none placeholder:text-text-muted focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20" />
+                {searchQuery && (
+                  <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear notification search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-text-muted hover:bg-foreground/[0.05] hover:text-foreground">
+                    <FiX className="h-4 w-4" />
+                  </button>
+                )}
+              </label>
+              <label>
+                <span className="sr-only">Filter by category</span>
+                <select value={category} onChange={(event) => setCategory(event.target.value as Category)} className="h-11 max-w-36 rounded-md border border-card-border bg-input-bg px-3 text-sm text-foreground outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20">
+                  {categories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                </select>
+              </label>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-card-border no-scrollbar">
-            {filteredNotifications.length > 0 ? (
-              filteredNotifications.map((n) => (
-                <div 
-                  key={n.id}
-                  onClick={() => handleSelect(n.id)}
-                  className={`px-5 py-5 cursor-pointer transition-all relative group ${
-                    selectedId === n.id 
-                      ? 'bg-emerald-500/[0.04]' 
-                      : 'hover:bg-foreground/[0.02]'
-                  }`}
-                >
-                  <div className="flex gap-3">
-                    <SenderAvatar user={n.sender} size="xs" />
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex justify-between items-start">
-                        <p className={`text-[11px] font-bold truncate transition-colors ${selectedId === n.id ? 'text-emerald-500 dark:text-emerald-400' : 'text-foreground group-hover:text-emerald-500 dark:group-hover:text-emerald-300'}`}>
-                          {n.title}
-                        </p>
-                        {!n.is_read && (
-                          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse shrink-0 ml-2 mt-1" />
-                        )}
-                      </div>
-                      <p className="text-[11px] text-text-muted line-clamp-2 leading-relaxed font-medium">
-                        {n.message}
-                      </p>
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="text-[11px] font-medium uppercase tracking-wider text-text-muted/60">
-                           {n.resource_type || 'General'}
+          <div className="flex-1 overflow-y-auto">
+            {grouped.length ? grouped.map(([label, items]) => (
+              <section key={label} aria-labelledby={`notification-group-${label}`}>
+                <h2 id={`notification-group-${label}`} className="sticky top-0 z-10 border-b border-card-border bg-card/95 px-4 py-2 text-xs font-semibold text-text-muted backdrop-blur">{label}</h2>
+                {items.map((notification) => {
+                  const Icon = iconFor(notification);
+                  return (
+                    <button type="button" key={notification.id} onClick={() => selectNotification(notification)} className={`flex min-h-20 w-full items-start gap-3 border-b border-card-border px-4 py-4 text-left transition-colors hover:bg-foreground/[0.03] ${selectedId === notification.id ? 'bg-emerald-500/[0.06]' : ''}`}>
+                      <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg ${notification.type === 'warning' ? 'bg-amber-500/10 text-amber-500' : notification.type === 'error' ? 'bg-rose-500/10 text-rose-500' : notification.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-start justify-between gap-2">
+                          <span className={`truncate text-sm ${notification.is_read ? 'font-medium text-text-secondary' : 'font-semibold text-foreground'}`}>{notification.title}</span>
+                          {!notification.is_read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-label="Unread" />}
                         </span>
-                        <span className="text-[11px] text-text-muted font-medium uppercase tracking-tight bg-foreground/[0.03] px-1.5 py-0.5 rounded-md border border-card-border">
-                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: false })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-4 opacity-50">
-                <div className="w-16 h-16 rounded-3xl bg-foreground/[0.03] flex items-center justify-center border border-card-border">
-                   <FiBell size={24} className="text-text-muted" />
-                </div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-text-muted">No messages found</p>
+                        <span className="mt-1 line-clamp-2 text-xs leading-relaxed text-text-muted">{notification.message}</span>
+                        <span className="mt-2 block text-xs text-text-muted">{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </section>
+            )) : (
+              <div className="flex min-h-80 flex-col items-center justify-center px-6 text-center">
+                <span className="grid h-14 w-14 place-items-center rounded-xl bg-emerald-500/10 text-emerald-500"><FiInbox className="h-6 w-6" /></span>
+                <h2 className="mt-4 text-base font-semibold text-foreground">You’re all caught up</h2>
+                <p className="mt-1 max-w-xs text-sm text-text-muted">There are no notifications matching this view.</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Pane - Content */}
-        <div className="hidden md:flex flex-1 flex-col bg-background relative">
-          {/* Decorative background grid - more subtle in light mode */}
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.02] dark:opacity-[0.03] pointer-events-none" />
-          
-          {selectedNotification ? (
-            <div className="h-full flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500 relative z-10">
-               <div className="p-6 lg:p-8 border-b border-card-border bg-foreground/[0.01] backdrop-blur-sm">
-                <div className="flex justify-between items-start gap-6">
-                  <div className="flex items-center gap-4 min-w-0">
-                    <SenderAvatar user={selectedNotification.sender} size="sm" />
-                    <div className="space-y-1">
-                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium uppercase tracking-wider border transition-all ${
-                          selectedNotification.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border-emerald-500/20' :
-                          selectedNotification.type === 'error' ? 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20' :
-                          selectedNotification.type === 'warning' ? 'bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-500/20' :
-                          'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20'
-                        }`}>
-                          {selectedNotification.type}
-                        </span>
-                        <div className="h-3 w-[1px] bg-card-border" />
-                        <span className="text-[11px] text-text-muted flex items-center gap-1.5 font-medium uppercase tracking-wider">
-                          <FiClock className="w-3 h-3 text-indigo-500/30" />
-                          {new Date(selectedNotification.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
-                        </span>
-                      </div>
-                      <h2 className="text-2xl lg:text-3xl font-medium text-foreground tracking-tight leading-tight uppercase">
-                        {selectedNotification.title}
-                      </h2>
+        <div className={`${selected ? 'flex' : 'hidden md:flex'} min-w-0 flex-col`}>
+          {selected ? (
+            <>
+              <div className="flex items-center justify-between border-b border-card-border p-4 sm:p-5">
+                <button type="button" onClick={() => setSelectedId(null)} className="grid h-11 w-11 place-items-center rounded-md text-text-muted hover:bg-foreground/[0.05] hover:text-foreground md:hidden" aria-label="Back to notifications"><FiChevronLeft className="h-5 w-5" /></button>
+                <span className="text-xs font-medium text-text-muted">{format(new Date(selected.created_at), 'MMM d, yyyy · h:mm a')}</span>
+              </div>
+              <article className="flex flex-1 flex-col p-5 sm:p-8">
+                <div className="max-w-2xl">
+                  <span className="text-xs font-semibold capitalize text-emerald-500">{categoryFor(selected).replace('_', ' ')}</span>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{selected.title}</h2>
+                  <p className="mt-4 text-base leading-7 text-text-secondary">{selected.message}</p>
+                  <div className="mt-6 flex items-center gap-3 rounded-xl border border-card-border bg-foreground/[0.02] p-4">
+                    <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500/10 text-sm font-semibold text-emerald-500">{(selectedSender?.fullName || selectedSender?.name || 'MyndDesk').charAt(0).toUpperCase()}</span>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{selectedSender?.fullName || selectedSender?.name || 'MyndDesk'}</p>
+                      <p className="text-xs text-text-muted">{selectedSender?.email || 'Workspace update'}</p>
                     </div>
                   </div>
-                  <div className="flex gap-1.5 shrink-0 pt-1">
-                    <button className="p-2 rounded-xl bg-foreground/[0.03] border border-card-border text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all active:scale-95 group ">
-                      <FiShare2 size={14} className="group-hover:rotate-12 transition-transform" />
-                    </button>
-                    <button className="p-2 rounded-xl bg-foreground/[0.03] border border-card-border text-text-muted hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-all active:scale-95 group ">
-                      <FiMaximize2 size={14} className="group-hover:scale-110 transition-transform" />
+                </div>
+                {destinationFor(selected, params.orgSlug) && (
+                  <div className="mt-auto pt-8">
+                    <button type="button" onClick={() => openResource(selected)} className="inline-flex min-h-11 items-center gap-2 rounded-md bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 active:scale-[0.98]">
+                      View related item <FiChevronRight className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
-              </div>
-
-               <div className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-8 no-scrollbar">
-                <div className="max-w-3xl">
-                  <p className="text-base lg:text-lg text-text-secondary leading-relaxed font-medium italic">
-                    &quot;{selectedNotification.message}&quot;
-                  </p>
-                  
-                  {/* Metadata Matrix */}
-                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-2xl bg-foreground/[0.02] border border-card-border space-y-1">
-                      <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider">Transaction ID</p>
-                      <p className="text-[11px] font-mono text-text-secondary truncate">{selectedNotification.id}</p>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-foreground/[0.02] border border-card-border space-y-1">
-                      <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider">Source Vector</p>
-                      <p className="text-[11px] font-mono text-text-secondary uppercase tracking-tight">{selectedNotification.resource_type || 'SYSTEM_CORE'}</p>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-foreground/[0.02] border border-card-border space-y-1">
-                      <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider">Company</p>
-                      <p className="text-[11px] font-mono text-text-secondary truncate">{selectedNotification.resource_id || 'NULL'}</p>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-foreground/[0.02] border border-card-border space-y-1">
-                      <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider">Authority</p>
-                      <p className="text-[11px] font-mono text-text-secondary truncate uppercase">{selectedNotification.sender?.fullName || 'SYSTEM'}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex items-center gap-4">
-                    <div className={`h-1.5 w-1.5 rounded-full ${selectedNotification.is_read ? 'bg-text-muted/30' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
-                    <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
-                      Transmission Status: {selectedNotification.is_read ? 'VERIFIED' : 'PENDING_ACK'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 lg:p-8 border-t border-card-border bg-foreground/[0.01] backdrop-blur-md">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex flex-col gap-1.5 min-w-0">
-                    <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider text-center md:text-left">Recipient</p>
-                    <div className="px-4 py-2 rounded-xl bg-foreground/[0.02] border border-card-border">
-                      <p className="text-[11px] font-mono text-text-muted truncate tracking-tight">{selectedNotification.recipient_id}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 bg-background px-6 py-3 rounded-2xl border border-card-border ">
-                    <div className="flex items-center gap-3">
-                      <FiTag className="text-emerald-500 w-3.5 h-3.5" /> 
-                      <span className="text-[11px] font-medium uppercase tracking-wider text-text-muted">{selectedNotification.resource_type || 'General'}</span>
-                    </div>
-                    <div className="h-4 w-[1px] bg-card-border" />
-                    <div className="flex items-center gap-3">
-                      <FiCheckCircle className="text-indigo-500 w-3.5 h-3.5" />
-                      <span className="text-[11px] font-medium uppercase tracking-wider text-text-muted">Vector Secure</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                )}
+              </article>
+            </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-12 space-y-8 animate-in fade-in duration-700">
-              <div className="relative">
-                <div className="absolute inset-0 bg-emerald-500/10 blur-[120px] rounded-full animate-pulse" />
-                <div className="relative w-48 h-48 rounded-[4.5rem] bg-card border border-card-border flex items-center justify-center text-text-muted/20 backdrop-blur-xl transform hover:scale-105 transition-transform duration-700 border-dashed">
-                  <FiInbox size={72} />
-                </div>
-              </div>
-              <div className="space-y-4 max-w-sm">
-                <h3 className="text-3xl font-medium text-foreground uppercase tracking-wider">Awaiting Uplink</h3>
-                <p className="text-text-muted font-medium leading-relaxed">System is operational. Select a classified transmission to hydrate tactical details.</p>
-              </div>
+            <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-foreground/[0.04] text-text-muted"><FiBell className="h-7 w-7" /></span>
+              <h2 className="mt-5 text-lg font-semibold text-foreground">Select a notification</h2>
+              <p className="mt-1 max-w-sm text-sm text-text-muted">Choose an update to see its details and open the related work.</p>
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

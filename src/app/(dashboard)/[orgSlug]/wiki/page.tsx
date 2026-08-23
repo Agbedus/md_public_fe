@@ -161,6 +161,16 @@ function Table({ headers, rows }: { headers: string[]; rows: React.ReactNode[][]
 
 const NAV: { id: string; title: string; icon: React.ElementType; color: string; topics: { id: string; title: string }[] }[] = [
     {
+        id: 'latest',
+        title: 'Latest changes',
+        icon: FiInfo,
+        color: 'text-emerald-400',
+        topics: [
+            { id: 'docs-version', title: 'Docs version' },
+            { id: 'recent-updates', title: 'What changed recently' },
+        ],
+    },
+    {
         id: 'getting-started',
         title: 'Getting started',
         icon: FiBookOpen,
@@ -293,6 +303,9 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
     },
 ];
 
+const DOC_VERSION = '2026.08.22';
+const DOC_RELEASE_LABEL = 'Notifications and invitations refresh';
+
 export default function WikiPage() {
     const router = useRouter();
     const [activeId, setActiveId] = useState('what-it-is');
@@ -416,12 +429,38 @@ export default function WikiPage() {
             <main ref={mainRef} className="custom-scrollbar flex-1 overflow-y-auto scroll-smooth">
                 <div className="mx-auto max-w-3xl space-y-10 px-3 py-6 sm:px-5 md:space-y-16 md:px-10 md:py-12">
                     <header className="space-y-2 border-b border-card-border pb-8">
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Documentation</h1>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Documentation</h1>
+                            <span className="rounded-full border border-card-border bg-foreground/[0.03] px-2.5 py-1 text-[11px] font-semibold text-text-muted">
+                                v{DOC_VERSION}
+                            </span>
+                        </div>
                         <P>
                             How this platform works, what each part is for, and who can do what. If
                             you are new here, start with Getting started and Roles.
                         </P>
                     </header>
+
+                    <Section id="latest" title="Latest changes" icon={FiInfo} color="text-emerald-400">
+                        <Topic id="docs-version" title="Docs version">
+                            <P>
+                                This wiki is versioned as <strong className="font-medium text-foreground">v{DOC_VERSION}</strong>.
+                                The current release focus is {DOC_RELEASE_LABEL.toLowerCase()}.
+                            </P>
+                        </Topic>
+
+                        <Topic id="recent-updates" title="What changed recently">
+                            <Table
+                                headers={['Area', 'What changed']}
+                                rows={[
+                                    ['Invitations', 'When someone accepts an invitation and joins a workspace, the person who invited them now receives a clear in-app confirmation.'],
+                                    ['Notifications', 'The notification center has a cleaner inbox layout, filters, search, grouped dates and one action to mark everything in the current workspace as read.'],
+                                    ['Attendance', 'Office-exit alerts now notify only the right higher-role people in the same organization after the backend confirms the person has left the office zone.'],
+                                    ['Time off', 'Task assignment remains flexible, but MyndDesk now warns when assigned work overlaps approved time off.'],
+                                ]}
+                            />
+                        </Topic>
+                    </Section>
 
                     <Section id="getting-started" title="Getting started" icon={FiBookOpen} color="text-blue-400">
                         <Topic id="what-it-is" title="What this platform does">
@@ -638,6 +677,13 @@ export default function WikiPage() {
                                 the time appears on the shared calendar so nobody double-books you.
                                 You can cancel your own request while it is still pending.
                             </P>
+                            <P>
+                                If approved time off overlaps a task assignment, MyndDesk warns the
+                                person assigning the work and, when time off is approved, warns
+                                creators whose incomplete assigned tasks fall inside that time away.
+                                The assignment is still allowed; the warning is there so the team can
+                                adjust the plan early.
+                            </P>
                         </Topic>
                     </Section>
 
@@ -659,6 +705,12 @@ export default function WikiPage() {
                                 device temporarily cannot determine its position, MyndDesk keeps the
                                 experience recoverable instead of treating the first unavailable
                                 update as a permanent permission failure.
+                            </P>
+                            <P>
+                                When someone leaves the office zone and the backend confirms the
+                                transition, the notification goes only to higher-authority people in
+                                that same organization. Owners do not report downward, admins report
+                                to owners, and managers or members report to owners/admins.
                             </P>
                         </Topic>
 
@@ -682,9 +734,16 @@ export default function WikiPage() {
                     <Section id="team" title="Your team" icon={FiUsers} color="text-teal-400">
                         <Topic id="inviting" title="Inviting people">
                             <P>
-                                Owners and Admins can invite colleagues from the Team page by sharing
-                                an invite link. New joiners appear as Pending until someone approves
-                                them, at which point they get access at the role you choose.
+                                Owners and Admins can invite colleagues from the Team page by email.
+                                Each person receives their own tracked link, which means delivery,
+                                pending status, expiry and acceptance can be followed cleanly.
+                            </P>
+                            <P>
+                                If the invited email already has an account, the person signs in and
+                                joins the organization with that existing account. If they are already
+                                signed in as the matching email, MyndDesk can accept the invitation
+                                directly and switch them into the new workspace. The inviter receives
+                                one confirmation when the membership is created.
                             </P>
                         </Topic>
 
@@ -723,14 +782,19 @@ export default function WikiPage() {
                                 rows={[
                                     ['A task is assigned to you', 'You'],
                                     ['A note is shared with you', 'You'],
+                                    ['An invitation you sent is accepted', 'You'],
                                     ['Someone creates or updates work', 'Owners, Admins and Managers'],
                                     ['Time off is requested', 'Owners and Admins'],
                                     ['Your time off is approved or declined', 'You'],
+                                    ['Approved time off overlaps assigned work', 'The assigner or affected task creators'],
+                                    ['A member leaves the office zone', 'Only higher-authority owners/admins in that organization'],
                                 ]}
                             />
                             <P>
-                                You will never be notified about a record you could not open. Choose
-                                which alerts you receive in Settings.
+                                You will never be notified about a record you could not open. The
+                                notification page lets you search, filter by category, focus on
+                                unread or attention items, and mark all current-workspace alerts as
+                                read in one action. Choose which alerts you receive in Settings.
                             </P>
                         </Topic>
 
