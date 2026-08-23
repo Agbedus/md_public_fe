@@ -1,5 +1,5 @@
 /**
- * Org-scoped role types and presentation constants.
+ * Org-scoped role types and display constants.
  *
  * `OrgRole` is the lowercase string returned by the frontend shim
  * (kept for backward compatibility with existing call sites).

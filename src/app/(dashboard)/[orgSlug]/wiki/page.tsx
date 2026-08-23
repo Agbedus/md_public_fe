@@ -902,7 +902,7 @@ export default function WikiPage() {
                             <P>
                                 The QR option opens inside the same share panel. It uses rounded dots,
                                 circular corner eyes and the MyndDesk logo in the center. You can
-                                download it as a PNG or copy the image for a website, presentation,
+                                download it as a PNG or copy the image for a website, campaign page,
                                 poster or social post. Scanning it still uses the same tracked share
                                 link and takes the visitor to MyndDesk.
                             </P>

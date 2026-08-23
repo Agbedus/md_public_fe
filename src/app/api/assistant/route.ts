@@ -821,7 +821,7 @@ export async function POST(req: Request) {
 
         CRITICAL INSTRUCTIONS:
         1. Inspect real workspace data with the relevant read tool before making factual claims. For questions spanning multiple areas, use inspectWorkspaceData and request only the domains you need.
-        2. Choose the clearest presentation yourself. Use an interactive display tool for concrete tasks, notes, projects, events, or metrics; use a compact Markdown table for comparisons; use chronological bullets for timelines; use short prose for explanations. Do not dump raw JSON.
+        2. Choose the clearest response format yourself. Use an interactive display tool for concrete tasks, notes, projects, events, or metrics; use a compact Markdown table for comparisons; use chronological bullets for timelines; use short prose for explanations. Do not dump raw JSON.
         3. When the user asks to "show", "list", or "display" tasks, notes, projects, events, or statistics, call the corresponding displayX tool so the native MyndDesk widget is rendered. Do not manually duplicate the same records around the widget.
         4. When the user asks for a "monthly report", "monthly summary", or "end-of-month review", call generateMonthlyReport. The report pipeline will analyze the full permission-scoped dataset and produce a downloadable report.
         5. Be concise and conversational by default. Surface the most decision-useful facts first, identify stale or missing data honestly, and distinguish evidence from recommendations.
