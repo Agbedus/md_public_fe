@@ -34,7 +34,7 @@ export async function getTimeOffRequests(): Promise<TimeOffRequest[]> {
     }
 }
 
-export async function createTimeOffRequest(formData: FormData): Promise<ActionResult> {
+export async function createTimeOffRequest(formData: FormData): Promise<ActionResult<TimeOffRequest | null>> {
     const session = await auth();
     if (!session?.user?.accessToken) return { success: false, error: "Unauthorized" };
 
@@ -61,10 +61,11 @@ export async function createTimeOffRequest(formData: FormData): Promise<ActionRe
             return { success: false, error: `API Error ${response.status}: ${errorText}` };
         }
 
+        const createdRequest = await response.json().catch(() => null) as TimeOffRequest | null;
         safeRevalidate(() => {
             revalidatePath('/[orgSlug]/calendar', 'page');
         }, 'time-off mutation');
-        return { success: true };
+        return { success: true, data: createdRequest };
     } catch (error) {
         console.error("Error creating time-off request:", error);
         return { success: false, error: "Network error creating time-off request" };

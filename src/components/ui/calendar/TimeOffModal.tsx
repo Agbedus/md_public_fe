@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { FiX, FiCalendar, FiCheck } from "react-icons/fi";
+import { FiX, FiCalendar, FiCheck, FiLoader } from "react-icons/fi";
 import { createTimeOffRequest } from "@/app/(dashboard)/[orgSlug]/time-off/actions";
 import type { TimeOffRequest, TimeOffType } from "@/types/time-off";
 import { CustomDatePicker } from "@/components/ui/inputs/custom-date-picker";
@@ -10,7 +10,7 @@ import { toast } from "@/lib/toast";
 interface TimeOffModalProps {
     open: boolean;
     onClose: () => void;
-    onCreated: () => void;
+    onCreated: (request: TimeOffRequest | null) => void;
 }
 
 const TIME_OFF_TYPES: { value: TimeOffType; label: string; description: string }[] = [
@@ -53,7 +53,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
             const result = await createTimeOffRequest(formData);
             if (result.success) {
                 toast.success('Time-off request submitted');
-                onCreated();
+                onCreated(result.data);
                 onClose();
                 // Reset
                 setType('leave');
@@ -98,7 +98,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                             <p className="text-[10px] text-text-muted font-black uppercase tracking-widest mt-0.5">Submit for administrative review</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2.5 rounded-xl hover:bg-foreground/[0.05] text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border">
+                    <button onClick={onClose} disabled={isSubmitting} aria-label="Close time-off request" className="grid h-11 w-11 place-items-center rounded-md border border-transparent text-text-secondary transition-[transform,opacity,background-color] duration-150 hover:border-card-border hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98] disabled:cursor-wait disabled:opacity-50">
                         <FiX className="w-5 h-5" />
                     </button>
                 </div>
@@ -114,7 +114,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                                     key={t.value}
                                     type="button"
                                     onClick={() => setType(t.value)}
-                                    className={`p-4 rounded-2xl border text-left transition-all duration-300 ${
+                                    className={`min-h-11 p-4 rounded-xl border text-left transition-[transform,color,background-color,border-color] duration-150 active:scale-[0.98] ${
                                         type === t.value
                                             ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-400 shadow-sm'
                                             : 'bg-foreground/[0.03] border-card-border text-text-muted hover:border-foreground/10 hover:text-foreground'
@@ -169,21 +169,23 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
+                            disabled={isSubmitting}
+                            className="min-h-11 px-6 py-2.5 rounded-md text-xs font-semibold text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] disabled:cursor-wait disabled:opacity-50"
                         >
-                            Abort
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex items-center gap-2 px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-muted hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] transition-all border border-card-border disabled:opacity-50"
+                            aria-busy={isSubmitting}
+                            className="flex min-h-11 items-center gap-2 rounded-md bg-emerald-500 px-6 py-2.5 text-sm font-semibold text-white transition-[transform,opacity,background-color] duration-150 hover:bg-emerald-500/90 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
                         >
                             {isSubmitting ? (
-                                <div className="h-4 w-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
+                                <FiLoader className="h-4 w-4 animate-spin" />
                             ) : (
                                 <FiCheck className="w-4 h-4" />
                             )}
-                            Execute Request
+                            {isSubmitting ? 'Submitting request…' : 'Submit request'}
                         </button>
                     </div>
                 </form>

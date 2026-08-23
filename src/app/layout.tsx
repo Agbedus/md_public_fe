@@ -96,12 +96,9 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-import { auth } from "@/auth";
 import { Toaster } from 'react-hot-toast';
 import { TaskTimerProvider } from '@/providers/task-timer-provider';
 import { TaskTimerUI } from '@/components/ui/tasks/task-timer-ui';
-import { LocationProvider } from '@/providers/location-provider';
-import { getMyAttendanceToday } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
 import { CookiePopup } from '@/components/ui/cookie-popup';
 
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -113,9 +110,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
-  const initialAttendance = session ? await getMyAttendanceToday() : null;
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -144,13 +138,11 @@ export default async function RootLayout({
           <MotionProvider>
             <GlobalActionProvider>
               <TaskTimerProvider>
-                <LocationProvider initialRecord={initialAttendance}>
-                  <div className="min-h-screen bg-background transition-colors duration-300">
-                    {children}
-                  </div>
-                  <TaskTimerUI />
-                  <CookiePopup />
-                </LocationProvider>
+                <div className="min-h-screen bg-background transition-colors duration-300">
+                  {children}
+                </div>
+                <TaskTimerUI />
+                <CookiePopup />
               </TaskTimerProvider>
             </GlobalActionProvider>
           </MotionProvider>

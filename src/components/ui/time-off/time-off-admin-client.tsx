@@ -4,7 +4,7 @@ import React, { useState, useMemo, useTransition, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiSearch, FiCheck, FiX, FiSun, FiFilter, FiCalendar, FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiSearch, FiCheck, FiX, FiSun, FiFilter, FiCalendar, FiTrash2, FiPlus, FiLoader } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/lib/toast';
@@ -51,7 +51,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('');
     const [filterType, setFilterType] = useState<string>('');
-    const [actionLoading, setActionLoading] = useState<number | null>(null);
+    const [actionLoading, setActionLoading] = useState<{ id: number; type: 'approve' | 'reject' | 'delete' } | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<TimeOffRequest | null>(null);
     const [requestModalOpen, setRequestModalOpen] = useState(false);
     const [, startTransition] = useTransition();
@@ -88,39 +88,46 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
     const rejected = requests.filter(r => r.status === 'rejected').length;
 
     const handleApprove = async (id: number) => {
-        setActionLoading(id);
-        // Optimistic
+        const snapshot = requests;
+        setActionLoading({ id, type: 'approve' });
         setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' as const } : r));
+        setSelectedRequest(prev => prev?.id === id ? { ...prev, status: 'approved' as const } : prev);
         try {
             const result = await approveTimeOffRequest(id);
             if (!result.success) {
                 toast.error(result.error || 'Failed to approve');
-                setRequests(initialRequests); // revert
+                setRequests(snapshot);
+                setSelectedRequest(snapshot.find(request => request.id === id) ?? null);
             } else {
                 toast.success('Request approved');
             }
         } catch {
             toast.error('An error occurred');
-            setRequests(initialRequests);
+            setRequests(snapshot);
+            setSelectedRequest(snapshot.find(request => request.id === id) ?? null);
         } finally {
             setActionLoading(null);
         }
     };
 
     const handleReject = async (id: number) => {
-        setActionLoading(id);
+        const snapshot = requests;
+        setActionLoading({ id, type: 'reject' });
         setRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' as const } : r));
+        setSelectedRequest(prev => prev?.id === id ? { ...prev, status: 'rejected' as const } : prev);
         try {
             const result = await rejectTimeOffRequest(id);
             if (!result.success) {
                 toast.error(result.error || 'Failed to reject');
-                setRequests(initialRequests);
+                setRequests(snapshot);
+                setSelectedRequest(snapshot.find(request => request.id === id) ?? null);
             } else {
                 toast.success('Request rejected');
             }
         } catch {
             toast.error('An error occurred');
-            setRequests(initialRequests);
+            setRequests(snapshot);
+            setSelectedRequest(snapshot.find(request => request.id === id) ?? null);
         } finally {
             setActionLoading(null);
         }
@@ -135,19 +142,21 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
         });
 
         if (!confirmed) return;
-        setActionLoading(id);
+        const snapshot = requests;
+        setActionLoading({ id, type: 'delete' });
         setRequests(prev => prev.filter(r => r.id !== id));
+        setSelectedRequest(null);
         try {
             const result = await deleteTimeOffRequest(id);
             if (!result.success) {
                 toast.error(result.error || 'Failed to delete');
-                setRequests(initialRequests);
+                setRequests(snapshot);
             } else {
                 toast.success('Request deleted');
             }
         } catch {
             toast.error('An error occurred');
-            setRequests(initialRequests);
+            setRequests(snapshot);
         } finally {
             setActionLoading(null);
         }
@@ -212,8 +221,13 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                             placeholder="Search by name or reason..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full h-11 pl-8 pr-4 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] focus:border-card-border text-foreground placeholder:text-text-muted/50 transition-all text-sm"
+                            className="w-full h-11 pl-9 pr-10 bg-input-bg border border-card-border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 text-foreground placeholder:text-text-muted transition-colors text-sm"
                         />
+                        {searchQuery && (
+                            <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear time-off search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98]">
+                                <FiX className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="relative group flex-shrink-0">
@@ -349,33 +363,33 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                         <>
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); handleApprove(req.id); }}
-                                                                disabled={actionLoading === req.id}
-                                                                className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all disabled:opacity-50"
+                                                                disabled={actionLoading?.id === req.id}
+                                                                className="grid h-11 w-11 place-items-center rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50"
                                                                 title="Approve"
                                                             >
-                                                                {actionLoading === req.id ? (
-                                                                    <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                                                {actionLoading?.id === req.id && actionLoading.type === 'approve' ? (
+                                                                    <FiLoader className="h-4 w-4 animate-spin" />
                                                                 ) : (
                                                                     <FiCheck className="w-3.5 h-3.5" />
                                                                 )}
                                                             </button>
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); handleReject(req.id); }}
-                                                                disabled={actionLoading === req.id}
-                                                                className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all disabled:opacity-50"
+                                                                disabled={actionLoading?.id === req.id}
+                                                                className="grid h-11 w-11 place-items-center rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50"
                                                                 title="Reject"
                                                             >
-                                                                <FiX className="w-3.5 h-3.5" />
+                                                                {actionLoading?.id === req.id && actionLoading.type === 'reject' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiX className="w-3.5 h-3.5" />}
                                                             </button>
                                                         </>
                                                     )}
                                                     <button
                                                         onClick={e => { e.stopPropagation(); handleDelete(req.id); }}
-                                                        disabled={actionLoading === req.id}
-                                                        className="p-1.5 rounded-lg hover:bg-rose-500/10 text-text-muted hover:text-rose-400 transition-all disabled:opacity-50"
+                                                        disabled={actionLoading?.id === req.id}
+                                                        className="grid h-11 w-11 place-items-center rounded-md hover:bg-rose-500/10 text-text-muted hover:text-rose-400 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50"
                                                         title="Delete"
                                                     >
-                                                        <FiTrash2 className="w-3.5 h-3.5" />
+                                                        {actionLoading?.id === req.id && actionLoading.type === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />}
                                                     </button>
                                                 </div>
                                             </td>
@@ -396,13 +410,16 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                 onApprove={handleApprove}
                 onReject={handleReject}
                 onDelete={handleDelete}
-                actionLoading={actionLoading === selectedRequest?.id}
+                actionLoading={actionLoading && actionLoading.id === selectedRequest?.id ? actionLoading.type : null}
             />
 
             <TimeOffModal
                 open={requestModalOpen}
                 onClose={() => setRequestModalOpen(false)}
-                onCreated={() => router.refresh()}
+                onCreated={(request) => {
+                    if (request) setRequests((current) => [request, ...current.filter((item) => item.id !== request.id)]);
+                    startTransition(() => router.refresh());
+                }}
             />
         </>
     );

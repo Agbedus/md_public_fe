@@ -15,6 +15,7 @@ import { playNotificationSound, getSoundEffectsEnabled } from '@/lib/notificatio
 import { emit } from '@/lib/event-bus';
 import { isRecentAction } from '@/lib/recent-actions';
 import Image from 'next/image';
+import { workspaceCacheKey } from '@/lib/workspace-cache';
 
 export interface Notification {
   id: string;
@@ -35,6 +36,8 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  readingIds: ReadonlySet<string>;
+  isMarkingAllRead: boolean;
   isConnected: boolean;
   user?: any;
   users: any[];
@@ -50,9 +53,16 @@ export const useNotifications = () => {
   return context;
 };
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: any }> = ({ children, user }) => {
+export const NotificationProvider: React.FC<{
+  children: React.ReactNode;
+  user?: any;
+  workspaceScope?: string | null;
+  workspaceId?: string | null;
+}> = ({ children, user, workspaceScope, workspaceId }) => {
   const { mutate } = useSWRConfig();
   const [isConnected, setIsConnected] = useState(false);
+  const [readingIds, setReadingIds] = useState<Set<string>>(new Set());
+  const [isMarkingAllRead, setIsMarkingAllRead] = useState(false);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>(null);
   const reconnectAttemptsRef = useRef(0);
   const socketRef = useRef<WebSocket>(null);
@@ -66,13 +76,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
 
   // SWR for Users
   const { data: users = [] } = useSWR(
-    user?.accessToken ? 'users' : null,
+    user?.accessToken ? workspaceCacheKey('users', workspaceScope) : null,
     () => getUsersSafe()
   );
 
   // SWR for Notifications
   const { data: notifications = [], mutate: mutateNotifications } = useSWR<Notification[]>(
-    user?.accessToken ? 'notifications' : null,
+    user?.accessToken ? workspaceCacheKey('notifications', workspaceScope) : null,
     () => getNotifications()
   );
 
@@ -81,7 +91,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
   const markAsRead = useCallback(async (id: string) => {
     if (!user?.accessToken) return;
 
-    mutateNotifications(
+    const previousReadState = notifications.find((notification) => notification.id === id)?.is_read ?? false;
+    setReadingIds((current) => new Set(current).add(id));
+
+    await mutateNotifications(
         (currentNotifications = []) => currentNotifications.map(n => n.id === id ? { ...n, is_read: true } : n),
         false
     );
@@ -89,17 +102,31 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
     try {
       const res = await apiMarkAsRead(id);
       if (!res.success) throw new Error('Failed to mark read');
-      mutateNotifications();
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
-      mutateNotifications();
+      await mutateNotifications(
+        (currentNotifications = []) => currentNotifications.map((notification) => (
+          notification.id === id ? { ...notification, is_read: previousReadState } : notification
+        )),
+        false,
+      );
+      toast.error('Could not mark that notification as read.');
+    } finally {
+      setReadingIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
     }
-  }, [user?.accessToken, mutateNotifications]);
+  }, [user?.accessToken, notifications, mutateNotifications]);
 
   const markAllAsRead = useCallback(async () => {
-    if (!user?.accessToken) return;
+    if (!user?.accessToken || isMarkingAllRead) return;
 
-    mutateNotifications(
+    const previousReadStates = new Map(notifications.map((notification) => [notification.id, notification.is_read]));
+    setIsMarkingAllRead(true);
+
+    await mutateNotifications(
         (currentNotifications = []) => currentNotifications.map(n => ({ ...n, is_read: true })),
         false
     );
@@ -107,12 +134,21 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
     try {
       const res = await apiMarkAllAsRead();
       if (!res.success) throw new Error('Failed to mark all read');
-      mutateNotifications();
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
-      mutateNotifications();
+      await mutateNotifications(
+        (currentNotifications = []) => currentNotifications.map((notification) => (
+          previousReadStates.has(notification.id)
+            ? { ...notification, is_read: previousReadStates.get(notification.id) ?? false }
+            : notification
+        )),
+        false,
+      );
+      toast.error('Could not mark all notifications as read.');
+    } finally {
+      setIsMarkingAllRead(false);
     }
-  }, [user?.accessToken, mutateNotifications]);
+  }, [user?.accessToken, isMarkingAllRead, notifications, mutateNotifications]);
 
   const isToastShown = useCallback((key: string): boolean => {
     if (shownToastIdsRef.current.has(key)) return true;
@@ -225,8 +261,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
       // org-scoped pushes skip sockets open on a different org.
       const wsBaseUrl = baseUrl.replace(/^http/, 'ws');
       const params = new URLSearchParams({ token: user.accessToken });
-      if (user.currentOrganizationId) {
-        params.set('organization_id', user.currentOrganizationId);
+      const activeWorkspaceId = workspaceId || user.currentOrganizationId;
+      if (activeWorkspaceId) {
+        params.set('organization_id', activeWorkspaceId);
       }
       const wsUrl = `${wsBaseUrl}/api/v1/notifications/ws/${user.id}?${params.toString()}`;
 
@@ -250,7 +287,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
             // Apply to the SWR cache. This used to derive the cache key as
             // `resource + 's'`, which silently missed calendar events (cached
             // under 'calendar-events') and every resource added since.
-            void applyRealtimeUpdate(resource, action, data);
+            void applyRealtimeUpdate(resource, action, data, workspaceScope);
 
             // Toast + event emit, deduped so your own action does not announce
             // itself back to you.
@@ -283,7 +320,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
 
           // 2. Handle Announcements (realtime push from broadcast_announcement)
           if (message.realtime_type === 'ANNOUNCEMENT') {
-            mutate((key: any) => Array.isArray(key) && key[0] === 'announcements');
+            mutate((key: unknown) => (
+              Array.isArray(key)
+              && key[0] === 'announcements'
+              && key[1] === workspaceScope
+            ));
             emit('announcement:created', message);
             return;
           }
@@ -327,12 +368,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
     user?.id,
     user?.accessToken,
     user?.currentOrganizationId,
+    workspaceId,
     baseUrl,
     mutate,
     mutateNotifications,
     enqueueToast,
     isToastShown,
     showNotificationToast,
+    workspaceScope,
   ]);
 
   const contextValue = React.useMemo(() => ({ 
@@ -340,6 +383,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
     unreadCount, 
     markAsRead, 
     markAllAsRead, 
+    readingIds,
+    isMarkingAllRead,
     isConnected, 
     user, 
     users 
@@ -348,6 +393,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode, user?: 
     unreadCount, 
     markAsRead,
     markAllAsRead,
+    readingIds,
+    isMarkingAllRead,
     isConnected, 
     user, 
     users

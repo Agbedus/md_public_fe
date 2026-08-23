@@ -64,7 +64,10 @@ export function useTasks({
     const { data, error, size, setSize, mutate, isLoading, isValidating } = useSWRInfinite(getKey, fetcher, {
         revalidateOnFocus: true,
         fallbackData: initialTasks ? [initialTasks] : undefined,
-        keepPreviousData: true,
+        // A cached entry for the destination workspace is reused immediately.
+        // Do not keep the previous key's rows, because that would briefly mix
+        // tenant data when the organization slug changes.
+        keepPreviousData: false,
         dedupingInterval: 1000,
     });
 
@@ -96,4 +99,3 @@ export function useTasks({
         error
     };
 }
-

@@ -14,6 +14,7 @@ import {
   updateAnnouncement as apiUpdateAnnouncement, 
   deleteAnnouncement as apiDeleteAnnouncement 
 } from '@/app/(dashboard)/[orgSlug]/announcements/actions';
+import { workspaceCacheKey, workspaceStorageKey } from '@/lib/workspace-cache';
 
 interface AnnouncementContextType {
   announcements: Announcement[];
@@ -41,36 +42,49 @@ export const useAnnouncements = () => {
   return context;
 };
 
-export const AnnouncementProvider: React.FC<{ children: React.ReactNode, user?: any }> = ({ children, user }) => {
+export const AnnouncementProvider: React.FC<{
+  children: React.ReactNode;
+  user?: any;
+  workspaceScope?: string | null;
+}> = ({ children, user, workspaceScope }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAdminFormOpen, setIsAdminFormOpen] = useState(false);
   const [readIds, setReadIds] = useState<string[]>([]);
+  const [isReadStateLoaded, setIsReadStateLoaded] = useState(false);
+  const readStorageKey = workspaceStorageKey('read_announcements', workspaceScope);
 
   // Load read status from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('read_announcements');
+    const saved = localStorage.getItem(readStorageKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           // Use setTimeout to avoid synchronous setState inside effect warning
-          setTimeout(() => setReadIds(parsed), 0);
+          setTimeout(() => {
+            setReadIds(parsed);
+            setIsReadStateLoaded(true);
+          }, 0);
+          return;
         }
       } catch (e) {
         console.error('Failed to parse read announcements', e);
       }
     }
-  }, []);
+    setTimeout(() => setIsReadStateLoaded(true), 0);
+  }, [readStorageKey]);
 
   // Save read status to localStorage when it changes
   useEffect(() => {
-    localStorage.setItem('read_announcements', JSON.stringify(readIds));
-  }, [readIds]);
+    if (isReadStateLoaded) {
+      localStorage.setItem(readStorageKey, JSON.stringify(readIds));
+    }
+  }, [isReadStateLoaded, readIds, readStorageKey]);
 
   // SWR for Announcements
   const { data: announcements = [], mutate: mutateAnnouncements } = useSWR<Announcement[]>(
-    user?.accessToken ? 'announcements' : null,
+    user?.accessToken ? workspaceCacheKey('announcements', workspaceScope) : null,
     () => getAnnouncements()
   );
 

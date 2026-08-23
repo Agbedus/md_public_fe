@@ -60,6 +60,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                             <Link
                                 key={index} 
                                 href={item.href}
+                                prefetch={true}
                                 onClick={() => setIsMenuOpen(false)}
                                 className="group flex min-h-14 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
                             >
@@ -121,6 +122,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                         <motion.div key={index} whileTap={{ scale: 0.88, transition: springTap }} className="flex min-w-0 flex-1">
                             <Link
                                 href={item.href || '#'}
+                                prefetch={true}
                                 className={`flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl ${
                                     isActive ? 'text-foreground' : 'text-text-muted'
                                 }`}

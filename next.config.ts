@@ -2,6 +2,16 @@ import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Keep prefetched dashboard routes reusable so returning to a page feels
+    // instant. Every workspace has a distinct slug, so router entries remain
+    // tenant-scoped while background SWR refreshes keep live data current.
+    staleTimes: {
+      dynamic: 180,
+      static: 600,
+    },
+    dynamicOnHover: true,
+  },
   // PDFKit loads Node-specific font and binary assets at runtime. Keeping it
   // external prevents the App Router bundler from dropping those files in
   // production deployments.

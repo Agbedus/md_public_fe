@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FiX, FiCheck, FiTrash2 } from 'react-icons/fi';
+import { FiX, FiCheck, FiTrash2, FiLoader } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
 import { useOrgSlug } from '@/hooks/use-org-slug';
 
@@ -17,7 +17,7 @@ interface TimeOffDetailModalProps {
     onApprove: (id: number) => void;
     onReject: (id: number) => void;
     onDelete: (id: number) => void;
-    actionLoading: boolean;
+    actionLoading: 'approve' | 'reject' | 'delete' | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -148,19 +148,19 @@ export default function TimeOffDetailModal({
                     <div className="flex items-center justify-between border-t border-card-border bg-foreground/[0.02] px-4 py-4 sm:px-6 md:px-8 md:py-5">
                         <button
                             onClick={() => onDelete(request.id)}
-                            disabled={actionLoading}
+                            disabled={actionLoading !== null}
                             className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-rose-400 hover:border-rose-500/20 hover:bg-rose-500/10 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
                         >
-                            <FiTrash2 className="w-3.5 h-3.5" /> Delete
+                            {actionLoading === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
                         </button>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => onReject(request.id)}
-                                disabled={actionLoading}
+                                disabled={actionLoading !== null}
                                 className="px-5 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
                             >
-                                {actionLoading ? (
-                                    <div className="w-3.5 h-3.5 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
+                                {actionLoading === 'reject' ? (
+                                    <FiLoader className="h-4 w-4 animate-spin" />
                                 ) : (
                                     <FiX className="w-3.5 h-3.5" />
                                 )}
@@ -168,11 +168,11 @@ export default function TimeOffDetailModal({
                             </button>
                             <button
                                 onClick={() => onApprove(request.id)}
-                                disabled={actionLoading}
+                                disabled={actionLoading !== null}
                                 className="px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
                             >
-                                {actionLoading ? (
-                                    <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                {actionLoading === 'approve' ? (
+                                    <FiLoader className="h-4 w-4 animate-spin" />
                                 ) : (
                                     <FiCheck className="w-3.5 h-3.5" />
                                 )}
@@ -186,10 +186,10 @@ export default function TimeOffDetailModal({
                     <div className="flex items-center justify-between border-t border-card-border bg-foreground/[0.02] px-4 py-4 sm:px-6 md:px-8 md:py-5">
                         <button
                             onClick={() => onDelete(request.id)}
-                            disabled={actionLoading}
+                            disabled={actionLoading !== null}
                             className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-rose-400 hover:border-rose-500/20 hover:bg-rose-500/10 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
                         >
-                            <FiTrash2 className="w-3.5 h-3.5" /> Delete
+                            {actionLoading === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
                         </button>
                     </div>
                 )}

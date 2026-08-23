@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useTransition } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { switchOrganization } from '@/lib/org-actions';
 import { useDashboard } from './dashboard-layout';
-import { FiBell, FiSearch, FiUser, FiSettings, FiLogOut, FiHelpCircle, FiMessageSquare, FiChevronDown, FiCheck, FiAlertCircle, FiX, FiHome, FiPlus } from 'react-icons/fi';
+import { FiBell, FiSearch, FiUser, FiSettings, FiLogOut, FiHelpCircle, FiMessageSquare, FiChevronDown, FiCheck, FiAlertCircle, FiX, FiHome, FiPlus, FiLoader } from 'react-icons/fi';
 import { useNotifications } from './notifications/notification-provider';
 import { useAnnouncements } from './announcements/announcement-provider';
 import { AnnouncementDropdown } from './announcements/announcement-dropdown';
@@ -15,6 +15,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { useLocation } from '@/providers/location-provider';
 import { presentOrgRole, orgRoleToneClasses } from '@/types/organization';
 import type { OrgBrief } from '@/types/organization';
+import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skeleton';
+import { toast } from '@/lib/toast';
 
 interface TopNavProps {
   user?: {
@@ -33,7 +35,8 @@ interface TopNavProps {
 const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isOrgSwitcherOpen, setIsOrgSwitcherOpen] = useState(false);
-  const [switching, setSwitching] = useState(false);
+  const [switching, setSwitching] = useState<string | null>(null);
+  const [isNavigating, startNavigation] = useTransition();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const orgSwitcherRef = useRef<HTMLDivElement>(null);
@@ -45,7 +48,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
   const orgRoleDisplay = currentOrg?.role
     ? presentOrgRole(currentOrg.role)
     : user?.orgRole ? presentOrgRole(user.orgRole) : null;
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, isMarkingAllRead } = useNotifications();
   const { unreadCount: announcementUnreadCount, isDropdownOpen: isAnnouncementsOpen, setIsDropdownOpen: setIsAnnouncementsOpen } = useAnnouncements();
   const { isMobileExpanded, setIsMobileExpanded, setIsCommandOpen } = useDashboard();
   const { attendanceState } = useLocation();
@@ -82,12 +85,17 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
   const handleSwitchOrg = async (orgId: string) => {
     if (orgId === currentOrgId) return;
-    setSwitching(true);
+    setSwitching(orgId);
     setIsOrgSwitcherOpen(false);
     const result = await switchOrganization(orgId);
-    setSwitching(false);
     if (result.success && result.slug) {
-      router.push(`/${result.slug}/dashboard`);
+      setSwitching(null);
+      const destination = `/${result.slug}/dashboard`;
+      router.prefetch(destination);
+      startNavigation(() => router.push(destination));
+    } else {
+      setSwitching(null);
+      toast.error(result.error || 'Could not switch workspace.');
     }
   };
 
@@ -115,6 +123,9 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
   return (
     <>
+      {(switching || isNavigating) && (
+        <WorkspaceLoadingSkeleton isOverlay />
+      )}
       <nav className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-card-border bg-background px-3 md:h-20 md:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-6">
           {/* Mobile Logo */}
@@ -152,7 +163,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
           <div className="relative mr-1 block md:mr-5" ref={orgSwitcherRef}>
             <button
               onClick={() => setIsOrgSwitcherOpen(!isOrgSwitcherOpen)}
-              disabled={switching}
+              disabled={switching !== null}
               className="flex min-h-11 items-center gap-1.5 rounded-xl border border-card-border bg-card p-2 text-xs font-bold tracking-tight text-foreground transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08] md:gap-2 md:p-2.5"
             >
               <div className="w-5 h-5 rounded-md bg-foreground/[0.08] flex items-center justify-center text-[10px] font-black text-foreground flex-shrink-0">
@@ -186,7 +197,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                         <button
                           key={org.id}
                           onClick={() => handleSwitchOrg(org.id)}
-                          className={`flex items-center w-full gap-3 px-3 py-2.5 text-sm transition-all duration-300 hover:bg-blue-50 dark:hover:bg-white/[0.06] active:bg-foreground/[0.05] ${
+                          className={`flex min-h-11 items-center w-full gap-3 px-3 py-2.5 text-sm transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] ${
                             org.id === currentOrgId ? 'text-foreground font-bold' : 'text-text-secondary'
                           }`}
                         >
@@ -335,9 +346,12 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                     {unreadCount > 0 && (
                       <button 
                         onClick={() => markAllAsRead()}
-                        className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest text-text-muted hover:text-foreground hover:bg-blue-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors border border-transparent hover:border-card-border"
+                        disabled={isMarkingAllRead}
+                        aria-busy={isMarkingAllRead}
+                        className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-transparent py-2 text-[10px] font-black uppercase tracking-widest text-text-muted transition-[transform,opacity,background-color] duration-150 hover:border-card-border hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
                       >
-                        Mark all as read
+                        {isMarkingAllRead && <FiLoader className="h-3.5 w-3.5 animate-spin" />}
+                        {isMarkingAllRead ? 'Marking read…' : 'Mark all as read'}
                       </button>
                     )}
                     <Link 

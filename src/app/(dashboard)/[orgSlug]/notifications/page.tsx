@@ -6,6 +6,7 @@ import {
   FiAlertCircle, FiBell, FiCalendar, FiCheck, FiCheckCircle,
   FiChevronLeft, FiChevronRight, FiClock, FiFileText, FiInbox,
   FiLayers, FiSearch, FiUsers, FiX,
+  FiLoader,
 } from 'react-icons/fi';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { Notification, useNotifications } from '@/components/ui/notifications/notification-provider';
@@ -81,7 +82,7 @@ function dateGroup(value: string): string {
 export default function NotificationsPage() {
   const router = useRouter();
   const params = useParams<{ orgSlug: string }>();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, users } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, readingIds, isMarkingAllRead, users } = useNotifications();
   const [activeView, setActiveView] = useState<InboxView>('all');
   const [category, setCategory] = useState<Category>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,8 +128,8 @@ export default function NotificationsPage() {
           <p className="mt-1 text-sm text-text-muted">Updates that need your attention across this workspace.</p>
         </div>
         {unreadCount > 0 && (
-          <button type="button" onClick={() => void markAllAsRead()} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-card-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-foreground/[0.05] active:scale-[0.98]">
-            <FiCheck className="h-4 w-4 text-emerald-500" /> Mark all read
+          <button type="button" onClick={() => void markAllAsRead()} disabled={isMarkingAllRead} aria-busy={isMarkingAllRead} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-card-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-[transform,opacity,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] disabled:cursor-wait disabled:opacity-70">
+            {isMarkingAllRead ? <FiLoader className="h-4 w-4 animate-spin text-emerald-500" /> : <FiCheck className="h-4 w-4 text-emerald-500" />} {isMarkingAllRead ? 'Marking read…' : 'Mark all read'}
           </button>
         )}
       </header>
@@ -171,7 +172,7 @@ export default function NotificationsPage() {
                 {items.map((notification) => {
                   const Icon = iconFor(notification);
                   return (
-                    <button type="button" key={notification.id} onClick={() => selectNotification(notification)} className={`flex min-h-20 w-full items-start gap-3 border-b border-card-border px-4 py-4 text-left transition-colors hover:bg-foreground/[0.03] ${selectedId === notification.id ? 'bg-emerald-500/[0.06]' : ''}`}>
+                    <button type="button" key={notification.id} onClick={() => selectNotification(notification)} aria-busy={readingIds.has(notification.id)} className={`flex min-h-20 w-full items-start gap-3 border-b border-card-border px-4 py-4 text-left transition-[transform,opacity,background-color] duration-150 hover:bg-foreground/[0.03] active:scale-[0.99] ${readingIds.has(notification.id) ? 'opacity-70' : ''} ${selectedId === notification.id ? 'bg-emerald-500/[0.06]' : ''}`}>
                       <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg ${notification.type === 'warning' ? 'bg-amber-500/10 text-amber-500' : notification.type === 'error' ? 'bg-rose-500/10 text-rose-500' : notification.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
                         <Icon className="h-4 w-4" />
                       </span>

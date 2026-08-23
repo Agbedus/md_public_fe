@@ -183,7 +183,9 @@ export async function switchOrganization(orgId: string): Promise<{ success: bool
       role: local?.role,
     });
 
-    revalidatePath('/', 'layout');
+    // The destination has its own slug and will render with the updated cookie.
+    // Avoid invalidating the entire client router cache here: keeping the
+    // per-slug entries is what makes returning to a workspace instantaneous.
     return { success: true, slug };
   } catch (error) {
     console.error('Error switching organization:', error);

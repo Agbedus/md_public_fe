@@ -11,6 +11,8 @@ import { AttendanceMap } from './attendance-map';
 import useSWR from 'swr';
 import { getMyAttendanceHistory, getTeamAttendanceToday, getTeamAttendanceHistory } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
 import { FiUser, FiUsers, FiSettings } from 'react-icons/fi';
+import { useOrgSlug } from '@/hooks/use-org-slug';
+import { workspaceCacheKey } from '@/lib/workspace-cache';
 
 export interface AttendancePageClientProps {
     myToday: AttendanceRecord | null;
@@ -41,19 +43,20 @@ export default function AttendancePageClient({
     currentUserId,
 }: AttendancePageClientProps) {
     const [activeTab, setActiveTab] = useState<TabId>('my');
+    const orgSlug = useOrgSlug();
 
     // SWR Synchronization
-    const { data: liveMyHistory } = useSWR('my-attendance-history', getMyAttendanceHistory, {
+    const { data: liveMyHistory } = useSWR(workspaceCacheKey('my-attendance-history', orgSlug), getMyAttendanceHistory, {
         fallbackData: myHistory,
         revalidateOnFocus: true
     });
 
-    const { data: liveTeamToday } = useSWR(isManager ? 'team-attendance-today' : null, getTeamAttendanceToday, {
+    const { data: liveTeamToday } = useSWR(isManager ? workspaceCacheKey('team-attendance-today', orgSlug) : null, getTeamAttendanceToday, {
         fallbackData: teamToday,
         revalidateOnFocus: true
     });
 
-    const { data: liveTeamHistory } = useSWR(isManager ? 'team-attendance-history' : null, getTeamAttendanceHistory, {
+    const { data: liveTeamHistory } = useSWR(isManager ? workspaceCacheKey('team-attendance-history', orgSlug) : null, getTeamAttendanceHistory, {
         fallbackData: teamHistory,
         revalidateOnFocus: true
     });

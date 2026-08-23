@@ -692,11 +692,11 @@ export default function TasksPageClient({
       toast.success("Task created successfully");
     } catch (err) {
       console.error(err);
-      setErrorMsg(
-        err instanceof Error
-          ? err.message
-          : "Could not save the new task. Please try again.",
-      );
+      const message = err instanceof Error
+        ? err.message
+        : "Could not save the new task. Please try again.";
+      setErrorMsg(message);
+      toast.error(message);
     } finally {
       setSavingCreate(false);
     }
@@ -756,6 +756,7 @@ export default function TasksPageClient({
           ? err.message
           : "Could not update the task. Please try again.";
       setErrorMsg(msg);
+      toast.error(msg);
       return { success: false, error: msg };
     }
   };
@@ -794,6 +795,7 @@ export default function TasksPageClient({
           ? err.message
           : "Could not delete the task. Please try again.";
       setErrorMsg(msg);
+      toast.error(msg);
       return { success: false, error: msg };
     }
   };
@@ -822,8 +824,18 @@ export default function TasksPageClient({
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-4 h-9 lg:h-11 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none focus:border-card-border text-foreground placeholder:text-text-muted/50 transition-all text-xs lg:text-sm"
+              className="w-full pl-9 pr-10 h-11 bg-input-bg border border-card-border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 text-foreground placeholder:text-text-muted transition-colors text-sm"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear task search"
+                className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98]"
+              >
+                <FiX className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           <div className="relative group flex-shrink-0">

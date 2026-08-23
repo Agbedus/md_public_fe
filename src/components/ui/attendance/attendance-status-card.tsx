@@ -10,12 +10,15 @@ import { useLocation } from '@/providers/location-provider';
 import { getDistanceInMeters, formatDistance } from '@/lib/distance-utils';
 import { FiMapPin, FiClock, FiTarget, FiActivity, FiNavigation, FiZap, FiChevronDown, FiChevronUp, FiX, FiCheck, FiAlertTriangle, FiLoader } from 'react-icons/fi';
 import { useIsClient } from '@/hooks/use-is-client';
+import { useOrgSlug } from '@/hooks/use-org-slug';
+import { workspaceCacheKey } from '@/lib/workspace-cache';
 
 export default function AttendanceStatusCard({ record: initialRecord }: { record: AttendanceRecord | null }) {
     const mounted = useIsClient();
+    const orgSlug = useOrgSlug();
     const [showMetadata, setShowMetadata] = useState(false);
 
-    const { data: liveRecord } = useSWR('my-attendance-today', fetchMyAttendanceLive, {
+    const { data: liveRecord } = useSWR(workspaceCacheKey('my-attendance-today', orgSlug), fetchMyAttendanceLive, {
         fallbackData: initialRecord,
         revalidateOnFocus: true,
     });
@@ -53,10 +56,10 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
         await manualClockIn();
         
         // Global Sync
-        globalMutate('my-attendance-today');
-        globalMutate('my-attendance-history');
-        globalMutate('team-attendance-today');
-        globalMutate('team-attendance-history');
+        globalMutate(workspaceCacheKey('my-attendance-today', orgSlug));
+        globalMutate(workspaceCacheKey('my-attendance-history', orgSlug));
+        globalMutate(workspaceCacheKey('team-attendance-today', orgSlug));
+        globalMutate(workspaceCacheKey('team-attendance-history', orgSlug));
     };
 
     const handleClockOut = async () => {
@@ -76,10 +79,10 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
         setConfirmReason(null);
         
         // Global Sync
-        globalMutate('my-attendance-today');
-        globalMutate('my-attendance-history');
-        globalMutate('team-attendance-today');
-        globalMutate('team-attendance-history');
+        globalMutate(workspaceCacheKey('my-attendance-today', orgSlug));
+        globalMutate(workspaceCacheKey('my-attendance-history', orgSlug));
+        globalMutate(workspaceCacheKey('team-attendance-today', orgSlug));
+        globalMutate(workspaceCacheKey('team-attendance-history', orgSlug));
     };
 
     const rawPresence = manualPresence || liveRecord?.presence_state || initialRecord?.presence_state || null;

@@ -8,6 +8,7 @@ import { updateLocation, getOfficeLocations, clockOutManual } from '@/app/(dashb
 import { getDistanceInMeters } from '@/lib/distance-utils';
 import { toast } from '@/lib/toast';
 import type { PresenceState, AttendanceState, AttendancePolicy, OfficeLocation, AttendanceRecord } from '@/types/attendance';
+import { workspaceCacheKey, workspaceStorageKey } from '@/lib/workspace-cache';
 
 const STORAGE_KEY = 'md_location_tracking_enabled';
 const CONFIG_CACHE_KEY = 'md_attendance_config_cache';
@@ -93,12 +94,16 @@ function getAccuratePosition(timeoutMs = 15000, desiredAccuracy = 35): Promise<G
 
 export function LocationProvider({ 
     children,
-    initialRecord 
+    initialRecord,
+    workspaceScope,
 }: { 
     children: React.ReactNode;
     initialRecord?: AttendanceRecord | null;
+    workspaceScope?: string | null;
 }) {
     const { mutate } = useSWRConfig();
+    const trackingStorageKey = workspaceStorageKey(STORAGE_KEY, workspaceScope);
+    const configurationStorageKey = workspaceStorageKey(CONFIG_CACHE_KEY, workspaceScope);
     const [isTracking, setIsTracking] = useState(false);
     const [isSupported, setIsSupported] = useState(true);
     const [permissionState, setPermissionState] = useState<LocationPermissionState>('checking');
@@ -131,7 +136,7 @@ export function LocationProvider({
                         setIsTracking(false);
                     } else if (newState === 'granted') {
                         setPermissionError(null);
-                        const stored = localStorage.getItem(STORAGE_KEY);
+                        const stored = localStorage.getItem(trackingStorageKey);
                         if (stored === 'true') {
                             setIsTracking(true);
                         }
@@ -143,7 +148,7 @@ export function LocationProvider({
         } else {
             setPermissionState('prompt');
         }
-    }, []);
+    }, [trackingStorageKey]);
 
     const requestPermission = useCallback(async (): Promise<boolean> => {
         if (!navigator.geolocation) {
@@ -262,7 +267,7 @@ export function LocationProvider({
     const syncConfiguration = useCallback(async (force = false) => {
         try {
             // If not forced, try to load from localStorage first for immediate UI hydration
-            const cached = localStorage.getItem(CONFIG_CACHE_KEY);
+            const cached = localStorage.getItem(configurationStorageKey);
             if (cached && !force) {
                 const cachedConfig = JSON.parse(cached) as {
                     offices?: OfficeLocation[];
@@ -302,7 +307,7 @@ export function LocationProvider({
             setPolicies(newPolicies);
             
             // Update Cache
-            localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify({
+            localStorage.setItem(configurationStorageKey, JSON.stringify({
                 offices: fetchedOffices,
                 policies: newPolicies,
                 timestamp: Date.now()
@@ -315,7 +320,7 @@ export function LocationProvider({
             isInitializedRef.current = true;
             setIsInitialized(true); 
         }
-    }, []);
+    }, [configurationStorageKey]);
 
     useEffect(() => {
         const initData = async () => {
@@ -330,14 +335,14 @@ export function LocationProvider({
                 setPermissionState('unsupported');
                 return;
             }
-            const stored = localStorage.getItem(STORAGE_KEY);
+            const stored = localStorage.getItem(trackingStorageKey);
             if (stored === 'true') {
                 setIsTracking(true);
             }
         });
 
         initData();
-    }, [syncConfiguration, checkPermission]);
+    }, [syncConfiguration, checkPermission, trackingStorageKey]);
 
 
     const handlePositionUpdate = useCallback(async (
@@ -417,9 +422,9 @@ export function LocationProvider({
                     setClockOutTime(result.record.clock_out_at || result.record.clock_out || null);
                     setLastUpdate(new Date());
                     
-                    mutate('my-attendance-today');
+                    mutate(workspaceCacheKey('my-attendance-today', workspaceScope));
                     if (prevAtt !== newAtt || (stateChanged && backendPres !== prevPres)) {
-                        mutate('team-attendance-today');
+                        mutate(workspaceCacheKey('team-attendance-today', workspaceScope));
                         if (prevAtt && prevAtt !== newAtt && !suppressSyncToastRef.current) {
                             if (newAtt === 'CLOCKED_IN') toast.success('Confirmed in office!');
                             else if (newAtt === 'CLOCKED_OUT') toast.info('Attendance finalized.');
@@ -439,7 +444,7 @@ export function LocationProvider({
             }
         }
         return false;
-    }, [mutate]);
+    }, [mutate, workspaceScope]);
 
     const startTrackingRef = useRef<(enableHighAccuracy?: boolean) => void>(() => {});
 
@@ -471,7 +476,7 @@ export function LocationProvider({
                     setPermissionError('Location access is blocked in your browser settings.');
                     toast.error('Location permission denied. Tracking disabled.');
                     setIsTracking(false);
-                    localStorage.setItem(STORAGE_KEY, 'false');
+                    localStorage.setItem(trackingStorageKey, 'false');
                     return;
                 }
 
@@ -509,7 +514,7 @@ export function LocationProvider({
                 maximumAge: enableHighAccuracy ? 0 : 60000,
             }
         );
-    }, [handlePositionUpdate]);
+    }, [handlePositionUpdate, trackingStorageKey]);
 
     useEffect(() => {
         startTrackingRef.current = startTracking;
@@ -671,13 +676,13 @@ export function LocationProvider({
     const toggleTracking = useCallback(() => {
         const next = !isTracking;
         setIsTracking(next);
-        localStorage.setItem(STORAGE_KEY, String(next));
+        localStorage.setItem(trackingStorageKey, String(next));
         if (next) {
             toast.success('Location tracking enabled');
         } else {
             toast.info('Location tracking paused');
         }
-    }, [isTracking]);
+    }, [isTracking, trackingStorageKey]);
 
     const manualClockIn = useCallback(async () => {
         setIsLoading(true);
@@ -760,8 +765,8 @@ export function LocationProvider({
                     setClockInTime(actualClockIn);
                     setClockOutTime(result.record.clock_out_at || result.record.clock_out || null);
                     
-                    mutate('my-attendance-today');
-                    mutate('team-attendance-today');
+                    mutate(workspaceCacheKey('my-attendance-today', workspaceScope));
+                    mutate(workspaceCacheKey('team-attendance-today', workspaceScope));
                     
                     if (result.record.attendance_state === 'CLOCKED_IN') {
                         toast.success('Clocked in!');
@@ -781,7 +786,7 @@ export function LocationProvider({
             setIsLoading(false);
             setClockInPhase('idle');
         }
-    }, [mutate]);
+    }, [mutate, workspaceScope]);
 
     const manualClockOut = useCallback(async (force = false) => {
         setIsLoading(true);
@@ -801,7 +806,7 @@ export function LocationProvider({
             
             // Stop tracking immediately for snappy feel
             setIsTracking(false);
-            localStorage.setItem(STORAGE_KEY, 'false');
+            localStorage.setItem(trackingStorageKey, 'false');
             stopTracking();
 
             toast.loading("Clocking out...", { id: 'clock-out' });
@@ -818,8 +823,8 @@ export function LocationProvider({
                 setClockInTime(result.record.clock_in_at || result.record.clock_in || null);
                 setClockOutTime(result.record.clock_out_at || result.record.clock_out || null);
                 
-                mutate('my-attendance-today');
-                mutate('team-attendance-today');
+                mutate(workspaceCacheKey('my-attendance-today', workspaceScope));
+                mutate(workspaceCacheKey('team-attendance-today', workspaceScope));
                 toast.success('Clocked out successfully!');
                 setIsLoading(false);
                 return { success: true };
@@ -829,7 +834,7 @@ export function LocationProvider({
                 attendanceStateRef.current = previousAttendance;
                 setClockOutTime(previousClockOut);
                 setIsTracking(previousTracking);
-                localStorage.setItem(STORAGE_KEY, String(previousTracking));
+                localStorage.setItem(trackingStorageKey, String(previousTracking));
                 if (previousTracking) startTracking();
                 
                 setIsLoading(false);
@@ -843,7 +848,7 @@ export function LocationProvider({
                 setClockOutTime(previousClockOut);
                 
                 setIsTracking(previousTracking);
-                localStorage.setItem(STORAGE_KEY, String(previousTracking));
+                localStorage.setItem(trackingStorageKey, String(previousTracking));
                 if (previousTracking) startTracking();
 
                 toast.error(result.error || 'Failed to clock out');
@@ -856,7 +861,7 @@ export function LocationProvider({
             setIsLoading(false);
             return { success: false };
         }
-    }, [mutate, clockOutTime, isTracking, startTracking, stopTracking]);
+    }, [mutate, clockOutTime, isTracking, startTracking, stopTracking, trackingStorageKey, workspaceScope]);
 
     const refreshLocation = useCallback(async () => {
         setIsLoading(true);
@@ -873,8 +878,8 @@ export function LocationProvider({
             await updateLocation(latitude, longitude, accuracy, resolvedId);
             
             setLastUpdate(new Date());
-            mutate('my-attendance-today');
-            mutate('team-attendance-today');
+            mutate(workspaceCacheKey('my-attendance-today', workspaceScope));
+            mutate(workspaceCacheKey('team-attendance-today', workspaceScope));
             toast.success('Position Synchronized');
         } catch (err) {
             toast.dismiss('gps-sync');
@@ -882,7 +887,7 @@ export function LocationProvider({
         } finally {
             setIsLoading(false);
         }
-    }, [mutate]);
+    }, [mutate, workspaceScope]);
 
     const contextValue = React.useMemo(() => ({
         isTracking,

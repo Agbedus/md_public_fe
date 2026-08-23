@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { switchOrganization } from '@/lib/org-actions';
 import { FiChevronDown, FiCheck, FiPlus } from 'react-icons/fi';
 import type { OrgBrief } from '@/types/organization';
+import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skeleton';
+import { toast } from '@/lib/toast';
 
 interface OrgSwitcherProps {
   organizations: OrgBrief[];
@@ -16,7 +18,8 @@ interface OrgSwitcherProps {
 
 export default function OrgSwitcher({ organizations, currentOrgId, collapsed, contentVisibilityClass }: OrgSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [switching, setSwitching] = useState(false);
+  const [switching, setSwitching] = useState<string | null>(null);
+  const [isNavigating, startNavigation] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const currentOrg = organizations.find(o => o.id === currentOrgId);
@@ -33,23 +36,29 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
 
   const handleSwitch = async (orgId: string) => {
     if (orgId === currentOrgId) return;
-    setSwitching(true);
+    setSwitching(orgId);
     setIsOpen(false);
     const result = await switchOrganization(orgId);
-    setSwitching(false);
     if (result.success && result.slug) {
-      router.push(`/${result.slug}/dashboard`);
+      setSwitching(null);
+      const destination = `/${result.slug}/dashboard`;
+      router.prefetch(destination);
+      startNavigation(() => router.push(destination));
     } else {
-      window.location.reload();
+      setSwitching(null);
+      toast.error(result.error || 'Could not switch workspace.');
     }
   };
 
   return (
     <div ref={dropdownRef} className="relative">
+      {(switching || isNavigating) && (
+        <WorkspaceLoadingSkeleton isOverlay />
+      )}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        disabled={switching}
-        className={`flex items-center w-full py-2 rounded-xl text-text-muted hover:bg-foreground/[0.05] hover:text-foreground transition-colors ${
+        disabled={switching !== null}
+        className={`flex min-h-11 items-center w-full py-2 rounded-xl text-text-muted hover:bg-foreground/[0.05] hover:text-foreground transition-[transform,color,background-color] duration-150 active:scale-[0.98] ${
           collapsed ? 'justify-center px-0' : 'justify-between px-6'
         }`}
       >
@@ -77,7 +86,7 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
               <button
                 key={org.id}
                 onClick={() => handleSwitch(org.id)}
-                className={`flex items-center w-full px-3 py-2 text-sm transition-colors hover:bg-foreground/[0.05] ${
+                className={`flex min-h-11 items-center w-full px-3 py-2 text-sm transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] ${
                   org.id === currentOrgId ? 'text-foreground font-medium' : 'text-text-muted'
                 }`}
               >

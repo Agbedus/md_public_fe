@@ -1,27 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { switchOrganization } from '@/lib/org-actions';
 import type { OrgBrief } from '@/types/organization';
+import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skeleton';
+import { toast } from '@/lib/toast';
+import { FiBriefcase, FiLoader } from 'react-icons/fi';
 
 export default function NoOrgPageClient({ organizations }: { organizations: OrgBrief[] }) {
   const router = useRouter();
   const [switching, setSwitching] = useState<string | null>(null);
+  const [isNavigating, startNavigation] = useTransition();
 
   const handleSelect = async (orgId: string) => {
     setSwitching(orgId);
-    await switchOrganization(orgId);
-    router.push('/dashboard');
+    const result = await switchOrganization(orgId);
+    if (result.success && result.slug) {
+      setSwitching(null);
+      const destination = `/${result.slug}/dashboard`;
+      router.prefetch(destination);
+      startNavigation(() => router.push(destination));
+      return;
+    }
+    setSwitching(null);
+    toast.error(result.error || 'Could not open that workspace.');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
+      {(switching || isNavigating) && (
+        <WorkspaceLoadingSkeleton isOverlay />
+      )}
       <div className="max-w-md text-center space-y-6 px-6">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-foreground/[0.05] flex items-center justify-center">
-          <svg className="w-8 h-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
+          <FiBriefcase className="h-8 w-8 text-text-muted" aria-hidden="true" />
         </div>
         <h1 className="text-2xl font-bold text-foreground">Select Your Organization</h1>
         <p className="text-text-muted leading-relaxed">
@@ -32,8 +45,8 @@ export default function NoOrgPageClient({ organizations }: { organizations: OrgB
             <button
               key={org.id}
               onClick={() => handleSelect(org.id)}
-              disabled={switching === org.id}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-card-border bg-card-bg hover:bg-foreground/[0.03] transition-colors text-left disabled:opacity-50"
+              disabled={switching !== null}
+              className="w-full flex min-h-11 items-center gap-3 px-4 py-3 rounded-xl border border-card-border bg-card hover:bg-foreground/[0.03] transition-[transform,opacity,background-color] duration-150 text-left active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
             >
               <div className="w-10 h-10 rounded-lg bg-foreground/[0.08] flex items-center justify-center text-sm font-bold text-foreground flex-shrink-0">
                 {org.name.charAt(0).toUpperCase()}
@@ -45,10 +58,7 @@ export default function NoOrgPageClient({ organizations }: { organizations: OrgB
                 )}
               </div>
               {switching === org.id && (
-                <svg className="w-5 h-5 animate-spin text-text-muted" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
+                <FiLoader className="h-5 w-5 animate-spin text-text-muted" aria-hidden="true" />
               )}
             </button>
           ))}

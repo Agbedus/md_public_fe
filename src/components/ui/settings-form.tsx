@@ -307,7 +307,8 @@ export default function SettingsForm({ user }: SettingsFormProps) {
           <button
             type="submit"
             disabled={isSaving || !isDirty}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-busy={isSaving}
+            className="flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <>

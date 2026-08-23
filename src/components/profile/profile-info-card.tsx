@@ -248,14 +248,15 @@ export function ProfileInfoCard({
           <button
             onClick={cancelEdit}
             disabled={isSaving}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 lg:py-3 rounded-2xl border border-foreground/5 text-text-muted hover:text-foreground hover:bg-foreground/[0.03] transition-all text-sm lg:text-base disabled:opacity-50"
+            className="flex min-h-11 flex-1 items-center justify-center gap-2 py-2.5 lg:py-3 rounded-md border border-card-border text-text-muted hover:text-foreground hover:bg-foreground/[0.03] transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] text-sm lg:text-base disabled:opacity-50"
           >
             <FiX className="w-4 h-4" /> Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={!isDirty || isSaving}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 lg:py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 transition-all text-sm lg:text-base disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-busy={isSaving}
+            className="flex min-h-11 flex-1 items-center justify-center gap-2 py-2.5 lg:py-3 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] text-sm lg:text-base disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isSaving ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiCheck className="w-4 h-4" />}
             {isSaving ? 'Saving...' : 'Save changes'}
@@ -264,7 +265,7 @@ export function ProfileInfoCard({
       ) : (
         <button
           onClick={openEdit}
-          className="w-full flex items-center justify-center gap-2 mt-6 lg:mt-8 py-2.5 lg:py-3 rounded-2xl bg-foreground/[0.03] border border-foreground/5 text-foreground font-semibold hover:bg-foreground/[0.06] transition-all hover:scale-[1.02] active:scale-95 text-sm lg:text-base"
+          className="w-full min-h-11 flex items-center justify-center gap-2 mt-6 lg:mt-8 py-2.5 lg:py-3 rounded-md bg-foreground/[0.03] border border-card-border text-foreground font-semibold hover:bg-foreground/[0.06] transition-[transform,background-color] duration-150 active:scale-[0.98] text-sm lg:text-base"
         >
           <FiEdit2 className="w-4 h-4" /> Edit Profile Details
         </button>

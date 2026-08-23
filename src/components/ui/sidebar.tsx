@@ -156,6 +156,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
       >
         <Link
           href={href}
+          prefetch={true}
           data-tour={item.tourId}
           className={`${baseLinkClasses} ${
             isActive ? activeLinkClasses : inactiveLinkClasses

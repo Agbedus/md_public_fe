@@ -11,6 +11,8 @@ import { FiUsers, FiEdit2, FiRefreshCw, FiMapPin } from 'react-icons/fi';
 import Image from 'next/image';
 import { useLocation } from '@/providers/location-provider';
 import { useMemo } from 'react';
+import { useOrgSlug } from '@/hooks/use-org-slug';
+import { workspaceCacheKey } from '@/lib/workspace-cache';
 
 interface Props {
     initialRecords: AttendanceRecord[];
@@ -25,9 +27,10 @@ interface Props {
 
 export default function TeamAttendanceGrid({ initialRecords, initialHistory = [], users, isManager = false, isAdmin = false, currentUserId }: Props) {
     const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
+    const orgSlug = useOrgSlug();
 
     const { data: records, mutate, isValidating } = useSWR(
-        'team-attendance-today',
+        workspaceCacheKey('team-attendance-today', orgSlug),
         () => fetchTeamAttendanceLive(),
         {
             fallbackData: initialRecords,
@@ -37,7 +40,7 @@ export default function TeamAttendanceGrid({ initialRecords, initialHistory = []
     );
 
     const { data: history } = useSWR(
-        isManager ? 'team-attendance-history' : null,
+        isManager ? workspaceCacheKey('team-attendance-history', orgSlug) : null,
         () => getTeamAttendanceHistory(),
         {
             fallbackData: initialHistory,

@@ -54,22 +54,21 @@ export function cacheKeysFor(resource: string): string[] {
     return RESOURCE_KEYS[resource] ?? [`${resource}s`];
 }
 
-function keyMatches(key: unknown, prefixes: string[]): boolean {
-    return Array.isArray(key) && typeof key[0] === 'string' && prefixes.includes(key[0]);
+function keyMatches(key: unknown, prefixes: string[], workspaceScope?: string | null): boolean {
+    if (!Array.isArray(key) || typeof key[0] !== 'string' || !prefixes.includes(key[0])) return false;
+    return !workspaceScope || key[1] === workspaceScope;
 }
 
 /**
  * Revalidate every cache entry belonging to a resource.
  *
- * Deliberately not filtered by organization: the backend only delivers a push
- * to sockets opened on the matching org, so anything that arrives is already
- * for the tenant this tab is looking at. Filtering again here would mean
- * matching an org *id* from the payload against the org *slug* in the cache
- * key, which are different identifiers.
+ * Filtered by the active workspace slug. Since caches survive organization
+ * switches, revalidating every matching prefix would otherwise refill cached
+ * entries for inactive workspaces with data from the currently selected one.
  */
-export function revalidateResource(resource: string): Promise<unknown> {
+export function revalidateResource(resource: string, workspaceScope?: string | null): Promise<unknown> {
     const prefixes = cacheKeysFor(resource);
-    return mutate((key: unknown) => keyMatches(key, prefixes), undefined, {
+    return mutate((key: unknown) => keyMatches(key, prefixes, workspaceScope), undefined, {
         revalidate: true,
     });
 }
@@ -89,10 +88,10 @@ function sameId(a: unknown, b: unknown): boolean {
  * Handles both plain arrays (`useSWR`) and page arrays (`useSWRInfinite`, which
  * tasks use — its cache value is an array of pages, not an array of rows).
  */
-export function removeFromCache(resource: string, id: string | number): Promise<unknown> {
+export function removeFromCache(resource: string, id: string | number, workspaceScope?: string | null): Promise<unknown> {
     const prefixes = cacheKeysFor(resource);
     return mutate(
-        (key: unknown) => keyMatches(key, prefixes),
+        (key: unknown) => keyMatches(key, prefixes, workspaceScope),
         (current: unknown) => {
             if (!Array.isArray(current)) return current;
 
@@ -117,9 +116,10 @@ export function applyRealtimeUpdate(
     resource: string,
     action: string,
     data: Identifiable | null | undefined,
+    workspaceScope?: string | null,
 ): Promise<unknown> {
     if (action === 'deleted' && data?.id !== undefined) {
-        return removeFromCache(resource, data.id);
+        return removeFromCache(resource, data.id, workspaceScope);
     }
-    return revalidateResource(resource);
+    return revalidateResource(resource, workspaceScope);
 }
