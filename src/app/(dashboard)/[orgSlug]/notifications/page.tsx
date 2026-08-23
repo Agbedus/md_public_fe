@@ -121,7 +121,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-[calc(100dvh-8rem)] w-full max-w-6xl flex-col gap-4 px-3 py-4 sm:px-4 md:py-8">
+    <main className="mx-auto flex min-h-[calc(100dvh-8rem)] w-full max-w-[1600px] flex-col gap-4 px-3 py-4 sm:px-4 md:py-8">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifications</h1>
