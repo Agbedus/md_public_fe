@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import useSWR from "swr";
 import { usePathname } from "next/navigation";
 import { useDashboard } from "./dashboard-layout";
 import {
@@ -23,6 +24,7 @@ import {
   FiChevronDown,
   FiInbox,
 } from "react-icons/fi";
+import type { IconType } from "react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { AboutModal } from "./about-modal";
@@ -32,6 +34,9 @@ import OrgSwitcher from "./org-switcher";
 import { isOrgAdmin, canCreate } from "@/lib/org-permissions";
 import { spring, springTap } from "@/lib/motion";
 import { ShareButton } from "@/components/ui/sharing/share-button";
+import { useLocation } from "@/providers/location-provider";
+import { getSidebarCounts } from "@/app/lib/sidebar-actions";
+import { workspaceCacheKey } from "@/lib/workspace-cache";
 
 interface OrgBrief {
   id: string;
@@ -51,6 +56,16 @@ interface SidebarProps {
   orgSlug?: string;
 }
 
+interface SidebarMenuItem {
+  href: string;
+  icon: IconType;
+  label: string;
+  color: string;
+  tourId?: string;
+  count?: number;
+  showsAttendanceStatus?: boolean;
+}
+
 const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) => {
   const pathname = usePathname();
   const {
@@ -63,6 +78,18 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isToolsOpen, setIsToolsOpen] = useState(true);
   const [isSystemOpen, setIsSystemOpen] = useState(true);
+  const { attendanceState } = useLocation();
+  const workspaceScope = orgSlug || currentOrgId;
+  const { data: sidebarCounts } = useSWR(
+    workspaceScope ? workspaceCacheKey("sidebar-counts", workspaceScope) : null,
+    getSidebarCounts,
+    {
+      revalidateOnFocus: true,
+      refreshInterval: 60_000,
+      dedupingInterval: 30_000,
+      keepPreviousData: true,
+    },
+  );
   const version = "0.1.0";
 
   // Existing expansion logic
@@ -117,7 +144,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
 
   // Mobile: smaller padding, Desktop: normal padding
   const baseLinkClasses =
-    "flex items-center py-1.5 md:py-2 rounded-lg transition-all duration-200 font-light text-sm hover:bg-blue-50 dark:hover:bg-white/[0.06] hover:text-foreground whitespace-nowrap";
+    "flex items-center py-1.5 md:py-2 rounded-lg font-light text-sm whitespace-nowrap transition-[background-color,color,border-color,transform] duration-200 ease-out hover:bg-foreground/[0.045] hover:text-foreground active:scale-[0.985] motion-reduce:transform-none motion-reduce:transition-colors";
 
   const activeLinkClasses =
     "bg-blue-100 dark:bg-slate-950 text-foreground border border-card-border font-medium";
@@ -126,32 +153,31 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
 
   /* ---------------- Menus ---------------- */
 
-  const mainMenuItems = [
+  const mainMenuItems: SidebarMenuItem[] = [
     { href: "/dashboard", icon: FiHome, label: "Dashboard", color: "text-blue-400", tourId: "dashboard" },
-    { href: "/tasks", icon: FiCheckSquare, label: "Tasks", color: "text-purple-400", tourId: "tasks" },
-    { href: "/projects", icon: FiBriefcase, label: "Projects", color: "text-pink-400", tourId: "projects" },
-    { href: "/notes", icon: FiFileText, label: "Notes", color: "text-yellow-400", tourId: "notes" },
+    { href: "/tasks", icon: FiCheckSquare, label: "Tasks", color: "text-purple-400", tourId: "tasks", count: sidebarCounts?.tasks },
+    { href: "/projects", icon: FiBriefcase, label: "Projects", color: "text-pink-400", tourId: "projects", count: sidebarCounts?.projects },
+    { href: "/notes", icon: FiFileText, label: "Notes", color: "text-yellow-400", tourId: "notes", count: sidebarCounts?.notes },
     { href: "/calendar", icon: FiCalendar, label: "Calendar", color: "text-green-400", tourId: "calendar" },
   ];
 
-  const toolMenuItems = [
+  const toolMenuItems: SidebarMenuItem[] = [
     { href: "/team", icon: FiUsers, label: "Team", color: "text-teal-400", tourId: "team" },
-    { href: "/attendance", icon: FiMapPin, label: "Attendance", color: "text-sky-400", tourId: "attendance" },
+    { href: "/attendance", icon: FiMapPin, label: "Attendance", color: "text-sky-400", tourId: "attendance", showsAttendanceStatus: true },
     { href: "/focus", icon: FiClock, label: "Focus Mode", color: "text-orange-400" },
   ];
 
-  const systemMenuItems = [
+  const systemMenuItems: SidebarMenuItem[] = [
     { href: "/wiki", icon: FiBookOpen, label: "Wiki", color: "text-emerald-400", tourId: "wiki" },
   ];
 
-  const renderMenuItem = (item: any) => {
+  const renderMenuItem = (item: SidebarMenuItem) => {
     const href = orgSlug ? `/${orgSlug}${item.href}` : item.href;
     const isActive = pathname === href || pathname.startsWith(href + '/');
+    const isAttendanceLive = attendanceState === 'CLOCKED_IN';
     return (
-      <motion.div
+      <div
         key={item.href}
-        whileHover={{ scale: 1.03, x: 2, transition: spring }}
-        whileTap={{ scale: 0.97, transition: springTap }}
         className="group/item"
       >
         <Link
@@ -162,10 +188,52 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
             isActive ? activeLinkClasses : inactiveLinkClasses
           } ${itemAlignmentClass} ${iconSpacingClass}`}
         >
-          <item.icon className={`flex-shrink-0 ${iconSizeClass} ${item.color} transition-transform duration-300 group-hover/item:-rotate-6 group-hover/item:scale-110`} />
-          <span className={contentVisibilityClass}>{item.label}</span>
+          <item.icon
+            className={`flex-shrink-0 ${iconSizeClass} ${
+              isActive ? item.color : "text-text-muted/55 group-hover/item:text-text-muted"
+            } transition-[color,transform] duration-200 ease-out motion-safe:group-hover/item:translate-x-0.5 motion-safe:group-hover/item:scale-[1.04] motion-reduce:transform-none`}
+          />
+          <span
+            className={`${contentVisibilityClass} transition-[color,transform] duration-200 ease-out motion-safe:group-hover/item:translate-x-0.5 motion-reduce:transform-none`}
+          >
+            {item.label}
+          </span>
+          {typeof item.count === "number" && (
+            <span
+              className={`${contentVisibilityClass} ml-auto min-w-5 rounded-md border border-card-border bg-foreground/[0.04] px-1.5 py-0.5 text-center font-numbers text-[10px] font-medium leading-none ${
+                isActive ? "text-foreground" : "text-text-muted"
+              }`}
+              aria-label={`${item.count} ${item.label.toLowerCase()}`}
+            >
+              {item.count > 99 ? "99+" : item.count}
+            </span>
+          )}
+          {item.showsAttendanceStatus && (
+            <span
+              className={`${contentVisibilityClass} ml-auto`}
+              role="status"
+              aria-label={isAttendanceLive ? "Attendance is live" : "Attendance is not active"}
+              title={isAttendanceLive ? "Attendance is live" : "Attendance is not active"}
+            >
+              <span className="relative inline-flex h-5 w-5 items-center justify-center rounded-full bg-foreground/[0.04]">
+                {isAttendanceLive && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute h-2 w-2 rounded-full bg-emerald-500/45 motion-safe:animate-[ping_2.2s_cubic-bezier(0,0,0.2,1)_infinite]"
+                  />
+                )}
+                <span
+                  className={`relative h-2 w-2 rounded-full ${
+                    isAttendanceLive
+                      ? "bg-emerald-500"
+                      : "bg-text-muted/35"
+                  }`}
+                />
+              </span>
+            </span>
+          )}
         </Link>
-      </motion.div>
+      </div>
     );
   };
 
