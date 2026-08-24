@@ -31,7 +31,7 @@ export const AnnouncementDropdown = ({ anchorRef, dropdownRef }: AnnouncementDro
       ref={dropdownRef}
       style={dropdownStyle}
       data-side={dropdownSide}
-      className="z-[9999] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border border-card-border bg-background/95 py-2 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
+      className={`z-[9999] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border border-card-border bg-background/95 py-2 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${dropdownSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
     >
       <div className="px-4 py-3 border-b border-card-border flex justify-between items-center bg-background/50">
         <div className="flex items-center gap-2">

@@ -394,7 +394,7 @@ export function ShareButton({
   };
 
   const triggerClass = variant === 'landing'
-    ? 'inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-5 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white'
+    ? 'inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-0 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white md:px-5'
     : variant === 'sidebar'
       ? `flex min-h-11 w-full items-center rounded-lg text-sm font-medium text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground ${isCollapsed ? 'justify-center px-0' : 'justify-start gap-4 px-6'}`
       : variant === 'icon'
@@ -413,7 +413,9 @@ export function ShareButton({
         className={`${triggerClass} ${className}`}
       >
         <FiShare2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-        {variant !== 'icon' && !isCollapsed && <span>{label}</span>}
+        {variant !== 'icon' && !isCollapsed && (
+          <span className={variant === 'landing' ? 'hidden md:inline' : ''}>{label}</span>
+        )}
       </button>
 
       <Portal>

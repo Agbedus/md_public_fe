@@ -214,8 +214,8 @@ export function CustomTimePicker({
               left: `${coords.left}px`,
               width: `${coords.width}px`,
             }}
-            className={`z-[9999] bg-card border border-card-border rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 backdrop-blur-3xl ${
-                openUpward ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
+            className={`z-[9999] bg-card border border-card-border rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none backdrop-blur-3xl ${
+                openUpward ? 'origin-bottom' : 'origin-top'
               }`}
           >
             {/* Readout */}

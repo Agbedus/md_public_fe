@@ -323,7 +323,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                         left: `${ownerCoords.left}px`,
                                         transform: 'translate(-50%, -100%)',
                                     }}
-                                    className="mb-2 w-48 p-3 bg-background border border-card-border rounded-xl shadow-xl animate-in fade-in slide-in-from-bottom-1 duration-200 z-[9999]"
+                                    className="mb-2 w-48 origin-bottom p-3 bg-background border border-card-border rounded-xl shadow-xl animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="h-9 w-9 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
@@ -576,7 +576,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                             left: `${ownerCoords.left}px`,
                             transform: 'translate(-50%, -100%)',
                         }}
-                        className="mb-2 w-48 p-3 bg-background border border-card-border rounded-xl shadow-xl animate-in fade-in slide-in-from-bottom-1 duration-200 z-[9999]"
+                        className="mb-2 w-48 origin-bottom p-3 bg-background border border-card-border rounded-xl shadow-xl animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
                         >
                         <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">

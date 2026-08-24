@@ -102,8 +102,7 @@ function SearchableCountrySelect({
     dropdownRef,
     preferredSide: 'bottom',
     preferredAlign: 'start',
-    gap: 4,
-    matchAnchorWidth: true,
+    gap: 8,
   });
 
   useClickOutside(containerRef, () => { setIsOpen(false); setSearch(''); });
@@ -149,7 +148,7 @@ function SearchableCountrySelect({
           ref={dropdownRef}
           style={dropdownStyle}
           data-side={dropdownSide}
-          className="z-[9999] rounded-xl border border-card-border bg-background shadow-lg shadow-black/5 overflow-y-auto animate-in fade-in zoom-in-95 duration-150"
+          className={`z-[9999] w-72 rounded-xl border border-card-border bg-background shadow-lg shadow-black/5 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${dropdownSide === 'top' ? 'origin-bottom' : 'origin-top'}`}
         >
           <div className="p-1.5 border-b border-card-border">
             <input

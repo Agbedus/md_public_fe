@@ -148,8 +148,8 @@ export function Combobox({
           <div
             ref={dropdownRef}
             style={dropdownStyle}
-            className={`z-[9999] bg-foreground/[0.03] border border-foreground/5 rounded-xl overflow-y-auto animate-in fade-in zoom-in-95 duration-100 ${
-              dropdownSide === 'top' ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
+            className={`z-[9999] bg-foreground/[0.03] border border-foreground/5 rounded-xl overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${
+              dropdownSide === 'top' ? 'origin-bottom' : 'origin-top'
             }`}
           >
             <div className="p-2 border-b border-foreground/5">

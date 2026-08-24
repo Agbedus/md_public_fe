@@ -430,20 +430,22 @@ export default function LandingPage() {
                     <motion.div
                         {...fadeIn}
                         transition={{ delay: 0.2 }}
-                        className="flex flex-col md:flex-row items-center justify-center gap-4 pt-2"
+                        className="mx-auto flex w-full max-w-xl flex-row items-center justify-center gap-2 pt-2 sm:gap-3 md:gap-4"
                     >
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="min-w-0 flex-1">
                             <Link 
                                 href="/register"
-                                className="w-full md:w-auto px-8 py-4 rounded-full bg-emerald-400 text-[#07090c] hover:bg-emerald-300 text-sm font-semibold tracking-tight flex items-center justify-center gap-2 group transition-colors duration-200 active:scale-[0.98]"
+                                className="flex min-h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full bg-emerald-400 px-4 py-3 text-xs font-semibold tracking-tight text-[#07090c] transition-colors duration-200 hover:bg-emerald-300 active:scale-[0.98] sm:px-5 sm:text-sm md:px-8 md:py-4 group"
                             >
-                                Create your account <FiArrowRight className="group-hover:translate-x-0.5 transition-transform" />
+                                <span className="sm:hidden">Create account</span>
+                                <span className="hidden sm:inline">Create your account</span>
+                                <FiArrowRight className="shrink-0 transition-transform group-hover:translate-x-0.5" />
                             </Link>
                         </motion.div>
-                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full md:w-auto">
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="min-w-0 flex-1">
                             <Link 
                                 href="/login" 
-                                className="w-full md:w-auto px-8 py-4 rounded-full border border-white/15 text-zinc-300 hover:text-white hover:border-white/30 hover:bg-white/[0.04] text-sm font-semibold tracking-tight transition-colors duration-200 active:scale-[0.98]"
+                                className="flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-full border border-white/15 px-4 py-3 text-xs font-semibold tracking-tight text-zinc-300 transition-colors duration-200 hover:border-white/30 hover:bg-white/[0.04] hover:text-white active:scale-[0.98] sm:px-5 sm:text-sm md:px-8 md:py-4"
                             >
                                 Sign in
                             </Link>
@@ -451,7 +453,7 @@ export default function LandingPage() {
                         <ShareButton
                             sourceSurface="landing_hero"
                             variant="landing"
-                            className="w-full md:w-auto"
+                            className="w-auto"
                         />
                     </motion.div>
 

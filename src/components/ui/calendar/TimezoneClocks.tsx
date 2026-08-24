@@ -256,12 +256,12 @@ export default function TimezoneClocks() {
         {isPickerOpen && (
           <motion.div
             ref={pickerRef}
-            initial={{ opacity: 0, y: -8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            initial={{ opacity: 0, scale: 0.985 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.985 }}
             style={pickerStyle}
             data-side={pickerSide}
-            className="z-[9999] w-64 bg-card border border-card-border rounded-2xl shadow-2xl overflow-y-auto"
+            className={`z-[9999] w-64 bg-card border border-card-border rounded-2xl shadow-2xl overflow-y-auto ${pickerSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
           >
             <div className="flex items-center gap-2 px-4 py-3 border-b border-card-border">
               <FiGlobe className="h-3.5 w-3.5 text-text-muted" />

@@ -132,7 +132,7 @@ export const CommandList = forwardRef((props: any, ref) => {
   }
 
   return (
-    <div className="z-50 w-72 bg-background/95 backdrop-blur-md border border-card-border rounded-2xl shadow-2xl overflow-hidden p-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+    <div className="z-50 w-72 origin-top bg-background/95 backdrop-blur-md border border-card-border rounded-2xl shadow-2xl overflow-hidden p-1.5 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none">
       {props.items.map((item: CommandItemProps, index: number) => (
         <button
           className={`flex items-center gap-3 w-full px-3 py-2 text-left rounded-xl transition-all ${

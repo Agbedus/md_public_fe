@@ -87,13 +87,13 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
         {isOpen && (
           <motion.div
             ref={menuRef}
-            initial={{ opacity: 0, y: menuSide === 'top' ? 4 : -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: menuSide === 'top' ? 4 : -4 }}
+            initial={{ opacity: 0, scale: 0.985 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.985 }}
             transition={{ duration: 0.15 }}
             style={menuStyle}
             data-side={menuSide}
-            className={`z-[9999] w-[calc(16rem-1rem)] max-w-[calc(100vw-1.5rem)] rounded-xl border border-sidebar-border bg-sidebar-bg shadow-lg overflow-y-auto ${collapsed ? 'hidden' : ''}`}
+            className={`z-[9999] w-[calc(16rem-1rem)] max-w-[calc(100vw-1.5rem)] rounded-xl border border-sidebar-border bg-sidebar-bg shadow-lg overflow-y-auto ${menuSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'} ${collapsed ? 'hidden' : ''}`}
           >
             {organizations.map((org) => (
               <button

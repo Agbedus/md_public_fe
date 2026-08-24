@@ -179,8 +179,8 @@ export function CustomDatePicker({
             ref={dropdownRef}
             style={dropdownStyle}
             data-side={dropdownSide}
-            className={`z-[9999] flex w-80 max-w-[calc(100vw-1.5rem)] flex-col overflow-y-auto rounded-xl border border-card-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-100 ${
-                dropdownSide === 'top' ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
+            className={`z-[9999] flex w-80 max-w-[calc(100vw-1.5rem)] flex-col overflow-y-auto rounded-xl border border-card-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${
+                dropdownSide === 'top' ? 'origin-bottom' : 'origin-top'
               }`}
           >
             {/* Header */}

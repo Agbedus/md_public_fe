@@ -207,13 +207,13 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                 <Portal>
                 <motion.div
                   ref={orgSwitcherMenuRef}
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
+                  initial={{ opacity: 0, scale: 0.985 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.985 }}
                   transition={{ duration: 0.15 }}
                   style={orgSwitcherMenuStyle}
                   data-side={orgSwitcherMenuSide}
-                  className="z-[9999] w-[min(18rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-card-border bg-card shadow-lg md:w-64"
+                  className={`z-[9999] w-[min(18rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-card-border bg-card shadow-lg md:w-64 ${orgSwitcherMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
                 >
                   <div className="px-3 py-2 border-b border-card-border">
                     <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Switch Organization</p>
@@ -318,7 +318,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                 ref={notificationMenuRef}
                 style={notificationMenuStyle}
                 data-side={notificationMenuSide}
-                className="z-[9999] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border border-card-border bg-background py-2 shadow-lg animate-in fade-in zoom-in-95 duration-200"
+                className={`z-[9999] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border border-card-border bg-background py-2 shadow-lg animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${notificationMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
               >
                 <div className="px-4 py-3 border-b border-card-border flex justify-between items-center bg-background/50">
                   <p className="text-sm font-black text-foreground uppercase tracking-tight">Notifications</p>
@@ -498,7 +498,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                     ref={userMenuRef}
                     style={userMenuStyle}
                     data-side={userMenuSide}
-                    className="z-[9999] w-56 overflow-y-auto rounded-xl border border-card-border bg-background py-2 shadow-lg animate-in fade-in zoom-in-95 duration-200"
+                    className={`z-[9999] w-56 overflow-y-auto rounded-xl border border-card-border bg-background py-2 shadow-lg animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${userMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
                   >
                   <div className="px-4 py-3 border-b border-card-border mb-2 bg-background/50">
                       <p className="text-base font-black text-foreground truncate uppercase tracking-tight">{user.name || 'User'}</p>

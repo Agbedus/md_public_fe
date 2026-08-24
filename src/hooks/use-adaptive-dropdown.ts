@@ -35,7 +35,7 @@ export function useAdaptiveDropdown({
   preferredSide = 'bottom',
   preferredAlign = 'start',
   gap = 8,
-  viewportPadding = 12,
+  viewportPadding = 16,
   matchAnchorWidth = false,
 }: AdaptiveDropdownOptions): DropdownPosition {
   const [position, setPosition] = useState<DropdownPosition>({
@@ -56,16 +56,21 @@ export function useAdaptiveDropdown({
     if (!anchor || !dropdown) return;
 
     const anchorRect = anchor.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const visualViewport = window.visualViewport;
+    const viewportLeft = visualViewport?.offsetLeft ?? 0;
+    const viewportTop = visualViewport?.offsetTop ?? 0;
+    const viewportWidth = visualViewport?.width ?? window.innerWidth;
+    const viewportHeight = visualViewport?.height ?? window.innerHeight;
+    const viewportRight = viewportLeft + viewportWidth;
+    const viewportBottom = viewportTop + viewportHeight;
     const maxViewportWidth = Math.max(0, viewportWidth - viewportPadding * 2);
     const measuredWidth = matchAnchorWidth
       ? anchorRect.width
       : Math.max(dropdown.scrollWidth, dropdown.offsetWidth);
     const naturalWidth = Math.min(measuredWidth, maxViewportWidth);
     const naturalHeight = Math.max(dropdown.scrollHeight, dropdown.offsetHeight);
-    const spaceBelow = Math.max(0, viewportHeight - anchorRect.bottom - gap - viewportPadding);
-    const spaceAbove = Math.max(0, anchorRect.top - gap - viewportPadding);
+    const spaceBelow = Math.max(0, viewportBottom - anchorRect.bottom - gap - viewportPadding);
+    const spaceAbove = Math.max(0, anchorRect.top - viewportTop - gap - viewportPadding);
 
     let side = preferredSide;
     const preferredSpace = preferredSide === 'bottom' ? spaceBelow : spaceAbove;
@@ -80,37 +85,37 @@ export function useAdaptiveDropdown({
       ? anchorRect.bottom + gap
       : anchorRect.top - gap - renderedHeight;
     top = Math.min(
-      Math.max(viewportPadding, top),
-      Math.max(viewportPadding, viewportHeight - viewportPadding - renderedHeight),
+      Math.max(viewportTop + viewportPadding, top),
+      Math.max(viewportTop + viewportPadding, viewportBottom - viewportPadding - renderedHeight),
     );
 
     let align = preferredAlign;
     let left = preferredAlign === 'start'
       ? anchorRect.left
       : anchorRect.right - naturalWidth;
-    const crossesRightEdge = left + naturalWidth > viewportWidth - viewportPadding;
-    const crossesLeftEdge = left < viewportPadding;
+    const crossesRightEdge = left + naturalWidth > viewportRight - viewportPadding;
+    const crossesLeftEdge = left < viewportLeft + viewportPadding;
 
     if (preferredAlign === 'start' && crossesRightEdge) {
       const endAlignedLeft = anchorRect.right - naturalWidth;
-      if (endAlignedLeft >= viewportPadding) {
+      if (endAlignedLeft >= viewportLeft + viewportPadding) {
         left = endAlignedLeft;
         align = 'end';
       }
     } else if (preferredAlign === 'end' && crossesLeftEdge) {
       const startAlignedLeft = anchorRect.left;
-      if (startAlignedLeft + naturalWidth <= viewportWidth - viewportPadding) {
+      if (startAlignedLeft + naturalWidth <= viewportRight - viewportPadding) {
         left = startAlignedLeft;
         align = 'start';
       }
     }
 
     left = Math.min(
-      Math.max(viewportPadding, left),
-      Math.max(viewportPadding, viewportWidth - viewportPadding - naturalWidth),
+      Math.max(viewportLeft + viewportPadding, left),
+      Math.max(viewportLeft + viewportPadding, viewportRight - viewportPadding - naturalWidth),
     );
 
-    const right = Math.max(viewportPadding, viewportWidth - left - naturalWidth);
+    const right = Math.max(viewportPadding, window.innerWidth - left - naturalWidth);
     const horizontalStyle: CSSProperties = align === 'end'
       ? { right, left: 'auto' }
       : { left, right: 'auto' };
@@ -146,6 +151,8 @@ export function useAdaptiveDropdown({
     if (dropdownRef.current) resizeObserver.observe(dropdownRef.current);
     window.addEventListener('resize', handleViewportChange);
     window.addEventListener('scroll', handleViewportChange, true);
+    window.visualViewport?.addEventListener('resize', handleViewportChange);
+    window.visualViewport?.addEventListener('scroll', handleViewportChange);
 
     return () => {
       window.cancelAnimationFrame(frame);
@@ -153,6 +160,8 @@ export function useAdaptiveDropdown({
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleViewportChange);
       window.removeEventListener('scroll', handleViewportChange, true);
+      window.visualViewport?.removeEventListener('resize', handleViewportChange);
+      window.visualViewport?.removeEventListener('scroll', handleViewportChange);
     };
   }, [anchorRef, dropdownRef, isOpen, updatePosition]);
 
