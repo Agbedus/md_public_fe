@@ -18,6 +18,7 @@ import type { OrgBrief } from '@/types/organization';
 import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skeleton';
 import { toast } from '@/lib/toast';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
+import { Portal } from '@/components/ui/portal';
 
 interface TopNavProps {
   user?: {
@@ -45,6 +46,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
   const announcementRef = useRef<HTMLDivElement>(null);
   const orgSwitcherMenuRef = useRef<HTMLDivElement>(null);
   const notificationMenuRef = useRef<HTMLDivElement>(null);
+  const announcementMenuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { style: orgSwitcherMenuStyle, side: orgSwitcherMenuSide } = useAdaptiveDropdown({
@@ -123,16 +125,16 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && !userMenuRef.current?.contains(event.target as Node)) {
         setIsOpen(false);
       }
-      if (orgSwitcherRef.current && !orgSwitcherRef.current.contains(event.target as Node)) {
+      if (orgSwitcherRef.current && !orgSwitcherRef.current.contains(event.target as Node) && !orgSwitcherMenuRef.current?.contains(event.target as Node)) {
         setIsOrgSwitcherOpen(false);
       }
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node) && !notificationMenuRef.current?.contains(event.target as Node)) {
         setIsNotificationsOpen(false);
       }
-      if (announcementRef.current && !announcementRef.current.contains(event.target as Node)) {
+      if (announcementRef.current && !announcementRef.current.contains(event.target as Node) && !announcementMenuRef.current?.contains(event.target as Node)) {
         setIsAnnouncementsOpen(false);
       }
     };
@@ -148,7 +150,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
       {(switching || isNavigating) && (
         <WorkspaceLoadingSkeleton isOverlay />
       )}
-      <nav className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-card-border bg-background px-3 md:h-20 md:px-8">
+      <nav className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-card-border bg-background px-3 md:h-20 md:px-5 xl:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-6">
           {/* Mobile Logo */}
           <Link href={orgSlug ? `/${orgSlug}/dashboard` : (user ? "/dashboard" : "/")} className="flex min-h-11 shrink-0 items-center gap-2 md:hidden">
@@ -182,7 +184,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
         {/* Org Badge + Inline Switcher */}
         {currentOrg && (
-          <div className="relative mr-1 block md:mr-5" ref={orgSwitcherRef}>
+          <div className="relative mr-1 block md:mr-2 xl:mr-4" ref={orgSwitcherRef}>
             <button
               onClick={() => setIsOrgSwitcherOpen(!isOrgSwitcherOpen)}
               disabled={switching !== null}
@@ -193,7 +195,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               </div>
               <span className="hidden max-w-[92px] truncate sm:inline md:max-w-[120px]">{currentOrg.name}</span>
               {orgRoleDisplay && (
-                <span className={`hidden px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider md:inline ${orgRoleToneClasses[orgRoleDisplay.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5'}`}>
+                <span className={`hidden px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider xl:inline ${orgRoleToneClasses[orgRoleDisplay.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5'}`}>
                   {orgRoleDisplay.label}
                 </span>
               )}
@@ -202,6 +204,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
             <AnimatePresence>
               {isOrgSwitcherOpen && organizations.length > 0 && (
+                <Portal>
                 <motion.div
                   ref={orgSwitcherMenuRef}
                   initial={{ opacity: 0, y: -4 }}
@@ -251,12 +254,13 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                     </button>
                   </div>
                 </motion.div>
+                </Portal>
               )}
             </AnimatePresence>
           </div>
         )}
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-1.5 md:gap-5">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-1.5 xl:gap-3">
 
           <div className="relative" ref={notificationRef} data-tour="notifications">
             <button
@@ -309,6 +313,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
             </button>
 
             {isNotificationsOpen && (
+              <Portal>
               <div
                 ref={notificationMenuRef}
                 style={notificationMenuStyle}
@@ -394,6 +399,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                   </div>
                 )}
               </div>
+              </Portal>
             )}
           </div>
 
@@ -448,16 +454,18 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               )}
             </button>
 
-            {isAnnouncementsOpen && <AnnouncementDropdown anchorRef={announcementRef} />}
+            {isAnnouncementsOpen && (
+              <AnnouncementDropdown anchorRef={announcementRef} dropdownRef={announcementMenuRef} />
+            )}
           </div>
 
-          <div className="flex gap-2 hidden md:flex">
+          <div className="hidden gap-2 xl:flex">
             <button className="p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] hover-scale active:scale-[0.93]" title="Help & Support">
               <FiHelpCircle className="text-xl" />
             </button>
           </div>
 
-          <div className="h-8 w-[1px] bg-foreground/[0.08] hidden md:block"></div>
+          <div className="hidden h-8 w-px bg-foreground/[0.08] xl:block"></div>
 
           {user ? (
             <div className="relative" ref={dropdownRef}>
@@ -485,6 +493,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
               {/* Dropdown Menu */}
               {isOpen && (
+                  <Portal>
                   <div
                     ref={userMenuRef}
                     style={userMenuStyle}
@@ -544,6 +553,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                       </button>
                   </form>
                   </div>
+                  </Portal>
               )}
             </div>
           ) : (

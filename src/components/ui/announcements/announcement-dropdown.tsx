@@ -1,20 +1,21 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React from 'react';
 import type { RefObject } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { FiMessageSquare, FiBell, FiChevronRight } from 'react-icons/fi';
 import { useAnnouncements } from './announcement-provider';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
+import { Portal } from '@/components/ui/portal';
 
 interface AnnouncementDropdownProps {
   anchorRef: RefObject<HTMLElement | null>;
+  dropdownRef: RefObject<HTMLDivElement | null>;
 }
 
-export const AnnouncementDropdown = ({ anchorRef }: AnnouncementDropdownProps) => {
+export const AnnouncementDropdown = ({ anchorRef, dropdownRef }: AnnouncementDropdownProps) => {
   const { announcements, unreadCount, setIsDropdownOpen, setIsDrawerOpen } = useAnnouncements();
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
     isOpen: true,
     anchorRef,
@@ -25,6 +26,7 @@ export const AnnouncementDropdown = ({ anchorRef }: AnnouncementDropdownProps) =
   const latestAnnouncements = announcements.slice(0, 5);
 
   return (
+    <Portal>
     <div
       ref={dropdownRef}
       style={dropdownStyle}
@@ -98,5 +100,6 @@ export const AnnouncementDropdown = ({ anchorRef }: AnnouncementDropdownProps) =
         </button>
       </div>
     </div>
+    </Portal>
   );
 };

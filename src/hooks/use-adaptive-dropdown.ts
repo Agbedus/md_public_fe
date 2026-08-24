@@ -110,6 +110,11 @@ export function useAdaptiveDropdown({
       Math.max(viewportPadding, viewportWidth - viewportPadding - naturalWidth),
     );
 
+    const right = Math.max(viewportPadding, viewportWidth - left - naturalWidth);
+    const horizontalStyle: CSSProperties = align === 'end'
+      ? { right, left: 'auto' }
+      : { left, right: 'auto' };
+
     setPosition({
       side,
       align,
@@ -117,7 +122,7 @@ export function useAdaptiveDropdown({
       style: {
         position: 'fixed',
         top,
-        left,
+        ...horizontalStyle,
         width: matchAnchorWidth ? naturalWidth : undefined,
         maxWidth: maxViewportWidth,
         maxHeight: availableHeight,
@@ -129,7 +134,11 @@ export function useAdaptiveDropdown({
   useLayoutEffect(() => {
     if (!isOpen) return;
 
-    const frame = window.requestAnimationFrame(updatePosition);
+    let followUpFrame = 0;
+    const frame = window.requestAnimationFrame(() => {
+      updatePosition();
+      followUpFrame = window.requestAnimationFrame(updatePosition);
+    });
     const handleViewportChange = () => window.requestAnimationFrame(updatePosition);
     const resizeObserver = new ResizeObserver(handleViewportChange);
 
@@ -140,6 +149,7 @@ export function useAdaptiveDropdown({
 
     return () => {
       window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(followUpFrame);
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleViewportChange);
       window.removeEventListener('scroll', handleViewportChange, true);
