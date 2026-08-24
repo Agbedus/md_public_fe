@@ -17,6 +17,7 @@ import { presentOrgRole, orgRoleToneClasses } from '@/types/organization';
 import type { OrgBrief } from '@/types/organization';
 import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skeleton';
 import { toast } from '@/lib/toast';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
 interface TopNavProps {
   user?: {
@@ -42,7 +43,28 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
   const orgSwitcherRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const announcementRef = useRef<HTMLDivElement>(null);
+  const orgSwitcherMenuRef = useRef<HTMLDivElement>(null);
+  const notificationMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { style: orgSwitcherMenuStyle, side: orgSwitcherMenuSide } = useAdaptiveDropdown({
+    isOpen: isOrgSwitcherOpen,
+    anchorRef: orgSwitcherRef,
+    dropdownRef: orgSwitcherMenuRef,
+    preferredAlign: 'end',
+  });
+  const { style: notificationMenuStyle, side: notificationMenuSide } = useAdaptiveDropdown({
+    isOpen: isNotificationsOpen,
+    anchorRef: notificationRef,
+    dropdownRef: notificationMenuRef,
+    preferredAlign: 'end',
+  });
+  const { style: userMenuStyle, side: userMenuSide } = useAdaptiveDropdown({
+    isOpen,
+    anchorRef: dropdownRef,
+    dropdownRef: userMenuRef,
+    preferredAlign: 'end',
+  });
 
   const currentOrg = organizations.find(o => o.id === currentOrgId);
   const orgRoleDisplay = currentOrg?.role
@@ -181,11 +203,14 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
             <AnimatePresence>
               {isOrgSwitcherOpen && organizations.length > 0 && (
                 <motion.div
+                  ref={orgSwitcherMenuRef}
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 z-50 mt-1.5 w-[min(18rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-card-border bg-card shadow-lg md:left-0 md:right-auto md:w-64"
+                  style={orgSwitcherMenuStyle}
+                  data-side={orgSwitcherMenuSide}
+                  className="z-[9999] w-[min(18rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-card-border bg-card shadow-lg md:w-64"
                 >
                   <div className="px-3 py-2 border-b border-card-border">
                     <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Switch Organization</p>
@@ -284,7 +309,12 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
             </button>
 
             {isNotificationsOpen && (
-              <div className="absolute right-0 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-background border border-card-border rounded-xl py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+              <div
+                ref={notificationMenuRef}
+                style={notificationMenuStyle}
+                data-side={notificationMenuSide}
+                className="z-[9999] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border border-card-border bg-background py-2 shadow-lg animate-in fade-in zoom-in-95 duration-200"
+              >
                 <div className="px-4 py-3 border-b border-card-border flex justify-between items-center bg-background/50">
                   <p className="text-sm font-black text-foreground uppercase tracking-tight">Notifications</p>
                   {unreadCount > 0 && (
@@ -418,7 +448,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               )}
             </button>
 
-            {isAnnouncementsOpen && <AnnouncementDropdown />}
+            {isAnnouncementsOpen && <AnnouncementDropdown anchorRef={announcementRef} />}
           </div>
 
           <div className="flex gap-2 hidden md:flex">
@@ -455,7 +485,12 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
               {/* Dropdown Menu */}
               {isOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-background border border-card-border rounded-xl py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+                  <div
+                    ref={userMenuRef}
+                    style={userMenuStyle}
+                    data-side={userMenuSide}
+                    className="z-[9999] w-56 overflow-y-auto rounded-xl border border-card-border bg-background py-2 shadow-lg animate-in fade-in zoom-in-95 duration-200"
+                  >
                   <div className="px-4 py-3 border-b border-card-border mb-2 bg-background/50">
                       <p className="text-base font-black text-foreground truncate uppercase tracking-tight">{user.name || 'User'}</p>
                       <p className="text-[10px] text-text-muted font-normal truncate lowercase">{user.email}</p>

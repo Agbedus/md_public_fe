@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import { FiX, FiCalendar, FiCheck, FiLoader } from "react-icons/fi";
+import React, { useRef, useState } from "react";
+import { FiX, FiCalendar, FiCheck, FiLoader, FiPaperclip, FiFileText } from "react-icons/fi";
 import { createTimeOffRequest } from "@/app/(dashboard)/[orgSlug]/time-off/actions";
 import type { TimeOffRequest, TimeOffType } from "@/types/time-off";
 import { CustomDatePicker } from "@/components/ui/inputs/custom-date-picker";
@@ -25,7 +25,9 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [justification, setJustification] = useState('');
+    const [attachment, setAttachment] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const requiresJustification = type !== 'leave';
 
@@ -39,6 +41,14 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
             toast.error('Justification is required for this type');
             return;
         }
+        if (attachment && (attachment.type !== 'application/pdf' || !attachment.name.toLowerCase().endsWith('.pdf'))) {
+            toast.error('Only PDF attachments are accepted');
+            return;
+        }
+        if (attachment && attachment.size > 2 * 1024 * 1024) {
+            toast.error('The PDF must not exceed 2 MB');
+            return;
+        }
 
         setIsSubmitting(true);
         try {
@@ -49,6 +59,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
             if (justification.trim()) {
                 formData.set('justification', justification.trim());
             }
+            if (attachment) formData.set('attachment', attachment);
 
             const result = await createTimeOffRequest(formData);
             if (result.success) {
@@ -60,6 +71,8 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                 setStartDate(null);
                 setEndDate(null);
                 setJustification('');
+                setAttachment(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
             } else {
                 toast.error(result.error || 'Failed to submit request');
             }
@@ -86,9 +99,9 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                 onClick={onClose}
             />
 
-            <div className="relative bg-background border border-card-border w-full max-w-lg mx-4 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden">
+            <div className="relative mx-4 max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-card-border bg-background shadow-2xl">
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-card-border bg-foreground/[0.03] px-4 py-4 sm:px-6 md:px-8 md:py-5">
+                <div className="flex items-center justify-between border-b border-card-border bg-card px-4 py-3.5 sm:px-5">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
                             <FiCalendar className="w-5 h-5 text-amber-600 dark:text-amber-500" />
@@ -104,17 +117,17 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
+                <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-5">
                     {/* Type */}
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Exemptions</label>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                             {TIME_OFF_TYPES.map(t => (
                                 <button
                                     key={t.value}
                                     type="button"
                                     onClick={() => setType(t.value)}
-                                    className={`min-h-11 p-4 rounded-xl border text-left transition-[transform,color,background-color,border-color] duration-150 active:scale-[0.98] ${
+                                    className={`min-h-11 rounded-lg border p-3 text-left transition-[transform,color,background-color,border-color] duration-150 active:scale-[0.98] ${
                                         type === t.value
                                             ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-400 shadow-sm'
                                             : 'bg-foreground/[0.03] border-card-border text-text-muted hover:border-foreground/10 hover:text-foreground'
@@ -128,7 +141,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                     </div>
 
                     {/* Date Range */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">Commencement</label>
                             <CustomDatePicker
@@ -151,7 +164,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                     </div>
 
                     {/* Justification */}
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] ml-1">
                             Operational Justification {requiresJustification && <span className="text-amber-500">*</span>}
                         </label>
@@ -159,13 +172,70 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                             value={justification}
                             onChange={e => setJustification(e.target.value)}
                             placeholder={requiresJustification ? "Critical briefing required..." : "Optional context..."}
-                            rows={3}
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-4 py-3 text-foreground placeholder:text-text-muted/50 text-sm font-bold resize-none focus:outline-none focus:border-amber-500/30 transition-all custom-scrollbar"
+                            rows={5}
+                            className="min-h-32 w-full resize-y rounded-xl border border-card-border bg-input-bg px-4 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-500/10 custom-scrollbar"
                         />
                     </div>
 
+                    <div className="space-y-2">
+                        <label className="ml-1 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
+                            Supporting document <span className="normal-case tracking-normal opacity-70">(optional)</span>
+                        </label>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="application/pdf,.pdf"
+                            className="sr-only"
+                            onChange={(event) => {
+                                const file = event.target.files?.[0] || null;
+                                if (!file) return setAttachment(null);
+                                if (file.type !== 'application/pdf' || !file.name.toLowerCase().endsWith('.pdf')) {
+                                    toast.error('Only PDF attachments are accepted');
+                                    event.target.value = '';
+                                    return;
+                                }
+                                if (file.size > 2 * 1024 * 1024) {
+                                    toast.error('The PDF must not exceed 2 MB');
+                                    event.target.value = '';
+                                    return;
+                                }
+                                setAttachment(file);
+                            }}
+                        />
+                        {attachment ? (
+                            <div className="flex min-h-11 items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-3 py-2">
+                                <FiFileText className="h-4 w-4 shrink-0 text-emerald-500" />
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-xs font-medium text-foreground">{attachment.name}</p>
+                                    <p className="text-[10px] text-text-muted">{(attachment.size / 1024).toFixed(0)} KB · PDF</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAttachment(null);
+                                        if (fileInputRef.current) fileInputRef.current.value = '';
+                                    }}
+                                    className="grid h-9 w-9 place-items-center rounded-md text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
+                                    aria-label="Remove attachment"
+                                >
+                                    <FiX className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-card-border bg-input-bg px-4 py-2.5 text-xs font-medium text-text-secondary transition-colors hover:border-foreground/15 hover:bg-foreground/[0.04] hover:text-foreground"
+                            >
+                                <FiPaperclip className="h-4 w-4" />
+                                Attach PDF
+                                <span className="text-[10px] text-text-muted">Maximum 2 MB</span>
+                            </button>
+                        )}
+                    </div>
+
                     {/* Submit */}
-                    <div className="flex justify-end gap-3 pt-4 border-t border-card-border mt-2">
+                    <div className="flex justify-end gap-3 border-t border-card-border pt-4">
                         <button
                             type="button"
                             onClick={onClose}

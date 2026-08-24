@@ -8,6 +8,7 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { toast } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import { ALL_COUNTRIES, CODE_TO_DIAL, getFlagEmoji } from '@/lib/countries';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
 // Public, unauthenticated lookup — same endpoint and same client-exposed base
 // URL the standalone /invite page already uses to preview an invite before
@@ -93,7 +94,17 @@ function SearchableCountrySelect({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
+    isOpen,
+    anchorRef: containerRef,
+    dropdownRef,
+    preferredSide: 'bottom',
+    preferredAlign: 'start',
+    gap: 4,
+    matchAnchorWidth: true,
+  });
 
   useClickOutside(containerRef, () => { setIsOpen(false); setSearch(''); });
 
@@ -134,7 +145,12 @@ function SearchableCountrySelect({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-xl border border-card-border bg-background shadow-lg shadow-black/5 overflow-hidden">
+        <div
+          ref={dropdownRef}
+          style={dropdownStyle}
+          data-side={dropdownSide}
+          className="z-[9999] rounded-xl border border-card-border bg-background shadow-lg shadow-black/5 overflow-y-auto animate-in fade-in zoom-in-95 duration-150"
+        >
           <div className="p-1.5 border-b border-card-border">
             <input
               ref={searchRef}

@@ -8,6 +8,7 @@ import { FiChevronDown, FiCheck, FiPlus } from 'react-icons/fi';
 import type { OrgBrief } from '@/types/organization';
 import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skeleton';
 import { toast } from '@/lib/toast';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
 interface OrgSwitcherProps {
   organizations: OrgBrief[];
@@ -21,8 +22,17 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
   const [switching, setSwitching] = useState<string | null>(null);
   const [isNavigating, startNavigation] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const currentOrg = organizations.find(o => o.id === currentOrgId);
+  const { style: menuStyle, side: menuSide } = useAdaptiveDropdown({
+    isOpen,
+    anchorRef: dropdownRef,
+    dropdownRef: menuRef,
+    preferredSide: 'top',
+    preferredAlign: 'start',
+    gap: 4,
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -76,11 +86,14 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -4 }}
+            ref={menuRef}
+            initial={{ opacity: 0, y: menuSide === 'top' ? 4 : -4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+            exit={{ opacity: 0, y: menuSide === 'top' ? 4 : -4 }}
             transition={{ duration: 0.15 }}
-            className={`absolute bottom-full mb-1 left-2 right-2 bg-sidebar-bg border border-sidebar-border rounded-xl shadow-lg overflow-hidden z-50 ${collapsed ? 'hidden' : ''}`}
+            style={menuStyle}
+            data-side={menuSide}
+            className={`z-[9999] w-[calc(16rem-1rem)] max-w-[calc(100vw-1.5rem)] rounded-xl border border-sidebar-border bg-sidebar-bg shadow-lg overflow-y-auto ${collapsed ? 'hidden' : ''}`}
           >
             {organizations.map((org) => (
               <button

@@ -1,7 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FiClock, FiTrash2, FiChevronUp, FiChevronDown, FiChevronLeft, FiChevronRight, FiCheck, FiGlobe } from "react-icons/fi";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
 interface ClockItem {
   id: string;
@@ -116,6 +117,15 @@ export default function TimezoneClocks() {
   // the incoming/outgoing clock animates from/to.
   const [direction, setDirection] = useState(1);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const pickerAnchorRef = useRef<HTMLButtonElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const { style: pickerStyle, side: pickerSide } = useAdaptiveDropdown({
+    isOpen: isPickerOpen,
+    anchorRef: pickerAnchorRef,
+    dropdownRef: pickerRef,
+    preferredSide: 'bottom',
+    preferredAlign: 'end',
+  });
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -231,6 +241,7 @@ export default function TimezoneClocks() {
 
       {/* Add/remove clocks — its own square button, matching the slider's height */}
       <button
+        ref={pickerAnchorRef}
         onClick={() => setIsPickerOpen((v) => !v)}
         aria-label="Add or remove clocks"
         className="h-16 w-16 shrink-0 bg-card border border-card-border rounded-xl flex items-center justify-center text-text-muted hover:text-foreground hover:bg-foreground/[0.05] shadow-sm transition-all"
@@ -244,10 +255,13 @@ export default function TimezoneClocks() {
       <AnimatePresence>
         {isPickerOpen && (
           <motion.div
+            ref={pickerRef}
             initial={{ opacity: 0, y: -8, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            className="absolute top-full right-0 mt-2 z-50 w-64 bg-card border border-card-border rounded-2xl shadow-2xl overflow-hidden"
+            style={pickerStyle}
+            data-side={pickerSide}
+            className="z-[9999] w-64 bg-card border border-card-border rounded-2xl shadow-2xl overflow-y-auto"
           >
             <div className="flex items-center gap-2 px-4 py-3 border-b border-card-border">
               <FiGlobe className="h-3.5 w-3.5 text-text-muted" />

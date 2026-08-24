@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isToday, addYears, setYear, setMonth, setHours, setMinutes, parseISO } from 'date-fns';
 import { FiCalendar, FiChevronLeft, FiChevronRight, FiClock, FiX } from 'react-icons/fi';
 import { Portal } from '@/components/ui/portal';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
 interface CustomDatePickerProps {
   value: Date | string | null;
@@ -33,8 +34,14 @@ export function CustomDatePicker({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
-  const [openUpward, setOpenUpward] = useState(false);
+  const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
+    isOpen,
+    anchorRef: containerRef,
+    dropdownRef,
+    preferredSide: 'bottom',
+    preferredAlign: 'start',
+    gap: 4,
+  });
 
   // Local state for navigation (independent of selected date)
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -72,39 +79,6 @@ export function CustomDatePicker({
   const hiddenValue = isValidValue
     ? format(parsedValue, enableTime ? "yyyy-MM-dd'T'HH:mm" : 'yyyy-MM-dd')
     : '';
-
-  const updateCoords = () => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const dropdownHeight = 400; // Approx max height
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const shouldOpenUpward = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
-      
-      setOpenUpward(shouldOpenUpward);
-      setCoords({
-        top: shouldOpenUpward ? rect.top - 4 : rect.bottom + 4,
-        left: rect.left,
-        width: Math.max(rect.width, 320), // Min width for calendar
-      });
-    }
-  };
-
-  useLayoutEffect(() => {
-    if (isOpen) {
-      updateCoords();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      window.addEventListener('scroll', updateCoords, true);
-      window.addEventListener('resize', updateCoords);
-    }
-    return () => {
-      window.removeEventListener('scroll', updateCoords, true);
-      window.removeEventListener('resize', updateCoords);
-    };
-  }, [isOpen]);
 
   // Click outside
   useEffect(() => {
@@ -180,7 +154,7 @@ export function CustomDatePicker({
       {name && <input type="hidden" name={name} value={hiddenValue} />}
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full bg-foreground/[0.03] border border-foreground/5 rounded-xl px-3 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all cursor-pointer flex items-center justify-between gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-foreground/[0.06]'}`}
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-card-border bg-input-bg px-3 py-2 text-sm text-foreground transition-colors focus:outline-none ${disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-foreground/10 hover:bg-card'}`}
       >
         <div className="flex items-center gap-2 truncate flex-1">
           <FiCalendar className="text-text-muted w-4 h-4 shrink-0" />
@@ -203,20 +177,14 @@ export function CustomDatePicker({
         <Portal>
           <div
             ref={dropdownRef}
-            style={{
-              position: 'fixed',
-              top: openUpward ? 'auto' : `${coords.top}px`,
-              bottom: openUpward ? `${window.innerHeight - coords.top}px` : 'auto',
-              left: `${coords.left}px`,
-              width: `${coords.width}px`,
-              maxWidth: '320px'
-            }}
-            className={`z-[9999] bg-foreground/[0.03] border border-foreground/5 rounded-xl  overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100 ${
-                openUpward ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
+            style={dropdownStyle}
+            data-side={dropdownSide}
+            className={`z-[9999] flex w-80 max-w-[calc(100vw-1.5rem)] flex-col overflow-y-auto rounded-xl border border-card-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-100 ${
+                dropdownSide === 'top' ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
               }`}
           >
             {/* Header */}
-            <div className="p-3 flex items-center justify-between border-b border-foreground/5 bg-foreground/[0.03]">
+            <div className="flex items-center justify-between border-b border-card-border bg-card p-3">
               <button
                 type="button"
                 onClick={handlePrevMonth}
@@ -280,13 +248,13 @@ export function CustomDatePicker({
 
             {/* Time Picker */}
             {enableTime && (
-              <div className="border-t border-foreground/5 p-3 bg-foreground/[0.02]">
+              <div className="border-t border-card-border bg-card p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <FiClock className="text-text-muted w-3.5 h-3.5" />
                   <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Time</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-foreground/[0.03] border border-foreground/5 rounded-lg px-2 py-1 flex-1">
+                    <div className="flex flex-1 items-center rounded-lg border border-card-border bg-input-bg px-2 py-1">
                         <input
                         type="number"
                         min={0}
@@ -312,7 +280,7 @@ export function CustomDatePicker({
             )}
             
             {/* Footer */}
-            <div className="p-2 border-t border-foreground/5 bg-foreground/[0.03] flex justify-between items-center">
+            <div className="flex items-center justify-between border-t border-card-border bg-card p-2">
                 <button
                     type="button"
                     onClick={() => {

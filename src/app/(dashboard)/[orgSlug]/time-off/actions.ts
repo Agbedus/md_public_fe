@@ -44,12 +44,41 @@ export async function createTimeOffRequest(formData: FormData): Promise<ActionRe
         end_date: formData.get('end_date'),
         justification: formData.get('justification') || null,
     };
+    const attachment = formData.get('attachment');
+    const hasAttachment = attachment instanceof File && attachment.size > 0;
+
+    if (hasAttachment) {
+        if (attachment.type !== 'application/pdf' || !attachment.name.toLowerCase().endsWith('.pdf')) {
+            return { success: false, error: 'Only PDF attachments are accepted.' };
+        }
+        if (attachment.size > 2 * 1024 * 1024) {
+            return { success: false, error: 'The PDF must not exceed 2 MB.' };
+        }
+    }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/time-off`, {
+        const sessionHeaders = { ...(await getSessionHeaders())! };
+        let endpoint = `${API_BASE_URL}/time-off`;
+        let body: BodyInit;
+
+        if (hasAttachment) {
+            delete sessionHeaders['Content-Type'];
+            const multipart = new FormData();
+            multipart.set('type', String(payload.type));
+            multipart.set('start_date', String(payload.start_date));
+            multipart.set('end_date', String(payload.end_date));
+            if (payload.justification) multipart.set('justification', String(payload.justification));
+            multipart.set('attachment', attachment);
+            endpoint = `${API_BASE_URL}/time-off/with-attachment`;
+            body = multipart;
+        } else {
+            body = JSON.stringify(payload);
+        }
+
+        const response = await fetch(endpoint, {
             method: 'POST',
-            headers: { ...(await getSessionHeaders())! },
-            body: JSON.stringify(payload)
+            headers: sessionHeaders,
+            body,
         });
 
         if (!response.ok) {
@@ -58,7 +87,12 @@ export async function createTimeOffRequest(formData: FormData): Promise<ActionRe
             if (forbiddenMsg) return { success: false, error: forbiddenMsg };
             const errorText = await response.text();
             console.error("createTimeOffRequest: API error", response.status, errorText);
-            return { success: false, error: `API Error ${response.status}: ${errorText}` };
+            try {
+                const parsed = JSON.parse(errorText) as { detail?: string };
+                return { success: false, error: parsed.detail || 'Could not submit the time-off request.' };
+            } catch {
+                return { success: false, error: 'Could not submit the time-off request.' };
+            }
         }
 
         const createdRequest = await response.json().catch(() => null) as TimeOffRequest | null;

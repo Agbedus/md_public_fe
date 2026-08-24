@@ -10,4 +10,6 @@ export interface TimeOffRequest {
     status: TimeOffStatus;
     justification: string | null;
     requested_at: string;
+    attachment_name?: string | null;
+    attachment_size?: number | null;
 }

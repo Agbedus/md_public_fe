@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
       static: 600,
     },
     dynamicOnHover: true,
+    serverActions: {
+      bodySizeLimit: '3mb',
+    },
   },
   // PDFKit loads Node-specific font and binary assets at runtime. Keeping it
   // external prevents the App Router bundler from dropping those files in

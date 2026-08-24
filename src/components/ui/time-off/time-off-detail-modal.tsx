@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FiX, FiCheck, FiTrash2, FiLoader } from 'react-icons/fi';
+import { FiX, FiCheck, FiTrash2, FiLoader, FiFileText, FiExternalLink } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
 import { useOrgSlug } from '@/hooks/use-org-slug';
 
@@ -138,6 +138,25 @@ export default function TimeOffDetailModal({
                             {request.justification || <span className="italic text-text-muted/50">No justification provided.</span>}
                         </p>
                     </div>
+
+                    {request.attachment_name && (
+                        <div className="border-t border-card-border pt-5">
+                            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-text-muted">Attachment</p>
+                            <a
+                                href={`/api/time-off/${request.id}/attachment`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex min-h-11 items-center gap-3 rounded-xl border border-card-border bg-input-bg px-3 py-2 transition-colors hover:border-foreground/15 hover:bg-foreground/[0.05]"
+                            >
+                                <FiFileText className="h-4 w-4 shrink-0 text-rose-500" />
+                                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{request.attachment_name}</span>
+                                {request.attachment_size && (
+                                    <span className="text-[10px] text-text-muted">{Math.ceil(request.attachment_size / 1024)} KB</span>
+                                )}
+                                <FiExternalLink className="h-3.5 w-3.5 text-text-muted" />
+                            </a>
+                        </div>
+                    )}
 
                     {/* ID */}
                     <p className="text-[10px] text-text-muted/30 font-mono">ID: {request.id}</p>

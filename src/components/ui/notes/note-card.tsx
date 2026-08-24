@@ -10,6 +10,7 @@ import UserAvatarGroup from "@/components/ui/user-avatar-group";
 import { Portal } from "@/components/ui/portal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsClient } from '@/hooks/use-is-client';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
 import type { ActionResult } from '@/types/api';
 
@@ -86,6 +87,13 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
     const [selectedUser, setSelectedUser] = useState('');
     const [isSharing, setIsSharing] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const dropdownMenuRef = useRef<HTMLDivElement>(null);
+    const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
+        isOpen: showUserDropdown,
+        anchorRef: dropdownRef,
+        dropdownRef: dropdownMenuRef,
+        preferredAlign: 'end',
+    });
 
     const [hoveredOwner, setHoveredOwner] = useState(false);
     const [ownerCoords, setOwnerCoords] = useState({ top: 0, left: 0 });
@@ -346,7 +354,12 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                     <FiUserPlus size={16} />
                                 </button>
                                 {showUserDropdown && availableUsers.length > 0 && (
-                                    <div className="absolute top-full right-0 mt-2 w-64 bg-background rounded-2xl p-3 border border-card-border z-50 shadow-2xl space-y-3">
+                                    <div
+                                        ref={dropdownMenuRef}
+                                        style={dropdownStyle}
+                                        data-side={dropdownSide}
+                                        className="z-[9999] w-64 overflow-y-auto rounded-2xl border border-card-border bg-background p-3 shadow-2xl space-y-3"
+                                    >
                                         <div>
                                             <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Grant Access</p>
                                             <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
@@ -495,7 +508,12 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         <FiUserPlus size={15} />
                         </button>
                         {showUserDropdown && availableUsers.length > 0 && (
-                        <div className="absolute top-full right-0 mt-2 w-64 bg-background rounded-2xl p-3 border border-card-border z-50 shadow-2xl space-y-3 text-left">
+                        <div
+                            ref={dropdownMenuRef}
+                            style={dropdownStyle}
+                            data-side={dropdownSide}
+                            className="z-[9999] w-64 overflow-y-auto rounded-2xl border border-card-border bg-background p-3 shadow-2xl space-y-3 text-left"
+                        >
                             <div>
                                 <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Grant Access</p>
                                 <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">

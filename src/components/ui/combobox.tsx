@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { FiSearch, FiX, FiCheck, FiChevronDown } from 'react-icons/fi';
 import { Portal } from './portal';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
 export interface ComboboxOption {
   value: string | number;
@@ -35,41 +36,15 @@ export function Combobox({
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
-  const [openUpward, setOpenUpward] = useState(false);
-
-  const updateCoords = () => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const dropdownHeight = 250; // Max height approximation
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const shouldOpenUpward = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
-      
-      setOpenUpward(shouldOpenUpward);
-      setCoords({
-        top: shouldOpenUpward ? rect.top - 4 : rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-      });
-    }
-  };
-
-  useLayoutEffect(() => {
-    if (isOpen) {
-      updateCoords();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      window.addEventListener('scroll', updateCoords, true);
-      window.addEventListener('resize', updateCoords);
-    }
-    return () => {
-      window.removeEventListener('scroll', updateCoords, true);
-      window.removeEventListener('resize', updateCoords);
-    };
-  }, [isOpen]);
+  const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
+    isOpen,
+    anchorRef: containerRef,
+    dropdownRef,
+    preferredSide: 'bottom',
+    preferredAlign: 'start',
+    gap: 4,
+    matchAnchorWidth: true,
+  });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -172,15 +147,9 @@ export function Combobox({
         <Portal>
           <div
             ref={dropdownRef}
-            style={{
-              position: 'fixed',
-              top: openUpward ? 'auto' : `${coords.top}px`,
-              bottom: openUpward ? `${window.innerHeight - coords.top}px` : 'auto',
-              left: `${coords.left}px`,
-              width: `${coords.width}px`,
-            }}
-            className={`z-[9999] bg-foreground/[0.03] border border-foreground/5 rounded-xl  overflow-hidden animate-in fade-in zoom-in-95 duration-100 ${
-              openUpward ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
+            style={dropdownStyle}
+            className={`z-[9999] bg-foreground/[0.03] border border-foreground/5 rounded-xl overflow-y-auto animate-in fade-in zoom-in-95 duration-100 ${
+              dropdownSide === 'top' ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
             }`}
           >
             <div className="p-2 border-b border-foreground/5">

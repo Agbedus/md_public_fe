@@ -1,18 +1,36 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
+import type { RefObject } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { FiMessageSquare, FiBell, FiChevronRight } from 'react-icons/fi';
 import { useAnnouncements } from './announcement-provider';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
-export const AnnouncementDropdown = () => {
+interface AnnouncementDropdownProps {
+  anchorRef: RefObject<HTMLElement | null>;
+}
+
+export const AnnouncementDropdown = ({ anchorRef }: AnnouncementDropdownProps) => {
   const { announcements, unreadCount, setIsDropdownOpen, setIsDrawerOpen } = useAnnouncements();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
+    isOpen: true,
+    anchorRef,
+    dropdownRef,
+    preferredAlign: 'end',
+  });
   
   const latestAnnouncements = announcements.slice(0, 5);
 
   return (
-    <div className="absolute right-0 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-background/95 border border-card-border rounded-xl py-2 animate-in fade-in zoom-in-95 duration-200 z-50 backdrop-blur-xl shadow-2xl">
+    <div
+      ref={dropdownRef}
+      style={dropdownStyle}
+      data-side={dropdownSide}
+      className="z-[9999] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border border-card-border bg-background/95 py-2 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
+    >
       <div className="px-4 py-3 border-b border-card-border flex justify-between items-center bg-background/50">
         <div className="flex items-center gap-2">
           <FiMessageSquare className="text-[var(--pastel-yellow)]" size={16} />

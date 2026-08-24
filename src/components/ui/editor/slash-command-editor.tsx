@@ -7,9 +7,10 @@ import Paragraph from '@tiptap/extension-paragraph';
 import Heading from '@tiptap/extension-heading';
 import Image from 'next/image';
 import SlashCommand, { getSuggestionItems, renderItems } from './slash-command';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Portal } from '@/components/ui/portal';
 import { toast } from '@/lib/toast';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 import { 
   FiBold, FiItalic, FiTrash2, 
   FiAlignLeft, FiAlignCenter, FiAlignRight, 
@@ -87,6 +88,24 @@ interface SlashCommandEditorProps {
 export default function SlashCommandEditor({ initialContent, onChange, user }: SlashCommandEditorProps) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showBottomColorPicker, setShowBottomColorPicker] = useState(false);
+  const bubbleColorAnchorRef = useRef<HTMLButtonElement>(null);
+  const bubbleColorMenuRef = useRef<HTMLDivElement>(null);
+  const bottomColorAnchorRef = useRef<HTMLButtonElement>(null);
+  const bottomColorMenuRef = useRef<HTMLDivElement>(null);
+  const { style: bubbleColorStyle, side: bubbleColorSide } = useAdaptiveDropdown({
+    isOpen: showColorPicker,
+    anchorRef: bubbleColorAnchorRef,
+    dropdownRef: bubbleColorMenuRef,
+    preferredSide: 'top',
+    preferredAlign: 'start',
+  });
+  const { style: bottomColorStyle, side: bottomColorSide } = useAdaptiveDropdown({
+    isOpen: showBottomColorPicker,
+    anchorRef: bottomColorAnchorRef,
+    dropdownRef: bottomColorMenuRef,
+    preferredSide: 'top',
+    preferredAlign: 'end',
+  });
   const [menuCoords, setMenuCoords] = useState<{ top: number; left: number } | null>(null);
 
   const editor = useEditor({
@@ -335,6 +354,7 @@ export default function SlashCommandEditor({ initialContent, onChange, user }: S
             {/* Color Picker Popover Trigger */}
             <div className="relative">
               <button
+                ref={bubbleColorAnchorRef}
                 type="button"
                 onClick={() => {
                   setShowColorPicker(!showColorPicker);
@@ -346,7 +366,12 @@ export default function SlashCommandEditor({ initialContent, onChange, user }: S
               </button>
 
               {showColorPicker && (
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 p-2 bg-background border border-card-border rounded-xl shadow-xl z-50 flex items-center gap-1.5">
+                <div
+                  ref={bubbleColorMenuRef}
+                  style={bubbleColorStyle}
+                  data-side={bubbleColorSide}
+                  className="z-[9999] flex items-center gap-1.5 overflow-x-auto rounded-xl border border-card-border bg-background p-2 shadow-xl"
+                >
                   {COLORS.map((c) => (
                     <button
                       key={c.name}
@@ -536,6 +561,7 @@ export default function SlashCommandEditor({ initialContent, onChange, user }: S
             {/* Bottom Text Color Picker */}
             <div className="relative">
               <button
+                ref={bottomColorAnchorRef}
                 type="button"
                 onClick={() => {
                   setShowBottomColorPicker(!showBottomColorPicker);
@@ -547,7 +573,12 @@ export default function SlashCommandEditor({ initialContent, onChange, user }: S
               </button>
 
               {showBottomColorPicker && (
-                <div className="absolute bottom-full mb-2 right-0 p-2 bg-background border border-card-border rounded-xl shadow-xl z-50 flex items-center gap-1.5">
+                <div
+                  ref={bottomColorMenuRef}
+                  style={bottomColorStyle}
+                  data-side={bottomColorSide}
+                  className="z-[9999] flex items-center gap-1.5 overflow-x-auto rounded-xl border border-card-border bg-background p-2 shadow-xl"
+                >
                   {COLORS.map((c) => (
                     <button
                       key={c.name}
