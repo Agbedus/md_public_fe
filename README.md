@@ -38,6 +38,19 @@ to `http://127.0.0.1:8000`.
 - Pip AI chat, streamed responses, structured widgets, and downloadable reports
 - Attributed social sharing through major platforms, native share, copy, and QR code
 
+## Interaction feedback
+
+User-initiated create, update, and delete flows provide immediate success or error
+feedback through the shared toast system. Destructive actions use the compact,
+accessible confirmation dialog, which defaults keyboard focus to the safe action
+and supports Escape to cancel.
+
+The task workspace supports project-based filtering rather than project sorting.
+Selecting a project shows its tasks, while selecting a leaderboard member filters
+the same task table or kanban view to work they own or are assigned to. Combined
+filters have contextual empty states and a single action to clear the active
+selection.
+
 ## Frontend reliability
 
 Browser-only UI uses the shared `src/hooks/use-is-client.ts` hook when a

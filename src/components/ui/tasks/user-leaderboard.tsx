@@ -1,29 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { User } from "@/types/user";
 import { Task } from "@/types/task";
-import { Project } from "@/types/project";
-import { FiAward, FiStar, FiTrendingUp } from "react-icons/fi";
+import { FiAward, FiCheck, FiStar, FiTrendingUp } from "react-icons/fi";
 import Image from 'next/image';
-import { UserProjectsModal } from './user-projects-modal';
 
 interface UserLeaderboardProps {
   tasks: Task[];
   users: User[];
-  projects?: Project[];
-  /** Org OWNER/ADMIN/MANAGER only — everyone else sees the leaderboard but
-   *  can't drill into another member's full project list. */
-  canViewProjects?: boolean;
+  selectedUserId?: string;
+  onSelectUser: (user: User | null) => void;
 }
 
-export function UserLeaderboard({ tasks, users, projects = [], canViewProjects = false }: UserLeaderboardProps) {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+function isTaskOwnedByOrAssignedTo(task: Task, userId: string): boolean {
+  const normalizedUserId = String(userId);
+  return String(task.userId ?? '') === normalizedUserId
+    || String(task.owner?.id ?? '') === normalizedUserId
+    || task.assigneeIds?.some((id) => String(id) === normalizedUserId) === true
+    || task.assignees?.some((assignee) => String(assignee.user.id) === normalizedUserId) === true;
+}
+
+export function UserLeaderboard({ tasks, users, selectedUserId, onSelectUser }: UserLeaderboardProps) {
   // Calculate completed tasks per user
   const userPerformance = users.map(user => {
-    const completedCount = tasks.filter(task => 
-      (task.status === 'DONE') &&
-      (task.assigneeIds?.includes(user.id) || task.assignees?.some(a => a.user.id === user.id))
+    const completedCount = tasks.filter(task =>
+      task.status === 'DONE' && isTaskOwnedByOrAssignedTo(task, user.id)
     ).length;
     
     return { ...user, completedCount };
@@ -59,14 +61,17 @@ export function UserLeaderboard({ tasks, users, projects = [], canViewProjects =
       </div>
       <div className="flex flex-nowrap overflow-x-auto gap-3 pb-2 scrollbar-hide">
         {userPerformance.map((user, i) => (
-          <div
+          <button
+            type="button"
             key={user.id}
-            role={canViewProjects ? 'button' : undefined}
-            tabIndex={canViewProjects ? 0 : undefined}
-            onClick={canViewProjects ? () => setSelectedUser(user) : undefined}
-            onKeyDown={canViewProjects ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedUser(user); } } : undefined}
-            title={canViewProjects ? `View ${user.fullName || user.email}'s projects` : undefined}
-            className={`flex items-center gap-3 px-3 py-2 lg:px-6 lg:py-4 rounded-xl lg:rounded-2xl border transition-all duration-300 hover:bg-foreground/[0.05] hover:border-foreground/10 group flex-shrink-0 min-w-[140px] lg:min-w-0 ${canViewProjects ? 'cursor-pointer' : ''} ${getAwardBg(i)}`}
+            aria-pressed={String(selectedUserId ?? '') === String(user.id)}
+            onClick={() => onSelectUser(String(selectedUserId ?? '') === String(user.id) ? null : user)}
+            title={`Filter tasks for ${user.fullName || user.email}`}
+            className={`group flex min-h-11 min-w-[140px] flex-shrink-0 items-center gap-3 rounded-xl border px-3 py-2 text-left transition-[transform,color,background-color,border-color] duration-150 hover:bg-foreground/[0.05] hover:border-foreground/10 active:scale-[0.98] lg:min-w-0 lg:rounded-2xl lg:px-6 lg:py-4 ${
+              String(selectedUserId ?? '') === String(user.id)
+                ? 'border-indigo-500/40 bg-indigo-500/10 ring-1 ring-indigo-500/20'
+                : getAwardBg(i)
+            }`}
           >
             <div className="relative">
               {user.avatarUrl ? (
@@ -88,22 +93,15 @@ export function UserLeaderboard({ tasks, users, projects = [], canViewProjects =
             </div>
             <div>
               <p className="text-[11px] lg:text-xs font-bold text-foreground uppercase tracking-tight truncate max-w-[80px] lg:max-w-none">{user.fullName || user.email.split('@')[0]}</p>
-              <p className="text-[11px] lg:text-[11px] text-text-muted font-bold uppercase tracking-wider mt-0.5 whitespace-nowrap">
-                <span className="text-foreground font-bold font-numbers">{user.completedCount}</span> Tasks
+              <p className="mt-0.5 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-text-muted whitespace-nowrap">
+                {String(selectedUserId ?? '') === String(user.id) && <FiCheck className="h-3 w-3 text-indigo-500" />}
+                <span className="text-foreground font-bold font-numbers">{user.completedCount}</span>
+                {String(selectedUserId ?? '') === String(user.id) ? 'Filtering' : 'Tasks'}
               </p>
             </div>
-          </div>
+          </button>
         ))}
       </div>
-
-      {selectedUser && (
-        <UserProjectsModal
-          user={selectedUser}
-          projects={projects}
-          tasks={tasks}
-          onClose={() => setSelectedUser(null)}
-        />
-      )}
     </div>
   );
 }

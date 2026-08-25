@@ -23,6 +23,7 @@ import { updateTask, deleteTask } from '@/app/(dashboard)/[orgSlug]/tasks/action
 import { updateNote, deleteNote } from '@/app/(dashboard)/[orgSlug]/notes/actions';
 import { updateOptimisticTask, updateOptimisticNote } from '@/lib/optimistic-utils';
 import { toast } from '@/lib/toast';
+import { useConfirm } from '@/providers/confirmation-provider';
 
 interface ProjectDashboardClientProps {
     project: Project;
@@ -41,6 +42,7 @@ export default function ProjectDashboardClient({
     clients,
     allProjects
 }: ProjectDashboardClientProps) {
+    const confirm = useConfirm();
     const orgSlug = useOrgSlug();
     const orgPath = (path: string) => orgSlug ? `/${orgSlug}${path}` : path;
     const [activeView, setActiveView] = useState<'overview' | 'tasks' | 'notes' | 'settings'>('overview');
@@ -72,7 +74,6 @@ export default function ProjectDashboardClient({
         const result = await updateTask(formData);
         if (!result?.success) {
             setTasks(previous);
-            toast.error(result?.error || 'Failed to update task');
         }
         return result;
     }, [tasks, users]);
@@ -84,7 +85,6 @@ export default function ProjectDashboardClient({
         const result = await deleteTask(formData);
         if (!result?.success) {
             setTasks(previous);
-            toast.error(result?.error || 'Failed to delete task');
         }
         return result;
     }, [tasks]);
@@ -100,21 +100,33 @@ export default function ProjectDashboardClient({
         if (!result?.success) {
             setNotes(previous);
             toast.error(result?.error || 'Failed to update note');
+        } else {
+            toast.success(`Note updated${existing?.title ? ` — ${existing.title}` : ''}`);
         }
         return result;
     }, [notes]);
 
     const handleNoteDelete = useCallback(async (formData: FormData) => {
         const id = Number(formData.get('id'));
+        const note = notes.find(item => item.id === id);
+        const confirmed = await confirm({
+            title: 'Delete note',
+            message: `Delete “${note?.title || 'this note'}”? This cannot be undone.`,
+            confirmText: 'Delete note',
+            type: 'danger',
+        });
+        if (!confirmed) return { success: false, error: 'Cancelled' };
         const previous = notes;
         setNotes(list => list.filter(n => n.id !== id));
         const result = await deleteNote(formData);
         if (!result?.success) {
             setNotes(previous);
             toast.error(result?.error || 'Failed to delete note');
+        } else {
+            toast.success('Note deleted');
         }
         return result;
-    }, [notes]);
+    }, [confirm, notes]);
 
     const client = clients.find(c => c.id === project.clientId);
     const owner = users.find(u => u.id === project.ownerId);

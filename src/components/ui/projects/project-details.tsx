@@ -14,6 +14,8 @@ import TaskCard from '@/components/ui/tasks/task-card';
 import NoteCard from '@/components/ui/notes/note-card';
 import { updateTask, deleteTask } from '@/app/(dashboard)/[orgSlug]/tasks/actions';
 import { updateNote, deleteNote } from '@/app/(dashboard)/[orgSlug]/notes/actions';
+import { toast } from '@/lib/toast';
+import { useConfirm } from '@/providers/confirmation-provider';
 
 interface ProjectDetailsProps {
     project: Project;
@@ -25,6 +27,7 @@ interface ProjectDetailsProps {
 }
 
 export function ProjectDetails({ project, users, clients, notes, projects, onClose }: ProjectDetailsProps) {
+    const confirm = useConfirm();
     const [activeTab, setActiveTab] = useState<'tasks' | 'notes'>('tasks');
 
     const projectTasks = project.tasks || [];
@@ -39,6 +42,29 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
 
     const completedTasks = projectTasks.filter(t => t.status === 'DONE').length;
     const taskProgress = projectTasks.length > 0 ? (completedTasks / projectTasks.length) * 100 : 0;
+
+    const handleNoteUpdate = async (formData: FormData) => {
+        const result = await updateNote(formData);
+        if (result.success) toast.success('Note updated');
+        else toast.error(result.error || 'Note could not be updated');
+        return result;
+    };
+
+    const handleNoteDelete = async (formData: FormData) => {
+        const noteId = Number(formData.get('id'));
+        const note = projectNotes.find((item) => item.id === noteId);
+        const confirmed = await confirm({
+            title: 'Delete note',
+            message: `Delete “${note?.title || 'this note'}”? This cannot be undone.`,
+            confirmText: 'Delete note',
+            type: 'danger',
+        });
+        if (!confirmed) return { success: false, error: 'Cancelled' };
+        const result = await deleteNote(formData);
+        if (result.success) toast.success('Note deleted');
+        else toast.error(result.error || 'Note could not be deleted');
+        return result;
+    };
 
     return (
         <div className="fixed inset-y-0 right-0 w-full max-w-2xl z-[100] animate-in slide-in-from-right duration-500 shadow-2xl">
@@ -184,8 +210,8 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                                         <div key={note.id} className="h-[280px]">
                                             <NoteCard 
                                                 note={note}
-                                                onNoteUpdate={updateNote}
-                                                onNoteDelete={deleteNote}
+                                                onNoteUpdate={handleNoteUpdate}
+                                                onNoteDelete={handleNoteDelete}
                                                 viewMode="grid"
                                                 availableUsers={users.map(u => ({ id: u.id, name: u.fullName, email: u.email, image: '' }))}
                                             />

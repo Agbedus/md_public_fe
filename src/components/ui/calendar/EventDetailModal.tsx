@@ -11,6 +11,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { CustomDatePicker } from "@/components/ui/inputs/custom-date-picker";
 import { CustomNumberInput } from "@/components/ui/inputs/custom-number-input";
 import { useConfirm } from "@/providers/confirmation-provider";
+import { toast } from "@/lib/toast";
 
 interface Props {
   event: CalendarEvent | null;
@@ -175,11 +176,16 @@ export default function EventDetailModal({
 
       const res = await updateEvent(formData);
       if (res && !res.success) {
-        console.error(res.error || "Failed to update event");
+        toast.error(res.error || "Failed to update event");
+        await onUpdated();
+        return;
       }
       await onUpdated();
+      toast.success(`Event updated — ${title}`);
     } catch (err) {
       console.error(err);
+      toast.error("The event could not be updated. Please try again.");
+      await onUpdated();
     } finally {
       setSubmitting(false);
     }
@@ -203,11 +209,16 @@ export default function EventDetailModal({
     try {
       const res = await deleteEvent(event.id);
       if (res && !res.success) {
-         console.error(res.error || "Failed to delete");
+         toast.error(res.error || "Failed to delete event");
+         await onUpdated();
+         return;
       }
       await onUpdated();
+      toast.success(`Event deleted — ${event.title}`);
     } catch (err) {
       console.error(err);
+      toast.error("The event could not be deleted. Please try again.");
+      await onUpdated();
     } finally {
       setSubmitting(false);
     }

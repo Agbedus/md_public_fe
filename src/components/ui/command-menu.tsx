@@ -25,6 +25,7 @@ import { useTheme } from "@/providers/theme-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { searchGlobal, SearchResult } from "@/app/lib/search-actions";
 import { createTask } from "@/app/(dashboard)/[orgSlug]/tasks/actions";
+import { toast } from "@/lib/toast";
 import { getProjects } from "@/app/(dashboard)/[orgSlug]/projects/actions";
 import { emit } from "@/lib/event-bus";
 import { Project } from "@/types/project";
@@ -114,10 +115,13 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
     formData.append('name', taskName);
     if (taskProjectId) formData.append('projectId', taskProjectId);
     
-    const result = await createTask(formData);
-    setIsSubmitting(false);
-    
-    if (result.success) {
+    try {
+      const result = await createTask(formData);
+      if (!result.success) {
+        toast.error(result.error || 'Task could not be created');
+        return;
+      }
+
         // Refresh any tasks list that is already mounted (use-tasks listens for
         // this). Without it, quick-creating while already on /tasks would not
         // show the new task until a manual refresh, since router.push to the
@@ -126,6 +130,11 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
         runCommand(() => router.push(orgHref('/tasks')));
         setTaskName("");
         setTaskProjectId("");
+        toast.success('Task created');
+    } catch {
+      toast.error('Task could not be created. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

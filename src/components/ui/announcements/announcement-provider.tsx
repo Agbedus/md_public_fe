@@ -99,27 +99,36 @@ export const AnnouncementProvider: React.FC<{
     const res = await apiCreateAnnouncement(data);
     if (res.success) {
       mutateAnnouncements();
+      toast.success('Announcement published');
       return { success: true };
     }
-    return { success: false, error: res.error || "Failed to create announcement" };
+    const error = res.error || "Failed to create announcement";
+    toast.error(error);
+    return { success: false, error };
   };
 
   const updateAnnouncement = async (id: string, data: AnnouncementUpdate) => {
     const res = await apiUpdateAnnouncement(id, data);
     if (res.success) {
       mutateAnnouncements();
+      toast.success('Announcement updated');
       return { success: true };
     }
-    return { success: false, error: res.error || "Failed to update announcement" };
+    const error = res.error || "Failed to update announcement";
+    toast.error(error);
+    return { success: false, error };
   };
 
   const deleteAnnouncement = async (id: string) => {
     const res = await apiDeleteAnnouncement(id);
     if (res.success) {
       mutateAnnouncements();
+      toast.success('Announcement deleted');
       return { success: true };
     }
-    return { success: false, error: res.error || "Failed to delete announcement" };
+    const error = res.error || "Failed to delete announcement";
+    toast.error(error);
+    return { success: false, error };
   };
 
   useEffect(() => {

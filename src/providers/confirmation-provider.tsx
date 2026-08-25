@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { FiAlertTriangle, FiTrash2, FiX } from 'react-icons/fi';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { FiAlertTriangle, FiInfo, FiTrash2 } from 'react-icons/fi';
 import { playNotificationSound, getSoundEffectsEnabled } from '@/lib/notification-sounds';
 
 interface ConfirmationOptions {
@@ -30,6 +30,8 @@ export const useConfirm = () => {
 export const ConfirmationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [options, setOptions] = useState<ConfirmationOptions | null>(null);
     const [resolveRef, setResolveRef] = useState<((value: boolean) => void) | null>(null);
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+    const shouldReduceMotion = useReducedMotion();
 
     const confirm = useCallback((confirmOptions: ConfirmationOptions) => {
         return new Promise<boolean>((resolve) => {
@@ -40,19 +42,29 @@ export const ConfirmationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     useEffect(() => {
         if (options && getSoundEffectsEnabled()) {
-            playNotificationSound('error');
+            playNotificationSound(options.type === 'danger' ? 'error' : options.type || 'info');
         }
     }, [options]);
 
-    const handleConfirm = () => {
+    const handleConfirm = useCallback(() => {
         if (resolveRef) resolveRef(true);
         setOptions(null);
-    };
+    }, [resolveRef]);
 
-    const handleCancel = () => {
+    const handleCancel = useCallback(() => {
         if (resolveRef) resolveRef(false);
         setOptions(null);
-    };
+    }, [resolveRef]);
+
+    useEffect(() => {
+        if (!options) return;
+        cancelButtonRef.current?.focus();
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') handleCancel();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleCancel, options]);
 
     return (
         <ConfirmationContext.Provider value={{ confirm }}>
@@ -60,7 +72,7 @@ export const ConfirmationProvider: React.FC<{ children: ReactNode }> = ({ childr
             
             <AnimatePresence>
                 {options && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -69,46 +81,53 @@ export const ConfirmationProvider: React.FC<{ children: ReactNode }> = ({ childr
                             className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md pointer-events-auto"
                         />
                         <motion.div
-                            initial={{ opacity: 0, y: 50, scale: 0.9, x: 20 }}
-                            animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
-                            exit={{ opacity: 0, y: 20, scale: 0.95, x: 10 }}
-                            className="relative w-full max-w-sm bg-background border border-card-border rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden pointer-events-auto"
+                            initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.985 }}
+                            transition={{ duration: shouldReduceMotion ? 0 : 0.16, ease: [0.23, 1, 0.32, 1] }}
+                            role="alertdialog"
+                            aria-modal="true"
+                            aria-labelledby="confirmation-title"
+                            aria-describedby="confirmation-message"
+                            className="relative w-full max-w-[340px] bg-background border border-card-border rounded-2xl shadow-xl overflow-hidden pointer-events-auto"
                         >
-                            <div className="p-8 space-y-6">
-                                <div className="flex items-start gap-4">
-                                    <div className={`p-4 rounded-3xl ${
-                                        options.type === 'danger' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-500 border-rose-500/20' : 
+                            <div className="p-5">
+                                <div className="flex items-start gap-3">
+                                    <div className={`p-2 rounded-xl border shrink-0 ${
+                                        options.type === 'danger' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-500 border-rose-500/20' :
+                                        options.type === 'info' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' :
                                         'bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20'
-                                    } border flex items-center justify-center shrink-0 shadow-sm`}>
-                                        <FiAlertTriangle size={24} />
+                                    }`}>
+                                        {options.type === 'info' ? <FiInfo size={16} /> : <FiAlertTriangle size={16} />}
                                     </div>
-                                    <div className="space-y-2">
-                                        <h3 className="text-lg font-black text-foreground tracking-tight leading-tight uppercase">
+                                    <div className="min-w-0 pt-0.5">
+                                        <h3 id="confirmation-title" className="text-sm font-semibold text-foreground tracking-tight leading-snug">
                                             {options.title}
                                         </h3>
-                                        <p className="text-sm text-text-secondary font-bold leading-relaxed uppercase tracking-tight">
+                                        <p id="confirmation-message" className="text-xs text-text-muted leading-relaxed mt-1">
                                             {options.message}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 mt-4">
                                     <button
+                                        ref={cancelButtonRef}
                                         onClick={handleCancel}
-                                        className="flex-1 px-6 py-3.5 rounded-2xl bg-foreground/[0.05] hover:bg-foreground/[0.08] border border-card-border text-xs font-bold text-text-muted uppercase tracking-widest transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                                        className="flex min-h-11 flex-1 items-center justify-center rounded-lg border border-card-border bg-foreground/[0.05] px-3 text-xs font-medium text-text-muted transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.08] hover:text-foreground active:scale-[0.98]"
                                     >
-                                        <FiX size={14} />
-                                        {options.cancelText?.split(' ')[0] || 'Cancel'}
+                                        {options.cancelText || 'Cancel'}
                                     </button>
                                     <button
                                         onClick={handleConfirm}
-                                        className={`flex-1 px-6 py-3.5 rounded-2xl ${
-                                            options.type === 'danger' ? 'bg-rose-500 hover:bg-rose-600' : 
+                                        className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 ${
+                                            options.type === 'danger' ? 'bg-rose-500 hover:bg-rose-600' :
+                                            options.type === 'info' ? 'bg-blue-500 hover:bg-blue-600' :
                                             'bg-amber-500 hover:bg-amber-600'
-                                        } text-white text-xs font-bold uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2 whitespace-nowrap`}
+                                        } text-white text-xs font-semibold transition-[transform,background-color] duration-150 active:scale-[0.98]`}
                                     >
-                                        <FiTrash2 size={14} />
-                                        {options.confirmText?.split(' ')[0] || (options.type === 'danger' ? 'Delete' : 'Confirm')}
+                                        {options.type === 'danger' && <FiTrash2 className="h-3.5 w-3.5 shrink-0" />}
+                                        {options.confirmText || (options.type === 'danger' ? 'Delete' : 'Confirm')}
                                     </button>
                                 </div>
                             </div>

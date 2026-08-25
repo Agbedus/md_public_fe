@@ -7,6 +7,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { CustomDatePicker } from "@/components/ui/inputs/custom-date-picker";
 import { CustomNumberInput } from "@/components/ui/inputs/custom-number-input";
 import { format } from "date-fns";
+import { toast } from "@/lib/toast";
 
 interface EventModalProps {
   open: boolean;
@@ -143,14 +144,19 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
 
       const result = await createEvent(formData);
       if (result && !result.success) {
-        console.error(result.error || "Failed to save event");
+        const message = result.error || "Failed to save event";
+        toast.error(message);
+        await onCreated();
         return;
       }
       
       await onCreated();
+      toast.success(`Event created — ${newEvent.title}`);
       // onClose called optimistically
     } catch (err) {
       console.error(err);
+      toast.error("The event could not be created. Please try again.");
+      await onCreated();
     } finally {
       setSubmitting(false);
     }

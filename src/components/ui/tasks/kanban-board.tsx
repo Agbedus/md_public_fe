@@ -15,6 +15,8 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
+import { toast } from "@/lib/toast";
+import { useConfirm } from "@/providers/confirmation-provider";
 
 interface KanbanBoardProps {
   tasks?: Task[];
@@ -113,6 +115,7 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
 }
 
 export default function KanbanBoard({ tasks = [], users, user, projects, updateTask, deleteTask, canManage }: KanbanBoardProps) {
+  const confirm = useConfirm();
   const columns = useMemo(() => Object.keys(statusMapping) as Array<keyof typeof statusMapping>, []);
 
   const [grouped, setGrouped] = useState<Record<string, Task[]>>({});
@@ -158,13 +161,27 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
     const fd = new FormData();
     fd.append("id", String(task.id));
     fd.append("status", status);
-    return await updateTask(fd);
+    const result = await updateTask(fd);
+    if (result?.success) {
+      toast.success(`Task moved to ${statusMapping[status]}`);
+    }
+    return result;
   };
 
   const handleDelete = async (task: Task) => {
+    const confirmed = await confirm({
+      title: 'Delete task',
+      message: `Delete “${task.name}”? This cannot be undone.`,
+      confirmText: 'Delete task',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     const fd = new FormData();
     fd.append("id", String(task.id));
-    await deleteTask(fd);
+    const result = await deleteTask(fd);
+    if (result?.success) {
+      toast.success(`Task deleted — ${task.name}`);
+    }
   };
 
   const onDragEnd = async (evt: DragEndEvent) => {

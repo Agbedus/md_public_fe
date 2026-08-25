@@ -5,6 +5,7 @@ import { FiEdit, FiTrash2, FiCheck, FiX } from "react-icons/fi";
 import { useState } from "react";
 import TaskFormFields from "./task-form-fields";
 import { toast } from "@/lib/toast";
+import { useConfirm } from '@/providers/confirmation-provider';
 
 interface TaskTableProps {
     tasks: Task[];
@@ -13,6 +14,7 @@ interface TaskTableProps {
 }
 
 export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTableProps) {
+    const confirm = useConfirm();
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,10 +38,19 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
         }
     };
 
-    const handleDelete = (task: Task) => {
+    const handleDelete = async (task: Task) => {
+        const confirmed = await confirm({
+            title: 'Delete task',
+            message: `Delete “${task.name}”? This cannot be undone.`,
+            confirmText: 'Delete task',
+            type: 'danger',
+        });
+        if (!confirmed) return;
         const formData = new FormData();
         formData.set('id', task.id.toString());
-        deleteTask(formData);
+        const result = await deleteTask(formData);
+        if (result?.success) toast.success(`Task deleted — ${task.name}`);
+        else toast.error(result?.error || 'Failed to delete task');
     };
 
     return (

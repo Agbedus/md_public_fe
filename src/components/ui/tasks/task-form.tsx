@@ -36,7 +36,8 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
     }
 
     try {
-      await createTask(formData);
+      const result = await createTask(formData);
+      if (!result?.success) throw new Error(result?.error || 'Failed to create task.');
       toast.success('Task created successfully!');
       setName('');
       setDescription('');

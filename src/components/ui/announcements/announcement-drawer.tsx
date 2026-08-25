@@ -9,8 +9,10 @@ import { formatDistanceToNow } from 'date-fns';
 import { AnnouncementForm } from './announcement-form';
 import { CreatorAvatar } from './creator-avatar';
 import { canReadAll, canModifyRecord } from '@/lib/org-permissions';
+import { useConfirm } from '@/providers/confirmation-provider';
 
 export const AnnouncementDrawer = () => {
+  const confirm = useConfirm();
   const { 
     announcements, 
     isDrawerOpen, 
@@ -27,6 +29,15 @@ export const AnnouncementDrawer = () => {
   // announcements page and the backend guards.
   const canPublish = canReadAll(user);
   const canRemove = (creatorId: string) => canModifyRecord(user, creatorId);
+  const handleDelete = async (id: string, title: string) => {
+    const confirmed = await confirm({
+      title: 'Delete announcement',
+      message: `Delete “${title}”? This cannot be undone.`,
+      confirmText: 'Delete announcement',
+      type: 'danger',
+    });
+    if (confirmed) await deleteAnnouncement(id);
+  };
 
   // Load latest first
   const sortedAnnouncements = [...announcements].sort((a, b) => 
@@ -142,7 +153,7 @@ export const AnnouncementDrawer = () => {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteAnnouncement(announcement.id);
+                              void handleDelete(announcement.id, announcement.title);
                             }}
                             className="absolute top-5 right-5 p-2 text-text-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-rose-500/20"
                             title="Delete Announcement"

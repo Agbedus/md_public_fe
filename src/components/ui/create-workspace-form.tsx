@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FiArrowLeft, FiBriefcase, FiCheck } from 'react-icons/fi';
 import Link from 'next/link';
 import { createOrganization } from '@/lib/org-actions';
+import { toast } from '@/lib/toast';
 
 const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 
@@ -23,7 +24,13 @@ export default function CreateWorkspaceForm() {
     setError('');
     startTransition(async () => {
       const result = await createOrganization({ name: name.trim(), slug: slugify(slug), description: description.trim() || undefined });
-      if (!result.success) return setError(result.error || 'Could not create the workspace.');
+      if (!result.success) {
+        const message = result.error || 'Could not create the workspace.';
+        setError(message);
+        toast.error(message);
+        return;
+      }
+      toast.success(`${name.trim()} workspace created`);
       router.push(`/${result.slug}/dashboard`);
       router.refresh();
     });

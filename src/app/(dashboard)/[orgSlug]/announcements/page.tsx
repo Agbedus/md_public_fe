@@ -20,8 +20,10 @@ import {
 import { HiSpeakerphone } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { canReadAll, canModifyRecord } from '@/lib/org-permissions';
+import { useConfirm } from '@/providers/confirmation-provider';
 
 export default function AnnouncementsPage() {
+    const confirm = useConfirm();
     const { 
         announcements, 
         deleteAnnouncement, 
@@ -40,6 +42,15 @@ export default function AnnouncementsPage() {
     // session roles arrive lowercase, so it never matched.
     const canPublish = canReadAll(user);
     const canRemove = (creatorId: string) => canModifyRecord(user, creatorId);
+    const handleDelete = async (id: string, title: string) => {
+        const confirmed = await confirm({
+            title: 'Delete announcement',
+            message: `Delete “${title}”? This cannot be undone.`,
+            confirmText: 'Delete announcement',
+            type: 'danger',
+        });
+        if (confirmed) await deleteAnnouncement(id);
+    };
 
     const filteredAnnouncements = announcements
         .filter(a => {
@@ -145,7 +156,7 @@ export default function AnnouncementsPage() {
                                 
                                 {canRemove(announcement.creator_id) && (
                                     <button 
-                                        onClick={() => deleteAnnouncement(announcement.id)}
+                                        onClick={() => void handleDelete(announcement.id, announcement.title)}
                                         className="p-2 text-text-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                     >
                                         <FiTrash2 size={16} />

@@ -44,7 +44,6 @@ import {
   updateOptimisticTask,
 } from "@/lib/optimistic-utils";
 import { canManageTask } from "@/lib/task-auth";
-import { canReadAll } from "@/lib/org-permissions";
 
 type ViewMode = "table" | "kanban";
 
@@ -148,7 +147,8 @@ export default function TasksPageClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [sortByProject, setSortByProject] = useState(false);
+  const [filterProjectId, setFilterProjectId] = useState("");
+  const [filterMemberId, setFilterMemberId] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
   // Background data
@@ -166,14 +166,6 @@ export default function TasksPageClient({
     [currentUserRoles, orgRole],
   );
 
-  // Org OWNER/ADMIN/MANAGER tier — the project sort control and the
-  // leaderboard's "view their projects" drill-in are both reserved for
-  // people who already see the whole org's work, not just their own.
-  const canUseAdminFilters = useMemo(
-    () => canReadAll({ roles: currentUserRoles, orgRole }),
-    [currentUserRoles, orgRole],
-  );
-
   // SWR Hook
   const {
     tasks: serverTasks,
@@ -187,13 +179,21 @@ export default function TasksPageClient({
     searchQuery,
     filterPriority,
     filterStatus,
-    projectId,
+    projectId: projectId ?? (filterProjectId ? Number(filterProjectId) : undefined),
     limit: 50,
     users,
     initialTasks,
   });
 
   const isLoading = tasksLoading && serverTasks.length === 0;
+
+  // A leaderboard selection is a complete member drill-down, not merely a
+  // filter over the first page. Continue loading the existing paginated task
+  // feed until every visible task can be checked for ownership/assignment.
+  useEffect(() => {
+    if (!filterMemberId || isLoadingMore || isReachingEnd) return;
+    void setSize(size + 1);
+  }, [filterMemberId, isLoadingMore, isReachingEnd, setSize, size]);
 
   // Optimistic UI is driven by SWR's `optimisticData` in the mutation handlers
   // below, so the rendered list is simply whatever SWR currently holds.
@@ -229,12 +229,6 @@ export default function TasksPageClient({
     return Array.from(map.values());
   }, [realtimeCreatedTasks, optimisticTasks]);
 
-  const projectNameById = useMemo(() => {
-    const map = new Map<number, string>();
-    projects.forEach((p) => map.set(p.id, p.name));
-    return map;
-  }, [projects]);
-
   // Filtered tasks for visual grouping and search
   const filteredTasks = useMemo(() => {
     const tasks = mergedTasks.filter((task) => {
@@ -247,6 +241,14 @@ export default function TasksPageClient({
       const matchesPriority =
         !filterPriority || task.priority === filterPriority;
       const matchesStatus = !filterStatus || task.status === filterStatus;
+      const matchesProject =
+        !filterProjectId || String(task.projectId ?? "") === filterProjectId;
+      const matchesMember =
+        !filterMemberId ||
+        String(task.userId ?? "") === filterMemberId ||
+        String(task.owner?.id ?? "") === filterMemberId ||
+        task.assigneeIds?.some((id) => String(id) === filterMemberId) ||
+        task.assignees?.some((assignee) => String(assignee.user.id) === filterMemberId);
 
       const matchesMyTasks =
         !filterMyTasks ||
@@ -261,7 +263,7 @@ export default function TasksPageClient({
             )));
 
       return (
-        matchesSearch && matchesPriority && matchesStatus && matchesMyTasks
+        matchesSearch && matchesPriority && matchesStatus && matchesProject && matchesMember && matchesMyTasks
       );
     });
 
@@ -288,20 +290,6 @@ export default function TasksPageClient({
       low: 3,
     };
     const sorted = [...filtered].sort((a, b) => {
-      // When grouping by project, that takes priority over the usual
-      // status/priority ordering; tasks with no project sort to the end.
-      if (sortByProject) {
-        const hasA = a.projectId != null;
-        const hasB = b.projectId != null;
-        if (hasA !== hasB) return hasA ? -1 : 1;
-        if (hasA && hasB) {
-          const nameA = projectNameById.get(a.projectId as number) || "";
-          const nameB = projectNameById.get(b.projectId as number) || "";
-          const cmp = nameA.localeCompare(nameB);
-          if (cmp !== 0) return cmp;
-        }
-      }
-
       const sA = statusOrder[a.status] || 99;
       const sB = statusOrder[b.status] || 99;
       if (sA !== sB) return sA - sB;
@@ -325,13 +313,72 @@ export default function TasksPageClient({
     searchQuery,
     filterPriority,
     filterStatus,
+    filterProjectId,
+    filterMemberId,
     filterMyTasks,
     currentUserId,
     viewMode,
     tableTab,
-    sortByProject,
-    projectNameById,
   ]);
+
+  const selectedProject = useMemo(
+    () => projects.find((project) => String(project.id) === filterProjectId),
+    [filterProjectId, projects],
+  );
+  const selectedMember = useMemo(
+    () => users.find((user) => String(user.id) === filterMemberId),
+    [filterMemberId, users],
+  );
+  const hasActiveFilters = Boolean(
+    searchQuery || filterPriority || filterStatus || filterProjectId || filterMemberId || filterMyTasks,
+  );
+  const isResolvingMemberFilter = Boolean(filterMemberId && !isReachingEnd);
+  const clearTaskFilters = useCallback(() => {
+    setSearchQuery("");
+    setFilterPriority("");
+    setFilterStatus("");
+    setFilterProjectId("");
+    setFilterMemberId("");
+    setFilterMyTasks(false);
+  }, []);
+
+  const emptyStateCopy = useMemo(() => {
+    const memberName = selectedMember?.fullName || selectedMember?.email;
+    if (memberName && isResolvingMemberFilter) {
+      return {
+        title: `Finding tasks for ${memberName}`,
+        description: "Checking the remaining tasks for work they own or are assigned to.",
+      };
+    }
+    if (memberName && selectedProject) {
+      return {
+        title: `No tasks for ${memberName}`,
+        description: `${memberName} does not own or have an assignment in ${selectedProject.name} for this view.`,
+      };
+    }
+    if (memberName) {
+      return {
+        title: `No tasks for ${memberName}`,
+        description: `${memberName} does not own or have an assignment that matches the current filters.`,
+      };
+    }
+    if (selectedProject) {
+      return {
+        title: `No tasks in ${selectedProject.name}`,
+        description: "This project has no tasks matching the current filters.",
+      };
+    }
+    if (hasActiveFilters) {
+      return {
+        title: "No tasks match these filters",
+        description: "Clear the filters or choose a different combination.",
+      };
+    }
+    return {
+      title: tableTab === "done" ? "No completed tasks" : "No active tasks",
+      description: tableTab === "done" ? "Completed tasks will appear here." : "Create a task to get started.",
+    };
+  }, [hasActiveFilters, isResolvingMemberFilter, selectedMember, selectedProject, tableTab]);
 
   useEffect(() => {
     const unsub = on("task:created", (data: any) => {
@@ -847,10 +894,10 @@ export default function TasksPageClient({
       <TaskSummarySection tasks={optimisticTasks} />
 
       <UserLeaderboard
-        tasks={optimisticTasks}
+        tasks={mergedTasks}
         users={users}
-        projects={projects}
-        canViewProjects={canUseAdminFilters}
+        selectedUserId={filterMemberId}
+        onSelectUser={(user) => setFilterMemberId(user ? String(user.id) : "")}
       />
 
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 lg:mb-10">
@@ -916,21 +963,26 @@ export default function TasksPageClient({
             </div>
           </div>
 
-          {canUseAdminFilters && (
-            <div className="relative group flex-shrink-0">
+          <div className="relative group flex-shrink-0">
               <div className="h-9 lg:h-11 w-9 lg:w-40 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:border-card-border transition-all">
                 <FiFolder className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
                 <select
-                  value={sortByProject ? "project" : ""}
-                  onChange={(e) => setSortByProject(e.target.value === "project")}
+                  aria-label="Filter tasks by project"
+                  value={filterProjectId}
+                  onChange={(e) => setFilterProjectId(e.target.value)}
                   className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
                 >
-                  <option value="" className="bg-card">Default order</option>
-                  <option value="project" className="bg-card">Sort by project</option>
+                  <option value="" className="bg-card">All projects</option>
+                  {[...projects]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((project) => (
+                      <option key={project.id} value={String(project.id)} className="bg-card">
+                        {project.name}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
-          )}
 
           {/* My Tasks Toggle */}
           <button
@@ -988,15 +1040,27 @@ export default function TasksPageClient({
       )}
 
       {viewMode === "kanban" ? (
-        <KanbanBoard
-          tasks={filteredTasks}
-          users={users}
-          user={currentUser}
-          projects={projects}
-          updateTask={handleUpdate}
-          deleteTask={handleDelete}
-          canManage={canManage}
-        />
+        filteredTasks.length === 0 ? (
+          <div className="glass rounded-2xl border border-card-border">
+            <EmptyState
+              compact
+              icon={FiClipboard}
+              title={emptyStateCopy.title}
+              description={emptyStateCopy.description}
+              action={hasActiveFilters && !isResolvingMemberFilter ? { label: "Clear filters", onClick: clearTaskFilters } : undefined}
+            />
+          </div>
+        ) : (
+          <KanbanBoard
+            tasks={filteredTasks}
+            users={users}
+            user={currentUser}
+            projects={projects}
+            updateTask={handleUpdate}
+            deleteTask={handleDelete}
+            canManage={canManage}
+          />
+        )
       ) : (
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between gap-4 overflow-x-auto pb-1 scrollbar-hide">
@@ -1257,8 +1321,9 @@ export default function TasksPageClient({
                           <EmptyState
                             compact
                             icon={FiClipboard}
-                            title="No tasks found"
-                            description="Create a task to get started or adjust your filters."
+                            title={emptyStateCopy.title}
+                            description={emptyStateCopy.description}
+                            action={hasActiveFilters && !isResolvingMemberFilter ? { label: "Clear filters", onClick: clearTaskFilters } : undefined}
                           />
                         </td>
                       </tr>

@@ -15,6 +15,7 @@ import { sendInvitation } from '@/app/(dashboard)/[orgSlug]/team/actions';
 import { ONBOARDING_TOUR_READY_EVENT } from '@/lib/onboarding-events';
 import { EmailChipInput } from './email-chip-input';
 import { Portal } from './portal';
+import { toast } from '@/lib/toast';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -123,6 +124,13 @@ export function InviteMemberModal({
       if (successCount > 0) {
         hasSuccessfulInviteRef.current = true;
         onInvited?.(successCount);
+      }
+      if (successCount === resolvedResults.length) {
+        toast.success(`${successCount} ${successCount === 1 ? 'invitation' : 'invitations'} sent`);
+      } else if (successCount > 0) {
+        toast.warning(`${successCount} sent, ${resolvedResults.length - successCount} need attention`);
+      } else {
+        toast.error(response.error || 'The invitations could not be sent.');
       }
     });
   };
