@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useTransition, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import type { OrganizationMembershipWithUser, OrgRole, MembershipStatus } from '@/types/organization';
 import { isPrivilegedOrgRole, toOrgRole } from '@/types/organization';
@@ -11,6 +11,7 @@ import { toast } from '@/lib/toast';
 import { InviteMemberModal } from '@/components/ui/invite-member-modal';
 import { MemberEditModal } from '@/components/ui/team/member-edit-modal';
 import { Portal } from '@/components/ui/portal';
+import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 import PendingInvitations from '@/components/ui/team/pending-invitations';
 import type { InvitationStats, PendingInvitation } from '@/app/(dashboard)/[orgSlug]/team/actions';
 
@@ -103,7 +104,6 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
   onRoleChange: (userId: string, role: OrgRole) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState({ top: 0, left: 0, side: 'bottom' as 'top' | 'bottom' });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -111,29 +111,22 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
   // corners), which clips any absolutely-positioned child that spills past
   // the table's own bounds — so a dropdown near the bottom of a long roster
   // got cut off instead of showing its options. Rendering the panel through
-  // a portal, positioned from the trigger's viewport coordinates, escapes
-  // that clipping entirely and always paints above the rest of the page.
-  useLayoutEffect(() => {
-    if (!open || !triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const gap = 6;
-    const viewportPadding = 12;
-    const panelHeight = panelRef.current?.offsetHeight ?? 0;
-    const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
-    const spaceAbove = rect.top - viewportPadding;
-    const side = panelHeight > spaceBelow && spaceAbove > spaceBelow ? 'top' : 'bottom';
-    const panelWidth = Math.max(230, panelRef.current?.offsetWidth ?? 0);
-    const left = Math.min(
-      Math.max(viewportPadding, rect.left),
-      window.innerWidth - panelWidth - viewportPadding,
-    );
-
-    setCoords({
-      top: side === 'top' ? rect.top - gap : rect.bottom + gap,
-      left,
-      side,
-    });
-  }, [open]);
+  // a portal escapes that clipping, and `useAdaptiveDropdown` flips it above
+  // the trigger when there is not enough room below.
+  //
+  // The positioning must come from the hook rather than a one-shot layout
+  // effect: `Portal` defers its children to a post-mount effect, so any
+  // measurement taken in the same pass that opens the menu reads a panel
+  // that is not in the DOM yet — height zero, and the flip can never fire.
+  const { style: panelStyle, side: panelSide } = useAdaptiveDropdown({
+    isOpen: open,
+    anchorRef: triggerRef,
+    dropdownRef: panelRef,
+    preferredSide: 'bottom',
+    preferredAlign: 'start',
+    gap: 6,
+    viewportPadding: 12,
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -143,14 +136,14 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
       if (panelRef.current?.contains(target)) return;
       setOpen(false);
     };
-    // Closing on scroll avoids the panel drifting away from a trigger it no
-    // longer tracks live, since the portal is not in the table's DOM subtree.
-    const handleScroll = () => setOpen(false);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('scroll', handleScroll, true);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll, true);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open]);
 
@@ -178,20 +171,15 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
           role.icon
         )}
         {role.label}
-        <FiChevronDown size={12} className={`text-text-muted transition-transform ${open && coords.side === 'top' ? 'rotate-180' : ''}`} />
+        <FiChevronDown size={12} className={`text-text-muted transition-transform ${open && panelSide === 'top' ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <Portal>
           <div
             ref={panelRef}
-            data-side={coords.side}
-            style={{
-              position: 'fixed',
-              top: coords.top,
-              left: coords.left,
-              transform: coords.side === 'top' ? 'translateY(-100%)' : undefined,
-            }}
-            className={`z-[200] min-w-[230px] overflow-hidden rounded-xl border border-card-border bg-background shadow-lg shadow-black/10 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${coords.side === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
+            data-side={panelSide}
+            style={panelStyle}
+            className={`z-[9999] min-w-[230px] overflow-y-auto rounded-xl border border-card-border bg-background shadow-lg shadow-black/10 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${panelSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
           >
             {options.map((opt) => {
               const cfg = roleConfig[opt];

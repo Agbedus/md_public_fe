@@ -148,7 +148,7 @@ export function Combobox({
           <div
             ref={dropdownRef}
             style={dropdownStyle}
-            className={`z-[9999] bg-foreground/[0.03] border border-foreground/5 rounded-xl overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${
+            className={`z-[9999] bg-background border border-card-border shadow-lg shadow-black/10 rounded-xl overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${
               dropdownSide === 'top' ? 'origin-bottom' : 'origin-top'
             }`}
           >

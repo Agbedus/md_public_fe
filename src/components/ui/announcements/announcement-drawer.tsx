@@ -220,7 +220,7 @@ export const AnnouncementDrawer = () => {
                 <button className="p-3 text-text-secondary hover:text-foreground transition-colors bg-foreground/[0.03] rounded-2xl border border-card-border hover:bg-foreground/[0.06] hover:border-card-border">
                   <FiInfo size={18} />
                 </button>
-                <div className="absolute bottom-full right-0 mb-4 w-72 p-5 bg-background/95 backdrop-blur-xl border border-card-border rounded-3xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-[80]">
+                <div className="absolute bottom-full right-0 mb-4 w-72 p-5 bg-background border border-card-border rounded-3xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-[80]">
                   <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest leading-relaxed">
                     Stay updated with the latest platform news. All broadcasts are strictly for internal system purposes.
                   </p>

@@ -251,7 +251,7 @@ export default function SlashCommandEditor({ initialContent, onChange, user }: S
               left: `${menuCoords.left}px`,
               transform: 'translate(-50%, -100%)',
             }}
-            className="bubble-menu-container flex items-center gap-0.5 p-1 bg-background/95 backdrop-blur-md border border-card-border rounded-xl shadow-xl z-[9999] animate-in fade-in zoom-in-95 duration-100"
+            className="bubble-menu-container flex items-center gap-0.5 p-1 bg-background border border-card-border rounded-xl shadow-xl z-[9999] animate-in fade-in zoom-in-95 duration-100"
           >
             {/* Copy */}
             <button
