@@ -187,13 +187,14 @@ export default function TasksPageClient({
 
   const isLoading = tasksLoading && serverTasks.length === 0;
 
-  // A leaderboard selection is a complete member drill-down, not merely a
-  // filter over the first page. Continue loading the existing paginated task
-  // feed until every visible task can be checked for ownership/assignment.
+  // The leaderboard ranks every member by completed work, so it cannot be
+  // calculated from only the first page (the API deliberately sorts DONE
+  // tasks after active work). Warm the remaining pages into SWR in the
+  // background; they remain cached for table filters and member drill-downs.
   useEffect(() => {
-    if (!filterMemberId || isLoadingMore || isReachingEnd) return;
+    if (isLoadingMore || isReachingEnd) return;
     void setSize(size + 1);
-  }, [filterMemberId, isLoadingMore, isReachingEnd, setSize, size]);
+  }, [isLoadingMore, isReachingEnd, setSize, size]);
 
   // Optimistic UI is driven by SWR's `optimisticData` in the mutation handlers
   // below, so the rendered list is simply whatever SWR currently holds.

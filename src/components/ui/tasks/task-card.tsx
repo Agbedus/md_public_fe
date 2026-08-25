@@ -20,6 +20,7 @@ import { canUserWorkOnTask, canDeleteTask } from "@/lib/task-auth";
 import { useConfirm } from "@/providers/confirmation-provider";
 import Image from "next/image";
 import { trackAction } from '@/lib/recent-actions';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface TaskCardProps {
     task: Task;
@@ -384,9 +385,14 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
             />
             <FiCheck className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[var(--pastel-emerald)] opacity-0 peer-checked:opacity-100 transition-opacity w-3 h-3" />
           </div>
-          <span className={`ml-4 truncate max-w-[250px] font-bold tracking-tight ${task.status === "DONE" ? "line-through text-text-muted" : "text-foreground"}`}>
-            {task.name}
-          </span>
+          <Tooltip
+            content={<p className="text-xs font-medium leading-relaxed text-foreground">{task.name}</p>}
+            className="ml-4 min-w-0 justify-start"
+          >
+            <span className={`block max-w-[250px] truncate font-bold tracking-tight ${task.status === "DONE" ? "line-through text-text-muted" : "text-foreground"}`}>
+              {task.name}
+            </span>
+          </Tooltip>
           </div>
         </td>
         <td className="px-4 py-2 text-xs text-text-muted whitespace-nowrap max-w-[300px] truncate hidden lg:table-cell">

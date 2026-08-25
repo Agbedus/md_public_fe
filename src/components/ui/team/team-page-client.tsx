@@ -103,11 +103,11 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
   onRoleChange: (userId: string, role: OrgRole) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+  const [coords, setCoords] = useState({ top: 0, left: 0, side: 'bottom' as 'top' | 'bottom' });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // The table this renders inside has `overflow-hidden` (for its rounded
+  // The table this renders inside has clipping boundaries (for its rounded
   // corners), which clips any absolutely-positioned child that spills past
   // the table's own bounds — so a dropdown near the bottom of a long roster
   // got cut off instead of showing its options. Rendering the panel through
@@ -116,7 +116,23 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
   useLayoutEffect(() => {
     if (!open || !triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    setCoords({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    const gap = 6;
+    const viewportPadding = 12;
+    const panelHeight = panelRef.current?.offsetHeight ?? 0;
+    const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
+    const spaceAbove = rect.top - viewportPadding;
+    const side = panelHeight > spaceBelow && spaceAbove > spaceBelow ? 'top' : 'bottom';
+    const panelWidth = Math.max(230, panelRef.current?.offsetWidth ?? 0);
+    const left = Math.min(
+      Math.max(viewportPadding, rect.left),
+      window.innerWidth - panelWidth - viewportPadding,
+    );
+
+    setCoords({
+      top: side === 'top' ? rect.top - gap : rect.bottom + gap,
+      left,
+      side,
+    });
   }, [open]);
 
   useEffect(() => {
@@ -162,14 +178,20 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
           role.icon
         )}
         {role.label}
-        <FiChevronDown size={12} className={`text-text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+        <FiChevronDown size={12} className={`text-text-muted transition-transform ${open && coords.side === 'top' ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <Portal>
           <div
             ref={panelRef}
-            style={{ position: 'fixed', top: coords.top, left: coords.left }}
-            className="z-[200] min-w-[230px] bg-background border border-card-border rounded-xl shadow-lg shadow-black/10 overflow-hidden"
+            data-side={coords.side}
+            style={{
+              position: 'fixed',
+              top: coords.top,
+              left: coords.left,
+              transform: coords.side === 'top' ? 'translateY(-100%)' : undefined,
+            }}
+            className={`z-[200] min-w-[230px] overflow-hidden rounded-xl border border-card-border bg-background shadow-lg shadow-black/10 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${coords.side === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
           >
             {options.map((opt) => {
               const cfg = roleConfig[opt];

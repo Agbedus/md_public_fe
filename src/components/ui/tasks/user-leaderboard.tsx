@@ -22,16 +22,19 @@ function isTaskOwnedByOrAssignedTo(task: Task, userId: string): boolean {
 }
 
 export function UserLeaderboard({ tasks, users, selectedUserId, onSelectUser }: UserLeaderboardProps) {
-  // Calculate completed tasks per user
+  // Keep every workspace member visible, including people who have not yet
+  // completed a task. A stable name tie-break keeps ranks from jumping when
+  // two people have the same completion count.
   const userPerformance = users.map(user => {
     const completedCount = tasks.filter(task =>
       task.status === 'DONE' && isTaskOwnedByOrAssignedTo(task, user.id)
     ).length;
     
     return { ...user, completedCount };
-  }).filter(u => u.completedCount > 0)
-    .sort((a, b) => b.completedCount - a.completedCount)
-    .slice(0, 5); // Top 5
+  }).sort((a, b) =>
+    b.completedCount - a.completedCount
+    || (a.fullName || a.email).localeCompare(b.fullName || b.email)
+  );
 
   if (userPerformance.length === 0) return null;
 
@@ -57,7 +60,7 @@ export function UserLeaderboard({ tasks, users, selectedUserId, onSelectUser }: 
     <div className="mb-10">
       <div className="flex items-center gap-2 mb-4">
         <FiTrendingUp className="text-indigo-500" />
-        <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Top Performers</h3>
+        <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Leaderboard</h3>
       </div>
       <div className="flex flex-nowrap overflow-x-auto gap-3 pb-2 scrollbar-hide">
         {userPerformance.map((user, i) => (
@@ -92,11 +95,12 @@ export function UserLeaderboard({ tasks, users, selectedUserId, onSelectUser }: 
               </div>
             </div>
             <div>
+              <p className="text-[11px] font-medium text-text-muted">#{i + 1}</p>
               <p className="text-[11px] lg:text-xs font-bold text-foreground uppercase tracking-tight truncate max-w-[80px] lg:max-w-none">{user.fullName || user.email.split('@')[0]}</p>
               <p className="mt-0.5 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-text-muted whitespace-nowrap">
                 {String(selectedUserId ?? '') === String(user.id) && <FiCheck className="h-3 w-3 text-indigo-500" />}
                 <span className="text-foreground font-bold font-numbers">{user.completedCount}</span>
-                {String(selectedUserId ?? '') === String(user.id) ? 'Filtering' : 'Tasks'}
+                {String(selectedUserId ?? '') === String(user.id) ? 'Filtering' : 'Completed'}
               </p>
             </div>
           </button>

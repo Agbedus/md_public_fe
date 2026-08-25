@@ -91,7 +91,7 @@ export default function DashboardLayout({
                 {topnav}
                 <div
                   data-dashboard-scroll
-                  className={`w-full flex-1 overscroll-y-contain ${hideContentScroll ? 'overflow-hidden' : 'overflow-y-auto'} pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0`}
+                  className={`w-full flex-1 overscroll-y-contain ${hideContentScroll ? 'overflow-hidden' : 'overflow-y-auto'} pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-28`}
                 >
                   {children}
                 </div>
