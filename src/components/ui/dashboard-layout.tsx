@@ -43,6 +43,7 @@ export default function DashboardLayout({
   user,
   orgSlug,
   workspaceId,
+  apiBaseUrl,
   isOnboardingTourBlocked,
 }: {
   sidebar: React.ReactNode;
@@ -51,6 +52,7 @@ export default function DashboardLayout({
   user?: any;
   orgSlug?: string;
   workspaceId?: string;
+  apiBaseUrl: string;
   isOnboardingTourBlocked?: boolean;
 }) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
@@ -71,7 +73,7 @@ export default function DashboardLayout({
         setHideContentScroll,
         userKey,
     }}>
-      <NotificationProvider user={user} workspaceScope={orgSlug} workspaceId={workspaceId}>
+      <NotificationProvider user={user} workspaceScope={orgSlug} workspaceId={workspaceId} apiBaseUrl={apiBaseUrl}>
         <AnnouncementProvider user={user} workspaceScope={orgSlug}>
           <ConfirmationProvider>
             <div className="relative flex h-dvh overflow-hidden bg-background md:h-screen">

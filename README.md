@@ -45,6 +45,11 @@ feedback through the shared toast system. Destructive actions use the compact,
 accessible confirmation dialog, which defaults keyboard focus to the safe action
 and supports Escape to cancel.
 
+The notification WebSocket receives the same backend origin that the dashboard
+layout successfully used for session validation. The client normalizes trailing
+slashes and an optional `/api/v1` suffix before upgrading to `ws:`/`wss:`, avoiding
+production drift between server-only and `NEXT_PUBLIC_*` URL settings.
+
 The task workspace supports project-based filtering rather than project sorting.
 Selecting a project shows its tasks, while selecting a leaderboard member filters
 the same task table or kanban view to work they own or are assigned to. Combined

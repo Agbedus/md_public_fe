@@ -58,7 +58,8 @@ export const NotificationProvider: React.FC<{
   user?: any;
   workspaceScope?: string | null;
   workspaceId?: string | null;
-}> = ({ children, user, workspaceScope, workspaceId }) => {
+  apiBaseUrl: string;
+}> = ({ children, user, workspaceScope, workspaceId, apiBaseUrl }) => {
   const { mutate } = useSWRConfig();
   const [isConnected, setIsConnected] = useState(false);
   const [readingIds, setReadingIds] = useState<Set<string>>(new Set());
@@ -72,8 +73,6 @@ export const NotificationProvider: React.FC<{
   const DATA_UPDATE_DEBOUNCE_MS = 2000;
   const dataUpdateTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_PRODUCTION_URL || "http://127.0.0.1:8000";
-
   // SWR for Users
   const { data: users = [] } = useSWR(
     user?.accessToken ? workspaceCacheKey('users', workspaceScope) : null,
@@ -259,13 +258,19 @@ export const NotificationProvider: React.FC<{
       // backend rejects a token that does not match the user in the path.
       // `organization_id` tells the server which tenant this tab is watching so
       // org-scoped pushes skip sockets open on a different org.
-      const wsBaseUrl = baseUrl.replace(/^http/, 'ws');
+      const backendUrl = new URL(apiBaseUrl);
+      backendUrl.protocol = backendUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+      backendUrl.pathname = backendUrl.pathname
+        .replace(/\/api\/v1\/?$/, '')
+        .replace(/\/+$/, '');
+      backendUrl.search = '';
+      backendUrl.hash = '';
       const params = new URLSearchParams({ token: user.accessToken });
       const activeWorkspaceId = workspaceId || user.currentOrganizationId;
       if (activeWorkspaceId) {
         params.set('organization_id', activeWorkspaceId);
       }
-      const wsUrl = `${wsBaseUrl}/api/v1/notifications/ws/${user.id}?${params.toString()}`;
+      const wsUrl = `${backendUrl.toString().replace(/\/$/, '')}/api/v1/notifications/ws/${encodeURIComponent(user.id)}?${params.toString()}`;
 
       const socket = new WebSocket(wsUrl);
       socketRef.current = socket;
@@ -339,8 +344,13 @@ export const NotificationProvider: React.FC<{
         }
       };
 
-      socket.onclose = () => {
+      socket.onclose = (event) => {
         setIsConnected(false);
+        socketRef.current = null;
+        if (event.code === 1008) {
+          console.warn('Notification WebSocket authentication was rejected. Reconnect will wait for a refreshed session.');
+          return;
+        }
         // Reconnect logic
         const timeout = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -369,7 +379,7 @@ export const NotificationProvider: React.FC<{
     user?.accessToken,
     user?.currentOrganizationId,
     workspaceId,
-    baseUrl,
+    apiBaseUrl,
     mutate,
     mutateNotifications,
     enqueueToast,

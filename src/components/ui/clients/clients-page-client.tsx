@@ -130,7 +130,7 @@ export default function ClientsPageClient({
   const handleDelete = async (client: Client) => {
     const confirmed = await confirm({
       title: "Delete Client",
-      message: `Are you sure you want to delete "${client.companyName}"? This action will remove all linked data for this client. This cannot be undone.`,
+      message: `Delete "${client.companyName}"? Linked projects will be kept without a client. This cannot be undone.`,
       confirmText: "Delete Client",
       type: "danger",
     });

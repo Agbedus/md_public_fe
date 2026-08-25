@@ -144,7 +144,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
   const handleDelete = async (project: Project) => {
     const confirmed = await confirm({
       title: 'Delete Project',
-      message: `Are you sure you want to delete "${project.name}"? This action will remove all linked tasks and data. This cannot be undone.`,
+      message: `Delete "${project.name}"? Its tasks will be kept and moved out of the project. This cannot be undone.`,
       confirmText: 'Delete Project',
       type: 'danger'
     });

@@ -86,6 +86,7 @@ export default async function DashboardRouteLayout({
         user={chromeUser}
         orgSlug={orgSlug}
         workspaceId={selectedOrganizationId}
+        apiBaseUrl={BASE_URL}
         isOnboardingTourBlocked={isOnboardingTourBlocked}
       >
         {children}
