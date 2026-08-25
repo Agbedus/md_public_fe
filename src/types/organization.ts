@@ -165,3 +165,26 @@ export interface CurrentOrgContext {
   invite_code?: string | null;
   is_public?: boolean;
 }
+
+/**
+ * Full editable organization profile — the Settings page's Organization tab.
+ * Matches the backend's `OrganizationRead`/`OrganizationUpdate` shape
+ * (`app/schemas/organization.py`), which is a superset of `CurrentOrgContext`.
+ */
+export interface OrganizationSettings {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  description: string | null;
+  industry: string | null;
+  company_size: string | null;
+  website: string | null;
+  phone: string | null;
+  address: string | null;
+  country: string | null;
+  timezone: string | null;
+  is_public: boolean;
+  sms_notifications_enabled: boolean;
+  invite_code: string;
+}

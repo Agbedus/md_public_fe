@@ -27,6 +27,7 @@ export default function VerifyOtpForm() {
   const email = searchParams.get('email') || '';
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const organizationName = searchParams.get('organizationName') || '';
+  const isSms = searchParams.get('channel') === 'sms';
 
   const [digits, setDigits] = useState<string[]>(Array(6).fill(''));
   const [isPending, setIsPending] = useState(false);
@@ -160,7 +161,7 @@ export default function VerifyOtpForm() {
     if (resendCooldown > 0) return;
     const result = await resendOtp(email);
     if (result.success) {
-      toast.success('A new code has been sent to your email');
+      toast.success(isSms ? 'A new code has been texted to you' : 'A new code has been sent to your email');
       setResendCooldown(RESEND_COOLDOWN);
       setExpirySeconds(EXPIRY_MINUTES * 60);
       setAttemptsLeft(null);
@@ -182,10 +183,16 @@ export default function VerifyOtpForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <motion.div custom={0} variants={formItem as Variants} initial="hidden" animate="visible" className="text-center space-y-2">
-        <p className="text-sm text-text-muted">
-          Enter the 6-digit code sent to
-        </p>
-        <p className="text-sm font-medium text-foreground">{email}</p>
+        {isSms ? (
+          <p className="text-sm text-text-muted">Enter the 6-digit code we texted you</p>
+        ) : (
+          <>
+            <p className="text-sm text-text-muted">
+              Enter the 6-digit code sent to
+            </p>
+            <p className="text-sm font-medium text-foreground">{email}</p>
+          </>
+        )}
       </motion.div>
 
       <motion.div custom={1} variants={formItem as Variants} initial="hidden" animate="visible">

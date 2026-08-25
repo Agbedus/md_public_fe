@@ -136,6 +136,7 @@ const RegisterSchema = z.object({
     password: z.string().min(6),
     fullName: z.string().min(2),
     phone: z.string().optional(),
+    otpChannel: z.enum(['email', 'sms']).optional(),
     jobTitle: z.string().optional(),
     orgAction: z.string().optional(),
     orgName: z.string().optional(),
@@ -164,7 +165,7 @@ export async function register(prevState: string | undefined, formData: FormData
         return validatedFields.error.issues[0]?.message || "Invalid fields";
     }
 
-    const { email, password, fullName, phone, jobTitle, orgAction, orgName, orgSlug, orgIndustry, orgCompanySize, orgWebsite, orgCountry, orgPhone, inviteCode, invitationToken, referralCode, shareClickId } = validatedFields.data;
+    const { email, password, fullName, phone, otpChannel, jobTitle, orgAction, orgName, orgSlug, orgIndustry, orgCompanySize, orgWebsite, orgCountry, orgPhone, inviteCode, invitationToken, referralCode, shareClickId } = validatedFields.data;
 
     const body: Record<string, string | boolean> = {
         email,
@@ -174,6 +175,9 @@ export async function register(prevState: string | undefined, formData: FormData
     };
 
     if (phone) body.phone = phone;
+    // Only meaningful alongside a phone number — the backend defaults to
+    // "email" anyway, but this keeps intent explicit.
+    if (phone && otpChannel) body.otp_channel = otpChannel;
     if (jobTitle) body.job_title = jobTitle;
     if (invitationToken) body.invitation_token = invitationToken;
     if (referralCode) body.referral_code = referralCode;

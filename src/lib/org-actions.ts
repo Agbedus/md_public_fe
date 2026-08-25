@@ -12,6 +12,7 @@ import type {
   OrgBrief,
   OrgMember,
   CurrentOrgContext,
+  OrganizationSettings,
 } from '@/types/organization';
 import { normalizeRoleValue } from '@/types/organization';
 import type { ActionResult } from '@/types/api';
@@ -423,5 +424,50 @@ export async function joinOrganizationByInvite(inviteCode: string): Promise<Acti
     return { success: true, slug: organization.slug };
   } catch {
     return { success: false, error: 'Network error' };
+  }
+}
+
+/** Full organization profile for the Settings page's Organization tab. OWNER/ADMIN only on the backend, but readable by any member — the page itself gates who sees the tab at all. */
+export async function getOrganizationDetails(orgId: string): Promise<OrganizationSettings | null> {
+  const headers = await getSessionHeaders();
+  if (!headers.Authorization) return null;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/organizations/${orgId}`, {
+      headers,
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/** Update the organization's profile fields and/or its org-wide SMS switch. OWNER/ADMIN only — the backend enforces this regardless of what the frontend shows. */
+export async function updateOrganizationSettings(
+  orgId: string,
+  data: Partial<Pick<OrganizationSettings,
+    'name' | 'description' | 'industry' | 'company_size' | 'website' |
+    'address' | 'country' | 'timezone' | 'is_public' | 'sms_notifications_enabled'
+  >>
+): Promise<ActionResult> {
+  const headers = await getSessionHeaders();
+  if (!headers.Authorization) return { success: false, error: 'Unauthorized' };
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/organizations/${orgId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      return { success: false, error: body.detail || 'Could not update organization settings.' };
+    }
+    revalidatePath('/[orgSlug]/settings', 'page');
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Could not connect to the server.' };
   }
 }

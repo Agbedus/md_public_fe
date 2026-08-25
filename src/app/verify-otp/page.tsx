@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import VerifyOtpForm from '@/components/ui/verify-otp-form';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -27,6 +28,9 @@ const item = {
 };
 
 function VerifyOtpContent() {
+  const searchParams = useSearchParams();
+  const isSms = searchParams.get('channel') === 'sms';
+
   return (
     <main className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background isolate">
       <div className="absolute inset-0 pointer-events-none -z-10">
@@ -76,8 +80,12 @@ function VerifyOtpContent() {
         </motion.div>
 
         <motion.div variants={item as Variants} className="text-center space-y-2 mb-8">
-          <h1 className="text-2xl font-semibold text-foreground font-sora tracking-tight">Check your email</h1>
-          <p className="text-sm text-text-muted">We sent a 6-digit verification code</p>
+          <h1 className="text-2xl font-semibold text-foreground font-sora tracking-tight">
+            {isSms ? 'Check your phone' : 'Check your email'}
+          </h1>
+          <p className="text-sm text-text-muted">
+            {isSms ? 'We texted you a 6-digit verification code' : 'We sent a 6-digit verification code'}
+          </p>
         </motion.div>
 
         <motion.div variants={item as Variants}>

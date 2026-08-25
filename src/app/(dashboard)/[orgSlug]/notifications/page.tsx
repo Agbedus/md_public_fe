@@ -141,8 +141,8 @@ export default function NotificationsPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-[calc(100dvh-8rem)] w-full max-w-[1600px] flex-col gap-4 px-3 py-4 sm:px-4 md:py-8">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+    <main className="mx-auto flex h-[calc(100dvh-8rem)] w-full max-w-[1600px] flex-col gap-4 overflow-hidden px-3 py-4 sm:px-4 md:py-8">
+      <header className="flex shrink-0 flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifications</h1>
           <p className="mt-1 text-sm text-text-muted">Updates that need your attention across this workspace.</p>
@@ -154,9 +154,9 @@ export default function NotificationsPage() {
         )}
       </header>
 
-      <section className="grid min-h-[620px] flex-1 overflow-hidden rounded-2xl border border-card-border bg-card shadow-sm md:grid-cols-[minmax(300px,36%)_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
-        <div className={`${selected ? 'hidden md:flex' : 'flex'} min-w-0 flex-col border-card-border md:border-r`}>
-          <div className="space-y-2 border-b border-card-border p-2.5">
+      <section className="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-card-border bg-card shadow-sm md:grid-cols-[minmax(300px,36%)_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
+        <div className={`${selected ? 'hidden md:flex' : 'flex'} min-h-0 min-w-0 flex-col border-card-border md:border-r`}>
+          <div className="shrink-0 space-y-2 border-b border-card-border p-2.5">
             <div className="flex rounded-lg bg-foreground/[0.04] p-1" aria-label="Notification views">
               {(['all', 'attention', 'unread'] as InboxView[]).map((view) => (
                 <button type="button" key={view} onClick={() => setActiveView(view)} className={`min-h-11 flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-colors md:min-h-9 ${activeView === view ? 'bg-card text-foreground shadow-sm' : 'text-text-muted hover:text-foreground'}`}>
@@ -185,7 +185,7 @@ export default function NotificationsPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {grouped.length ? grouped.map(([label, items]) => (
               <section key={label} aria-labelledby={`notification-group-${label}`}>
                 <h2 id={`notification-group-${label}`} className="sticky top-0 z-10 border-b border-card-border bg-card/95 px-3 py-1.5 text-[11px] font-semibold text-text-muted backdrop-blur">{label}</h2>
@@ -218,14 +218,14 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        <div className={`${selected ? 'flex' : 'hidden md:flex'} min-w-0 flex-col`}>
+        <div className={`${selected ? 'flex' : 'hidden md:flex'} min-h-0 min-w-0 flex-col overflow-hidden`}>
           {selected ? (
             <>
-              <div className="flex items-center justify-between border-b border-card-border p-4 sm:p-5">
+              <div className="flex shrink-0 items-center justify-between border-b border-card-border p-4 sm:p-5">
                 <button type="button" onClick={() => setSelectedId(null)} className="grid h-11 w-11 place-items-center rounded-md text-text-muted hover:bg-foreground/[0.05] hover:text-foreground md:hidden" aria-label="Back to notifications"><FiChevronLeft className="h-5 w-5" /></button>
                 <span className="text-xs font-medium text-text-muted">{format(new Date(selected.created_at), 'MMM d, yyyy · h:mm a')}</span>
               </div>
-              <article className="flex flex-1 flex-col p-5 sm:p-8">
+              <article className="flex flex-1 flex-col overflow-hidden p-5 sm:p-8">
                 <div className="max-w-2xl">
                   <span className="text-xs font-semibold capitalize text-emerald-500">{categoryFor(selected).replace('_', ' ')}</span>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{selected.title}</h2>

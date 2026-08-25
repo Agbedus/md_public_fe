@@ -9,6 +9,7 @@ import { ConfirmationProvider } from '@/providers/confirmation-provider';
 import { useGlobalActions } from '@/providers/global-action-provider';
 import AssistantOrb from './assistant/assistant-orb';
 import { OnboardingTour } from './onboarding/onboarding-tour';
+import { SmsFeatureBanner } from './sms-feature-banner';
 
 interface DashboardContextType {
   isMobileExpanded: boolean;
@@ -90,6 +91,7 @@ export default function DashboardLayout({
               <MobileNav setIsCommandOpen={setIsCommandOpen} orgSlug={orgSlug} />
               <AnnouncementDrawer />
               <AssistantOrb />
+              <SmsFeatureBanner userKey={user?.email || user?.id} />
               {(user?.email || user?.id) && (
                 <OnboardingTour
                   userKey={user.email || user.id}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { register } from '@/app/lib/actions';
-import { FiUser, FiMail, FiLock, FiArrowRight, FiArrowLeft, FiLoader, FiEye, FiEyeOff, FiBriefcase, FiLink, FiCheck, FiGlobe, FiPhone, FiXCircle } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiArrowRight, FiArrowLeft, FiLoader, FiEye, FiEyeOff, FiBriefcase, FiLink, FiCheck, FiGlobe, FiPhone, FiXCircle, FiMessageSquare } from 'react-icons/fi';
 import Link from 'next/link';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { toast } from '@/lib/toast';
@@ -265,6 +265,7 @@ export default function RegisterForm({
   const [phoneCode, setPhoneCode] = useState('GH');
   const [phone, setPhone] = useState('');
   const [jobTitle, setJobTitle] = useState('');
+  const [otpChannel, setOtpChannel] = useState<'email' | 'sms'>('email');
 
   const [orgAction, setOrgAction] = useState<'create' | 'join'>(initialInviteCode ? 'join' : 'create');
   const [orgName, setOrgName] = useState('');
@@ -282,6 +283,11 @@ export default function RegisterForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const countryManuallyChanged = useRef(false);
+
+  // A cleared phone number can't back an SMS code — derived rather than
+  // synced back into state, so clearing the phone field can't leave a
+  // stale "sms" selection sitting in state with nothing to send it to.
+  const effectiveOtpChannel = phone.trim() ? otpChannel : 'email';
 
   const handlePhoneCodeChange = (code: string) => {
     setPhoneCode(code);
@@ -390,6 +396,7 @@ export default function RegisterForm({
     formData.append('password', password);
     if (phone) formData.append('phone', `+${phoneDial}${phone}`);
     if (jobTitle) formData.append('jobTitle', jobTitle);
+    formData.append('otpChannel', effectiveOtpChannel);
     formData.append('agreedToTerms', String(agreedToTerms));
 
     if (orgAction) formData.append('orgAction', orgAction);
@@ -433,8 +440,8 @@ export default function RegisterForm({
 
       const msg = await register(undefined, formData as any);
       if (msg === "Verification code sent") {
-        toast.success("Verification code sent to your email");
-        const verifyParams = new URLSearchParams({ email });
+        toast.success(effectiveOtpChannel === 'sms' ? 'Verification code sent by text message' : 'Verification code sent to your email');
+        const verifyParams = new URLSearchParams({ email, channel: effectiveOtpChannel });
         if (initialInvitationToken) {
           verifyParams.set('callbackUrl', '/dashboard');
           if (inviteOrgName) verifyParams.set('organizationName', inviteOrgName);
@@ -596,6 +603,34 @@ export default function RegisterForm({
                       onChange={setPhone}
                       placeholder="555 123 4567"
                     />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-text-muted ml-0.5">Send my verification code by</p>
+                    <div className="flex rounded-xl border border-card-border bg-foreground/[0.03] p-1">
+                      <button
+                        type="button"
+                        onClick={() => setOtpChannel('email')}
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          effectiveOtpChannel === 'email' ? 'bg-card text-foreground shadow-sm border border-card-border' : 'text-text-muted hover:text-foreground'
+                        }`}
+                      >
+                        <FiMail className="h-3.5 w-3.5" />
+                        Email
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => phone.trim() && setOtpChannel('sms')}
+                        disabled={!phone.trim()}
+                        title={!phone.trim() ? 'Add a phone number to receive your code by SMS' : undefined}
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                          effectiveOtpChannel === 'sms' ? 'bg-card text-foreground shadow-sm border border-card-border' : 'text-text-muted hover:text-foreground'
+                        }`}
+                      >
+                        <FiMessageSquare className="h-3.5 w-3.5" />
+                        Text message
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-1.5">

@@ -27,6 +27,24 @@ const PUBLIC_PREFIXES = [
   "/homepage",
 ];
 
+// Mirrors `dashboardPrefixes` in `src/proxy.ts` — the set of top-level
+// segments the middleware redirects to `/{orgSlug}/{segment}` when they
+// arrive without an org prefix. `slugFromPath` must reject these as slug
+// candidates for the same reason: `usePathname()` can transiently return a
+// bare path like `/dashboard` (e.g. mid-flight during the post-login
+// redirect, before the org-prefixed URL has settled), and without this
+// guard the first segment — "dashboard" — gets treated as the org slug,
+// producing a broken path like `/dashboard/settings` that the middleware
+// then "fixes" into `/{realOrgSlug}/dashboard/settings`. Returning `null`
+// here instead falls back to a bare path (e.g. `/settings`), which the
+// middleware's own legacy-redirect already knows how to resolve correctly.
+const RESERVED_TOP_LEVEL_SEGMENTS = new Set<ProtectedSegment>([
+  "dashboard", "projects", "tasks", "notes", "calendar",
+  "team", "attendance", "focus", "wiki", "profile", "settings",
+  "users", "clients", "time-off", "notifications", "announcements",
+  "decisions", "search", "waitlist", "assistant",
+]);
+
 function normalize(slug: string | null | undefined, ...segments: Array<string | number | undefined | null>): string {
   const cleaned = segments
     .filter((s): s is string | number => s !== undefined && s !== null && String(s).length > 0)
@@ -61,7 +79,9 @@ export function isPublicRoute(pathname: string): boolean {
 export function slugFromPath(pathname: string): string | null {
   if (isPublicRoute(pathname)) return null;
   const seg = pathname.split("/").filter(Boolean);
-  return seg[0] ?? null;
+  const candidate = seg[0] ?? null;
+  if (candidate && RESERVED_TOP_LEVEL_SEGMENTS.has(candidate as ProtectedSegment)) return null;
+  return candidate;
 }
 
 /**

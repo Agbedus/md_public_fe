@@ -1044,7 +1044,12 @@ export default function LandingPage() {
                                 <FiBell size={20} />
                             </div>
                             <h4 className="text-sm font-bold text-white font-sora mb-1.5">Announcements & Notifications</h4>
-                            <p className="text-xs text-zinc-500 leading-relaxed font-dm-sans">Organization-wide announcements, real-time push notifications, and read receipts.</p>
+                            <p className="text-xs text-zinc-500 leading-relaxed font-dm-sans">Organization-wide announcements, real-time push notifications, and read receipts — delivered in-app, by email, and by text message for anything urgent enough to leave the app for.</p>
+                            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/[0.06] text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                                <span className="flex items-center gap-1.5"><FiBell size={11} className="text-purple-300" />In-app</span>
+                                <span className="flex items-center gap-1.5"><FiMail size={11} className="text-purple-300" />Email</span>
+                                <span className="flex items-center gap-1.5"><FiMessageSquare size={11} className="text-purple-300" />SMS</span>
+                            </div>
                         </motion.div>
 
                         {/* Decision Log */}

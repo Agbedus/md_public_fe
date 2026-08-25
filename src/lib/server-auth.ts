@@ -41,6 +41,7 @@ export interface FreshUserProfile {
   full_name: string | null;
   job_title: string | null;
   phone: string | null;
+  sms_notifications_enabled: boolean;
 }
 
 /**
@@ -70,6 +71,7 @@ export async function getFreshUserProfile(): Promise<FreshUserProfile | null> {
       full_name: me?.full_name ?? null,
       job_title: me?.job_title ?? null,
       phone: me?.phone ?? null,
+      sms_notifications_enabled: Boolean(me?.sms_notifications_enabled),
     };
   } catch {
     return null;

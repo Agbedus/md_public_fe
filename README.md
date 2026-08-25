@@ -46,6 +46,18 @@ and clean up subscriptions, timers, and animation frames. Display-only state is
 derived during rendering where possible, keeping React updates predictable across
 assistant, calendar, notification, location, onboarding, and optimistic workflows.
 
+Floating menus use the shared `src/hooks/use-adaptive-dropdown.ts` positioning
+hook. Dropdowns, popovers, date pickers, and time pickers stay inside the visual
+viewport, reverse direction when an edge is reached, and account for mobile browser
+viewport changes. Their entrance motion is limited to a short opacity-and-scale
+transition with a reduced-motion fallback. Registration country menus deliberately
+open wider than their compact trigger and retain spacing from the source field.
+
+The landing-page hero keeps its mobile actions on one line within the same readable
+width as the supporting copy. The registration and sign-in actions remain labelled,
+while the mobile share action uses an accessible icon-only control and restores its
+full label on desktop.
+
 ## Search visibility
 
 Public search metadata is centralized in `src/lib/seo.ts`. The App Router exposes

@@ -81,9 +81,10 @@ export const CookiePopup = () => {
                                     <p className="text-xs text-text-muted">Your choice, saved on this device</p>
                                 </div>
                             </div>
-                            <button 
-                                onClick={() => setIsVisible(false)}
+                            <button
+                                onClick={() => savePrefs("declined", { essential: true, analytics: false, personalization: false })}
                                 className="p-2 hover:bg-foreground/[0.05] rounded-full text-text-secondary hover:text-foreground transition-colors"
+                                aria-label="Dismiss and keep only essential cookies"
                             >
                                 <FiX />
                             </button>

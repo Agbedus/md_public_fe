@@ -303,8 +303,8 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
     },
 ];
 
-const DOC_VERSION = '2026.08.22';
-const DOC_RELEASE_LABEL = 'Notifications and invitations refresh';
+const DOC_VERSION = '2026.08.25';
+const DOC_RELEASE_LABEL = 'SMS notifications and a unified settings page';
 
 export default function WikiPage() {
     const router = useRouter();
@@ -453,6 +453,14 @@ export default function WikiPage() {
                             <Table
                                 headers={['Area', 'What changed']}
                                 rows={[
+                                    ['SMS notifications', 'Optional text-message alerts for a sign-in code, a time-off request or decision, and critical announcements. Off by default — turn it on for yourself in Settings, and an Owner or Admin must also switch it on for the organization.'],
+                                    ['Settings', 'Your personal settings and your organization’s settings (for Owners and Admins) now live on one page, split into "My settings" and "Organization" tabs — no more separate screens.'],
+                                    ['Organization profile', 'Owners and Admins can now upload an organization logo and edit the organization’s profile — industry, size, website, address — from the Organization tab in Settings.'],
+                                    ['Sign-in codes', 'Choose email or text message for your verification code when creating an account, if you gave a phone number — not both, so you are not charged twice for the same code.'],
+                                    ['Password', 'Forgot your password? A reset link now goes to your email from the sign-in page. Signed-in users can also change their password from Settings without contacting an admin.'],
+                                    ['Floating menus', 'Dropdowns, date and time pickers, workspace menus and top-navigation overlays now stay within the visible screen, reverse direction near an edge, and use quieter fade-and-scale motion.'],
+                                    ['Registration', 'Country selection menus are wider and sit with clearer spacing from the field that opened them, while still fitting smaller screens.'],
+                                    ['Landing page', 'On mobile, Create account, Sign in and Share now stay on one row aligned to the hero copy. Share uses a compact icon-only button on mobile and restores its label on desktop.'],
                                     ['Invitations', 'When someone accepts an invitation and joins a workspace, the person who invited them now receives a clear in-app confirmation.'],
                                     ['Notifications', 'The notification center has a cleaner inbox layout, filters, search, grouped dates and one action to mark everything in the current workspace as read.'],
                                     ['Attendance', 'Office-exit alerts now notify only the right higher-role people in the same organization after the backend confirms the person has left the office zone.'],
@@ -784,17 +792,19 @@ export default function WikiPage() {
                                     ['A note is shared with you', 'You'],
                                     ['An invitation you sent is accepted', 'You'],
                                     ['Someone creates or updates work', 'Owners, Admins and Managers'],
-                                    ['Time off is requested', 'Owners and Admins'],
-                                    ['Your time off is approved or declined', 'You'],
+                                    ['Time off is requested', 'Owners and Admins — and by text message, if SMS is enabled'],
+                                    ['Your time off is approved or declined', 'You — and by text message, if SMS is enabled'],
                                     ['Approved time off overlaps assigned work', 'The assigner or affected task creators'],
                                     ['A member leaves the office zone', 'Only higher-authority owners/admins in that organization'],
+                                    ['A critical announcement is posted', 'Everyone in the organization — and by text message, if SMS is enabled'],
                                 ]}
                             />
                             <P>
                                 You will never be notified about a record you could not open. The
                                 notification page lets you search, filter by category, focus on
                                 unread or attention items, and mark all current-workspace alerts as
-                                read in one action. Choose which alerts you receive in Settings.
+                                read in one action. Choose which alerts you receive, and whether you
+                                get text messages, in Settings.
                             </P>
                         </Topic>
 
@@ -938,13 +948,35 @@ export default function WikiPage() {
                     <Section id="settings" title="Settings" icon={FiSettings} color="text-cyan-400">
                         <Topic id="settings-basics" title="Your preferences">
                             <P>
-                                Settings covers the choices that are yours alone: which notifications
-                                you receive, sound, focus timer lengths, and light or dark theme.
-                                They follow you across devices.
+                                The &ldquo;My settings&rdquo; tab covers the choices that are yours alone: which
+                                notifications you receive, sound, focus timer lengths, and light or
+                                dark theme. They follow you across devices.
                             </P>
                             <P>
-                                Organization-wide settings — the name, logo, offices and attendance
-                                rules — live elsewhere and are Owner and Admin only.
+                                Attendance rules and office locations still live on their own pages
+                                and are Owner and Admin only.
+                            </P>
+                        </Topic>
+
+                        <Topic id="settings-sms" title="Text message notifications">
+                            <P>
+                                Turn on SMS in &ldquo;My settings&rdquo; to get a text for a sign-in code, a time
+                                off decision, and critical announcements — nothing else, for now. It
+                                is off by default, and it needs two switches, not one: your own
+                                toggle here, and your organization&apos;s own SMS switch. If your
+                                organization has not turned SMS on, your personal toggle will not
+                                send anything yet — ask an Owner or Admin to enable it on the
+                                Organization tab.
+                            </P>
+                        </Topic>
+
+                        <Topic id="settings-organization" title="Organization settings">
+                            <P>
+                                Owners and Admins see a second tab, &ldquo;Organization,&rdquo; on the same
+                                Settings page — no separate screen anymore. It covers the
+                                organization&apos;s name, logo, industry, size, website, address, and
+                                whether the organization is discoverable, plus the organization-wide
+                                SMS switch described above.
                             </P>
                         </Topic>
                     </Section>
