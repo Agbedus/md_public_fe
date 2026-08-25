@@ -20,6 +20,10 @@ interface DashboardContextType {
   setIsCommandOpen: (v: boolean) => void;
   hideContentScroll: boolean;
   setHideContentScroll: (v: boolean) => void;
+  /** Stable per-account key (email or id) — used for anything keyed to
+   *  "this signed-in user" that lives purely client-side, e.g. Pip's
+   *  local-only conversation memory (use-pip-memory). */
+  userKey?: string | null;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -53,17 +57,19 @@ export default function DashboardLayout({
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const [hideContentScroll, setHideContentScroll] = useState(false);
   const { isCommandOpen, setIsCommandOpen } = useGlobalActions();
+  const userKey = user?.email || user?.id;
 
   return (
-    <DashboardContext.Provider value={{ 
-        isMobileExpanded, 
-        setIsMobileExpanded, 
-        isDesktopCollapsed, 
+    <DashboardContext.Provider value={{
+        isMobileExpanded,
+        setIsMobileExpanded,
+        isDesktopCollapsed,
         setIsDesktopCollapsed,
         isCommandOpen,
         setIsCommandOpen,
         hideContentScroll,
-        setHideContentScroll
+        setHideContentScroll,
+        userKey,
     }}>
       <NotificationProvider user={user} workspaceScope={orgSlug} workspaceId={workspaceId}>
         <AnnouncementProvider user={user} workspaceScope={orgSlug}>
@@ -91,10 +97,10 @@ export default function DashboardLayout({
               <MobileNav setIsCommandOpen={setIsCommandOpen} orgSlug={orgSlug} />
               <AnnouncementDrawer />
               <AssistantOrb />
-              <SmsFeatureBanner userKey={user?.email || user?.id} />
-              {(user?.email || user?.id) && (
+              <SmsFeatureBanner userKey={userKey} />
+              {userKey && (
                 <OnboardingTour
-                  userKey={user.email || user.id}
+                  userKey={userKey}
                   isInitiallyBlocked={isOnboardingTourBlocked}
                 />
               )}

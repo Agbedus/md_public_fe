@@ -8,6 +8,7 @@ import type { PipActivity } from "@/components/ui/assistant/pip-status-indicator
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMessageSquare, FiList, FiTrendingUp, FiCalendar } from "react-icons/fi";
 import { useDashboard } from "@/components/ui/dashboard-layout";
+import { usePipMemory } from "@/hooks/use-pip-memory";
 
 const PIP_VARIANTS = ['classic', 'smart', 'sleepy', 'cool', 'shocked', 'spicy', 'lovely', 'cyber'] as const;
 
@@ -44,7 +45,9 @@ export default function AssistantPage() {
   const [activeResponseId, setActiveResponseId] = useState<string | null>(null);
   const [pipVariantIdx, setPipVariantIdx] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
-  const { setHideContentScroll } = useDashboard();
+  const { setHideContentScroll, userKey } = useDashboard();
+  const { messages: memory, remember, toApiHistory } = usePipMemory(userKey);
+  const [hasHydratedMemory, setHasHydratedMemory] = useState(false);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -54,22 +57,17 @@ export default function AssistantPage() {
     return () => setHideContentScroll(false);
   }, [setHideContentScroll]);
 
+  // One-time hydration from Pip's shared local memory (see use-pip-memory) —
+  // picks the conversation back up (within its 6-hour window), including a
+  // conversation started in the floating orb, instead of starting blank.
   useEffect(() => {
-    let frame: number | undefined;
-    try {
-      const saved = localStorage.getItem('md_assistant_chat_messages');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          frame = window.requestAnimationFrame(() => setMessages(parsed));
-        }
-        localStorage.removeItem('md_assistant_chat_messages');
-      }
-    } catch {}
-    return () => {
-      if (frame !== undefined) window.cancelAnimationFrame(frame);
-    };
-  }, []);
+    if (hasHydratedMemory || memory.length === 0) return;
+    const frame = window.requestAnimationFrame(() => {
+      setMessages(memory);
+      setHasHydratedMemory(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [memory, hasHydratedMemory]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -101,9 +99,11 @@ export default function AssistantPage() {
     setHasError(false);
     setErrorMessage("");
 
+    const history = toApiHistory();
     const interactionId = crypto.randomUUID();
     const newUserMessage: Message = { text, isUser: true, id: `user-${interactionId}` };
     setMessages((prev) => [...prev, newUserMessage]);
+    remember(newUserMessage);
     setIsLoading(true);
     setPipActivity(isReport ? 'analyzing' : 'thinking');
 
@@ -120,7 +120,7 @@ export default function AssistantPage() {
       const response = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, history }),
         signal: controller.signal,
       });
 
@@ -198,6 +198,9 @@ export default function AssistantPage() {
       }
       if (protocolBuffer.startsWith(PIP_ERROR_MARKER)) throw new Error(DEFAULT_PIP_ERROR);
       appendAssistantText(protocolBuffer);
+      if (!controller.signal.aborted && accumulatedText.trim()) {
+        remember({ id: aiMessageId, text: accumulatedText, isUser: false, isReport: reportMarkerFound });
+      }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       const errString = error instanceof Error && error.message ? error.message : DEFAULT_PIP_ERROR;

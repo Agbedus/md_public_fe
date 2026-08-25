@@ -1,17 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from "@/types/user";
 import { Task } from "@/types/task";
+import { Project } from "@/types/project";
 import { FiAward, FiStar, FiTrendingUp } from "react-icons/fi";
 import Image from 'next/image';
+import { UserProjectsModal } from './user-projects-modal';
 
 interface UserLeaderboardProps {
   tasks: Task[];
   users: User[];
+  projects?: Project[];
+  /** Org OWNER/ADMIN/MANAGER only — everyone else sees the leaderboard but
+   *  can't drill into another member's full project list. */
+  canViewProjects?: boolean;
 }
 
-export function UserLeaderboard({ tasks, users }: UserLeaderboardProps) {
+export function UserLeaderboard({ tasks, users, projects = [], canViewProjects = false }: UserLeaderboardProps) {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   // Calculate completed tasks per user
   const userPerformance = users.map(user => {
     const completedCount = tasks.filter(task => 
@@ -52,9 +59,14 @@ export function UserLeaderboard({ tasks, users }: UserLeaderboardProps) {
       </div>
       <div className="flex flex-nowrap overflow-x-auto gap-3 pb-2 scrollbar-hide">
         {userPerformance.map((user, i) => (
-          <div 
-            key={user.id} 
-            className={`flex items-center gap-3 px-3 py-2 lg:px-6 lg:py-4 rounded-xl lg:rounded-2xl border transition-all duration-300 hover:bg-foreground/[0.05] hover:border-foreground/10 group flex-shrink-0 min-w-[140px] lg:min-w-0 ${getAwardBg(i)}`}
+          <div
+            key={user.id}
+            role={canViewProjects ? 'button' : undefined}
+            tabIndex={canViewProjects ? 0 : undefined}
+            onClick={canViewProjects ? () => setSelectedUser(user) : undefined}
+            onKeyDown={canViewProjects ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedUser(user); } } : undefined}
+            title={canViewProjects ? `View ${user.fullName || user.email}'s projects` : undefined}
+            className={`flex items-center gap-3 px-3 py-2 lg:px-6 lg:py-4 rounded-xl lg:rounded-2xl border transition-all duration-300 hover:bg-foreground/[0.05] hover:border-foreground/10 group flex-shrink-0 min-w-[140px] lg:min-w-0 ${canViewProjects ? 'cursor-pointer' : ''} ${getAwardBg(i)}`}
           >
             <div className="relative">
               {user.avatarUrl ? (
@@ -83,6 +95,15 @@ export function UserLeaderboard({ tasks, users }: UserLeaderboardProps) {
           </div>
         ))}
       </div>
+
+      {selectedUser && (
+        <UserProjectsModal
+          user={selectedUser}
+          projects={projects}
+          tasks={tasks}
+          onClose={() => setSelectedUser(null)}
+        />
+      )}
     </div>
   );
 }

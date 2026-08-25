@@ -21,6 +21,7 @@ import {
   FiClipboard,
   FiMaximize2,
   FiMinimize2,
+  FiFolder,
 } from "react-icons/fi";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -43,6 +44,7 @@ import {
   updateOptimisticTask,
 } from "@/lib/optimistic-utils";
 import { canManageTask } from "@/lib/task-auth";
+import { canReadAll } from "@/lib/org-permissions";
 
 type ViewMode = "table" | "kanban";
 
@@ -146,6 +148,7 @@ export default function TasksPageClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [sortByProject, setSortByProject] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
   // Background data
@@ -160,6 +163,14 @@ export default function TasksPageClient({
 
   const canManage = useMemo(
     () => canManageTask(currentUserRoles, orgRole),
+    [currentUserRoles, orgRole],
+  );
+
+  // Org OWNER/ADMIN/MANAGER tier — the project sort control and the
+  // leaderboard's "view their projects" drill-in are both reserved for
+  // people who already see the whole org's work, not just their own.
+  const canUseAdminFilters = useMemo(
+    () => canReadAll({ roles: currentUserRoles, orgRole }),
     [currentUserRoles, orgRole],
   );
 
@@ -218,6 +229,12 @@ export default function TasksPageClient({
     return Array.from(map.values());
   }, [realtimeCreatedTasks, optimisticTasks]);
 
+  const projectNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    projects.forEach((p) => map.set(p.id, p.name));
+    return map;
+  }, [projects]);
+
   // Filtered tasks for visual grouping and search
   const filteredTasks = useMemo(() => {
     const tasks = mergedTasks.filter((task) => {
@@ -271,6 +288,20 @@ export default function TasksPageClient({
       low: 3,
     };
     const sorted = [...filtered].sort((a, b) => {
+      // When grouping by project, that takes priority over the usual
+      // status/priority ordering; tasks with no project sort to the end.
+      if (sortByProject) {
+        const hasA = a.projectId != null;
+        const hasB = b.projectId != null;
+        if (hasA !== hasB) return hasA ? -1 : 1;
+        if (hasA && hasB) {
+          const nameA = projectNameById.get(a.projectId as number) || "";
+          const nameB = projectNameById.get(b.projectId as number) || "";
+          const cmp = nameA.localeCompare(nameB);
+          if (cmp !== 0) return cmp;
+        }
+      }
+
       const sA = statusOrder[a.status] || 99;
       const sB = statusOrder[b.status] || 99;
       if (sA !== sB) return sA - sB;
@@ -298,6 +329,8 @@ export default function TasksPageClient({
     currentUserId,
     viewMode,
     tableTab,
+    sortByProject,
+    projectNameById,
   ]);
 
   useEffect(() => {
@@ -813,7 +846,12 @@ export default function TasksPageClient({
 
       <TaskSummarySection tasks={optimisticTasks} />
 
-      <UserLeaderboard tasks={optimisticTasks} users={users} />
+      <UserLeaderboard
+        tasks={optimisticTasks}
+        users={users}
+        projects={projects}
+        canViewProjects={canUseAdminFilters}
+      />
 
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 lg:mb-10">
         <div className="flex items-center gap-2 w-full overflow-x-auto pb-2 scrollbar-hide">
@@ -877,6 +915,22 @@ export default function TasksPageClient({
               </select>
             </div>
           </div>
+
+          {canUseAdminFilters && (
+            <div className="relative group flex-shrink-0">
+              <div className="h-9 lg:h-11 w-9 lg:w-40 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:border-card-border transition-all">
+                <FiFolder className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
+                <select
+                  value={sortByProject ? "project" : ""}
+                  onChange={(e) => setSortByProject(e.target.value === "project")}
+                  className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+                >
+                  <option value="" className="bg-card">Default order</option>
+                  <option value="project" className="bg-card">Sort by project</option>
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* My Tasks Toggle */}
           <button

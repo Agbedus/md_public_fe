@@ -7,14 +7,15 @@ import { useRouter, usePathname } from 'next/navigation';
 import ChatBubble from './ChatBubble';
 import PipMascot from './pip-mascot';
 import { useOrgPath } from '@/hooks/use-org-slug';
+import { usePipMemory } from '@/hooks/use-pip-memory';
+import { useDashboard } from '@/components/ui/dashboard-layout';
 
 interface Message {
-  id?: number;
+  id?: number | string;
   text: string;
   isUser: boolean;
 }
 
-const STORAGE_KEY = 'md_assistant_chat_messages';
 const PIP_VARIANTS = ['classic', 'smart', 'sleepy', 'cool', 'shocked', 'spicy', 'lovely', 'cyber'] as const;
 
 const GREETINGS = [
@@ -27,6 +28,9 @@ const GREETINGS = [
 export default function AssistantOrb() {
   const [isFocused, setIsFocused] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const { userKey } = useDashboard();
+  const { messages: memory, remember, toApiHistory } = usePipMemory(userKey);
+  const [hasHydratedMemory, setHasHydratedMemory] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [input, setInput] = useState('');
@@ -50,6 +54,19 @@ export default function AssistantOrb() {
   // Route is org-scoped (`/[orgSlug]/assistant`), so match on the last path
   // segment rather than the full pathname.
   const isOnAssistantPage = pathname?.split('/').filter(Boolean).pop() === 'assistant';
+
+  // One-time hydration from Pip's shared local memory (see use-pip-memory) —
+  // picks the conversation back up (within its 6-hour window) instead of
+  // starting blank every time the orb mounts. Guarded so it never clobbers
+  // messages the user has already sent in this session.
+  useEffect(() => {
+    if (hasHydratedMemory || memory.length === 0) return;
+    const frame = window.requestAnimationFrame(() => {
+      setMessages(memory);
+      setHasHydratedMemory(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [memory, hasHydratedMemory]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -146,8 +163,10 @@ export default function AssistantOrb() {
   }, []);
 
   const handleSendMessage = useCallback(async (text: string) => {
+    const history = toApiHistory();
     const userMsg: Message = { text, isUser: true, id: Date.now() };
     setMessages(prev => [...prev, userMsg]);
+    remember(userMsg);
     setIsLoading(true);
     setHasError(false);
 
@@ -161,7 +180,7 @@ export default function AssistantOrb() {
       const response = await fetch('/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, history }),
         signal: controller.signal,
       });
 
@@ -191,6 +210,9 @@ export default function AssistantOrb() {
           prev.map(msg => (msg.id === aiMsgId ? { ...msg, text: accumulated } : msg))
         );
       }
+      if (!controller.signal.aborted && accumulated.trim()) {
+        remember({ id: aiMsgId, text: accumulated, isUser: false });
+      }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') return;
       const errString = error instanceof Error ? error.message : 'Unknown error';
@@ -204,7 +226,7 @@ export default function AssistantOrb() {
       setIsLoading(false);
       abortRef.current = null;
     }
-  }, []);
+  }, [remember, toApiHistory]);
 
   const handleSend = () => {
     const text = input.trim();
@@ -221,9 +243,8 @@ export default function AssistantOrb() {
   };
 
   const handleOpenFullPage = () => {
-    if (messages.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    }
+    // No handoff needed — the full page hydrates from the same shared
+    // Pip memory (use-pip-memory) this component already writes to.
     router.push(orgPath('/assistant'));
   };
 
