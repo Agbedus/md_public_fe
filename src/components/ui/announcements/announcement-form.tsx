@@ -14,7 +14,6 @@ export const AnnouncementForm = () => {
   const [type, setType] = useState<AnnouncementType>('info');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   if (!isAdminFormOpen) return null;
 
@@ -24,22 +23,22 @@ export const AnnouncementForm = () => {
 
     setLoading(true);
     setError(null);
-    setSuccess(false);
 
     try {
+      // `createAnnouncement` already raises a toast for both outcomes, so the
+      // modal just closes on success and lets that be the confirmation. The
+      // inline banner below is kept for failures only, where the form stays
+      // open and the message belongs next to the fields that caused it.
       const res = await createAnnouncement({ title, content, type, is_active: true });
       if (res.success) {
-        setSuccess(true);
         setTitle('');
         setContent('');
-        setTimeout(() => {
-          setIsAdminFormOpen(false);
-          setSuccess(false);
-        }, 1500);
+        setType('info');
+        setIsAdminFormOpen(false);
       } else {
         setError(res.error || 'Failed to create announcement');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -89,7 +88,7 @@ export const AnnouncementForm = () => {
                   placeholder="What's the big news?"
                   className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-emerald-500/30 transition-all font-bold"
                   required
-                  disabled={loading || success}
+                  disabled={loading}
                 />
               </div>
 
@@ -103,7 +102,7 @@ export const AnnouncementForm = () => {
                   placeholder="Keep it concise and clear..."
                   className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-emerald-500/30 transition-all min-h-[120px] font-bold resize-none"
                   required
-                  disabled={loading || success}
+                  disabled={loading}
                 />
               </div>
 
@@ -141,28 +140,16 @@ export const AnnouncementForm = () => {
                 </div>
               )}
 
-              {success && (
-                <div className="flex items-center gap-3 text-xs text-emerald-400 bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/10 animate-in fade-in zoom-in-95 duration-200">
-                  <FiAlertCircle size={16} className="flex-shrink-0" />
-                  <span>Announcement posted</span>
-                </div>
-              )}
-
               <div className="flex justify-end pt-4">
                 <button
                   type="submit"
-                  disabled={loading || success || !title.trim() || !content.trim()}
+                  disabled={loading || !title.trim() || !content.trim()}
                   className="px-8 py-3 bg-yellow-400 hover:bg-yellow-300 text-black text-xs font-bold rounded-2xl transition-all  hover:-[var(--pastel-yellow)]/20 disabled:opacity-50 disabled:hover: flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
                 >
                   {loading ? (
                     <>
                       <FiLoader className="animate-spin" size={16} />
                       Broadcasting...
-                    </>
-                  ) : success ? (
-                    <>
-                      <HiSpeakerphone size={16} />
-                      Dispatched
                     </>
                   ) : (
                     <>

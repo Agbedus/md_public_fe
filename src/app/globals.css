@@ -402,6 +402,53 @@ body {
   animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* Enter animations (`animate-in fade-in zoom-in-95 …`).
+
+   These class names come from the `tailwindcss-animate` plugin, which this
+   project does not install — so every one of them emitted *nothing* and the
+   popovers had no entrance at all. Worse, the `duration-*` utility they were
+   paired with sets `transition-duration` **without** a `transition-property`,
+   and CSS defaults that to `all`. Portal-positioned menus mount at 0,0 and
+   are then moved by `useAdaptiveDropdown`, so `all` meant `top`/`left` were
+   transitioned too and the panel visibly flew in from the top-left corner.
+   (Reopening looked fine only because the previous coordinates were still in
+   state, leaving nothing to animate.)
+
+   Defining them here restores the intended motion and, by naming an explicit
+   `transition-property` that omits layout properties, stops a stray
+   `duration-*` from ever animating an element into place again. */
+
+@keyframes enter {
+  from {
+    opacity: var(--enter-opacity, 1);
+    transform:
+      translate3d(var(--enter-translate-x, 0), var(--enter-translate-y, 0), 0)
+      scale(var(--enter-scale, 1));
+  }
+}
+
+.animate-in {
+  --enter-opacity: 1;
+  --enter-scale: 1;
+  --enter-translate-x: 0;
+  --enter-translate-y: 0;
+  animation: enter var(--tw-duration, 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Tailwind's default transition list, minus anything that affects layout. */
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke,
+    opacity, box-shadow, transform, filter, backdrop-filter;
+}
+
+.fade-in { --enter-opacity: 0; }
+.zoom-in-95 { --enter-scale: 0.95; }
+
+.slide-in-from-top-2 { --enter-translate-y: -0.5rem; }
+.slide-in-from-top-4 { --enter-translate-y: -1rem; }
+.slide-in-from-bottom-2 { --enter-translate-y: 0.5rem; }
+.slide-in-from-bottom-4 { --enter-translate-y: 1rem; }
+.slide-in-from-right-4 { --enter-translate-x: 1rem; }
+.slide-in-from-right { --enter-translate-x: 100%; }
+
 @media (prefers-reduced-motion: reduce) {
   .hover-scale,
   .hover-lift,
@@ -409,7 +456,8 @@ body {
     transition: none;
     transform: none;
   }
-  .animate-pop-in {
+  .animate-pop-in,
+  .animate-in {
     animation: none;
   }
 }
