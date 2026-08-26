@@ -351,8 +351,13 @@ export const NotificationProvider: React.FC<{
           console.warn('Notification WebSocket authentication was rejected. Reconnect will wait for a refreshed session.');
           return;
         }
-        // Reconnect logic
-        const timeout = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
+        // Reconnect logic. The backoff is jittered because every client that
+        // drops at the same moment — a restart, or the server shedding load —
+        // otherwise retries on an identical doubling schedule and arrives back
+        // as a synchronised wave, which is what turns a brief outage into a
+        // sustained reconnect storm.
+        const ceiling = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
+        const timeout = ceiling / 2 + Math.random() * (ceiling / 2);
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectAttemptsRef.current += 1;
           connect();
