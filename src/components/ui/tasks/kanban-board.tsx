@@ -40,51 +40,51 @@ interface ColumnProps {
   highlightedIds: Record<string, boolean>;
   flash: boolean;
   canManage?: boolean;
+  isLast?: boolean;
 }
 
-function Column({ col, items, users, user, projects, columns, onMove, onDelete, highlightedIds, flash, canManage }: ColumnProps) {
+function Column({ col, items, users, user, projects, columns, onMove, onDelete, highlightedIds, flash, canManage, isLast }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: col });
+
+  // Columns butt directly against each other and are told apart by a hairline
+  // rule, so the drop targets are contiguous — there is no dead gutter between
+  // them for a dragged card to be released into.
   return (
     <div
       ref={setNodeRef}
       id={String(col)}
       data-column={col}
-      className={`glass rounded-2xl p-4 flex flex-col transition-all duration-300 ${
-        isOver
-          ? 'bg-foreground/[0.06] ring-2 ring-indigo-500/50 -[0_0_30px_rgba(99,102,241,0.1)]'
-          : 'bg-foreground/[0.03]'
-      } ${flash ? 'ring-2 ring-emerald-500/50 bg-emerald-500/10' : ''}`}
+      className={`flex w-[320px] shrink-0 flex-col transition-colors duration-200 ${
+        isLast ? '' : 'border-r border-border-subtle'
+      } ${isOver ? 'bg-foreground/[0.04]' : flash ? 'bg-emerald-500/[0.06]' : ''}`}
     >
-      <div className="flex items-center justify-between mb-6 px-1">
-        <div className="flex items-center gap-3">
-          <div className={`w-2.5 h-2.5 rounded-full  ${
-            col === 'DONE' ? 'bg-[var(--pastel-emerald)] -[0_0_10px_rgba(16,185,129,0.3)]' : 
-            col === 'IN_PROGRESS' ? 'bg-[var(--pastel-blue)] -[0_0_10px_rgba(59,130,246,0.3)]' : 
-            col === 'QA' ? 'bg-purple-500 -[0_0_10px_rgba(168,85,247,0.3)]' :
-            col === 'REVIEW' ? 'bg-blue-500 -[0_0_10px_rgba(59,130,246,0.3)]' :
-            'bg-zinc-500'
+      <div className="flex items-center justify-between border-b border-border-subtle px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <span className={`h-2 w-2 rounded-full ${
+            col === 'DONE' ? 'bg-[var(--pastel-emerald)]' :
+            col === 'IN_PROGRESS' ? 'bg-[var(--pastel-blue)]' :
+            col === 'QA' ? 'bg-[var(--pastel-purple)]' :
+            col === 'REVIEW' ? 'bg-[var(--pastel-indigo)]' :
+            'bg-text-muted'
           }`} />
-          <h3 className="text-[11px] font-medium text-foreground/50 uppercase tracking-wider">
+          <h3 className="text-[10px] font-medium uppercase tracking-widest text-text-muted">
             {statusMapping[col]}
           </h3>
-          {flash && (
-            <span className="inline-flex items-center text-emerald-400 text-[11px] animate-pulse font-bold uppercase tracking-tight bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-              Updated
-            </span>
-          )}
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-medium text-text-muted bg-foreground/[0.03] px-2 py-1 rounded-lg border border-foreground/5 min-w-[28px] text-center">
-            {items?.length ?? 0}
-          </span>
-        </div>
+        <span className="text-[11px] font-medium tabular-nums text-text-muted">
+          {items?.length ?? 0}
+        </span>
       </div>
+
       <SortableContext items={(items ?? []).map((t) => String(t.id))} strategy={verticalListSortingStrategy}>
-        <div className="flex-1 space-y-3 min-h-[150px]">
+        {/* flex-1 so the droppable area fills the column even when it is empty */}
+        <div className="flex flex-1 flex-col gap-2 p-3">
           {(items ?? []).map((task) => (
             <div
               key={task.id}
-              className={`rounded-xl transition-all duration-300 ${highlightedIds[String(task.id)] ? 'ring-2 ring-emerald-500 -[0_0_20px_rgba(16,185,129,0.2)]' : ''}`}
+              className={`rounded-xl transition-colors duration-200 ${
+                highlightedIds[String(task.id)] ? 'ring-2 ring-emerald-500/60' : ''
+              }`}
             >
               <KanbanCard
                 task={task}
@@ -98,14 +98,18 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
               />
             </div>
           ))}
+
           {isOver && (
-            <div className="rounded-xl border-2 border-dashed border-indigo-500/30 bg-indigo-500/10 h-24 flex items-center justify-center animate-pulse">
-              <span className="text-xs font-medium uppercase tracking-wider text-indigo-400">Drop here</span>
+            <div className="flex h-20 items-center justify-center rounded-xl border border-dashed border-foreground/20 bg-foreground/[0.02]">
+              <span className="text-[10px] font-medium uppercase tracking-widest text-text-muted">
+                Drop here
+              </span>
             </div>
           )}
+
           {(items ?? []).length === 0 && !isOver && (
-            <div className="h-24 rounded-xl border-2 border-dashed border-foreground/5 flex items-center justify-center">
-              <span className="text-xs text-text-muted italic">No tasks</span>
+            <div className="flex h-20 items-center justify-center rounded-xl border border-dashed border-border-subtle">
+              <span className="text-xs text-text-muted">No tasks</span>
             </div>
           )}
         </div>
@@ -233,11 +237,14 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
 
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-      <div className="overflow-x-auto pb-4">
-        <div className="flex gap-4 min-w-max">
-          {columns.map((col) => (
-            <div key={col} className="w-[400px] flex-shrink-0">
+      {/* One continuous surface. The rounded border belongs to the board, not to
+          each column, so the columns read as divisions of a single board. */}
+      <div className="overflow-hidden rounded-2xl border border-card-border bg-card">
+        <div className="overflow-x-auto">
+          <div className="flex min-w-max items-stretch">
+            {columns.map((col, index) => (
               <Column
+                key={col}
                 col={col}
                 items={grouped[col] ?? []}
                 users={users}
@@ -249,9 +256,10 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
                 highlightedIds={highlightedIds}
                 flash={flashCol === col}
                 canManage={canManage}
+                isLast={index === columns.length - 1}
               />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </DndContext>
