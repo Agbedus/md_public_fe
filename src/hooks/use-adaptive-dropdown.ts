@@ -4,7 +4,7 @@ import { useCallback, useLayoutEffect, useState } from 'react';
 import type { CSSProperties, RefObject } from 'react';
 
 type DropdownSide = 'top' | 'bottom';
-type DropdownAlign = 'start' | 'end';
+type DropdownAlign = 'start' | 'end' | 'center';
 
 interface AdaptiveDropdownOptions {
   isOpen: boolean;
@@ -90,9 +90,16 @@ export function useAdaptiveDropdown({
     );
 
     let align = preferredAlign;
-    let left = preferredAlign === 'start'
-      ? anchorRect.left
-      : anchorRect.right - naturalWidth;
+    let left: number;
+    if (preferredAlign === 'start') {
+      left = anchorRect.left;
+    } else if (preferredAlign === 'end') {
+      left = anchorRect.right - naturalWidth;
+    } else {
+      // Centred on the anchor. There is no edge-reversal for this case —
+      // the viewport clamp below is what keeps it on screen.
+      left = anchorRect.left + anchorRect.width / 2 - naturalWidth / 2;
+    }
     const crossesRightEdge = left + naturalWidth > viewportRight - viewportPadding;
     const crossesLeftEdge = left < viewportLeft + viewportPadding;
 
