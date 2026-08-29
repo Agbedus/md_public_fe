@@ -4,7 +4,12 @@ const configuredSiteUrl =
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : undefined) ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
-  'https://mynddesk.com';
+  // The production host. Every canonical, Open Graph URL and structured-data
+  // @id is derived from this, so the fallback has to be a domain that actually
+  // resolves — it previously pointed at an unregistered one, which would have
+  // had the whole site advertising a dead host had the env var ever gone
+  // missing.
+  'https://md.agbedus.com';
 
 export const siteUrl = configuredSiteUrl.replace(/\/$/, '');
 
