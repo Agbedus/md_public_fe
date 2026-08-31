@@ -15,7 +15,12 @@ const AttendanceMapInternals = dynamic(
   }
 );
 
-export function AttendanceMap({ officeLocations }: { officeLocations?: OfficeLocation[] }) {
+interface AttendanceMapProps {
+  officeLocations?: OfficeLocation[];
+  cartoApiLink?: string;
+}
+
+export function AttendanceMap({ officeLocations, cartoApiLink }: AttendanceMapProps) {
   const { location, officeLocation } = useLocation();
 
   const activeOffice = useMemo(() => {
@@ -45,6 +50,7 @@ export function AttendanceMap({ officeLocations }: { officeLocations?: OfficeLoc
         inOfficeRadius={activeOffice?.in_office_radius_meters || 0}
         tempOutRadius={activeOffice?.temporarily_out_radius_meters || 0}
         userName="Active Session"
+        cartoApiLink={cartoApiLink}
       />
     </div>
   );

@@ -26,6 +26,7 @@ export interface AttendancePageClientProps {
     /** Platform SUPER_ADMIN — the raw-record endpoints are not org-scoped. */
     canReadRawRecords?: boolean;
     currentUserId: string;
+    cartoApiLink?: string;
 }
 
 type TabId = 'my' | 'team' | 'admin';
@@ -41,6 +42,7 @@ export default function AttendancePageClient({
     isAdmin,
     canReadRawRecords = false,
     currentUserId,
+    cartoApiLink,
 }: AttendancePageClientProps) {
     const [activeTab, setActiveTab] = useState<TabId>('my');
     const orgSlug = useOrgSlug();
@@ -110,7 +112,7 @@ export default function AttendancePageClient({
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             <AttendanceStatusCard record={myToday} />
                             <div className="h-full min-h-[400px] glass rounded-2xl border border-card-border overflow-hidden relative" style={{ isolation: 'isolate' }}>
-                                <AttendanceMap officeLocations={officeLocations} />
+                                <AttendanceMap officeLocations={officeLocations} cartoApiLink={cartoApiLink} />
                             </div>
                         </div>
                         <AttendanceHistoryTable records={liveMyHistory || []} />

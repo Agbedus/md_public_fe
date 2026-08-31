@@ -124,6 +124,22 @@ interface MapInternalsProps {
   inOfficeRadius: number;
   tempOutRadius: number;
   userName: string;
+  cartoApiLink?: string;
+}
+
+const CARTO_STYLE_PATH = /\/(rastertiles\/)?(?:voyager|positron|dark-matter|light_all|dark_all)\//;
+
+function getCartoTileUrl(cartoApiLink: string | undefined, isDarkMode: boolean) {
+    const style = isDarkMode ? 'dark_all' : 'light_all';
+    const fallback = `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`;
+
+    if (!cartoApiLink) return fallback;
+    if (!CARTO_STYLE_PATH.test(cartoApiLink)) return cartoApiLink;
+
+    return cartoApiLink.replace(
+        CARTO_STYLE_PATH,
+        (match, rasterPrefix: string | undefined) => `/${rasterPrefix || ''}${style}/`,
+    );
 }
 
 // Component to handle map centering when coordinates change
@@ -138,13 +154,18 @@ function RecenterMap({ center }: { center: [number, number] }) {
     return null;
 }
 
-export function AttendanceMapInternals({ center, officeLocation, inOfficeRadius, tempOutRadius, userName }: MapInternalsProps) {
+export function AttendanceMapInternals({
+    center,
+    officeLocation,
+    inOfficeRadius,
+    tempOutRadius,
+    userName,
+    cartoApiLink,
+}: MapInternalsProps) {
     const { resolvedTheme } = useTheme();
     const { location, presenceState, isTracking } = useLocation();
 
-    const tileUrl = resolvedTheme === 'dark' 
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    const tileUrl = getCartoTileUrl(cartoApiLink, resolvedTheme === 'dark');
 
     const currentDistance = location ? getDistanceInMeters(
         location.latitude, 

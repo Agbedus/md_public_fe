@@ -15,6 +15,8 @@ export default async function AttendancePage() {
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
 
+    const cartoApiLink = process.env.CARTO_API_LINK?.trim();
+
     const subject = { roles: session.user.roles, orgRole: session.user.orgRole };
 
     // Seeing the team's presence is a visibility concern, so it sits at the
@@ -57,6 +59,7 @@ export default async function AttendancePage() {
                 isAdmin={isAdmin}
                 canReadRawRecords={canReadRawRecords}
                 currentUserId={session.user.id}
+                cartoApiLink={cartoApiLink}
             />
         </div>
     );
