@@ -5,6 +5,7 @@ import { z } from "zod";
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
 const API_BASE_URL = `${BASE_URL}/api/v1`;
+const SIGN_IN_TIMEOUT_MS = 15_000;
 
 export const { auth, signIn, signOut, unstable_update: updateSession, handlers: { GET, POST } } = NextAuth({
   ...authConfig,
@@ -29,12 +30,12 @@ export const { auth, signIn, signOut, unstable_update: updateSession, handlers: 
             const formData = new FormData();
             formData.append('username', email);
             formData.append('password', password);
+            const signal = AbortSignal.timeout(SIGN_IN_TIMEOUT_MS);
 
             const res = await fetch(`${API_BASE_URL}/auth/login`, {
               method: 'POST',
               body: formData,
-              // Set a reasonable timeout if your fetch implementation supports it, 
-              // or just rely on the logging to identify slowness.
+              signal,
             });
 
             if (!res.ok) {
@@ -49,7 +50,8 @@ export const { auth, signIn, signOut, unstable_update: updateSession, handlers: 
             const userRes = await fetch(`${API_BASE_URL}/users/me`, {
                 headers: {
                     'Authorization': `Bearer ${data.access_token}`
-                }
+                },
+                signal,
             });
 
             if (userRes.ok) {
@@ -83,7 +85,8 @@ export const { auth, signIn, signOut, unstable_update: updateSession, handlers: 
                 if (!currentOrgId && data.access_token) {
                   try {
                     const orgRes = await fetch(`${API_BASE_URL}/organizations`, {
-                      headers: { 'Authorization': `Bearer ${data.access_token}` }
+                      headers: { 'Authorization': `Bearer ${data.access_token}` },
+                      signal,
                     });
                     if (orgRes.ok) {
                       const orgData = await orgRes.json();
@@ -121,7 +124,11 @@ export const { auth, signIn, signOut, unstable_update: updateSession, handlers: 
             console.error(`Failed to fetch user profile for ${email}:`, profileError);
             return null;
           } catch (error) {
-            console.error("Authentication exception:", error);
+            if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+              console.warn('Authentication API timed out');
+            } else {
+              console.error('Authentication exception:', error);
+            }
             return null;
           }
         }

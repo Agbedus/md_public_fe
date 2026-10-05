@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
 const API_BASE_URL = `${BASE_URL}/api/v1`;
+const SIGN_IN_TIMEOUT_MS = 15_000;
 
 function safeRedirectPath(value: FormDataEntryValue | null): string {
   if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return '/dashboard';
@@ -63,6 +64,7 @@ export async function authenticateWithDetail(
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ username: email, password }),
+      signal: AbortSignal.timeout(SIGN_IN_TIMEOUT_MS),
     });
 
     if (!checkRes.ok) {
@@ -97,6 +99,7 @@ export async function authenticateWithDetail(
           method: 'POST',
           headers: { Authorization: `Bearer ${accessToken}` },
           cache: 'no-store',
+          signal: AbortSignal.timeout(SIGN_IN_TIMEOUT_MS),
         },
       );
       const acceptanceBody = await acceptance.json().catch(() => ({}));
@@ -120,8 +123,11 @@ export async function authenticateWithDetail(
     // the sign-in first, then redirect explicitly after the try/catch below.
     await signIn('credentials', { email, password, redirect: false });
   } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      return { error: 'Sign-in is taking too long. Please try again.', needsVerification: false };
+    }
     if (error instanceof AuthError) {
-      return { error: 'Invalid credentials.', needsVerification: false };
+      return { error: 'Sign-in could not finish. Please try again.', needsVerification: false };
     }
 
     console.error("Unhandled authenticate error:", error);
@@ -309,26 +315,6 @@ export async function resendOtp(email: string) {
     } catch (error) {
         console.error("Resend OTP error:", error);
         return { success: false, error: "Network error" };
-    }
-}
-
-/**
- * Live "does this account exist" check for the forgot-password form, so a
- * mistyped email is caught before a reset request is submitted. This is a
- * deliberate, narrow exception — requestPasswordReset() below stays
- * generic-response by design (an enumeration protection), and this is the
- * one place that trade-off was explicitly asked for instead.
- */
-export async function checkEmailExists(email: string): Promise<boolean | null> {
-    try {
-        const res = await fetch(`${API_BASE_URL}/auth/check-email?email=${encodeURIComponent(email)}`, {
-            method: 'GET',
-        });
-        if (!res.ok) return null;
-        const data = await res.json();
-        return Boolean(data.exists);
-    } catch {
-        return null;
     }
 }
 

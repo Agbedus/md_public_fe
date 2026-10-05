@@ -47,9 +47,7 @@ export default function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token') || '';
 
-  const [resolving, setResolving] = useState(true);
-  const [email, setEmail] = useState<string | null>(null);
-  const [resolveError, setResolveError] = useState<string | null>(null);
+  const [tokenInfo, setTokenInfo] = useState<({ token: string } & ({ email: string } | { error: string })) | null>(null);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -60,20 +58,11 @@ export default function ResetPasswordForm() {
   const inputBase = 'block w-full pl-12 pr-10 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] border-card-border';
 
   useEffect(() => {
-    if (!token) {
-      setResolving(false);
-      return;
-    }
+    if (!token) return;
     let cancelled = false;
-    setResolving(true);
     getResetTokenInfo(token).then((result) => {
       if (cancelled) return;
-      if ('error' in result) {
-        setResolveError(result.error);
-      } else {
-        setEmail(result.email);
-      }
-      setResolving(false);
+      setTokenInfo({ token, ...result });
     });
     return () => {
       cancelled = true;
@@ -84,7 +73,7 @@ export default function ResetPasswordForm() {
     return <InvalidLinkState message="This link is missing its reset token. Request a new one to continue." />;
   }
 
-  if (resolving) {
+  if (!tokenInfo || tokenInfo.token !== token) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-text-muted">
         <FiLoader className="h-6 w-6 animate-spin" />
@@ -93,9 +82,11 @@ export default function ResetPasswordForm() {
     );
   }
 
-  if (resolveError || !email) {
-    return <InvalidLinkState message={resolveError || 'This reset link is invalid or has expired. Request a new one to continue.'} />;
+  if ('error' in tokenInfo) {
+    return <InvalidLinkState message={tokenInfo.error} />;
   }
+
+  const email = tokenInfo.email;
 
   if (succeeded) {
     return (
