@@ -11,6 +11,7 @@ import { Portal } from "@/components/ui/portal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsClient } from '@/hooks/use-is-client';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
+import { NoteUpdatedTime } from './note-updated-time';
 
 import type { ActionResult } from '@/types/api';
 
@@ -220,9 +221,9 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                 <FiLayers className="text-purple-400 flex-shrink-0" size={16} title="Associated with a task" />
                             )}
                         </div>
-                        <div className="flex items-center gap-1.5 text-[11px] text-text-muted font-bold tracking-tight uppercase">
+                        <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
                             <FiClock className="w-3 h-3" />
-                            <span suppressHydrationWarning>{note.updated_at ? new Date(note.updated_at).toLocaleDateString() : note.created_at ? new Date(note.created_at).toLocaleDateString() : 'No date'}</span>
+                            <NoteUpdatedTime value={note.updated_at || note.created_at} />
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

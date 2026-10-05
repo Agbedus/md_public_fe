@@ -1,78 +1,130 @@
-import { Extension } from '@tiptap/core';
-import Suggestion from '@tiptap/suggestion';
-import { ReactRenderer } from '@tiptap/react';
-import tippy, { Instance as TippyInstance } from 'tippy.js';
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
-import { FiType, FiList, FiCheckSquare, FiCode, FiMinus, FiMessageSquare } from 'react-icons/fi';
+import { Extension, type Editor, type Range } from "@tiptap/core";
+import Suggestion, {
+  exitSuggestion,
+  type SuggestionProps,
+  type SuggestionKeyDownProps,
+} from "@tiptap/suggestion";
+import { ReactRenderer } from "@tiptap/react";
+import tippy, { Instance as TippyInstance } from "tippy.js";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import {
+  FiType,
+  FiList,
+  FiCheckSquare,
+  FiCode,
+  FiMinus,
+  FiMessageSquare,
+} from "react-icons/fi";
 
 export interface CommandItemProps {
   title: string;
   description: string;
   icon: React.ReactNode;
-  command: (props: { editor: any; range: any }) => void;
+  command: (props: { editor: Editor; range: Range }) => void;
 }
 
-export const getSuggestionItems = ({ query }: { query: string }): CommandItemProps[] => {
+export const getSuggestionItems = ({
+  query,
+}: {
+  query: string;
+}): CommandItemProps[] => {
   const items: CommandItemProps[] = [
     {
-      title: 'Heading 1',
-      description: 'Big section heading.',
+      title: "Body",
+      description: "Return to ordinary body text.",
+      icon: <FiType size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setParagraph().run();
+      },
+    },
+    {
+      title: "Checklist",
+      description: "Create a list with checkboxes.",
+      icon: <FiCheckSquare size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleTaskList().run();
+      },
+    },
+    {
+      title: "Heading 1",
+      description: "Big section heading.",
       icon: <FiType size={18} className="text-[var(--pastel-indigo)]" />,
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run();
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setNode("heading", { level: 1 })
+          .run();
       },
     },
     {
-      title: 'Heading 2',
-      description: 'Medium section heading.',
+      title: "Heading 2",
+      description: "Medium section heading.",
       icon: <FiType size={18} className="text-[var(--pastel-blue)]" />,
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run();
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setNode("heading", { level: 2 })
+          .run();
       },
     },
     {
-      title: 'Heading 3',
-      description: 'Small section heading.',
+      title: "Heading 3",
+      description: "Small section heading.",
       icon: <FiType size={18} className="text-[var(--pastel-purple)]" />,
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setNode("heading", { level: 3 })
+          .run();
       },
     },
     {
-      title: 'Bullet List',
-      description: 'Create a simple bulleted list.',
+      title: "Bullet List",
+      description: "Create a simple bulleted list.",
       icon: <FiList size={18} className="text-[var(--pastel-emerald)]" />,
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleBulletList().run();
       },
     },
     {
-      title: 'Numbered List',
-      description: 'Create an ordered sequence.',
+      title: "Numbered List",
+      description: "Create an ordered sequence.",
       icon: <FiList size={18} className="text-[var(--pastel-amber)]" />,
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleOrderedList().run();
       },
     },
     {
-      title: 'Blockquote',
-      description: 'Insert an operational quotation.',
+      title: "Blockquote",
+      description: "Set a quote apart from the text.",
       icon: <FiMessageSquare size={18} className="text-[var(--pastel-rose)]" />,
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleBlockquote().run();
       },
     },
     {
-      title: 'Code Block',
-      description: 'Capture code or commands.',
-      icon: <FiCode size={18} className="text-[var(--pastel-teal)]" />,
+      title: "Code Block",
+      description: "Capture code or commands.",
+      icon: <FiCode size={18} className="text-text-muted" />,
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
       },
     },
     {
-      title: 'Divider',
-      description: 'Insert a horizontal line.',
+      title: "Divider",
+      description: "Insert a horizontal line.",
       icon: <FiMinus size={18} className="text-text-muted" />,
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).setHorizontalRule().run();
@@ -80,11 +132,27 @@ export const getSuggestionItems = ({ query }: { query: string }): CommandItemPro
     },
   ];
 
-  return items.filter(item => item.title.toLowerCase().startsWith(query.toLowerCase())).slice(0, 10);
+  return items
+    .filter((item) =>
+      item.title.toLowerCase().includes(query.trim().toLowerCase()),
+    )
+    .slice(0, 10);
 };
 
-export const CommandList = forwardRef((props: any, ref) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+interface CommandListHandle {
+  onKeyDown: (props: { event: KeyboardEvent }) => boolean;
+}
+
+export const CommandList = forwardRef<
+  CommandListHandle,
+  SuggestionProps<CommandItemProps>
+>((props, ref) => {
+  const [selection, setSelection] = useState({ query: props.query, index: 0 });
+  const selectedIndex =
+    selection.query === props.query
+      ? Math.min(selection.index, props.items.length - 1)
+      : 0;
+  const listRef = useRef<HTMLDivElement>(null);
 
   const selectItem = (index: number) => {
     const item = props.items[index];
@@ -94,11 +162,17 @@ export const CommandList = forwardRef((props: any, ref) => {
   };
 
   const upHandler = () => {
-    setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length);
+    setSelection({
+      query: props.query,
+      index: (selectedIndex + props.items.length - 1) % props.items.length,
+    });
   };
 
   const downHandler = () => {
-    setSelectedIndex((selectedIndex + 1) % props.items.length);
+    setSelection({
+      query: props.query,
+      index: (selectedIndex + 1) % props.items.length,
+    });
   };
 
   const enterHandler = () => {
@@ -106,20 +180,23 @@ export const CommandList = forwardRef((props: any, ref) => {
   };
 
   useEffect(() => {
-    setSelectedIndex(0);
-  }, [props.items]);
+    listRef.current
+      ?.querySelector('[aria-selected="true"]')
+      ?.scrollIntoView({ block: "nearest" });
+  }, [selectedIndex, props.query]);
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-      if (event.key === 'ArrowUp') {
+      if (props.items.length === 0) return false;
+      if (event.key === "ArrowUp") {
         upHandler();
         return true;
       }
-      if (event.key === 'ArrowDown') {
+      if (event.key === "ArrowDown") {
         downHandler();
         return true;
       }
-      if (event.key === 'Enter') {
+      if (event.key === "Enter") {
         enterHandler();
         return true;
       }
@@ -128,27 +205,40 @@ export const CommandList = forwardRef((props: any, ref) => {
   }));
 
   if (props.items.length === 0) {
-    return null;
+    return (
+      <div className="rounded-xl border border-card-border bg-card p-3 text-xs text-text-muted">
+        No matching command. Press Escape to keep typing.
+      </div>
+    );
   }
 
   return (
-    <div className="z-50 w-72 origin-top bg-background border border-card-border rounded-2xl shadow-2xl overflow-hidden p-1.5 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none">
+    <div
+      ref={listRef}
+      role="listbox"
+      aria-label="Note slash commands"
+      className="w-72 max-w-[calc(100vw-24px)] max-h-[min(320px,50dvh)] overflow-y-auto overscroll-contain bg-card border border-card-border rounded-xl shadow-lg p-1"
+    >
       {props.items.map((item: CommandItemProps, index: number) => (
         <button
+          type="button"
+          role="option"
+          aria-selected={index === selectedIndex}
+          onMouseDown={(event) => event.preventDefault()}
           className={`flex items-center gap-3 w-full px-3 py-2 text-left rounded-xl transition-all ${
-            index === selectedIndex 
-              ? 'bg-foreground/[0.07] text-foreground font-bold border border-card-border' 
-              : 'text-text-secondary hover:bg-foreground/[0.04] hover:text-foreground border border-transparent'
+            index === selectedIndex
+              ? "bg-foreground/[0.07] text-foreground border border-card-border"
+              : "text-text-secondary hover:bg-foreground/[0.04] hover:text-foreground border border-transparent"
           }`}
-          key={index}
+          key={item.title}
           onClick={() => selectItem(index)}
         >
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground/[0.03] border border-card-border flex-shrink-0">
             {item.icon}
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-tight">{item.title}</p>
-            <p className="text-[10px] text-text-muted uppercase tracking-wider">{item.description}</p>
+            <p className="text-xs font-medium">{item.title}</p>
+            <p className="text-[11px] text-text-muted">{item.description}</p>
           </div>
         </button>
       ))}
@@ -156,15 +246,24 @@ export const CommandList = forwardRef((props: any, ref) => {
   );
 });
 
-CommandList.displayName = 'CommandList';
+CommandList.displayName = "CommandList";
 
 export default Extension.create({
-  name: 'slashCommand',
+  name: "slashCommand",
   addOptions() {
     return {
       suggestion: {
-        char: '/',
-        command: ({ editor, range, props }: { editor: any; range: any; props: any }) => {
+        char: "/",
+        startOfLine: true,
+        command: ({
+          editor,
+          range,
+          props,
+        }: {
+          editor: Editor;
+          range: Range;
+          props: CommandItemProps;
+        }) => {
           props.command({ editor, range });
         },
       },
@@ -181,51 +280,69 @@ export default Extension.create({
 });
 
 export const renderItems = () => {
-  let component: ReactRenderer;
-  let popup: TippyInstance[];
+  let component: ReactRenderer<CommandListHandle> | undefined;
+  let popup: TippyInstance[] = [];
 
   return {
-    onStart: (props: any) => {
+    onStart: (props: SuggestionProps<CommandItemProps>) => {
       component = new ReactRenderer(CommandList, {
         props,
         editor: props.editor,
       });
 
-      if (!props.clientRect) {
+      const rect = props.clientRect?.();
+      if (!rect) {
         return;
       }
 
-      popup = tippy('body', {
-        getReferenceClientRect: props.clientRect,
+      popup = tippy("body", {
+        getReferenceClientRect: () => props.clientRect?.() || rect,
         appendTo: () => document.body,
         content: component.element,
         showOnCreate: true,
         interactive: true,
-        trigger: 'manual',
-        placement: 'bottom-start',
+        trigger: "manual",
+        placement: "bottom-start",
+        zIndex: 10000,
+        maxWidth: "calc(100vw - 24px)",
+        duration: 0,
+        arrow: false,
+        popperOptions: {
+          modifiers: [
+            {
+              name: "flip",
+              options: {
+                fallbackPlacements: ["top-start", "bottom-end", "top-end"],
+              },
+            },
+            { name: "preventOverflow", options: { padding: 12 } },
+          ],
+        },
       });
     },
-    onUpdate(props: any) {
-      component.updateProps(props);
+    onUpdate(props: SuggestionProps<CommandItemProps>) {
+      component?.updateProps(props);
 
-      if (!props.clientRect) {
+      const rect = props.clientRect?.();
+      if (!rect) {
         return;
       }
 
-      popup[0].setProps({
-        getReferenceClientRect: props.clientRect,
+      popup[0]?.setProps({
+        getReferenceClientRect: () => props.clientRect?.() || rect,
       });
     },
-    onKeyDown(props: any) {
-      if (props.event.key === 'Escape') {
-        popup[0].hide();
+    onKeyDown(props: SuggestionKeyDownProps) {
+      if (props.event.key === "Escape" || props.event.key === "Tab") {
+        exitSuggestion(props.view);
+        if (props.event.key === "Tab") return false;
         return true;
       }
-      return (component.ref as any)?.onKeyDown(props);
+      return component?.ref?.onKeyDown(props) || false;
     },
     onExit() {
-      popup[0].destroy();
-      component.destroy();
+      popup[0]?.destroy();
+      component?.destroy();
     },
   };
 };

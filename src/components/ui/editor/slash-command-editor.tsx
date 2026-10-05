@@ -1,108 +1,50 @@
-'use client';
+"use client";
 
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Placeholder from '@tiptap/extension-placeholder';
-import Paragraph from '@tiptap/extension-paragraph';
-import Heading from '@tiptap/extension-heading';
-import { Node, mergeAttributes } from '@tiptap/core';
-import Image from 'next/image';
-import SlashCommand, { getSuggestionItems, renderItems } from './slash-command';
-import { useEffect, useRef, useState } from 'react';
-import { Portal } from '@/components/ui/portal';
-import { toast } from '@/lib/toast';
-import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
-import { 
-  FiBold, FiItalic, FiTrash2, 
-  FiAlignLeft, FiAlignCenter, FiAlignRight, 
-  FiDroplet, FiRotateCcw, FiRotateCw, FiCode,
-  FiList, FiMessageSquare, FiMinus, FiCopy, FiClipboard
-} from 'react-icons/fi';
-
-// Preserve native note images when a note is opened and saved on the web.
-// Inline placement matches the mobile HTML contract without flattening its paragraphs.
-const NoteImage = Node.create({
-  name: 'noteImage',
-  inline: true,
-  group: 'inline',
-  atom: true,
-  draggable: true,
-  addAttributes() {
-    return { src: { default: null }, alt: { default: 'Note image' }, title: { default: null } };
-  },
-  parseHTML() {
-    return [{ tag: 'img[src]', getAttrs: element => {
-      const src = element.getAttribute('src') || '';
-      return /^(https:\/\/|data:image\/(jpeg|png);base64,)/i.test(src) ? {} : false;
-    } }];
-  },
-  renderHTML({ HTMLAttributes }) {
-    if (!/^(https:\/\/|data:image\/(jpeg|png);base64,)/i.test(String(HTMLAttributes.src || ''))) {
-      return ['span', {}, 'Image unavailable'];
-    }
-    return ['img', mergeAttributes(HTMLAttributes, { class: 'max-w-full h-auto rounded-lg', loading: 'lazy', referrerpolicy: 'no-referrer' })];
-  },
-});
-
-const CustomParagraph = Paragraph.extend({
-  addAttributes() {
-    return {
-      textAlign: {
-        default: null,
-        parseHTML: element => element.style.textAlign || null,
-        renderHTML: attributes => {
-          if (!attributes.textAlign) return {};
-          return { style: `text-align: ${attributes.textAlign}` };
-        },
-      },
-      color: {
-        default: null,
-        parseHTML: element => element.style.color || null,
-        renderHTML: attributes => {
-          if (!attributes.color) return {};
-          return { style: `color: ${attributes.color}` };
-        },
-      },
-    };
-  },
-});
-
-const CustomHeading = Heading.extend({
-  addAttributes() {
-    return {
-      textAlign: {
-        default: null,
-        parseHTML: element => element.style.textAlign || null,
-        renderHTML: attributes => {
-          if (!attributes.textAlign) return {};
-          return { style: `text-align: ${attributes.textAlign}` };
-        },
-      },
-      color: {
-        default: null,
-        parseHTML: element => element.style.color || null,
-        renderHTML: attributes => {
-          if (!attributes.color) return {};
-          return { style: `color: ${attributes.color}` };
-        },
-      },
-    };
-  },
-});
-
-const COLORS = [
-  { name: 'Default', value: '' },
-  { name: 'Indigo', value: '#818cf8' },
-  { name: 'Emerald', value: '#34d399' },
-  { name: 'Blue', value: '#60a5fa' },
-  { name: 'Purple', value: '#c084fc' },
-  { name: 'Rose', value: '#fb7185' },
-  { name: 'Amber', value: '#fbbf24' },
-];
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import { TaskList, TaskItem } from "@tiptap/extension-list";
+import UserAvatarGroup from "../user-avatar-group";
+import type { Note } from "@/types/note";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { toast } from "@/lib/toast";
+import { useAdaptiveDropdown } from "@/hooks/use-adaptive-dropdown";
+import SlashCommand, { getSuggestionItems, renderItems } from "./slash-command";
+import { NoteUpdatedTime } from "../notes/note-updated-time";
+import {
+  NoteParagraph,
+  NoteHeading,
+  NoteTextColor,
+  NoteImage,
+  NOTE_COLORS,
+} from "./note-extensions";
+import {
+  FiBold,
+  FiItalic,
+  FiUnderline,
+  FiAlignLeft,
+  FiAlignCenter,
+  FiAlignRight,
+  FiDroplet,
+  FiRotateCcw,
+  FiRotateCw,
+  FiCode,
+  FiList,
+  FiCheckSquare,
+  FiMessageSquare,
+  FiMinus,
+  FiCopy,
+  FiClipboard,
+  FiImage,
+  FiCheck,
+} from "react-icons/fi";
 
 interface SlashCommandEditorProps {
   initialContent?: string;
   onChange: (content: string) => void;
+  updatedAt?: string | null;
+  sharedWith?: Note["shared_with"];
   user?: {
     id?: string | null;
     name?: string | null;
@@ -110,541 +52,663 @@ interface SlashCommandEditorProps {
     image?: string | null;
   };
 }
-
-export default function SlashCommandEditor({ initialContent, onChange, user }: SlashCommandEditorProps) {
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [showBottomColorPicker, setShowBottomColorPicker] = useState(false);
-  const bubbleColorAnchorRef = useRef<HTMLButtonElement>(null);
-  const bubbleColorMenuRef = useRef<HTMLDivElement>(null);
-  const bottomColorAnchorRef = useRef<HTMLButtonElement>(null);
-  const bottomColorMenuRef = useRef<HTMLDivElement>(null);
-  const { style: bubbleColorStyle, side: bubbleColorSide } = useAdaptiveDropdown({
-    isOpen: showColorPicker,
-    anchorRef: bubbleColorAnchorRef,
-    dropdownRef: bubbleColorMenuRef,
-    preferredSide: 'top',
-    preferredAlign: 'start',
+function Tool({
+  label,
+  children,
+  action,
+  active = false,
+  disabled = false,
+}: {
+  label: string;
+  children: ReactNode;
+  action: () => void;
+  active?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={active}
+      disabled={disabled}
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={action}
+      className={`inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-sm transition-colors focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 ${active ? "bg-foreground/[0.08] text-foreground" : "text-text-muted hover:bg-foreground/[0.04] hover:text-foreground"}`}
+    >
+      {children}
+    </button>
+  );
+}
+function ColorPalette({
+  anchor,
+  selectedColor,
+  choose,
+  close,
+}: {
+  anchor: HTMLButtonElement;
+  selectedColor: string;
+  choose: (color: string) => void;
+  close: () => void;
+}) {
+  const anchorRef = useRef(anchor);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { style, side } = useAdaptiveDropdown({
+    isOpen: true,
+    anchorRef,
+    dropdownRef: menuRef,
+    preferredSide: "top",
+    preferredAlign: "end",
   });
-  const { style: bottomColorStyle, side: bottomColorSide } = useAdaptiveDropdown({
-    isOpen: showBottomColorPicker,
-    anchorRef: bottomColorAnchorRef,
-    dropdownRef: bottomColorMenuRef,
-    preferredSide: 'top',
-    preferredAlign: 'end',
-  });
-  const [menuCoords, setMenuCoords] = useState<{ top: number; left: number } | null>(null);
+  useEffect(() => {
+    const outside = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !menuRef.current?.contains(event.target) &&
+        !anchor.contains(event.target)
+      )
+        close();
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        anchor.focus();
+      }
+    };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape, true);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape, true);
+    };
+  }, [anchor, close]);
+  // Escape transformed/clipped modal and selection-menu containing blocks.
+  return createPortal(
+    <div
+      ref={menuRef}
+      style={style}
+      data-side={side}
+      data-note-editor-controls
+      role="group"
+      aria-label="Text colour palette"
+      onMouseDown={(event) => event.preventDefault()}
+      className="z-[10000] grid grid-cols-4 gap-1 overflow-auto rounded-xl border border-card-border bg-background p-2 shadow-lg"
+    >
+      {NOTE_COLORS.map((color) => (
+        <button
+          key={color.name}
+          type="button"
+          title={color.name}
+          aria-label={color.name}
+          aria-pressed={selectedColor === color.value}
+          onClick={() => choose(color.value)}
+          className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-foreground/[0.05] focus-visible:outline-2 focus-visible:outline-emerald-500"
+        >
+          <span
+            className="flex h-6 w-6 items-center justify-center rounded-full border border-card-border"
+            style={{ backgroundColor: color.value || "var(--foreground)" }}
+          >
+            {selectedColor === color.value && (
+              <FiCheck className="text-background" size={14} />
+            )}
+          </span>
+        </button>
+      ))}
+    </div>,
+    document.body,
+  );
+}
 
+export default function SlashCommandEditor({
+  initialContent,
+  onChange,
+  user,
+  updatedAt,
+  sharedWith = [],
+}: SlashCommandEditorProps) {
+  const [paletteAnchor, setPaletteAnchor] = useState<HTMLButtonElement | null>(
+    null,
+  );
+  const [menuCoords, setMenuCoords] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  const [addingImage, setAddingImage] = useState(false);
+  const imageInput = useRef<HTMLInputElement>(null);
+  const selectionRef = useRef<{ from: number; to: number } | null>(null);
+  const incomingContent = useRef(initialContent);
+  const lastEmitted = useRef<string | null>(null);
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: false,
         paragraph: false,
+        link: { openOnClick: false },
       }),
-      CustomParagraph,
+      NoteParagraph,
+      NoteHeading.configure({ levels: [1, 2, 3] }),
+      NoteTextColor,
       NoteImage,
-      CustomHeading.configure({
-        levels: [1, 2, 3],
-      }),
+      TaskList,
+      TaskItem.configure({ nested: false }),
       Placeholder.configure({
-        placeholder: 'Press / for commands, or start typing...',
-        emptyEditorClass: 'is-editor-empty',
+        placeholder: "Write your note, or press / for formatting…",
       }),
       SlashCommand.configure({
-        suggestion: {
-          items: getSuggestionItems,
-          render: renderItems,
-        },
+        suggestion: { items: getSuggestionItems, render: renderItems },
       }),
     ],
-    content: initialContent || '',
+    content: initialContent || "",
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose-base focus:outline-none min-h-[25rem] w-full max-w-none text-foreground transition-colors',
+        class:
+          "prose dark:prose-invert prose-sm sm:prose-base focus:outline-none min-h-[25rem] w-full max-w-none text-foreground",
       },
     },
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      lastEmitted.current = editor.getHTML();
+      onChangeRef.current(lastEmitted.current);
     },
   });
-
-  // Highlight Selection Listener to Position Custom Bubble Menu
   useEffect(() => {
     if (!editor) return;
-
-    const handleSelection = () => {
-      const { selection } = editor.state;
-      if (selection.empty || selection.from === selection.to) {
+    const selection = () => {
+      const { from, to, empty } = editor.state.selection;
+      selectionRef.current = { from, to };
+      if (empty) {
         setMenuCoords(null);
-        setShowColorPicker(false);
         return;
       }
-
-      const { view } = editor;
       try {
-        const { from, to } = selection;
-        const startCoords = view.coordsAtPos(from);
-        const endCoords = view.coordsAtPos(to);
-
-        // Calculate center positioning
-        const left = (startCoords.left + endCoords.left) / 2;
-        const top = startCoords.top - 12; // place just above selection line
-
-        setMenuCoords({ top, left });
-      } catch (e) {
-        // Fallback for edge cases
+        const start = editor.view.coordsAtPos(from),
+          end = editor.view.coordsAtPos(to);
+        setMenuCoords({
+          top: Math.max(8, Math.min(window.innerHeight - 56, start.top - 52)),
+          left: Math.max(
+            8,
+            Math.min(
+              window.innerWidth - 264,
+              (start.left + end.left) / 2 - 128,
+            ),
+          ),
+        });
+      } catch {
+        setMenuCoords(null);
       }
     };
-
-    editor.on('selectionUpdate', handleSelection);
-    editor.on('focus', handleSelection);
-    
-    // Delayed blur to allow menu operations before dismissal
-    const handleBlur = () => {
-      setTimeout(() => {
-        if (typeof document !== 'undefined' && !document.activeElement?.closest('.bubble-menu-container')) {
-          setMenuCoords(null);
-          setShowColorPicker(false);
-        }
-      }, 250);
+    const blur = ({ event }: { event: FocusEvent }) => {
+      if (
+        event.relatedTarget instanceof Element &&
+        event.relatedTarget.closest("[data-note-editor-controls]")
+      )
+        return;
+      setMenuCoords(null);
     };
-
-    editor.on('blur', handleBlur);
-
+    editor.on("selectionUpdate", selection);
+    editor.on("focus", selection);
+    editor.on("blur", blur);
+    window.addEventListener("scroll", selection, true);
+    window.addEventListener("resize", selection);
     return () => {
-      editor.off('selectionUpdate', handleSelection);
-      editor.off('focus', handleSelection);
-      editor.off('blur', handleBlur);
+      editor.off("selectionUpdate", selection);
+      editor.off("focus", selection);
+      editor.off("blur", blur);
+      window.removeEventListener("scroll", selection, true);
+      window.removeEventListener("resize", selection);
     };
   }, [editor]);
-
-  // Re-sync initialContent if it changes externally
   useEffect(() => {
-    if (editor && initialContent !== undefined && initialContent !== editor.getHTML()) {
-      editor.commands.setContent(initialContent);
-    }
-  }, [initialContent, editor]);
+    if (
+      !editor ||
+      initialContent === undefined ||
+      initialContent === incomingContent.current
+    )
+      return;
+    incomingContent.current = initialContent;
+    // Parent echoes must not reset selection, undo history or formatting.
+    if (
+      initialContent === lastEmitted.current ||
+      initialContent === editor.getHTML()
+    )
+      return;
+    editor.commands.setContent(initialContent, { emitUpdate: false });
+  }, [editor, initialContent]);
 
-  const setAlignment = (align: string) => {
-    if (!editor) return;
-    if (editor.isActive('heading')) {
-      editor.commands.updateAttributes('heading', { textAlign: align });
-    } else {
-      editor.commands.updateAttributes('paragraph', { textAlign: align });
-    }
+  const focusSelection = (instance: Editor) => {
+    const range = selectionRef.current,
+      chain = instance.chain().focus();
+    return range && range.to <= instance.state.doc.content.size
+      ? chain.setTextSelection(range)
+      : chain;
   };
-
-  const setTextColor = (color: string) => {
-    if (!editor) return;
-    const value = color || null;
-    if (editor.isActive('heading')) {
-      editor.commands.updateAttributes('heading', { color: value });
-    } else {
-      editor.commands.updateAttributes('paragraph', { color: value });
-    }
+  const alignment = (value: string) => {
+    if (editor)
+      focusSelection(editor)
+        .updateAttributes("paragraph", { textAlign: value })
+        .updateAttributes("heading", { textAlign: value })
+        .run();
   };
-
-  const handleCopy = async () => {
+  const chooseColor = (color: string) => {
     if (!editor) return;
-    const { selection } = editor.state;
-    const text = editor.state.doc.textBetween(selection.from, selection.to);
+    const chain = focusSelection(editor);
+    if (color) chain.setMark("noteTextColor", { color }).run();
+    else
+      chain
+        .unsetMark("noteTextColor")
+        .resetAttributes("paragraph", "color")
+        .resetAttributes("heading", "color")
+        .run();
+    setPaletteAnchor(null);
+  };
+  const addImage = async (file: File | undefined) => {
+    if (!file || !editor) return;
+    if (
+      !["image/jpeg", "image/png"].includes(file.type) ||
+      file.size > 10_000_000
+    ) {
+      toast.error("Choose a JPEG or PNG photo under 10 MB.");
+      return;
+    }
+    setAddingImage(true);
+    let bitmap: ImageBitmap | undefined;
     try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Selection copied to clipboard.");
-    } catch (e) {
-      toast.error("Failed to copy text.");
+      bitmap = await createImageBitmap(file);
+      const canvas = document.createElement("canvas"),
+        ratio = Math.min(1, 480 / Math.max(bitmap.width, bitmap.height));
+      canvas.width = Math.max(1, Math.round(bitmap.width * ratio));
+      canvas.height = Math.max(1, Math.round(bitmap.height * ratio));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Image processing unavailable");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      let src = "";
+      for (const quality of [0.7, 0.5, 0.3, 0.15]) {
+        const candidate = canvas.toDataURL("image/jpeg", quality);
+        if (candidate.length <= 32_023) {
+          src = candidate;
+          break;
+        }
+      }
+      if (
+        !src ||
+        new TextEncoder().encode(editor.getHTML()).length + src.length + 200 >
+          60_000
+      )
+        throw new Error(
+          "This note has reached its image limit. Choose a smaller photo or remove an image.",
+        );
+      focusSelection(editor)
+        .insertContent({ type: "noteImage", attrs: { src, alt: "Note image" } })
+        .run();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "The photo could not be added.",
+      );
+    } finally {
+      bitmap?.close();
+      setAddingImage(false);
+      if (imageInput.current) imageInput.current.value = "";
     }
   };
-
-  const handlePaste = async () => {
-    if (!editor) return;
-    try {
-      const text = await navigator.clipboard.readText();
-      editor.chain().focus().insertContent(text).run();
-      toast.success("Text pasted from clipboard.");
-    } catch (e) {
-      toast.error("Clipboard permission denied or empty.");
-    }
-  };
+  const colourButton = (selection = false) => (
+    <button
+      type="button"
+      title="Text colour"
+      aria-label={selection ? "Selection text colour" : "Text colour"}
+      aria-expanded={!!paletteAnchor}
+      onClick={(event) => {
+        const target = event.currentTarget;
+        setPaletteAnchor((current) => (current === target ? null : target));
+      }}
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-foreground/[0.04]"
+    >
+      <FiDroplet />
+    </button>
+  );
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-between">
-      {editor && menuCoords && (
-        <Portal>
+    <div className="relative flex h-full w-full flex-col justify-between">
+      {editor &&
+        menuCoords &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            style={{
-              position: 'fixed',
-              top: `${menuCoords.top}px`,
-              left: `${menuCoords.left}px`,
-              transform: 'translate(-50%, -100%)',
-            }}
-            className="bubble-menu-container flex items-center gap-0.5 p-1 bg-background border border-card-border rounded-xl shadow-xl z-[9999] animate-in fade-in zoom-in-95 duration-100"
+            data-note-editor-controls
+            onMouseDown={(event) => event.preventDefault()}
+            style={{ position: "fixed", ...menuCoords }}
+            className="z-[9999] flex max-w-[calc(100vw-16px)] items-center overflow-x-auto rounded-xl border border-card-border bg-background p-1 shadow-lg"
           >
-            {/* Copy */}
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all"
-              title="Copy"
+            <Tool
+              label="Bold"
+              active={editor.isActive("bold")}
+              action={() => editor.chain().focus().toggleBold().run()}
             >
-              <FiCopy size={14} />
-            </button>
-
-            {/* Paste */}
-            <button
-              type="button"
-              onClick={handlePaste}
-              className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all"
-              title="Paste"
+              <FiBold />
+            </Tool>
+            <Tool
+              label="Italic"
+              active={editor.isActive("italic")}
+              action={() => editor.chain().focus().toggleItalic().run()}
             >
-              <FiClipboard size={14} />
-            </button>
-
-            <div className="h-4 w-[1px] bg-card-border mx-1" />
-
-            {/* Bold */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                editor.isActive('bold') 
-                  ? 'bg-foreground/[0.08] text-foreground border border-card-border/50' 
-                  : 'text-text-muted hover:bg-foreground/[0.04] hover:text-foreground'
-              }`}
-              title="Bold"
+              <FiItalic />
+            </Tool>
+            <Tool
+              label="Underline"
+              active={editor.isActive("underline")}
+              action={() => editor.chain().focus().toggleUnderline().run()}
             >
-              <FiBold size={14} />
-            </button>
-
-            {/* Italic */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                editor.isActive('italic') 
-                  ? 'bg-foreground/[0.08] text-foreground border border-card-border/50' 
-                  : 'text-text-muted hover:bg-foreground/[0.04] hover:text-foreground'
-              }`}
-              title="Italic"
+              <FiUnderline />
+            </Tool>
+            {colourButton(true)}
+            <Tool
+              label="Copy"
+              action={() => {
+                const { from, to } = editor.state.selection;
+                void navigator.clipboard
+                  .writeText(editor.state.doc.textBetween(from, to))
+                  .catch(() => toast.error("Could not copy the selection."));
+              }}
             >
-              <FiItalic size={14} />
-            </button>
-
-            {/* Strike */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                editor.isActive('strike') 
-                  ? 'bg-foreground/[0.08] text-foreground border border-card-border/50' 
-                  : 'text-text-muted hover:bg-foreground/[0.04] hover:text-foreground'
-              }`}
-              title="Strike"
-            >
-              <FiTrash2 size={14} />
-            </button>
-
-            <div className="h-4 w-[1px] bg-card-border mx-1" />
-
-            {/* Align Left */}
-            <button
-              type="button"
-              onClick={() => setAlignment('left')}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all text-text-muted hover:bg-foreground/[0.04] hover:text-foreground`}
-              title="Align Left"
-            >
-              <FiAlignLeft size={14} />
-            </button>
-
-            {/* Align Center */}
-            <button
-              type="button"
-              onClick={() => setAlignment('center')}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all text-text-muted hover:bg-foreground/[0.04] hover:text-foreground`}
-              title="Align Center"
-            >
-              <FiAlignCenter size={14} />
-            </button>
-
-            {/* Align Right */}
-            <button
-              type="button"
-              onClick={() => setAlignment('right')}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all text-text-muted hover:bg-foreground/[0.04] hover:text-foreground`}
-              title="Align Right"
-            >
-              <FiAlignRight size={14} />
-            </button>
-
-            <div className="h-4 w-[1px] bg-card-border mx-1" />
-
-            {/* Color Picker Popover Trigger */}
-            <div className="relative">
-              <button
-                ref={bubbleColorAnchorRef}
-                type="button"
-                onClick={() => {
-                  setShowColorPicker(!showColorPicker);
-                }}
-                className={`p-1.5 rounded-lg text-xs font-bold transition-all text-text-muted hover:bg-foreground/[0.04] hover:text-foreground flex items-center gap-1`}
-                title="Text Color"
-              >
-                <FiDroplet size={14} />
-              </button>
-
-              {showColorPicker && (
-                <div
-                  ref={bubbleColorMenuRef}
-                  style={bubbleColorStyle}
-                  data-side={bubbleColorSide}
-                  className="z-[9999] flex items-center gap-1.5 overflow-x-auto rounded-xl border border-card-border bg-background p-2 shadow-xl"
-                >
-                  {COLORS.map((c) => (
-                    <button
-                      key={c.name}
-                      type="button"
-                      onClick={() => {
-                        setTextColor(c.value);
-                        setShowColorPicker(false);
-                      }}
-                      className="h-5 w-5 rounded-full border border-card-border transition-transform hover:scale-110 flex items-center justify-center"
-                      style={{ backgroundColor: c.value || "var(--foreground)" }}
-                      title={c.name}
-                    >
-                      {!c.value && <span className="text-[8px] font-black text-background">D</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </Portal>
-      )}
-
-      <div className="flex-1 w-full">
-        <EditorContent editor={editor} className="w-full h-full tiptap-editor" />
-      </div>
-
-      {/* Persistent Bottom Toolbar & Author Avatar */}
+              <FiCopy />
+            </Tool>
+          </div>,
+          document.body,
+        )}
+      <EditorContent editor={editor} className="tiptap-editor flex-1" />
       {editor && (
-        <div className="mt-8 pt-5 border-t border-card-border flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Bottom Left: User Avatar & Identifier */}
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-2 ring-foreground/[0.03] border border-card-border">
-              {user?.image ? (
-                <Image src={user.image} alt={user.name || 'Owner'} fill className="object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-[10px] font-black text-emerald-500 bg-emerald-500/10">
-                  {(user?.name || user?.email || '?').charAt(0).toUpperCase()}
+        <div className="mt-6 min-w-0 border-t border-card-border pt-3">
+          {updatedAt && (
+            <div className="mb-2 text-xs text-text-muted">
+              <NoteUpdatedTime value={updatedAt} />
+            </div>
+          )}
+          <div className="flex min-w-0 items-center gap-3">
+            <div
+              className="flex shrink-0 items-center gap-2"
+              aria-label="Note collaborators"
+            >
+              <UserAvatarGroup
+                users={[
+                  user
+                    ? { ...user, id: user.id || undefined }
+                    : { name: "Note owner" },
+                ]}
+                size="sm"
+                limit={1}
+              />
+              {sharedWith.length > 0 && (
+                <div className="border-l border-card-border pl-2">
+                  <UserAvatarGroup
+                    users={sharedWith.map((person) =>
+                      typeof person === "string" ? { name: person } : person,
+                    )}
+                    size="xs"
+                    limit={2}
+                  />
                 </div>
               )}
             </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black text-foreground truncate uppercase tracking-tight leading-none">
-                {user?.name || user?.email?.split('@')[0] || 'Unknown Author'}
-              </p>
-              <p className="text-[8px] text-text-muted uppercase tracking-widest font-bold mt-1 leading-none">
-                Note Owner
-              </p>
-            </div>
-          </div>
-
-          {/* Bottom Right: Formatting Toolbar Buttons */}
-          <div className="flex flex-wrap items-center gap-1 bg-foreground/[0.02] border border-card-border p-1 rounded-xl shadow-sm">
-            {/* Undo */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().undo().run()}
-              className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all"
-              title="Undo (Ctrl+Z)"
+            <div
+              data-note-editor-controls
+              role="toolbar"
+              aria-label="Note formatting"
+              onMouseDown={(event) => event.preventDefault()}
+              className="flex min-w-0 flex-1 flex-nowrap items-center gap-1 overflow-x-auto overscroll-x-contain rounded-xl border border-card-border bg-foreground/[0.02] p-1"
             >
-              <FiRotateCcw size={13} />
-            </button>
-            
-            {/* Redo */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().redo().run()}
-              className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all"
-              title="Redo (Ctrl+Y)"
-            >
-              <FiRotateCw size={13} />
-            </button>
-
-            <div className="h-4 w-[1px] bg-card-border mx-1" />
-
-            {/* Bold */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                editor.isActive('bold') ? 'bg-foreground/[0.06] text-foreground font-black' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.04]'
-              }`}
-              title="Bold"
-            >
-              <FiBold size={13} />
-            </button>
-            
-            {/* Italic */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                editor.isActive('italic') ? 'bg-foreground/[0.06] text-foreground font-black' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.04]'
-              }`}
-              title="Italic"
-            >
-              <FiItalic size={13} />
-            </button>
-
-            {/* Code */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleCode().run()}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                editor.isActive('code') ? 'bg-foreground/[0.06] text-foreground font-black' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.04]'
-              }`}
-              title="Inline Code"
-            >
-              <FiCode size={13} />
-            </button>
-
-            <div className="h-4 w-[1px] bg-card-border mx-1" />
-
-            {/* H1 */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              className={`h-6 px-1.5 rounded-lg text-[10px] font-black transition-all ${
-                editor.isActive('heading', { level: 1 }) ? 'bg-foreground/[0.06] text-foreground' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.04]'
-              }`}
-              title="Heading 1"
-            >
-              H1
-            </button>
-
-            {/* H2 */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              className={`h-6 px-1.5 rounded-lg text-[10px] font-black transition-all ${
-                editor.isActive('heading', { level: 2 }) ? 'bg-foreground/[0.06] text-foreground' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.04]'
-              }`}
-              title="Heading 2"
-            >
-              H2
-            </button>
-
-            {/* H3 */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-              className={`h-6 px-1.5 rounded-lg text-[10px] font-black transition-all ${
-                editor.isActive('heading', { level: 3 }) ? 'bg-foreground/[0.06] text-foreground' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.04]'
-              }`}
-              title="Heading 3"
-            >
-              H3
-            </button>
-
-            <div className="h-4 w-[1px] bg-card-border mx-1" />
-
-            {/* Bullet List */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                editor.isActive('bulletList') ? 'bg-foreground/[0.06] text-foreground font-black' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.04]'
-              }`}
-              title="Bullet List"
-            >
-              <FiList size={13} />
-            </button>
-
-            {/* Blockquote */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={`p-1.5 rounded-lg text-xs font-bold transition-all ${
-                editor.isActive('blockquote') ? 'bg-foreground/[0.06] text-foreground font-black' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.04]'
-              }`}
-              title="Blockquote"
-            >
-              <FiMessageSquare size={13} />
-            </button>
-
-            {/* Divider */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-foreground/[0.04] transition-all"
-              title="Horizontal Divider"
-            >
-              <FiMinus size={13} />
-            </button>
-
-            <div className="h-4 w-[1px] bg-card-border mx-1" />
-
-            {/* Bottom Text Color Picker */}
-            <div className="relative">
-              <button
-                ref={bottomColorAnchorRef}
-                type="button"
-                onClick={() => {
-                  setShowBottomColorPicker(!showBottomColorPicker);
-                }}
-                className={`p-1.5 rounded-lg text-xs font-bold transition-all text-text-muted hover:bg-foreground/[0.04] hover:text-foreground flex items-center gap-1`}
-                title="Text Color"
+              <Tool
+                label="Undo"
+                disabled={!editor.can().undo()}
+                action={() => editor.chain().focus().undo().run()}
               >
-                <FiDroplet size={13} />
-              </button>
-
-              {showBottomColorPicker && (
-                <div
-                  ref={bottomColorMenuRef}
-                  style={bottomColorStyle}
-                  data-side={bottomColorSide}
-                  className="z-[9999] flex items-center gap-1.5 overflow-x-auto rounded-xl border border-card-border bg-background p-2 shadow-xl"
+                <FiRotateCcw />
+              </Tool>
+              <Tool
+                label="Redo"
+                disabled={!editor.can().redo()}
+                action={() => editor.chain().focus().redo().run()}
+              >
+                <FiRotateCw />
+              </Tool>
+              <Tool
+                label="Body"
+                active={editor.isActive("paragraph")}
+                action={() => editor.chain().focus().setParagraph().run()}
+              >
+                Aa
+              </Tool>
+              {([1, 2, 3] as const).map((level) => (
+                <Tool
+                  key={level}
+                  label={["Title", "Heading", "Subheading"][level - 1]}
+                  active={editor.isActive("heading", { level })}
+                  action={() =>
+                    editor.chain().focus().toggleHeading({ level }).run()
+                  }
                 >
-                  {COLORS.map((c) => (
-                    <button
-                      key={c.name}
-                      type="button"
-                      onClick={() => {
-                        setTextColor(c.value);
-                        setShowBottomColorPicker(false);
-                      }}
-                      className="h-5 w-5 rounded-full border border-card-border transition-transform hover:scale-110 flex items-center justify-center"
-                      style={{ backgroundColor: c.value || "var(--foreground)" }}
-                      title={c.name}
-                    >
-                      {!c.value && <span className="text-[8px] font-black text-background">D</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
+                  H{level}
+                </Tool>
+              ))}
+              <Tool
+                label="Bold"
+                active={editor.isActive("bold")}
+                action={() => editor.chain().focus().toggleBold().run()}
+              >
+                <FiBold />
+              </Tool>
+              <Tool
+                label="Italic"
+                active={editor.isActive("italic")}
+                action={() => editor.chain().focus().toggleItalic().run()}
+              >
+                <FiItalic />
+              </Tool>
+              <Tool
+                label="Underline"
+                active={editor.isActive("underline")}
+                action={() => editor.chain().focus().toggleUnderline().run()}
+              >
+                <FiUnderline />
+              </Tool>
+              <Tool
+                label="Strikethrough"
+                active={editor.isActive("strike")}
+                action={() => editor.chain().focus().toggleStrike().run()}
+              >
+                <span className="line-through">S</span>
+              </Tool>
+              <Tool
+                label="Bulleted list"
+                active={editor.isActive("bulletList")}
+                action={() => editor.chain().focus().toggleBulletList().run()}
+              >
+                <FiList />
+              </Tool>
+              <Tool
+                label="Numbered list"
+                active={editor.isActive("orderedList")}
+                action={() => editor.chain().focus().toggleOrderedList().run()}
+              >
+                1.
+              </Tool>
+              <Tool
+                label="Checklist"
+                active={editor.isActive("taskList")}
+                action={() => editor.chain().focus().toggleTaskList().run()}
+              >
+                <FiCheckSquare />
+              </Tool>
+              <Tool label="Align left" action={() => alignment("left")}>
+                <FiAlignLeft />
+              </Tool>
+              <Tool label="Align center" action={() => alignment("center")}>
+                <FiAlignCenter />
+              </Tool>
+              <Tool label="Align right" action={() => alignment("right")}>
+                <FiAlignRight />
+              </Tool>
+              <Tool
+                label="Inline code"
+                active={editor.isActive("code")}
+                action={() => editor.chain().focus().toggleCode().run()}
+              >
+                <FiCode />
+              </Tool>
+              <Tool
+                label="Code block"
+                active={editor.isActive("codeBlock")}
+                action={() => editor.chain().focus().toggleCodeBlock().run()}
+              >
+                {"{ }"}
+              </Tool>
+              <Tool
+                label="Quote"
+                active={editor.isActive("blockquote")}
+                action={() => editor.chain().focus().toggleBlockquote().run()}
+              >
+                <FiMessageSquare />
+              </Tool>
+              <Tool
+                label="Divider"
+                action={() => editor.chain().focus().setHorizontalRule().run()}
+              >
+                <FiMinus />
+              </Tool>
+              {colourButton()}
+              <Tool
+                label={addingImage ? "Adding image" : "Add image"}
+                disabled={addingImage}
+                action={() => {
+                  selectionRef.current = {
+                    from: editor.state.selection.from,
+                    to: editor.state.selection.to,
+                  };
+                  imageInput.current?.click();
+                }}
+              >
+                <FiImage />
+              </Tool>
+              <Tool
+                label="Paste"
+                action={() => {
+                  void navigator.clipboard
+                    .readText()
+                    .then((text) => {
+                      if (text)
+                        editor
+                          .chain()
+                          .focus()
+                          .insertContent({ type: "text", text })
+                          .run();
+                    })
+                    .catch(() =>
+                      toast.error(
+                        "Allow clipboard access, or paste using your keyboard.",
+                      ),
+                    );
+                }}
+              >
+                <FiClipboard />
+              </Tool>
             </div>
           </div>
+          <input
+            ref={imageInput}
+            type="file"
+            accept="image/jpeg,image/png"
+            aria-label="Note image"
+            className="hidden"
+            onChange={(event) => {
+              void addImage(event.target.files?.[0]);
+            }}
+          />
         </div>
       )}
-
+      {editor && paletteAnchor && (
+        <ColorPalette
+          key={paletteAnchor.getAttribute("aria-label")}
+          anchor={paletteAnchor}
+          selectedColor={editor.getAttributes("noteTextColor").color || ""}
+          choose={chooseColor}
+          close={() => setPaletteAnchor(null)}
+        />
+      )}
       <style jsx global>{`
         .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
           content: attr(data-placeholder);
           float: left;
           color: var(--text-muted);
-          opacity: 0.5;
           pointer-events: none;
           height: 0;
         }
-        .tiptap-editor .ProseMirror h1 { font-size: 2.25rem; font-weight: 900; margin-top: 1.5rem; margin-bottom: 1rem; color: var(--foreground); text-transform: uppercase; font-style: italic; }
-        .tiptap-editor .ProseMirror h2 { font-size: 1.5rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--foreground); text-transform: uppercase; font-style: italic; }
-        .tiptap-editor .ProseMirror h3 { font-size: 1.25rem; font-weight: 800; margin-top: 1rem; margin-bottom: 0.5rem; color: var(--foreground); text-transform: uppercase; font-style: italic; }
-        .tiptap-editor .ProseMirror ul { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        .tiptap-editor .ProseMirror ol { list-style-type: decimal; padding-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        .tiptap-editor .ProseMirror pre { background: var(--input-bg); padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--card-border); font-family: monospace; color: var(--foreground); }
-        .tiptap-editor .ProseMirror code { background: var(--foreground); color: var(--background); padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.875em; font-weight: 700; }
-        .tiptap-editor .ProseMirror blockquote { border-left: 4px solid var(--pastel-emerald); padding-left: 1rem; color: var(--text-secondary); font-style: italic; margin-top: 1rem; margin-bottom: 1rem; font-weight: 500; }
+        .tiptap-editor .ProseMirror p {
+          min-height: 1.5em;
+        }
+        .tiptap-editor .ProseMirror h1 {
+          font-size: 2rem;
+          font-weight: 700;
+        }
+        .tiptap-editor .ProseMirror h2 {
+          font-size: 1.5rem;
+          font-weight: 600;
+        }
+        .tiptap-editor .ProseMirror h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+        }
+        .tiptap-editor .ProseMirror ul {
+          list-style: disc;
+          padding-left: 1.5rem;
+        }
+        .tiptap-editor .ProseMirror ol {
+          list-style: decimal;
+          padding-left: 1.5rem;
+        }
+        .tiptap-editor .ProseMirror ul[data-type="taskList"] {
+          list-style: none;
+          padding-left: 0;
+        }
+        .tiptap-editor .ProseMirror li[data-type="taskItem"] {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+        .tiptap-editor .ProseMirror li[data-type="taskItem"] > label {
+          flex-shrink: 0;
+          padding-top: 0.25rem;
+        }
+        .tiptap-editor .ProseMirror li[data-type="taskItem"] > div {
+          flex: 1;
+          min-width: 0;
+        }
+        .tiptap-editor .ProseMirror li[data-type="taskItem"] p {
+          margin: 0;
+        }
+        .tiptap-editor .ProseMirror pre {
+          background: var(--input-bg);
+          padding: 1rem;
+          border-radius: 0.75rem;
+          font-family: monospace;
+        }
+        .tiptap-editor .ProseMirror code {
+          background: var(--input-bg);
+          padding: 0.15rem 0.3rem;
+          border-radius: 0.25rem;
+          font-family: monospace;
+        }
+        .tiptap-editor .ProseMirror blockquote {
+          border-left: 3px solid var(--card-border);
+          padding-left: 1rem;
+        }
       `}</style>
     </div>
   );

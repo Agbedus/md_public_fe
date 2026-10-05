@@ -210,7 +210,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 className="text-xs font-bold flex-1 bg-white dark:bg-white/[0.03] border border-card-border py-2.5 px-4 rounded-xl text-foreground focus:outline-none focus:border-indigo-500/30 transition-all placeholder:text-text-muted/50 uppercase tracking-wider"
                             />
                         </div>
-                        <SlashCommandEditor initialContent={content} onChange={setContent} user={currentUser} />
+                        {isOpen && <SlashCommandEditor key={noteId || 'new'} initialContent={content} onChange={setContent} user={initialNote?.owner ? { ...initialNote.owner, name: initialNote.owner.full_name || initialNote.owner.name, image: initialNote.owner.avatar_url || initialNote.owner.image } : currentUser} sharedWith={initialNote?.shared_with} updatedAt={initialNote?.updated_at || initialNote?.created_at} />}
                         <input type="hidden" name="content" value={content} />
                         <input type="hidden" name="id" value={noteId} />
                         <input type="hidden" name="is_pinned" value={isPinned ? '1' : '0'} />
