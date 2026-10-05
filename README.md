@@ -31,6 +31,7 @@ to `http://127.0.0.1:8000`.
 
 - Multi-organization registration, invitations, membership, and workspace switching
 - Projects, tasks, kanban workflows, notes, calendar events, and time tracking
+  - Notes use TipTap HTML; empty paragraphs and line breaks remain part of the saved body. The editor preserves native-added inline JPEG/PNG images (base64 or HTTPS) when opening and saving notes. Image compatibility does not introduce a separate upload service. Existing backend databases require `python scripts/migrate_note_content.py` for long-text note storage.
 - Geofenced attendance with window-aware automatic clock-in monitoring
 - Time-off requests, approval workflows, announcements, and live notification inbox
 - Invite acceptance, attendance exit, and time-off/task conflict alerts

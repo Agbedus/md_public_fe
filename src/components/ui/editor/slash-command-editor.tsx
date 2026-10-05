@@ -5,6 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Paragraph from '@tiptap/extension-paragraph';
 import Heading from '@tiptap/extension-heading';
+import { Node, mergeAttributes } from '@tiptap/core';
 import Image from 'next/image';
 import SlashCommand, { getSuggestionItems, renderItems } from './slash-command';
 import { useEffect, useRef, useState } from 'react';
@@ -17,6 +18,31 @@ import {
   FiDroplet, FiRotateCcw, FiRotateCw, FiCode,
   FiList, FiMessageSquare, FiMinus, FiCopy, FiClipboard
 } from 'react-icons/fi';
+
+// Preserve native note images when a note is opened and saved on the web.
+// Inline placement matches the mobile HTML contract without flattening its paragraphs.
+const NoteImage = Node.create({
+  name: 'noteImage',
+  inline: true,
+  group: 'inline',
+  atom: true,
+  draggable: true,
+  addAttributes() {
+    return { src: { default: null }, alt: { default: 'Note image' }, title: { default: null } };
+  },
+  parseHTML() {
+    return [{ tag: 'img[src]', getAttrs: element => {
+      const src = element.getAttribute('src') || '';
+      return /^(https:\/\/|data:image\/(jpeg|png);base64,)/i.test(src) ? {} : false;
+    } }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    if (!/^(https:\/\/|data:image\/(jpeg|png);base64,)/i.test(String(HTMLAttributes.src || ''))) {
+      return ['span', {}, 'Image unavailable'];
+    }
+    return ['img', mergeAttributes(HTMLAttributes, { class: 'max-w-full h-auto rounded-lg', loading: 'lazy', referrerpolicy: 'no-referrer' })];
+  },
+});
 
 const CustomParagraph = Paragraph.extend({
   addAttributes() {
@@ -116,6 +142,7 @@ export default function SlashCommandEditor({ initialContent, onChange, user }: S
         paragraph: false,
       }),
       CustomParagraph,
+      NoteImage,
       CustomHeading.configure({
         levels: [1, 2, 3],
       }),
