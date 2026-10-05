@@ -20,7 +20,7 @@ export function NoteUpdatedTime({ value }: { value?: string | null }) {
   if (!Number.isFinite(date.getTime())) return null;
   return (
     <time dateTime={date.toISOString()} title={date.toUTCString()}>
-      Last updated {now ? formatNoteRelativeTime(value, now) : "…"}
+      {now ? formatNoteRelativeTime(value, now) : "…"}
     </time>
   );
 }
