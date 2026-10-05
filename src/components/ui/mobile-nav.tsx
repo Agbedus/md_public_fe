@@ -85,7 +85,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                 </div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 z-50 h-[calc(4rem+env(safe-area-inset-bottom))] border-t border-card-border bg-background/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+            <div className="fixed bottom-0 left-0 right-0 z-50 h-[calc(4rem+env(safe-area-inset-bottom))] border-t border-card-border bg-background px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
             <div className="flex h-16 items-stretch justify-between">
                 {navItems.map((item, index) => {
                     const isActive = Boolean(item.isActive || (item.href && (pathname === item.href || pathname.startsWith(`${item.href}/`))));

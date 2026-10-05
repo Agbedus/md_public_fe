@@ -50,7 +50,7 @@ export default function OverrideModal({ record, onClose, onOverride }: Props) {
     return (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative w-full md:max-w-md bg-card/95 backdrop-blur-2xl border border-card-border rounded-t-2xl md:rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+            <div className="relative w-full md:max-w-md bg-card border border-card-border rounded-t-2xl md:rounded-2xl overflow-hidden shadow-2xl flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-3 border-b border-card-border bg-foreground/[0.03]">
                     <div>

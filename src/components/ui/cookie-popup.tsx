@@ -70,7 +70,7 @@ export const CookiePopup = () => {
                     exit={{ y: 100, opacity: 0 }}
                     className="fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:w-[450px] z-[100]"
                 >
-                    <div className="glass bg-background/80 backdrop-blur-2xl border border-card-border rounded-3xl p-6 shadow-2xl flex flex-col gap-6">
+                    <div className="bg-card border border-card-border rounded-3xl p-6 shadow-2xl flex flex-col gap-6">
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">

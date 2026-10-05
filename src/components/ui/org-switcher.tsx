@@ -9,6 +9,8 @@ import type { OrgBrief } from '@/types/organization';
 import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skeleton';
 import { toast } from '@/lib/toast';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
+import { Portal } from './portal';
+import { OrganizationAvatar } from './organization-avatar';
 
 interface OrgSwitcherProps {
   organizations: OrgBrief[];
@@ -36,7 +38,7 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && !menuRef.current?.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -66,16 +68,17 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
         <WorkspaceLoadingSkeleton isOverlay />
       )}
       <button
+        type="button"
+        aria-label={`Switch organization: ${currentOrg?.name || 'Select Org'}`}
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         disabled={switching !== null}
-        className={`flex min-h-11 items-center w-full py-2 rounded-xl text-text-muted hover:bg-foreground/[0.05] hover:text-foreground transition-[transform,color,background-color] duration-150 active:scale-[0.98] ${
+        className={`flex min-h-11 items-center w-full py-2 rounded-xl bg-card text-text-muted hover:text-foreground transition-[transform,color,background-color] duration-150 active:scale-[0.98] ${
           collapsed ? 'justify-center px-0' : 'justify-between px-6'
         }`}
       >
         <div className="flex items-center overflow-hidden">
-          <div className="w-5 h-5 rounded bg-foreground/[0.08] flex items-center justify-center text-[10px] font-bold text-foreground flex-shrink-0">
-            {currentOrg ? currentOrg.name.charAt(0).toUpperCase() : '?'}
-          </div>
+          <OrganizationAvatar name={currentOrg?.name || '?'} logoUrl={currentOrg?.logo_url} />
           <span className={`ml-2 text-sm font-medium truncate ${contentVisibilityClass}`}>
             {currentOrg?.name || 'Select Org'}
           </span>
@@ -83,6 +86,7 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
         <FiChevronDown size={14} className={`${contentVisibilityClass} transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
+      <Portal>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -93,7 +97,10 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
             transition={{ duration: 0.15 }}
             style={menuStyle}
             data-side={menuSide}
-            className={`z-[9999] w-[calc(16rem-1rem)] max-w-[calc(100vw-1.5rem)] rounded-xl border border-sidebar-border bg-sidebar-bg shadow-lg overflow-y-auto ${menuSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'} ${collapsed ? 'hidden' : ''}`}
+            role="dialog"
+            aria-label="Switch organization"
+            onKeyDown={(event) => { if (event.key === 'Escape') { setIsOpen(false); dropdownRef.current?.querySelector('button')?.focus(); } }}
+            className={`z-[9999] w-[calc(16rem-1rem)] max-w-[calc(100vw-1.5rem)] rounded-xl border border-sidebar-border bg-card shadow-lg overflow-y-auto ${menuSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
           >
             {organizations.map((org) => (
               <button
@@ -103,9 +110,7 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
                   org.id === currentOrgId ? 'text-foreground font-medium' : 'text-text-muted'
                 }`}
               >
-                <div className="w-5 h-5 rounded bg-foreground/[0.08] flex items-center justify-center text-[10px] font-bold text-foreground flex-shrink-0">
-                  {org.name.charAt(0).toUpperCase()}
-                </div>
+                <OrganizationAvatar name={org.name} logoUrl={org.logo_url} />
                 <span className="ml-2 truncate">{org.name}</span>
                 {org.id === currentOrgId && (
                   <FiCheck size={14} className="ml-auto text-emerald-500 flex-shrink-0" />
@@ -121,6 +126,7 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
           </motion.div>
         )}
       </AnimatePresence>
+      </Portal>
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skel
 import { toast } from '@/lib/toast';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 import { Portal } from '@/components/ui/portal';
+import { OrganizationAvatar } from './organization-avatar';
 
 interface TopNavProps {
   user?: {
@@ -190,9 +191,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               disabled={switching !== null}
               className="flex min-h-11 items-center gap-1.5 rounded-xl border border-card-border bg-card p-2 text-xs font-bold tracking-tight text-foreground transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08] md:gap-2 md:p-2.5"
             >
-              <div className="w-5 h-5 rounded-md bg-foreground/[0.08] flex items-center justify-center text-[10px] font-black text-foreground flex-shrink-0">
-                {currentOrg.name.charAt(0).toUpperCase()}
-              </div>
+              <OrganizationAvatar name={currentOrg.name} logoUrl={currentOrg.logo_url} />
               <span className="hidden max-w-[92px] truncate sm:inline md:max-w-[120px]">{currentOrg.name}</span>
               {orgRoleDisplay && (
                 <span className={`hidden px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider xl:inline ${orgRoleToneClasses[orgRoleDisplay.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5'}`}>
@@ -229,9 +228,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                             org.id === currentOrgId ? 'text-foreground font-bold' : 'text-text-secondary'
                           }`}
                         >
-                          <div className="w-6 h-6 rounded-md bg-foreground/[0.08] flex items-center justify-center text-[11px] font-black text-foreground flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
-                            {org.name.charAt(0).toUpperCase()}
-                          </div>
+                          <OrganizationAvatar name={org.name} logoUrl={org.logo_url} size={24} />
                           <div className="flex-1 min-w-0 text-left">
                             <p className="truncate text-xs">{org.name}</p>
                             {orgRole && (

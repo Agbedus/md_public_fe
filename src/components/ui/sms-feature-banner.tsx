@@ -48,7 +48,7 @@ export function SmsFeatureBanner({ userKey }: { userKey?: string | null }) {
           exit={{ y: 100, opacity: 0 }}
           className="fixed bottom-6 left-6 right-6 md:left-8 md:right-auto md:w-[400px] z-40"
         >
-          <div className="glass bg-background/80 backdrop-blur-2xl border border-card-border rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
+          <div className="bg-card border border-card-border rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shrink-0">

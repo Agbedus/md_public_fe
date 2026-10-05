@@ -1,7 +1,7 @@
 'use server';
 
 import { getSessionHeaders, handleUnauthorizedResponse, handleForbiddenResponse } from '@/lib/server-auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 import type { ActionResult } from '@/types/api';
 
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
@@ -78,6 +78,7 @@ export async function uploadOrganizationLogo(orgId: string, formData: FormData):
     }
 
     const updated = await res.json().catch(() => null);
+    updateTag('organizations');
     revalidatePath('/[orgSlug]/settings', 'page');
     revalidatePath('/', 'layout');
     return { success: true, logo_url: updated?.logo_url };

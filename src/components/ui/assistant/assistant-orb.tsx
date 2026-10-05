@@ -315,7 +315,7 @@ export default function AssistantOrb() {
               exit={{ opacity: 0, y: 24, scale: 0.94 }}
               transition={{ type: 'spring', damping: 26, stiffness: 320 }}
               style={{ transformOrigin: 'bottom right' }}
-              className="relative w-[min(28rem,calc(100vw_-_3rem))] max-h-[78vh] flex flex-col bg-background/95 backdrop-blur-2xl border border-card-border rounded-2xl shadow-2xl overflow-hidden"
+              className="relative w-[min(28rem,calc(100vw_-_3rem))] max-h-[78vh] flex flex-col bg-card border border-card-border rounded-2xl shadow-2xl overflow-hidden"
             >
               {/* Header */}
               <div className="relative flex items-center justify-between px-5 py-4 border-b border-card-border shrink-0">
@@ -572,7 +572,7 @@ export default function AssistantOrb() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 right-0 z-50 flex flex-col bg-background/95 backdrop-blur-xl border-t border-card-border rounded-t-2xl shadow-xl"
+              className="fixed left-0 right-0 z-50 flex flex-col bg-card border-t border-card-border rounded-t-2xl shadow-xl"
               style={{ bottom: '64px', maxHeight: '75vh' }}
             >
               {/* Header */}

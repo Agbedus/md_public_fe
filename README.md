@@ -68,6 +68,12 @@ and clean up subscriptions, timers, and animation frames. Display-only state is
 derived during rendering where possible, keeping React updates predictable across
 assistant, calendar, notification, location, onboarding, and optimistic workflows.
 
+Workspace triggers and switcher options display the uploaded organization logo,
+with an initial fallback for missing or unavailable images. Logo uploads refresh
+the organization cache so navigation stays current. The sidebar switcher is
+portaled outside the sidebar and remains usable when collapsed. Floating content
+panels use opaque theme-aware surfaces; dimmed backdrops remain translucent.
+
 Floating menus use the shared `src/hooks/use-adaptive-dropdown.ts` positioning
 hook. Dropdowns, popovers, date pickers, and time pickers stay inside the visual
 viewport, reverse direction when an edge is reached, and account for mobile browser
