@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from 'react-dom';
+import { toast } from '@/lib/toast';
 import { sanitizeHtml } from '@/lib/sanitize-html';
 import Image from "next/image";
 import type { Note } from "@/types/note";
@@ -89,6 +91,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
     const [showUserDropdown, setShowUserDropdown] = useState(false);
     const [selectedUser, setSelectedUser] = useState('');
     const [isSharing, setIsSharing] = useState(false);
+    const [sharingError, setSharingError] = useState('');
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownMenuRef = useRef<HTMLDivElement>(null);
     const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
@@ -115,19 +118,40 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
     };
 
     useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        if (!showUserDropdown) return;
+        function handleClickOutside(event: PointerEvent) {
+            const target = event.target as Node;
+            if (!dropdownRef.current?.contains(target) && !dropdownMenuRef.current?.contains(target)) {
                 setShowUserDropdown(false);
             }
         }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        const frame = requestAnimationFrame(() => dropdownMenuRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus({ preventScroll: true }));
+        document.addEventListener('pointerdown', handleClickOutside);
+        return () => {
+            cancelAnimationFrame(frame);
+            document.removeEventListener('pointerdown', handleClickOutside);
+        };
+    }, [showUserDropdown]);
+
+    const toggleSharing = () => {
+        setSelectedUser('');
+        setSharingError('');
+        setShowUserDropdown(open => !open);
+    };
+
+    const shareMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            setShowUserDropdown(false);
+            dropdownRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
+        }
+    };
 
     const handleAddUser = async () => {
-        if (!selectedUser) return;
+        if (!selectedUser || isSharing) return;
         setIsSharing(true);
-        setShowUserDropdown(false);
+        setSharingError('');
         const currentShared = note.shared_with || [];
         // Map hydrated objects back to IDs for the API
         const sharedValues = currentShared.map(u => typeof u === 'string' ? u : u.id);
@@ -138,11 +162,21 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                 const fd = new FormData();
                 fd.append('id', String(note.id));
                 fd.append('shared_with', JSON.stringify(newList));
-                await onNoteUpdate(fd);
+                const result = await onNoteUpdate(fd);
+                if (result && !result.success) {
+                    setSharingError(result.error || 'Could not share this note. Please try again.');
+                    return;
+                }
+                toast.success('Note shared');
             }
+            setShowUserDropdown(false);
+            setSelectedUser('');
+            requestAnimationFrame(() => dropdownRef.current?.querySelector<HTMLButtonElement>('button')?.focus());
+        } catch {
+            setSharingError('Could not share this note. Please try again.');
+            toast.error('Could not share this note. Please try again.');
         } finally {
             setIsSharing(false);
-            setSelectedUser("");
         }
     };
 
@@ -356,28 +390,39 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         <div className="flex items-center space-x-2">
                             <div className="relative" ref={dropdownRef}>
                                 <button 
-                                    onClick={() => setShowUserDropdown(!showUserDropdown)} 
+                                    type="button"
+                                    onClick={toggleSharing}
+                                    aria-expanded={showUserDropdown}
+                                    aria-haspopup="dialog"
+                                    aria-label={`Share note: ${note.title}`}
                                     disabled={isSharing}
                                     className={`p-2 rounded-xl transition-all ${isSharing ? 'text-text-muted cursor-not-allowed' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06]'}`}
-                                    title="Add User"
+                                    title="Share note"
                                 >
                                     <FiUserPlus size={16} />
                                 </button>
-                                {showUserDropdown && availableUsers.length > 0 && (
+                                {showUserDropdown && createPortal(
                                     <div
+                                        role="dialog"
+                                        aria-label={`Share note: ${note.title}`}
+                                        onKeyDown={shareMenuKeyDown}
                                         ref={dropdownMenuRef}
                                         style={dropdownStyle}
                                         data-side={dropdownSide}
+                                        aria-busy={isSharing}
                                         className="z-[9999] w-64 overflow-y-auto rounded-2xl border border-card-border bg-background p-3 shadow-2xl space-y-3"
                                     >
                                         <div>
                                             <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Grant Access</p>
                                             <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
+                                                {availableUsers.length === 0 && <p className="px-2 py-3 text-xs text-text-muted">No workspace members available to share with.</p>}
                                                 {availableUsers.map(u => (
                                                     <button
                                                         key={u.id}
                                                         type="button"
                                                         onClick={() => setSelectedUser(u.id)}
+                                                        aria-pressed={selectedUser === u.id}
+                                                        disabled={isSharing}
                                                         className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border transition-all ${
                                                             selectedUser === u.id 
                                                             ? 'bg-foreground/[0.07] border-indigo-500/30 text-foreground font-bold' 
@@ -401,15 +446,16 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                                 ))}
                                             </div>
                                         </div>
+                                        {sharingError && <p role="alert" className="text-xs text-rose-500">{sharingError}</p>}
                                         <button
                                             type="button"
                                             onClick={handleAddUser}
-                                            disabled={!selectedUser}
+                                            disabled={!selectedUser || isSharing}
                                             className="w-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-emerald-500 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10"
                                         >
-                                            Authorize
+                                            {isSharing ? 'Sharing…' : 'Share note'}
                                         </button>
-                                    </div>
+                                    </div>, document.body
                                 )}
                             </div>
                             {canModify && (
@@ -506,32 +552,42 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         {noteTags.length === 0 && <span className="text-text-muted/30 italic text-[10px]">No Tags</span>}
                         </div>
                         </td>
-                        <td className="px-6 py-5 text-right space-x-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                        <td className="px-6 py-5 text-right space-x-1">
                         <div className="relative inline-block" ref={dropdownRef}>
                         <button 
                         type="button" 
-                        onClick={() => setShowUserDropdown(!showUserDropdown)} 
+                        onClick={toggleSharing}
+                        aria-expanded={showUserDropdown}
+                        aria-haspopup="dialog"
+                        aria-label={`Share note: ${note.title}`}
                         disabled={isSharing}
                         className={`p-2 rounded-xl transition-all ${isSharing ? 'text-text-muted cursor-not-allowed' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06]'}`}
-                        title="Add User"
+                        title="Share note"
                         >
                         <FiUserPlus size={15} />
                         </button>
-                        {showUserDropdown && availableUsers.length > 0 && (
+                        {showUserDropdown && createPortal(
                         <div
+                            role="dialog"
+                            aria-label={`Share note: ${note.title}`}
+                            onKeyDown={shareMenuKeyDown}
                             ref={dropdownMenuRef}
                             style={dropdownStyle}
                             data-side={dropdownSide}
+                            aria-busy={isSharing}
                             className="z-[9999] w-64 overflow-y-auto rounded-2xl border border-card-border bg-background p-3 shadow-2xl space-y-3 text-left"
                         >
                             <div>
                                 <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Grant Access</p>
                                 <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
+                                    {availableUsers.length === 0 && <p className="px-2 py-3 text-xs text-text-muted">No workspace members available to share with.</p>}
                                     {availableUsers.map(u => (
                                         <button
                                             key={u.id}
                                             type="button"
                                             onClick={() => setSelectedUser(u.id)}
+                                            aria-pressed={selectedUser === u.id}
+                                            disabled={isSharing}
                                             className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border transition-all ${
                                                 selectedUser === u.id 
                                                 ? 'bg-foreground/[0.07] border-indigo-500/30 text-foreground font-bold' 
@@ -555,15 +611,16 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                     ))}
                                 </div>
                             </div>
+                            {sharingError && <p role="alert" className="text-xs text-rose-500">{sharingError}</p>}
                             <button
                                 type="button"
                                 onClick={handleAddUser}
-                                disabled={!selectedUser}
+                                disabled={!selectedUser || isSharing}
                                 className="w-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-emerald-500 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10"
                             >
-                                Authorize
+                                {isSharing ? 'Sharing…' : 'Share note'}
                             </button>
-                        </div>
+                        </div>, document.body
                         )}
                         </div>
                         {canModify && (
