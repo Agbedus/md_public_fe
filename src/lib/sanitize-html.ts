@@ -5,23 +5,18 @@
  *
  * 1. **Safety** — drop scripts, inline event handlers and `javascript:` URLs.
  *
- * 2. **Theme neutrality** — strip colour declarations from inline styles. The
- *    editor writes the colour the author saw at the time, so a note written in
- *    dark mode carries `color: #fff` on its paragraphs and stays white-on-white
- *    when the reader is in light mode (and vice versa). Removing the colour lets
- *    the text inherit the theme token from its container, so the same note is
- *    legible in both themes. Everything else the author chose — bold, italic,
- *    alignment, size — is preserved.
+ * 2. **Reading surfaces** — strip saved background declarations, while keeping
+ *    intentional text colours and formatting. Uncoloured text inherits the
+ *    reader's theme; explicitly coloured text must match the saved note.
  */
 
 /** Style properties that hardcode a theme and must not survive into the DOM. */
 const THEME_HOSTILE_STYLE_PROPS = [
-    'color',
     'background',
     'background-color',
 ];
 
-function stripThemeColours(el: Element): void {
+function stripSavedBackgrounds(el: Element): void {
     const style = el.getAttribute('style');
     if (!style) return;
 
@@ -42,7 +37,7 @@ function stripThemeColours(el: Element): void {
 }
 
 /**
- * Returns sanitized, theme-neutral HTML.
+ * Returns sanitized HTML with authored text formatting intact.
  *
  * Returns an empty string on the server: it relies on `DOMParser`, so callers
  * should render it only after mount to avoid a hydration mismatch.
@@ -75,10 +70,11 @@ export function sanitizeHtml(html: string): string {
             }
         }
 
-        // Quill/TipTap also emit `class="ql-color-white"`-style helpers; those
-        // resolve through the editor stylesheet, which is not loaded here, so
-        // only the inline case needs handling.
-        stripThemeColours(el);
+        // Checklists in read-only cards must not appear to save local toggles.
+        if (el.tagName === 'INPUT' && el.getAttribute('type') === 'checkbox') {
+            el.setAttribute('disabled', '');
+        }
+        stripSavedBackgrounds(el);
     }
 
     return doc.body.innerHTML;

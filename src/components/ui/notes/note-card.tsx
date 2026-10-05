@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { sanitizeHtml } from '@/lib/sanitize-html';
 import Image from "next/image";
 import type { Note } from "@/types/note";
-import 'quill/dist/quill.snow.css';
+import styles from './note-rich-text.module.css';
 import { FiEdit2, FiTrash2, FiFileText, FiCheckSquare, FiBookOpen, FiUsers, FiZap, FiLink, FiCode, FiBookmark, FiEdit3, FiCheckCircle, FiUserPlus, FiLayers, FiClock, FiStar, FiMapPin, FiArchive } from "react-icons/fi";
 import { FiMaximize2, FiMinimize2 } from "react-icons/fi";
 import UserAvatarGroup from "@/components/ui/user-avatar-group";
@@ -63,11 +63,13 @@ const noteTypeColors: Record<Note['type'], string> = {
 const formatPriority = (p: Note['priority'] | undefined): string =>
   p ? p.charAt(0).toUpperCase() + p.slice(1) : '';
 
+const escapeSearch = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const TextHighlight: React.FC<{ text: string; highlight: string }> = ({ text, highlight }) => {
     if (!highlight) {
         return <>{text}</>;
     }
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    const parts = text.split(new RegExp(`(${escapeSearch(highlight)})`, 'gi'));
     return (
         <>
             {parts.map((part, i) =>
@@ -189,16 +191,23 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(sanitized, 'text/html');
-        const highlightRegex = new RegExp(`(${searchQuery})`, 'gi');
+        const highlightRegex = new RegExp(`(${escapeSearch(searchQuery)})`, 'gi');
 
         const walk = (node: Node) => {
             if (node.nodeType === Node.TEXT_NODE) {
                 const text = node.textContent || '';
-                if (highlightRegex.test(text)) {
-                    const span = document.createElement('span');
-                    span.innerHTML = text.replace(highlightRegex, '<mark class="bg-yellow-300 text-black">$1</mark>');
-                    node.parentNode?.replaceChild(span, node);
-                }
+                const parts = text.split(highlightRegex);
+                if (parts.length === 1) return;
+                const fragment = document.createDocumentFragment();
+                parts.forEach((part, index) => {
+                    if (index % 2 === 0) fragment.append(document.createTextNode(part));
+                    else {
+                        const mark = document.createElement('mark');
+                        mark.textContent = part;
+                        fragment.append(mark);
+                    }
+                });
+                node.parentNode?.replaceChild(fragment, node);
             } else {
                 Array.from(node.childNodes).forEach(walk);
             }
@@ -244,8 +253,8 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                     </div>                </div>
 
                 {/* content area now flexes and scrolls internally */}
-                <div className="ql-snow text-sm text-slate-600 dark:text-slate-400 overflow-y-auto notes-scroll flex-1">
-                    <div className="ql-editor" dangerouslySetInnerHTML={{ __html: hasMounted ? renderContent(note.content || '') : '' }} />
+                <div className="min-h-0 min-w-0 overflow-y-auto notes-scroll flex-1">
+                    <div className={styles.body} dangerouslySetInnerHTML={{ __html: hasMounted ? renderContent(note.content || '') : '' }} />
                 </div>
 
                 <div className="mt-4">
@@ -481,7 +490,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         </td>
                         <td className="px-6 py-5 text-xs text-slate-600 dark:text-slate-400 font-medium">
                         <div className="ql-snow">
-                        <div className="ql-editor !p-0 line-clamp-2" dangerouslySetInnerHTML={{ __html: hasMounted ? renderContent(note.content || '') : '' }} />
+                        <div className={`${styles.body} max-h-20 overflow-hidden`} dangerouslySetInnerHTML={{ __html: hasMounted ? renderContent(note.content || '') : '' }} />
                         </div>
                         </td>
                         <td className="px-6 py-5">

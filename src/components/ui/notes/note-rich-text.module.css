@@ -1,0 +1,49 @@
+/* Scoped to read-only notes: do not inherit the old Quill colour reset. */
+.body {
+  min-width: 0;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.body p { min-height: 1.6em; margin: 0.5rem 0; }
+.body > :first-child { margin-top: 0; }
+.body > :last-child { margin-bottom: 0; }
+.body strong, .body b { font-weight: 700; }
+.body em, .body i { font-style: italic; }
+.body u { text-decoration: underline; }
+.body s, .body del, .body strike { text-decoration: line-through; }
+.body h1, .body h2, .body h3 { margin: 1rem 0 0.5rem; line-height: 1.3; font-weight: 600; }
+.body h1 { font-size: 2rem; font-weight: 700; }
+.body h2 { font-size: 1.5rem; }
+.body h3 { font-size: 1.25rem; }
+.body ul, .body ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+.body ul { list-style: disc; }
+.body ol { list-style: decimal; }
+.body li { padding-left: 0.125rem; }
+.body li p { margin: 0; }
+.body li[data-list="bullet"] { list-style-type: disc; }
+.body li[data-list="checked"] { list-style-type: '☑  '; }
+.body li[data-list="unchecked"] { list-style-type: '☐  '; }
+.body :global(.ql-ui) { display: none; }
+.body ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+.body li[data-type="taskItem"] { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0; }
+.body li[data-type="taskItem"] > label { flex-shrink: 0; }
+.body li[data-type="taskItem"] input { pointer-events: none; accent-color: var(--pastel-blue); }
+.body li[data-type="taskItem"] > div { min-width: 0; flex: 1; }
+.body a { color: var(--pastel-indigo); text-decoration: underline; }
+.body code { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 0.875em; background: var(--input-bg); border-radius: 0.25rem; padding: 0.125rem 0.25rem; }
+.body pre, .body :global(.ql-code-block-container) { margin: 0.75rem 0; padding: 0.75rem; overflow-x: auto; white-space: pre; overflow-wrap: normal; border: 1px solid var(--card-border); border-radius: 0.5rem; background: var(--input-bg); font-family: var(--font-geist-mono), ui-monospace, monospace; }
+.body pre code { padding: 0; background: transparent; font-size: inherit; }
+.body blockquote { margin: 0.75rem 0; padding-left: 0.75rem; border-left: 3px solid var(--card-border); color: var(--text-secondary); }
+.body hr { margin: 1rem 0; border: 0; border-top: 1px solid var(--card-border); }
+.body img { max-width: 100%; height: auto; border-radius: 0.5rem; }
+.body mark { color: var(--foreground); background: color-mix(in srgb, var(--pastel-amber) 35%, var(--card-bg)); border-radius: 0.125rem; }
+.body :global(.ql-align-center) { text-align: center; }
+.body :global(.ql-align-right) { text-align: right; }
+.body :global(.ql-align-justify) { text-align: justify; }
+.body :global(.ql-indent-1) { margin-left: 1.5rem; }
+.body :global(.ql-indent-2) { margin-left: 3rem; }
+.body :global(.ql-indent-3) { margin-left: 4.5rem; }
