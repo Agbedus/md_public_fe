@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, type Variants } from 'framer-motion';
@@ -47,7 +47,11 @@ interface InvitationPreview {
 
 export default function InvitePage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  return <InvitationContent key={searchParams.toString()} />;
+}
+
+function InvitationContent() {
+  const searchParams = useSearchParams();
   const code = searchParams.get('code');
   const orgId = searchParams.get('org');
   const token = searchParams.get('token');
@@ -62,6 +66,7 @@ export default function InvitePage() {
   const [sessionEmail, setSessionEmail] = useState('');
   const [preview, setPreview] = useState<InvitationPreview | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
   const autoJoinStarted = useRef(false);
 
   const inviteQuery = new URLSearchParams();
@@ -79,38 +84,52 @@ export default function InvitePage() {
   if (token) loginParams.set('invitationToken', token);
   const loginHref = `/login?${loginParams.toString()}`;
   const switchAccountHref = `/logout?next=${encodeURIComponent(loginHref)}`;
-  const shouldRouteToLogin = Boolean(token && preview?.account_exists && authChecked && !isLoggedIn);
+  const shouldRouteToLogin = Boolean(token && preview?.account_exists && authChecked && !isLoggedIn && !error);
   const shouldAutoAccept = Boolean(
     authChecked && isLoggedIn && isCorrectAccount && orgInfo && !error,
   );
 
   useEffect(() => {
-    fetch('/api/auth/session')
-      .then(r => r.json())
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15_000);
+    let active = true;
+    fetch('/api/auth/session', { cache: 'no-store', signal: controller.signal })
+      .then(r => { if (!r.ok) throw new Error('Session check failed'); return r.json(); })
       .then(session => {
+        if (!active) return;
         setIsLoggedIn(!!session?.user?.id);
         setSessionEmail(session?.user?.email || '');
         setAuthChecked(true);
       })
       .catch(() => {
+        if (!active) return;
+        setError('We could not check your sign-in status. Please try again.');
         setAuthChecked(true);
-      });
+      })
+      .finally(() => window.clearTimeout(timeout));
+    return () => { active = false; controller.abort(); window.clearTimeout(timeout); };
   }, []);
 
   useEffect(() => {
     if (!code && !token) return;
+    let active = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15_000);
 
     const fetchOrg = async () => {
       try {
         const endpoint = token
           ? `${API_BASE_URL}/invitations/preview/${encodeURIComponent(token)}`
           : `${API_BASE_URL}/organizations/by-invite/${encodeURIComponent(code || '')}`;
-        const res = await fetch(endpoint, { cache: 'no-store' });
+        const res = await fetch(endpoint, { cache: 'no-store', signal: controller.signal });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           throw new Error(body.detail || 'Invalid or expired invite code');
         }
         const data = await res.json();
+        if (!active) return;
+        const organization = token ? data.organization : data;
+        if (!organization?.name) throw new Error('The invitation did not return a valid workspace. Please try again.');
         if (token) {
           setPreview(data);
           setOrgInfo(data.organization);
@@ -118,40 +137,59 @@ export default function InvitePage() {
           setOrgInfo(data);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to verify invite code');
+        if (active) setError(err instanceof TypeError
+          ? 'We couldn’t reach the server to check your invitation. Please try again.'
+          : err instanceof Error && err.name !== 'AbortError'
+            ? err.message
+            : 'Checking your invitation took too long. Please try again.');
       } finally {
-        setLoading(false);
+        window.clearTimeout(timeout);
+        if (active) setLoading(false);
       }
     };
 
     fetchOrg();
+    return () => { active = false; controller.abort(); window.clearTimeout(timeout); };
   }, [code, token]);
 
   useEffect(() => {
     if (!shouldRouteToLogin) return;
-    router.replace(loginHref);
-  }, [loginHref, router, shouldRouteToLogin]);
+    // Auth transitions use a fresh document, avoiding stale router/session caches.
+    window.location.replace(loginHref);
+  }, [loginHref, shouldRouteToLogin]);
+
+  useEffect(() => {
+    if (error || !(loading || !authChecked || shouldRouteToLogin || shouldAutoAccept)) return;
+    const timeout = window.setTimeout(() => {
+      setError('Opening your workspace is taking longer than expected. Please try again. If you already joined, retrying will simply open it.');
+    }, 30_000);
+    return () => window.clearTimeout(timeout);
+  }, [authChecked, error, loading, shouldAutoAccept, shouldRouteToLogin]);
 
   useEffect(() => {
     if (loading || !shouldAutoAccept || !orgInfo || autoJoinStarted.current) return;
     autoJoinStarted.current = true;
     const accept = async () => {
-      const result = token ? await acceptOrganizationInvitation(token) : await joinOrganizationByInvite(code || '');
-      if (result.success) {
-        toast.success(preview?.already_member || preview?.invitation_status === 'accepted'
-          ? `${orgInfo.name} is ready.`
-          : `You have joined ${orgInfo.name}!`);
-        const destinationSlug = 'slug' in result ? result.slug : undefined;
-        router.replace(destinationSlug ? `/${destinationSlug}/dashboard` : '/dashboard');
-        router.refresh();
-      } else {
-        const message = result.error || 'Failed to join organization';
-        setError(message);
-        toast.error(message);
+      try {
+        const result = token ? await acceptOrganizationInvitation(token) : await joinOrganizationByInvite(code || '');
+        if (result.success) {
+          toast.success(preview?.already_member || preview?.invitation_status === 'accepted'
+            ? `${orgInfo.name} is ready.`
+            : `You have joined ${orgInfo.name}!`);
+          const destinationSlug = 'slug' in result ? result.slug : undefined;
+          window.location.replace(destinationSlug ? `/${destinationSlug}/dashboard` : '/dashboard');
+        } else {
+          setNeedsSignIn(Boolean(result.needsSignIn));
+          const message = result.error || 'Failed to join organization';
+          setError(message);
+          toast.error(message);
+        }
+      } catch {
+        setError('We could not finish opening your workspace. Please try again.');
       }
     };
     void accept();
-  }, [code, loading, orgInfo, preview?.already_member, preview?.invitation_status, router, shouldAutoAccept, token]);
+  }, [code, loading, orgInfo, preview?.already_member, preview?.invitation_status, shouldAutoAccept, token]);
 
   return (
     <main className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background isolate">
@@ -180,7 +218,7 @@ export default function InvitePage() {
           </Link>
         </motion.div>
 
-        {loading || !authChecked || shouldRouteToLogin || shouldAutoAccept ? (
+        {!error && (loading || !authChecked || shouldRouteToLogin || shouldAutoAccept) ? (
           <motion.div variants={item as Variants} className="flex flex-col items-center gap-4 py-12">
             <FiLoader className="w-8 h-8 text-indigo-400 animate-spin" />
             <p className="text-sm text-text-muted">
@@ -197,16 +235,15 @@ export default function InvitePage() {
               <FiAlertCircle className="w-8 h-8 text-rose-400" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-xl font-semibold text-foreground">Invite Not Found</h1>
+              <h1 className="text-xl font-semibold text-foreground">We couldn’t open your invitation</h1>
               <p className="text-sm text-text-muted">{error}</p>
             </div>
             <div className="space-y-3 pt-2">
-              <Link
-                href="/register"
-                className="block w-full text-center px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all"
-              >
-                Create an account instead
-              </Link>
+              {needsSignIn ? (
+                <Link href={switchAccountHref} className="block min-h-11 w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-500">Sign in again and join</Link>
+              ) : hasInvitation ? (
+                <button type="button" onClick={() => window.location.reload()} className="block min-h-11 w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-500">Try again</button>
+              ) : null}
               <Link
                 href="/"
                 className="block w-full text-center text-sm text-text-muted hover:text-foreground transition-colors"

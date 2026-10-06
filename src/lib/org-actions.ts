@@ -256,13 +256,17 @@ export async function getWorkspaceOnboardingStatus(orgId: string): Promise<Works
   } catch { return empty; }
 }
 
-export async function acceptOrganizationInvitation(token: string): Promise<{ success: boolean; error?: string; slug?: string }> {
+export async function acceptOrganizationInvitation(token: string): Promise<{ success: boolean; error?: string; slug?: string; needsSignIn?: boolean }> {
   try {
+    const headers = await getSessionHeaders();
+    if (!headers.Authorization) return { success: false, needsSignIn: true, error: 'Please sign in again to accept this invitation.' };
     const response = await fetch(`${API_BASE_URL}/invitations/accept/${encodeURIComponent(token)}`, {
-      method: 'POST', headers: await getSessionHeaders(), cache: 'no-store',
+      method: 'POST', headers, cache: 'no-store', signal: AbortSignal.timeout(15_000),
     });
     const body = await response.json().catch(() => ({}));
+    if (response.status === 401) return { success: false, needsSignIn: true, error: 'Your session has expired. Please sign in again to join this workspace.' };
     if (!response.ok) return { success: false, error: body.detail || 'Could not accept the invitation.' };
+    if (!body.organization_id || !body.slug) return { success: false, error: 'The workspace could not be opened. Please try the invitation again.' };
     const cookieStore = await cookies();
     cookieStore.set('current_organization_id', body.organization_id, { path: '/', maxAge: 31536000, sameSite: 'lax' });
     cookieStore.set('org_slug', body.slug, { path: '/', maxAge: 31536000, sameSite: 'lax' });
@@ -275,7 +279,10 @@ export async function acceptOrganizationInvitation(token: string): Promise<{ suc
     updateTag('organizations');
     revalidatePath('/', 'layout');
     return { success: true, slug: body.slug };
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      return { success: false, error: 'Joining is taking longer than expected. Please try again; an already accepted invitation will not add you twice.' };
+    }
     return { success: false, error: 'Could not connect to the server.' };
   }
 }
@@ -388,10 +395,10 @@ export async function getOrgMembersCount(orgId: string): Promise<number> {
  * Join an organization via invite code.
  * Only works for users who already have an account (are logged in).
  */
-export async function joinOrganizationByInvite(inviteCode: string): Promise<ActionResult & { slug?: string }> {
+export async function joinOrganizationByInvite(inviteCode: string): Promise<ActionResult & { slug?: string; needsSignIn?: boolean }> {
   const session = await auth();
   if (!session?.user?.accessToken) {
-    return { success: false, error: 'You must be logged in to join an organization.' };
+    return { success: false, needsSignIn: true, error: 'You must be logged in to join an organization.' };
   }
 
   const headers = await getSessionHeaders();
@@ -400,7 +407,10 @@ export async function joinOrganizationByInvite(inviteCode: string): Promise<Acti
     const res = await fetch(`${API_BASE_URL}/organizations/join/${encodeURIComponent(inviteCode)}`, {
       method: 'POST',
       headers,
+      signal: AbortSignal.timeout(15_000),
     });
+
+    if (res.status === 401) return { success: false, needsSignIn: true, error: 'Your session has expired. Please sign in again.' };
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));

@@ -30,6 +30,7 @@ to `http://127.0.0.1:8000`.
 ## Product areas
 
 - Multi-organization registration, invitations, membership, and workspace switching
+  - Invitation callbacks check a non-cacheable identity-only `/api/auth/session` endpoint. Session-check errors are shown for retry, not treated as sign-out; preview/acceptance requests have 15-second limits and navigation has a 30-second recovery watchdog. Matching signed-in users accept without another login; expired API sessions offer clean reauthentication. Successful acceptance opens a fresh dashboard document with current workspace cookies/session data.
 - Projects, tasks, kanban workflows, notes, calendar events, and time tracking
   - Note-sharing selectors are click-open body portals anchored to their own card/table button, with viewport flipping, outside-click/Escape dismissal and clear selection states. Empty member lists explain why nobody can be selected; failed shares keep the selected member for retry instead of closing the menu.
   - Read-only note cards preserve authored colours, emphasis, headings, lists/checklists, quotes and code blocks in collapsed/expanded grid cards and table previews. Their scoped rich-text styles support TipTap and legacy Quill markup without changing saved HTML; only uncoloured text follows the reader's theme.
@@ -43,6 +44,12 @@ to `http://127.0.0.1:8000`.
 - Attributed social sharing through major platforms, native share, copy, and QR code
 
 ## Interaction feedback
+
+Invitation session regression: start a dedicated local server with
+`AUTH_TRUST_HOST=true AUTH_URL=http://localhost:3012 AUTH_SECRET=<test-only-secret> npm start -- --port 3012`
+after building, then run
+`INVITATION_TEST_AUTH_SECRET=<same-test-only-secret> node tests/invitation-session.integration.mjs`.
+The test is restricted to localhost and uses synthetic sessions, never real accounts.
 
 User-initiated create, update, and delete flows provide immediate success or error
 feedback through the shared toast system. Destructive actions use the compact,
