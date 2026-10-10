@@ -37,7 +37,7 @@ import {
   createOptimisticNote,
   updateOptimisticNote,
 } from "@/lib/optimistic-utils";
-import { optimisticListRevalidate } from "@/lib/optimistic-swr";
+import { optimisticList, replaceById } from "@/lib/optimistic-swr";
 import { toast } from "@/lib/toast";
 import { useConfirm } from "@/providers/confirmation-provider";
 import { canModifyRecord } from "@/lib/org-permissions";
@@ -86,11 +86,20 @@ const noteTypeColors: Record<Note["type"], string> = {
 
 import NotesLoading from "@/app/(dashboard)/[orgSlug]/notes/loading";
 
+type ShareableUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+};
+
 export default function NotesPageClient({
-  allNotes: initialNotes = [],
+  allNotes: initialNotes,
+  users: initialUsers,
   currentUser,
 }: {
   allNotes?: Note[];
+  users?: ShareableUser[];
   currentUser?: any;
 }) {
   // Org admins may edit any note; everyone else — MANAGER included, who now
@@ -104,11 +113,13 @@ export default function NotesPageClient({
   const {
     notes: serverNotes,
     mutate,
-    isLoading: notesLoading,
+    hasData,
+    error: notesError,
   } = useNotes({ initialNotes });
 
-  // Only show skeleton if we have no data and are loading
-  const isLoading = notesLoading && serverNotes.length === 0;
+  // Show the skeleton only while there is genuinely nothing to render. An empty
+  // list is data: a workspace with no notes shows its empty state.
+  const isLoading = !hasData && !notesError;
 
   // Optimistic UI is driven by SWR's `optimisticData` in the handlers below, so
   // the rendered list is simply whatever SWR currently holds.
@@ -133,20 +144,25 @@ export default function NotesPageClient({
     });
   };
 
-  const [availableUsers, setAvailableUsers] = useState<
-    {
-      id: string;
-      name: string | null;
-      email: string | null;
-      image: string | null;
-    }[]
-  >([]);
+  const [availableUsers, setAvailableUsers] = useState<ShareableUser[]>(
+    initialUsers ?? [],
+  );
   const [tasks, setTasks] = useState<Task[]>([]);
+  const tasksRequested = useRef(false);
 
+  // The page renders users on the server; only fetch them when it did not.
   useEffect(() => {
+    if (initialUsers) return;
     getUsers().then(setAvailableUsers);
+  }, [initialUsers]);
+
+  // Tasks only feed the modal's "link to task" picker, so load them the first
+  // time the modal opens instead of on every visit to the page.
+  useEffect(() => {
+    if (!isModalOpen || tasksRequested.current) return;
+    tasksRequested.current = true;
     getTasks().then(setTasks);
-  }, []);
+  }, [isModalOpen]);
 
   const handleModalSave = async (formData: FormData) => {
     setErrorMsg(null);
@@ -166,13 +182,14 @@ export default function NotesPageClient({
 
       try {
         await mutate(
-          async () => {
+          async (current) => {
             const result = await updateNote(formData);
             if (!result?.success)
               throw new Error(result?.error || "Failed to update note");
-            return undefined;
+            const saved = result.data;
+            return (current ?? []).map((n) => (n.id === id ? saved : n));
           },
-          optimisticListRevalidate<Note>((list) =>
+          optimisticList<Note>((list) =>
             list.map((n) => (n.id === id ? updatedNote : n)),
           ),
         );
@@ -187,13 +204,13 @@ export default function NotesPageClient({
 
       try {
         await mutate(
-          async () => {
+          async (current) => {
             const result = await createNote(formData);
             if (!result?.success)
               throw new Error(result?.error || "Failed to create note");
-            return undefined;
+            return replaceById(current ?? [], newNote.id, result.data);
           },
-          optimisticListRevalidate<Note>((list) => [newNote, ...list]),
+          optimisticList<Note>((list) => [newNote, ...list]),
         );
         toast.success("Note created");
       } catch (err) {
@@ -218,13 +235,14 @@ export default function NotesPageClient({
 
       try {
         await mutate(
-          async () => {
+          async (current) => {
             const result = await updateNote(formData);
             if (!result?.success)
               throw new Error(result?.error || "Update failed");
-            return undefined;
+            const saved = result.data;
+            return (current ?? []).map((n) => (n.id === id ? saved : n));
           },
-          optimisticListRevalidate<Note>((list) =>
+          optimisticList<Note>((list) =>
             list.map((n) => (n.id === id ? updatedNote : n)),
           ),
         );

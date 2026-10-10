@@ -29,6 +29,11 @@ export function useNotes({ initialNotes, limit = 100 }: UseNotesProps = {}) {
 
     return {
         notes: data || [],
+        // True once there is something to render — server-provided fallback or
+        // fetched data, even an empty list. Gate skeletons on this rather than
+        // `isLoading`: SWR reports `isLoading` until its own first fetch lands,
+        // which says nothing about whether the page already has data to show.
+        hasData: data !== undefined,
         isLoading,
         isValidating,
         error,

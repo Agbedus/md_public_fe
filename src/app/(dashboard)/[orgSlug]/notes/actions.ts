@@ -11,7 +11,6 @@ import type { ActionResult } from '@/types/api';
 const BASE_URL = process.env.BASE_URL_LOCAL || process.env.BASE_URL_PRODUCTION || "http://127.0.0.1:8000";
 const API_BASE_URL = `${BASE_URL}/api/v1`;
 
-import { revalidateTag } from 'next/cache';
 import { getUsersSafe } from '@/app/(dashboard)/[orgSlug]/users/actions';
 
 interface HydratedUser {
@@ -73,6 +72,74 @@ function mapApiNote(p: ApiNote): Note {
     };
 }
 
+/** Map an API note and attach owner / shared-with profiles from the org's users. */
+function hydrateNote(apiNote: ApiNote, users: HydratedUser[]): Note {
+  const note = mapApiNote(apiNote);
+  
+  // Hydrate Owner
+  const owner = (users as HydratedUser[]).find(u => u.id === note.user_id);
+  if (owner) {
+    note.owner = {
+      id: owner.id,
+      name: owner.name,
+      full_name: owner.full_name,
+      image: owner.image,
+      avatar_url: owner.avatar_url,
+      email: owner.email
+    };
+  }
+
+  // Hydrate Shared With
+  if (apiNote.shared_with && apiNote.shared_with.length > 0) {
+    note.shared_with = apiNote.shared_with.map(shUser => {
+      // If it's already an object with an ID, check if it has the required fields
+      if (typeof shUser !== 'string' && shUser.id) {
+        // Find in hydrated users to get full data if missing
+        const u = (users as HydratedUser[]).find(user => user.id === String(shUser.id));
+        if (u) {
+          return {
+            id: u.id,
+            name: u.name,
+            full_name: u.full_name,
+            image: u.image,
+            avatar_url: u.avatar_url,
+            email: u.email
+          };
+        }
+        // If not found in users list, return the object as is (mapped to Note structure)
+        return {
+          id: String(shUser.id),
+          name: shUser.name || shUser.full_name,
+          full_name: shUser.full_name,
+          image: shUser.image || shUser.avatar_url,
+          avatar_url: shUser.avatar_url,
+          email: shUser.email
+        };
+      }
+
+      // If it's a string (name, email, or ID), find by those fields
+      const shIdentifier = String(shUser);
+      const u = (users as HydratedUser[]).find(user => 
+        user.id === shIdentifier ||
+        user.name === shIdentifier || 
+        user.full_name === shIdentifier || 
+        user.email === shIdentifier
+      );
+
+      return u ? {
+        id: u.id,
+        name: u.name,
+        full_name: u.full_name,
+        image: u.image,
+        avatar_url: u.avatar_url,
+        email: u.email
+      } : shIdentifier;
+    });
+  }
+
+  return note;
+}
+
 
 export const getNotes = cache(async function(limit?: number, skip?: number): Promise<Note[]> {
 
@@ -90,7 +157,10 @@ export const getNotes = cache(async function(limit?: number, skip?: number): Pro
       fetch(`${API_BASE_URL}/notes?${limit ? `limit=${limit}` : ''}${skip ? `&skip=${skip}` : ''}`, {
         method: 'GET',
         headers: { ...(await getSessionHeaders())! },
-        next: { tags: ['notes'], revalidate: 60 }
+        // Per-user data that realtime pushes refetch on demand. A data-cache
+        // entry here (tag-revalidated stale-while-revalidate) handed the first
+        // refetch after a change the pre-change list.
+        cache: 'no-store',
       }),
       getUsersSafe()
     ]);
@@ -107,72 +177,7 @@ export const getNotes = cache(async function(limit?: number, skip?: number): Pro
     const apiNotes: ApiNote[] = await notesRes.json();
 
 
-    return apiNotes.map(apiNote => {
-      const note = mapApiNote(apiNote);
-      
-      // Hydrate Owner
-      const owner = (users as HydratedUser[]).find(u => u.id === note.user_id);
-      if (owner) {
-        note.owner = {
-          id: owner.id,
-          name: owner.name,
-          full_name: owner.full_name,
-          image: owner.image,
-          avatar_url: owner.avatar_url,
-          email: owner.email
-        };
-      }
-
-      // Hydrate Shared With
-      if (apiNote.shared_with && apiNote.shared_with.length > 0) {
-        note.shared_with = apiNote.shared_with.map(shUser => {
-          // If it's already an object with an ID, check if it has the required fields
-          if (typeof shUser !== 'string' && shUser.id) {
-            // Find in hydrated users to get full data if missing
-            const u = (users as HydratedUser[]).find(user => user.id === String(shUser.id));
-            if (u) {
-              return {
-                id: u.id,
-                name: u.name,
-                full_name: u.full_name,
-                image: u.image,
-                avatar_url: u.avatar_url,
-                email: u.email
-              };
-            }
-            // If not found in users list, return the object as is (mapped to Note structure)
-            return {
-              id: String(shUser.id),
-              name: shUser.name || shUser.full_name,
-              full_name: shUser.full_name,
-              image: shUser.image || shUser.avatar_url,
-              avatar_url: shUser.avatar_url,
-              email: shUser.email
-            };
-          }
-
-          // If it's a string (name, email, or ID), find by those fields
-          const shIdentifier = String(shUser);
-          const u = (users as HydratedUser[]).find(user => 
-            user.id === shIdentifier ||
-            user.name === shIdentifier || 
-            user.full_name === shIdentifier || 
-            user.email === shIdentifier
-          );
-
-          return u ? {
-            id: u.id,
-            name: u.name,
-            full_name: u.full_name,
-            image: u.image,
-            avatar_url: u.avatar_url,
-            email: u.email
-          } : shIdentifier;
-        });
-      }
-
-      return note;
-    });
+    return apiNotes.map(apiNote => hydrateNote(apiNote, users as HydratedUser[]));
   } catch (error) {
     console.error("Error fetching notes:", error);
     return [];
@@ -183,7 +188,7 @@ export async function getUsers() {
     return getUsersSafe();
 }
 
-export async function createNote(formData: FormData): Promise<ActionResult> {
+export async function createNote(formData: FormData): Promise<ActionResult<Note>> {
   const session = await auth();
   if (!session?.user?.accessToken) return { success: false, error: "Unauthorized" };
 
@@ -216,18 +221,24 @@ export async function createNote(formData: FormData): Promise<ActionResult> {
         return { success: false, error: "Failed to create note" };
     }
 
+    // Hand back the saved record so the client can write it into its cache
+    // instead of refetching the whole list.
+    const [apiNote, users] = await Promise.all([
+      response.json() as Promise<ApiNote>,
+      getUsersSafe(),
+    ]);
+
     safeRevalidate(() => {
         revalidatePath('/[orgSlug]/notes', 'page');
-        revalidateTag('notes', 'max');
     }, 'notes mutation');
-    return { success: true };
+    return { success: true, data: hydrateNote(apiNote, users as HydratedUser[]) };
   } catch (error) {
     console.error("Error creating note:", error);
     return { success: false, error: "Failed to create note" };
   }
 }
 
-export async function updateNote(formData: FormData): Promise<ActionResult> {
+export async function updateNote(formData: FormData): Promise<ActionResult<Note>> {
   const session = await auth();
   if (!session?.user?.accessToken) return { success: false, error: "Unauthorized" };
 
@@ -273,11 +284,12 @@ export async function updateNote(formData: FormData): Promise<ActionResult> {
         return { success: false, error: "Failed to update note" };
     }
 
+    const users = await getUsersSafe();
+
     safeRevalidate(() => {
         revalidatePath('/[orgSlug]/notes', 'page');
-        revalidateTag('notes', 'max');
     }, 'notes mutation');
-    return { success: true };
+    return { success: true, data: hydrateNote(JSON.parse(responseText) as ApiNote, users as HydratedUser[]) };
   } catch (error) {
     console.error("Error updating note:", error);
     return { success: false, error: "Failed to update note" };
@@ -307,7 +319,6 @@ export async function deleteNote(formData: FormData): Promise<ActionResult> {
 
     safeRevalidate(() => {
         revalidatePath('/[orgSlug]/notes', 'page');
-        revalidateTag('notes', 'max');
     }, 'notes mutation');
     return { success: true };
   } catch (error) {
@@ -339,7 +350,6 @@ export async function toggleNoteFlag(noteId: number, field: 'is_pinned' | 'is_fa
 
     safeRevalidate(() => {
         revalidatePath('/[orgSlug]/notes', 'page');
-        revalidateTag('notes', 'max');
     }, 'notes mutation');
     return { success: true };
   } catch (error) {
@@ -373,7 +383,6 @@ export async function shareNote(formData: FormData): Promise<ActionResult> {
 
     safeRevalidate(() => {
         revalidatePath('/[orgSlug]/notes', 'page');
-        revalidateTag('notes', 'max');
     }, 'notes mutation');
     return { success: true };
   } catch (error) {
