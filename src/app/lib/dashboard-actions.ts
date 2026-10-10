@@ -12,7 +12,7 @@ import {
     getTeamAttendanceToday 
 } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
 import { cache } from 'react';
-import { format, startOfWeek, endOfWeek, subWeeks, subDays, isSameDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, subWeeks, subDays, addDays, isSameDay } from 'date-fns';
 import type { AttendanceRecord } from '@/types/attendance';
 import type { User } from '@/types/user';
 import type { Task } from '@/types/task';
@@ -92,8 +92,11 @@ export async function getSummaryStats() {
         return format(date, 'yyyy-MM-dd');
     });
 
-    const getTrendData = (items: { [key: string]: unknown }[], dateField: string) => {
-        return last7Days.map(day => 
+    // The coming week, for the Upcoming card: events per day from today on.
+    const next7Days = Array.from({ length: 7 }, (_, i) => format(addDays(now, i), 'yyyy-MM-dd'));
+
+    const getTrendData = (items: { [key: string]: unknown }[], dateField: string, days: string[] = last7Days) => {
+        return days.map(day => 
             items.filter(item => {
                 const val = item[dateField];
                 return val && format(new Date(val as string), 'yyyy-MM-dd') === day;
@@ -116,6 +119,7 @@ export async function getSummaryStats() {
             tasks: getTrendData(tasks as unknown as { [key: string]: unknown }[], 'createdAt'),
             completions: getTrendData(completedTasks as unknown as { [key: string]: unknown }[], 'updatedAt'),
             events: getTrendData(events as unknown as { [key: string]: unknown }[], 'start'),
+            upcoming: getTrendData(events as unknown as { [key: string]: unknown }[], 'start', next7Days),
             notes: getTrendData(notes as unknown as { [key: string]: unknown }[], 'created_at'),
             users: getTrendData(users as unknown as { [key: string]: unknown }[], 'created_at')
         }
@@ -279,7 +283,9 @@ export async function getTimeAllocationData() {
         { name: 'Low Priority', value: lowPriority },
     ];
     const cleanTimeAllocationData = nav.filter(d => d.value > 0);
-    return cleanTimeAllocationData.length > 0 ? cleanTimeAllocationData : [{name: 'No Tasks', value: 1}];
+    // Empty when there are no tasks; the chart shows an empty state rather
+    // than a placeholder slice that would draw as a full ring.
+    return cleanTimeAllocationData;
 }
 
 export async function getKeyTasks() {

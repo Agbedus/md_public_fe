@@ -2,8 +2,13 @@
 
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { ChartEmpty } from './chart-empty';
 
 const ProjectProgressChart = ({ data }: { data: Array<{ name: string; progress: number; total: number; completed: number }> }) => {
+  if (data.length === 0) {
+    return <ChartEmpty message="No projects yet. Their progress appears here." actionLabel="Create a project" actionHref="projects" />;
+  }
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart

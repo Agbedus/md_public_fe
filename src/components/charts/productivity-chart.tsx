@@ -2,19 +2,26 @@
 
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ChartEmpty } from './chart-empty';
 
 const ProductivityChart = ({ data }: { data: Array<{ name: string; productivity: number; previousProductivity?: number }> }) => {
+  if (!data.some((d) => d.productivity > 0 || (d.previousProductivity ?? 0) > 0)) {
+    return <ChartEmpty message="No tasks were completed in this period." actionLabel="Open tasks" actionHref="tasks" />;
+  }
+
+  // The current period is the series to read, in the brand accent; the
+  // previous one is a quiet dashed reference line in the axis colour.
   return (
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
         <defs>
           <linearGradient id="colorProductivity" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--pastel-indigo)" stopOpacity={0.3}/>
-            <stop offset="95%" stopColor="var(--pastel-indigo)" stopOpacity={0}/>
+            <stop offset="5%" stopColor="var(--pastel-emerald)" stopOpacity={0.3}/>
+            <stop offset="95%" stopColor="var(--pastel-emerald)" stopOpacity={0}/>
           </linearGradient>
           <linearGradient id="colorPrevious" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--pastel-indigo)" stopOpacity={0.3}/>
-            <stop offset="95%" stopColor="var(--pastel-indigo)" stopOpacity={0}/>
+            <stop offset="5%" stopColor="var(--chart-axis)" stopOpacity={0.08}/>
+            <stop offset="95%" stopColor="var(--chart-axis)" stopOpacity={0}/>
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
@@ -37,7 +44,7 @@ const ProductivityChart = ({ data }: { data: Array<{ name: string; productivity:
             name="Previous Period"
             type="monotone" 
             dataKey="previousProductivity" 
-            stroke="var(--pastel-indigo)" 
+            stroke="var(--chart-axis)" 
             fill="url(#colorPrevious)"
             strokeWidth={2} 
             strokeDasharray="5 5"
@@ -47,10 +54,10 @@ const ProductivityChart = ({ data }: { data: Array<{ name: string; productivity:
             name="Current Period"
             type="monotone" 
             dataKey="productivity" 
-            stroke="var(--pastel-indigo)" 
+            stroke="var(--pastel-emerald)" 
             fill="url(#colorProductivity)"
             strokeWidth={3} 
-            dot={{ r: 4, fill: 'var(--pastel-indigo)', strokeWidth: 2, stroke: 'var(--background)' }} 
+            dot={{ r: 4, fill: 'var(--pastel-emerald)', strokeWidth: 2, stroke: 'var(--background)' }} 
             activeDot={{ r: 6, strokeWidth: 0 }} 
         />
       </AreaChart>

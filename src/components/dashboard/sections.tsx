@@ -86,12 +86,20 @@ const AvatarGroup = ({ users, total }: { users: any[], total: number }) => {
 export async function SummaryStatsSection() {
     const stats = await getSummaryStats();
     
-    const statCards = [
-        { label: 'Total Users', value: stats.totalUsers, icon: FiUsers, color: 'text-[var(--pastel-blue)]', bg: 'bg-[var(--pastel-blue)]/10', users: stats.users, trend: stats.trends.users },
-        { label: 'Total Tasks', value: stats.totalTasks, icon: FiCheckSquare, color: 'text-[var(--pastel-purple)]', bg: 'bg-[var(--pastel-purple)]/10', trend: stats.trends.tasks },
-        { label: 'Completed', value: stats.completedTasks, icon: FiCheckCircle, color: 'text-[var(--pastel-emerald)]', bg: 'bg-[var(--pastel-emerald)]/10', trend: stats.trends.completions },
-        { label: 'Team Active', value: stats.attendance.teamActiveCount, icon: FiActivity, color: 'text-[var(--pastel-teal)]', bg: 'bg-[var(--pastel-teal)]/10', trend: stats.trends.events },
-        { label: 'Upcoming', value: stats.upcomingEvents, icon: FiCalendar, color: 'text-[var(--pastel-rose)]', bg: 'bg-[var(--pastel-rose)]/10', trend: stats.trends.events },
+    // `trend` is a per-day count drawn as the sparkline. `weekly` is the
+    // chip: how many of these happened in the last 7 days, taken from the same
+    // counts. Cards with no history behind them (attendance is a live
+    // snapshot) get neither rather than a borrowed series.
+    const sum = (days: number[]) => days.reduce((total, n) => total + n, 0);
+    const statCards: {
+        label: string; value: number; icon: typeof FiUsers; color: string; bg: string;
+        users?: typeof stats.users; trend?: number[]; weekly?: number;
+    }[] = [
+        { label: 'Total users', value: stats.totalUsers, icon: FiUsers, color: 'text-[var(--pastel-blue)]', bg: 'bg-[var(--pastel-blue)]/10', users: stats.users },
+        { label: 'Total tasks', value: stats.totalTasks, icon: FiCheckSquare, color: 'text-[var(--pastel-purple)]', bg: 'bg-[var(--pastel-purple)]/10', trend: stats.trends.tasks, weekly: sum(stats.trends.tasks) },
+        { label: 'Completed', value: stats.completedTasks, icon: FiCheckCircle, color: 'text-[var(--pastel-emerald)]', bg: 'bg-[var(--pastel-emerald)]/10', trend: stats.trends.completions, weekly: sum(stats.trends.completions) },
+        { label: 'Team active', value: stats.attendance.teamActiveCount, icon: FiActivity, color: 'text-[var(--pastel-teal)]', bg: 'bg-[var(--pastel-teal)]/10' },
+        { label: 'Upcoming', value: stats.upcomingEvents, icon: FiCalendar, color: 'text-[var(--pastel-rose)]', bg: 'bg-[var(--pastel-rose)]/10', trend: stats.trends.upcoming },
     ];
 
     return (
@@ -107,10 +115,10 @@ export async function SummaryStatsSection() {
                         </div>
                         {stat.users ? (
                             <AvatarGroup users={stat.users} total={stat.value} />
-                        ) : (
+                        ) : stat.trend && (
                             <div className="h-8 w-20 opacity-60 group-hover:opacity-100 transition-opacity">
                                 <Sparkline 
-                                    data={stat.trend || [0, 0, 0, 0, 0, 0, 0]} 
+                                    data={stat.trend} 
                                     color={stat.color.match(/\[(.*?)\]/)?.[1] || "#6366f1"}
                                     width={80}
                                     height={32}
@@ -119,14 +127,14 @@ export async function SummaryStatsSection() {
                         )}
                     </div>
                     <div className="mt-2 lg:mt-4">
-                        <p className="text-[11px] lg:text-[11px] text-(--text-muted) font-bold uppercase tracking-tight mb-0.5 lg:mb-1">{stat.label}</p>
+                        <p className="text-xs text-(--text-muted) font-medium mb-0.5 lg:mb-1">{stat.label}</p>
                         <div className="flex items-baseline justify-between">
                             <p className="text-xl lg:text-3xl font-bold font-numbers text-foreground leading-none">{stat.value}</p>
-                            {i !== 0 && (
-                                <div className={`text-[11px] lg:text-[11px] font-bold font-numbers ${stat.color} bg-foreground/[0.03] px-1.5 py-0.5 rounded-full`}>
-                                   +{(i * 7 + 4) % 15}%
+                            {stat.weekly ? (
+                                <div className={`text-[11px] lg:text-[11px] font-bold font-numbers ${stat.color} bg-foreground/[0.03] px-1.5 py-0.5 rounded-full whitespace-nowrap`}>
+                                   +{stat.weekly} this week
                                 </div>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 </div>
@@ -152,7 +160,7 @@ export async function UserStatSection() {
             <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
                 <div>
                     <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">People</h2>
-                    <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Summary</p>
+                    <p className="text-xs text-(--text-muted) font-medium mt-0.5">Summary</p>
                 </div>
                 <div className="p-2 rounded-xl bg-[var(--pastel-purple)]/10">
                     <FiCpu className="text-sm text-[var(--pastel-purple)]" />
@@ -162,18 +170,18 @@ export async function UserStatSection() {
             <div className="flex-1 flex flex-col justify-center space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 rounded-2xl bg-foreground/[0.03] border border-card-border">
-                        <p className="text-[9px] text-(--text-muted) font-black uppercase tracking-widest mb-1">Total Notes</p>
+                        <p className="text-xs text-(--text-muted) font-medium mb-1">Total notes</p>
                         <p className="text-2xl font-black font-numbers text-foreground">{stats.totalNotes}</p>
                     </div>
                     <div className="p-3 rounded-2xl bg-foreground/[0.03] border border-card-border">
-                        <p className="text-[9px] text-(--text-muted) font-black uppercase tracking-widest mb-1">Total Tasks</p>
+                        <p className="text-xs text-(--text-muted) font-medium mb-1">Total tasks</p>
                         <p className="text-2xl font-black font-numbers text-foreground">{stats.totalTasks}</p>
                     </div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-foreground/[0.03] border border-card-border">
                     <div className="flex items-center justify-between mb-2">
-                        <p className="text-[9px] text-(--text-muted) font-black uppercase tracking-widest">Completion Rate</p>
+                        <p className="text-xs text-(--text-muted) font-medium">Completion rate</p>
                         <span className="text-xs font-bold font-numbers text-[var(--pastel-emerald)]">
                             {stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0}%
                         </span>
@@ -189,7 +197,7 @@ export async function UserStatSection() {
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-[var(--pastel-blue)]/5 border border-[var(--pastel-blue)]/10">
                     <div className="flex items-center gap-2">
                         <FiTarget className="text-[var(--pastel-blue)]" />
-                        <span className="text-[10px] text-foreground font-bold uppercase tracking-widest">Active Projects</span>
+                        <span className="text-xs text-foreground font-medium">Active projects</span>
                     </div>
                     <span className="text-sm font-black font-numbers text-foreground">{stats.totalProjects}</span>
                 </div>
@@ -229,7 +237,7 @@ export async function StatsOverviewSection() {
       </h2>
       <div className="flex-1 min-h-0 space-y-6 overflow-y-auto pr-1 custom-scrollbar">
         <div>
-          <h3 className="text-[10px] font-bold text-(--text-muted) uppercase tracking-tight mb-3">
+          <h3 className="text-xs font-medium text-(--text-muted) mb-3">
             Tasks
           </h3>
           <div className="grid grid-cols-1 gap-2">
@@ -263,7 +271,7 @@ export async function StatsOverviewSection() {
         </div>
 
         <div>
-          <h3 className="text-xs font-semibold text-(--text-muted) uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-medium text-(--text-muted) mb-3">
             Projects
           </h3>
           <div className="grid grid-cols-1 gap-2">
@@ -364,7 +372,7 @@ export async function KeyTasksSection() {
             </div>
           ))
         ) : (
-          <p className="text-(--text-muted) text-center py-4 font-bold text-[11px] uppercase tracking-tight">
+          <p className="text-(--text-muted) text-center py-4 font-medium text-xs">
             No key tasks at the moment
           </p>
         )}
@@ -425,8 +433,8 @@ export async function PrioritiesSection() {
           </div>
         )}
       </div>
-      <button className="w-full mt-4 py-2 rounded-xl border border-card-border text-(--text-muted) text-[11px] font-bold uppercase tracking-tight hover:bg-foreground/[0.06] hover:text-foreground transition-all hover-scale shrink-0">
-        Refresh AI Analysis
+      <button className="w-full mt-4 py-2 rounded-xl border border-card-border text-(--text-muted) text-xs font-medium hover:bg-foreground/[0.06] hover:text-foreground transition-all hover-scale shrink-0">
+        Refresh AI analysis
       </button>
     </div>
   );
@@ -497,7 +505,7 @@ export async function UnitLoadSection() {
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Resource Saturation</h2>
-          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Unit Load Distribution</p>
+          <p className="text-xs text-(--text-muted) font-medium mt-0.5">Unit load distribution</p>
         </div>
         <div className="p-2 rounded-xl bg-[var(--pastel-blue)]/10">
           <FiUsers className="text-sm text-[var(--pastel-blue)]" />
@@ -562,7 +570,7 @@ export async function PriorityMatrixSection() {
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Threat Level</h2>
-          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Priority</p>
+          <p className="text-xs text-(--text-muted) font-medium mt-0.5">Priority</p>
         </div>
         {data.hasCritical && (
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20">
@@ -602,7 +610,7 @@ export async function PriorityMatrixSection() {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-2xl font-bold font-numbers text-foreground">{data.total}</span>
-            <span className="text-[10px] text-(--text-muted) font-bold uppercase tracking-tight">Active</span>
+            <span className="text-xs text-(--text-muted) font-medium">Active</span>
           </div>
         </div>
         {/* Legend */}
@@ -637,7 +645,7 @@ export async function TemporalBurnRateSection() {
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Temporal Burn Rate</h2>
-          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Chronological Efficiency</p>
+          <p className="text-xs text-(--text-muted) font-medium mt-0.5">Chronological efficiency</p>
         </div>
         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${sc.bg} border ${sc.border}`}>
           <FiTarget className={`text-[11px] ${sc.color}`} />
@@ -677,7 +685,7 @@ export async function TemporalBurnRateSection() {
         <div className="flex items-center justify-between pt-2 border-t border-card-border">
           <div className="flex items-center gap-1.5">
             <FiActivity className="text-xs text-(--text-muted)" />
-            <span className="text-[11px] text-(--text-muted) font-bold uppercase tracking-tight"><span className="font-numbers">{data.projectCount}</span> active projects</span>
+            <span className="text-xs text-(--text-muted) font-medium"><span className="font-numbers">{data.projectCount}</span> active projects</span>
           </div>
           <div className={`text-sm font-bold font-numbers ${sc.color}`}>
             {data.burnRatio}% burn
@@ -696,7 +704,7 @@ export async function CriticalBottlenecksSection() {
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Delayed Maneuvers</h2>
-          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Critical Bottlenecks</p>
+          <p className="text-xs text-(--text-muted) font-medium mt-0.5">Critical bottlenecks</p>
         </div>
         <div className="p-2 rounded-xl bg-rose-500/10">
           <FiShield className="text-sm text-[var(--pastel-rose)]" />
@@ -711,25 +719,25 @@ export async function CriticalBottlenecksSection() {
                   {task.title}
                 </h3>
                 <span className="shrink-0 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-rose-500/15 text-[var(--pastel-rose)] font-bold border border-rose-500/20 font-numbers">
-                  <FiClock className="text-[10px]" />
+                  <FiClock className="text-[11px]" />
                   {task.daysOverdue}d overdue
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight ${
+                <span className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight ${
                   task.priority === 'high' ? 'bg-rose-500/10 text-[var(--pastel-rose)]'
                   : task.priority === 'medium' ? 'bg-amber-500/10 text-[var(--pastel-amber)]'
                   : 'bg-foreground/[0.03] text-(--text-muted)'
                 }`}>
-                  <FiZap className="text-[10px]" />
+                  <FiZap className="text-[11px]" />
                   {task.priority}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] font-bold uppercase tracking-tight">
-                  <FiActivity className="text-[10px]" />
+                <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] font-bold uppercase tracking-tight">
+                  <FiActivity className="text-[11px]" />
                   {task.status.replace('_', ' ')}
                 </span>
                 {task.projectName && (
-                  <span className="text-[10px] text-(--text-muted) font-bold truncate">
+                  <span className="text-[11px] text-(--text-muted) font-bold truncate">
                     {task.projectName}
                   </span>
                 )}
@@ -757,16 +765,16 @@ export async function OperationVelocitySection() {
       <div className="flex justify-between items-center mb-4 lg:mb-5 shrink-0">
         <div>
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Momentum Tracker</h2>
-          <p className="text-[11px] text-(--text-muted) uppercase tracking-tight font-bold mt-0.5">Progress</p>
+          <p className="text-xs text-(--text-muted) font-medium mt-0.5">Progress</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
             <p className="text-sm font-bold font-numbers text-foreground">{totalClosed}</p>
-            <p className="text-[10px] text-(--text-muted) font-bold uppercase tracking-tight"><span className="font-numbers">14</span>d total</p>
+            <p className="text-xs text-(--text-muted) font-medium"><span className="font-numbers">14</span>d total</p>
           </div>
           <div className="text-right">
             <p className="text-sm font-bold font-numbers text-[var(--pastel-teal)]">{avgPerDay}</p>
-            <p className="text-[10px] text-(--text-muted) font-bold uppercase tracking-tight">avg/day</p>
+            <p className="text-xs text-(--text-muted) font-medium">avg/day</p>
           </div>
         </div>
       </div>

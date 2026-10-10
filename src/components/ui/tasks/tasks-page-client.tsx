@@ -22,6 +22,7 @@ import {
   FiMaximize2,
   FiMinimize2,
   FiFolder,
+  FiChevronDown,
 } from "react-icons/fi";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -116,6 +117,8 @@ function toTask(apiTask: ApiTaskShape, users: User[]): Task {
   };
 }
 
+const TASKS_OVERVIEW_KEY = "tasks:overview-open";
+
 export default function TasksPageClient({
   allTasks: initialTasks = [],
   users: initialUsers = [],
@@ -149,6 +152,27 @@ export default function TasksPageClient({
   const [filterStatus, setFilterStatus] = useState("");
   const [filterProjectId, setFilterProjectId] = useState("");
   const [filterMemberId, setFilterMemberId] = useState("");
+  const [showOverview, setShowOverview] = useState(false);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        setShowOverview(localStorage.getItem(TASKS_OVERVIEW_KEY) === "1");
+      } catch {
+        // Storage can be unavailable (private mode); the overview stays closed.
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+  const toggleOverview = () => {
+    setShowOverview((open) => {
+      try {
+        localStorage.setItem(TASKS_OVERVIEW_KEY, open ? "0" : "1");
+      } catch {
+        // Not remembered, but the toggle still works for this visit.
+      }
+      return !open;
+    });
+  };
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
   // Background data
@@ -574,7 +598,7 @@ export default function TasksPageClient({
           />
           <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-purple-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
         </div>
-        <span className="text-[11px] font-bold text-text-muted group-hover:text-purple-400 transition-colors uppercase tracking-wider">
+        <span className="text-xs font-medium text-text-muted group-hover:text-purple-400 transition-colors">
           QA
         </span>
       </label>
@@ -591,7 +615,7 @@ export default function TasksPageClient({
           />
           <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-blue-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
         </div>
-        <span className="text-[11px] font-bold text-text-muted group-hover:text-blue-400 transition-colors uppercase tracking-wider">
+        <span className="text-xs font-medium text-text-muted group-hover:text-blue-400 transition-colors">
           Review
         </span>
       </label>
@@ -881,9 +905,19 @@ export default function TasksPageClient({
     }
   };
 
+  // The stat cards and leaderboard sit behind a toggle so the task list
+  // starts near the top of the page; the one-line summary keeps the headline
+  // numbers visible. The choice is remembered per browser.
+  const taskCounts = {
+    open: optimisticTasks.filter((t) => t.status !== "DONE").length,
+    inProgress: optimisticTasks.filter((t) => t.status === "IN_PROGRESS").length,
+    done: optimisticTasks.filter((t) => t.status === "DONE").length,
+    highPriority: optimisticTasks.filter((t) => t.priority === "high" && t.status !== "DONE").length,
+  };
+
   return (
     <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
-      <div className="hidden lg:block mb-10">
+      <div className="hidden lg:block mb-6">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight m-1.5">
           Tasks
         </h1>
@@ -892,16 +926,39 @@ export default function TasksPageClient({
         </p>
       </div>
 
-      <TaskSummarySection tasks={optimisticTasks} />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 lg:mb-6">
+        <p className="text-sm text-text-muted font-numbers">
+          {taskCounts.open} open · {taskCounts.inProgress} in progress · {taskCounts.done} done
+          {taskCounts.highPriority > 0 && (
+            <span className="text-[var(--pastel-rose)]"> · {taskCounts.highPriority} high priority</span>
+          )}
+        </p>
+        <button
+          type="button"
+          onClick={toggleOverview}
+          aria-expanded={showOverview}
+          aria-controls="tasks-overview"
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-text-muted transition-colors hover:bg-foreground/[0.045] hover:text-foreground"
+        >
+          {showOverview ? "Hide overview" : "Show overview"}
+          <FiChevronDown aria-hidden className={`transition-transform duration-200 motion-reduce:transition-none ${showOverview ? "rotate-180" : ""}`} />
+        </button>
+      </div>
 
-      <UserLeaderboard
-        tasks={mergedTasks}
-        users={users}
-        selectedUserId={filterMemberId}
-        onSelectUser={(user) => setFilterMemberId(user ? String(user.id) : "")}
-      />
+      {showOverview && (
+        <div id="tasks-overview">
+          <TaskSummarySection tasks={optimisticTasks} />
 
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 lg:mb-10">
+          <UserLeaderboard
+            tasks={mergedTasks}
+            users={users}
+            selectedUserId={filterMemberId}
+            onSelectUser={(user) => setFilterMemberId(user ? String(user.id) : "")}
+          />
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div className="flex items-center gap-2 w-full overflow-x-auto pb-2 scrollbar-hide">
           <div className="relative flex-1 min-w-[140px] max-w-sm group">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5" />
@@ -930,7 +987,7 @@ export default function TasksPageClient({
               <select
                 value={filterPriority}
                 onChange={(e) => setFilterPriority(e.target.value)}
-                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-xs lg:font-medium appearance-none focus:outline-none"
               >
                 <option value="" className="bg-card">
                   Priority
@@ -950,7 +1007,7 @@ export default function TasksPageClient({
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-xs lg:font-medium appearance-none focus:outline-none"
               >
                 <option value="" className="bg-card">
                   Status
@@ -971,7 +1028,7 @@ export default function TasksPageClient({
                   aria-label="Filter tasks by project"
                   value={filterProjectId}
                   onChange={(e) => setFilterProjectId(e.target.value)}
-                  className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+                  className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-xs lg:font-medium appearance-none focus:outline-none"
                 >
                   <option value="" className="bg-card">All projects</option>
                   {[...projects]
@@ -988,14 +1045,14 @@ export default function TasksPageClient({
           {/* My Tasks Toggle */}
           <button
             onClick={() => setFilterMyTasks((f) => !f)}
-            className={`flex items-center gap-2 h-9 lg:h-11 px-3 lg:px-4 rounded-xl border text-[11px] font-bold uppercase tracking-wider transition-all flex-shrink-0 ${
+            className={`flex items-center gap-2 h-9 lg:h-11 px-3 lg:px-4 rounded-xl border text-xs font-medium transition-all flex-shrink-0 ${
               filterMyTasks
                 ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-600 dark:text-indigo-300"
                 : "bg-foreground/[0.03] border-card-border text-text-muted hover:text-foreground hover:border-card-border"
             }`}
           >
             <FiUser className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">My Tasks</span>
+            <span className="hidden lg:inline">My tasks</span>
           </button>
 
           <div className="flex bg-foreground/[0.03] p-1 h-9 lg:h-11 rounded-xl border border-card-border flex-shrink-0 ml-auto">
@@ -1068,13 +1125,13 @@ export default function TasksPageClient({
             <div className="flex items-center gap-1 bg-foreground/[0.03] p-1 w-fit rounded-xl border border-card-border flex-shrink-0">
               <button
                 onClick={() => setTableTab("active")}
-                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-[11px] lg:text-xs font-bold uppercase tracking-wider transition-all ${tableTab === "active" ? "bg-emerald-500 text-zinc-950" : "text-text-muted hover:text-foreground"}`}
+                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs font-semibold transition-all ${tableTab === "active" ? "bg-emerald-500 text-zinc-950" : "text-text-muted hover:text-foreground"}`}
               >
                 Active
               </button>
               <button
                 onClick={() => setTableTab("done")}
-                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-[11px] lg:text-xs font-bold uppercase tracking-wider transition-all ${tableTab === "done" ? "bg-emerald-500 text-zinc-950" : "text-text-muted hover:text-foreground"}`}
+                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs font-semibold transition-all ${tableTab === "done" ? "bg-emerald-500 text-zinc-950" : "text-text-muted hover:text-foreground"}`}
               >
                 Done
               </button>
@@ -1089,73 +1146,73 @@ export default function TasksPageClient({
                   <tr className="border-b border-card-border bg-foreground/[0.03] text-left">
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky left-0 z-20 bg-card border-r border-card-border"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap sticky left-0 z-20 bg-card border-r border-card-border"
                     >
                       Name
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap hidden lg:table-cell"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden lg:table-cell"
                     >
                       Description
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap hidden sm:table-cell"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden sm:table-cell"
                     >
                       Priority
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap hidden lg:table-cell"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden lg:table-cell"
                     >
                       Assignee
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
                     >
                       Due Date
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap hidden md:table-cell"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden md:table-cell"
                     >
                       Owner
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap hidden md:table-cell"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden md:table-cell"
                     >
                       Project
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
                     >
                       Status
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
                     >
                       Time Logged
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
                     >
                       QA/Review
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap"
+                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
                     >
                       Depends On
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky right-0 z-20 bg-card border-l border-card-border"
+                      className="px-6 py-4 text-right text-xs font-medium text-text-muted whitespace-nowrap sticky right-0 z-20 bg-card border-l border-card-border"
                     >
                       Actions
                     </th>
@@ -1447,7 +1504,7 @@ export default function TasksPageClient({
 
               <div className="px-6 py-5 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                  <label className="text-xs font-medium text-text-muted">
                     Task name
                   </label>
                   <form id="create-task-form" onSubmit={handleCreateSubmit}>
@@ -1455,51 +1512,51 @@ export default function TasksPageClient({
                   </form>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                  <label className="text-xs font-medium text-text-muted">
                     Description
                   </label>
                   {createDescriptionFieldTall}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                    <label className="text-xs font-medium text-text-muted">
                       Due date
                     </label>
                     {createDueDateField}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                    <label className="text-xs font-medium text-text-muted">
                       Priority
                     </label>
                     {createPriorityField}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                    <label className="text-xs font-medium text-text-muted">
                       Assignees
                     </label>
                     {createAssigneesField}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                    <label className="text-xs font-medium text-text-muted">
                       Project
                     </label>
                     {createProjectField}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                    <label className="text-xs font-medium text-text-muted">
                       Status
                     </label>
                     {createStatusField}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                    <label className="text-xs font-medium text-text-muted">
                       Depends on
                     </label>
                     {createDependsOnField}
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                  <label className="text-xs font-medium text-text-muted">
                     Checks
                   </label>
                   {createChecksField}

@@ -60,7 +60,7 @@ export function UserLeaderboard({ tasks, users, selectedUserId, onSelectUser }: 
     <div className="mb-10">
       <div className="flex items-center gap-2 mb-4">
         <FiTrendingUp className="text-indigo-500" />
-        <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Leaderboard</h3>
+        <h3 className="text-sm font-semibold text-foreground">Leaderboard</h3>
       </div>
       <div className="flex flex-nowrap overflow-x-auto gap-3 pb-2 scrollbar-hide">
         {userPerformance.map((user, i) => (
@@ -96,9 +96,9 @@ export function UserLeaderboard({ tasks, users, selectedUserId, onSelectUser }: 
             </div>
             <div>
               <p className="text-[11px] font-medium text-text-muted">#{i + 1}</p>
-              <p className="text-[11px] lg:text-xs font-bold text-foreground uppercase tracking-tight truncate max-w-[80px] lg:max-w-none">{user.fullName || user.email.split('@')[0]}</p>
-              <p className="mt-0.5 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-text-muted whitespace-nowrap">
-                {String(selectedUserId ?? '') === String(user.id) && <FiCheck className="h-3 w-3 text-indigo-500" />}
+              <p className="text-xs font-semibold text-foreground truncate max-w-[80px] lg:max-w-none">{user.fullName || user.email.split('@')[0]}</p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-text-muted whitespace-nowrap">
+                {String(selectedUserId ?? '') === String(user.id) && <FiCheck className="h-3 w-3 text-emerald-500" />}
                 <span className="text-foreground font-bold font-numbers">{user.completedCount}</span>
                 {String(selectedUserId ?? '') === String(user.id) ? 'Filtering' : 'Completed'}
               </p>

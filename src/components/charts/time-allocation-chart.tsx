@@ -3,14 +3,21 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const COLORS = [
-  'var(--pastel-purple)', 
-  'var(--pastel-emerald)',
-  'var(--pastel-amber)',
-  'var(--pastel-orange)'
-];
+import { ChartEmpty } from './chart-empty';
+
+// Slices are priorities, so colour follows the priority rather than the
+// slice's position: urgent reads red wherever it lands in the ring.
+const PRIORITY_COLORS: Record<string, string> = {
+  'High Priority': 'var(--pastel-rose)',
+  'Medium Priority': 'var(--pastel-amber)',
+  'Low Priority': 'var(--pastel-blue)',
+};
 
 const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: number }> }) => {
+  if (!data.some((d) => d.value > 0)) {
+    return <ChartEmpty message="No tasks yet. Their split by priority appears here." actionLabel="Add a task" actionHref="tasks" />;
+  }
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
@@ -34,7 +41,7 @@ const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: numb
           stroke="none"
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.name] ?? 'var(--chart-axis)'} />
           ))}
         </Pie>
       </PieChart>

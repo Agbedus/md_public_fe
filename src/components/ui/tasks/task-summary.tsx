@@ -76,28 +76,28 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
   );
 
   const stats = [
-    { label: 'Total Tasks', value: totalTasks, icon: FiCheckSquare, color: 'text-[var(--pastel-blue)]', bg: 'bg-[var(--pastel-blue)]/10', trend: trends.total },
+    { label: 'Total tasks', value: totalTasks, icon: FiCheckSquare, color: 'text-[var(--pastel-blue)]', bg: 'bg-[var(--pastel-blue)]/10', trend: trends.total },
     { label: 'Completed', value: completedTasks, icon: FiCheckCircle, color: 'text-[var(--pastel-emerald)]', bg: 'bg-[var(--pastel-emerald)]/10', sub: `${progressPercent}% progress`, trend: trends.completed },
-    { label: 'In Progress', value: inProgress, icon: FiActivity, color: 'text-[var(--pastel-purple)]', bg: 'bg-[var(--pastel-purple)]/10', trend: trends.inProgress },
-    { label: 'High Priority', value: highPriority, icon: FiAlertCircle, color: 'text-[var(--pastel-rose)]', bg: 'bg-[var(--pastel-rose)]/10', trend: trends.highPriority },
+    { label: 'In progress', value: inProgress, icon: FiActivity, color: 'text-[var(--pastel-purple)]', bg: 'bg-[var(--pastel-purple)]/10', trend: trends.inProgress },
+    { label: 'High priority', value: highPriority, icon: FiAlertCircle, color: 'text-[var(--pastel-rose)]', bg: 'bg-[var(--pastel-rose)]/10', trend: trends.highPriority },
   ];
 
   return (
     <div className="flex flex-col gap-4 mb-4 lg:mb-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-medium text-text-muted uppercase tracking-wider">Quick Stats</h2>
+        <h2 className="text-sm font-medium text-text-muted">Overview</h2>
         {activeTasks.length > 0 && (
           <button
             onClick={handleMarkAllDone}
             disabled={isUpdating}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-[11px] font-medium uppercase tracking-wider text-emerald-400 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-all disabled:opacity-50"
           >
             {isUpdating ? (
               <div className="h-3 w-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <FiCheck className="w-3 h-3" />
             )}
-            Mark all as Done ({activeTasks.length})
+            Mark all as done ({activeTasks.length})
           </button>
         )}
       </div>
@@ -111,9 +111,9 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
                   <stat.icon className="text-sm lg:text-xl" />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-[11px] lg:text-[11px] text-text-muted font-bold uppercase tracking-wider truncate">{stat.label}</p>
+                    <p className="text-xs text-text-muted font-medium truncate">{stat.label}</p>
                     {stat.sub && (
-                        <p className="text-[11px] lg:text-[11px] font-bold text-text-secondary mt-0.5 uppercase tracking-tight truncate">
+                        <p className="text-xs font-medium text-text-secondary mt-0.5 truncate">
                             {stat.sub}
                         </p>
                     )}

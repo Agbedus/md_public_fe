@@ -60,7 +60,6 @@ interface SidebarMenuItem {
   href: string;
   icon: IconType;
   label: string;
-  color: string;
   tourId?: string;
   count?: number;
   showsAttendanceStatus?: boolean;
@@ -146,29 +145,31 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
   const baseLinkClasses =
     "flex items-center py-1.5 md:py-2 rounded-lg font-light text-sm whitespace-nowrap transition-[background-color,color,border-color,transform] duration-200 ease-out hover:bg-foreground/[0.045] hover:text-foreground active:scale-[0.985] motion-reduce:transform-none motion-reduce:transition-colors";
 
+  // The current page is marked in the brand accent, the same way for every
+  // item: emerald is the app's one interaction colour.
   const activeLinkClasses =
-    "bg-blue-100 dark:bg-slate-950 text-foreground border border-card-border font-medium";
+    "bg-emerald-500/10 text-foreground border border-emerald-500/25 font-medium";
 
   const inactiveLinkClasses = "text-text-muted";
 
   /* ---------------- Menus ---------------- */
 
   const mainMenuItems: SidebarMenuItem[] = [
-    { href: "/dashboard", icon: FiHome, label: "Dashboard", color: "text-blue-400", tourId: "dashboard" },
-    { href: "/tasks", icon: FiCheckSquare, label: "Tasks", color: "text-purple-400", tourId: "tasks", count: sidebarCounts?.tasks },
-    { href: "/projects", icon: FiBriefcase, label: "Projects", color: "text-pink-400", tourId: "projects", count: sidebarCounts?.projects },
-    { href: "/notes", icon: FiFileText, label: "Notes", color: "text-yellow-400", tourId: "notes", count: sidebarCounts?.notes },
-    { href: "/calendar", icon: FiCalendar, label: "Calendar", color: "text-green-400", tourId: "calendar" },
+    { href: "/dashboard", icon: FiHome, label: "Dashboard", tourId: "dashboard" },
+    { href: "/tasks", icon: FiCheckSquare, label: "Tasks", tourId: "tasks", count: sidebarCounts?.tasks },
+    { href: "/projects", icon: FiBriefcase, label: "Projects", tourId: "projects", count: sidebarCounts?.projects },
+    { href: "/notes", icon: FiFileText, label: "Notes", tourId: "notes", count: sidebarCounts?.notes },
+    { href: "/calendar", icon: FiCalendar, label: "Calendar", tourId: "calendar" },
   ];
 
   const toolMenuItems: SidebarMenuItem[] = [
-    { href: "/team", icon: FiUsers, label: "Team", color: "text-teal-400", tourId: "team" },
-    { href: "/attendance", icon: FiMapPin, label: "Attendance", color: "text-sky-400", tourId: "attendance", showsAttendanceStatus: true },
-    { href: "/focus", icon: FiClock, label: "Focus Mode", color: "text-orange-400" },
+    { href: "/team", icon: FiUsers, label: "Team", tourId: "team" },
+    { href: "/attendance", icon: FiMapPin, label: "Attendance", tourId: "attendance", showsAttendanceStatus: true },
+    { href: "/focus", icon: FiClock, label: "Focus Mode" },
   ];
 
   const systemMenuItems: SidebarMenuItem[] = [
-    { href: "/wiki", icon: FiBookOpen, label: "Wiki", color: "text-emerald-400", tourId: "wiki" },
+    { href: "/wiki", icon: FiBookOpen, label: "Wiki", tourId: "wiki" },
   ];
 
   const renderMenuItem = (item: SidebarMenuItem) => {
@@ -190,7 +191,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
         >
           <item.icon
             className={`flex-shrink-0 ${iconSizeClass} ${
-              isActive ? item.color : "text-text-muted/55 group-hover/item:text-text-muted"
+              isActive ? "text-emerald-600 dark:text-emerald-400" : "text-text-muted/55 group-hover/item:text-text-muted"
             } transition-[color,transform] duration-200 ease-out motion-safe:group-hover/item:translate-x-0.5 motion-safe:group-hover/item:scale-[1.04] motion-reduce:transform-none`}
           />
           <span
@@ -198,7 +199,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
           >
             {item.label}
           </span>
-          {typeof item.count === "number" && (
+          {typeof item.count === "number" && item.count > 0 && (
             <span
               className={`${contentVisibilityClass} ml-auto min-w-5 rounded-md border border-card-border bg-foreground/[0.04] px-1.5 py-0.5 text-center font-numbers text-[10px] font-medium leading-none ${
                 isActive ? "text-foreground" : "text-text-muted"
@@ -343,17 +344,17 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
                 {toolMenuItems.map(renderMenuItem)}
 
                 {user?.roles?.includes("super_admin") && (
-                  renderMenuItem({ href: "/users", icon: FiUsers, label: "System Users", color: "text-teal-400" })
+                  renderMenuItem({ href: "/users", icon: FiUsers, label: "System Users" })
                 )}
                 {/* Every collaborator can read the client list; only MANAGER and
                     above can add or change one, which the page itself gates. */}
                 {canCreate({ roles: user?.roles, orgRole: user?.orgRole }) && (
-                  renderMenuItem({ href: "/clients", icon: FiBriefcase, label: "Clients", color: "text-violet-400" })
+                  renderMenuItem({ href: "/clients", icon: FiBriefcase, label: "Clients" })
                 )}
                 {/* This is the time-off *approvals* screen, so it stays at the
                     admin tier. Members request time off from the calendar. */}
                 {isOrgAdmin({ roles: user?.roles, orgRole: user?.orgRole }) && (
-                  renderMenuItem({ href: "/time-off", icon: FiSun, label: "Time Off", color: "text-amber-400" })
+                  renderMenuItem({ href: "/time-off", icon: FiSun, label: "Time Off" })
                 )}
               </nav>
             </motion.div>
@@ -390,7 +391,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
               <nav className="space-y-1.5 px-2">
                 {systemMenuItems.map(renderMenuItem)}
                 {user?.roles?.includes("super_admin") && (
-                  renderMenuItem({ href: "/waitlist", icon: FiInbox, label: "Waitlist", color: "text-indigo-400" })
+                  renderMenuItem({ href: "/waitlist", icon: FiInbox, label: "Waitlist" })
                 )}
                 <ShareButton
                   sourceSurface="sidebar"

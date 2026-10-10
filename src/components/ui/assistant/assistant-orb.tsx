@@ -18,6 +18,9 @@ interface Message {
 
 const PIP_VARIANTS = ['classic', 'smart', 'sleepy', 'cool', 'shocked', 'spicy', 'lovely', 'cyber'] as const;
 
+// How long the collapsed bubble stays out before tucking away.
+const BUBBLE_AWAKE_MS = 12000;
+
 const GREETINGS = [
   "Hey! I'm Pip — ask me anything",
   "Need help with tasks, notes, or projects?",
@@ -68,14 +71,30 @@ export default function AssistantOrb() {
     return () => window.cancelAnimationFrame(frame);
   }, [memory, hasHydratedMemory]);
 
+  // The collapsed bubble sits over the page's bottom-right corner, so it only
+  // talks for a short while: on arrival and when a new reply lands. After that
+  // it tucks away until the mascot is hovered or focused. Connectivity notices
+  // ignore this and always show.
+  const [bubbleAwake, setBubbleAwake] = useState(true);
+  const [bubbleHovered, setBubbleHovered] = useState(false);
+  const lastAiTextForWake = [...messages].reverse().find(m => !m.isUser && m.text.trim())?.text;
   useEffect(() => {
+    const wake = window.setTimeout(() => setBubbleAwake(true), 0);
+    const sleep = window.setTimeout(() => setBubbleAwake(false), BUBBLE_AWAKE_MS);
+    return () => {
+      window.clearTimeout(wake);
+      window.clearTimeout(sleep);
+    };
+  }, [lastAiTextForWake]);
+  const bubbleVisible = bubbleAwake || bubbleHovered;
+
+  useEffect(() => {
+    if (isFocused || !bubbleVisible) return;
     const interval = setInterval(() => {
-      if (!isFocused) {
-        setGreetingIdx(prev => (prev + 1) % GREETINGS.length);
-      }
+      setGreetingIdx(prev => (prev + 1) % GREETINGS.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isFocused]);
+  }, [isFocused, bubbleVisible]);
 
   useEffect(() => {
     const greeting = GREETINGS[greetingIdx];
@@ -271,7 +290,9 @@ export default function AssistantOrb() {
     ? 'No internet connection'
     : recovered
       ? 'Connection restored'
-      : bubbleText;
+      : bubbleVisible
+        ? bubbleText
+        : '';
   const bubbleKey = offline ? 'offline' : recovered ? 'recovered' : hasMessages ? 'msg' : `greet-${greetingIdx}`;
 
   const bubbleVariantClasses =
@@ -442,6 +463,10 @@ export default function AssistantOrb() {
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
                   className="relative"
+                  onMouseEnter={() => setBubbleHovered(true)}
+                  onMouseLeave={() => setBubbleHovered(false)}
+                  onFocus={() => setBubbleHovered(true)}
+                  onBlur={() => setBubbleHovered(false)}
                 >
                   {/* Small tooltip-style bubble anchored beside the mascot. The `calc()`
                       here needs Tailwind's underscore-for-space syntax

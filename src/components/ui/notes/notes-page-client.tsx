@@ -71,18 +71,6 @@ const noteTypeIcons: Record<Note["type"], React.ElementType> = {
   sketch: FiEdit3,
 };
 
-const noteTypeColors: Record<Note["type"], string> = {
-  note: "text-blue-400",
-  checklist: "text-green-400",
-  todo: "text-purple-400",
-  journal: "text-yellow-400",
-  meeting: "text-indigo-400",
-  idea: "text-pink-400",
-  link: "text-red-400",
-  code: "text-cyan-400",
-  bookmark: "text-orange-400",
-  sketch: "text-teal-400",
-};
 
 import NotesLoading from "@/app/(dashboard)/[orgSlug]/notes/loading";
 
@@ -435,14 +423,14 @@ export default function NotesPageClient({
         <div className="flex overflow-x-auto scrollbar-hide gap-2 mb-6 md:mb-8 pb-2">
           <button
             onClick={() => setFilterType("all")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-tight transition-all hover-scale whitespace-nowrap flex-shrink-0 ${filterType === "all" ? "bg-foreground text-background" : "bg-foreground/[0.03] text-text-muted border border-card-border hover:bg-foreground/[0.06] hover:text-foreground"}`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover-scale whitespace-nowrap flex-shrink-0 ${filterType === "all" ? "bg-foreground text-background" : "bg-foreground/[0.03] text-text-muted border border-card-border hover:bg-foreground/[0.06] hover:text-foreground"}`}
           >
             <FiFolder
               className={
                 filterType === "all" ? "text-background" : "text-text-muted"
               }
             />
-            <span>All Notes</span>
+            <span>All notes</span>
           </button>
           {noteTypes.map((type) => {
             const Icon = noteTypeIcons[type] || FiFileText;
@@ -450,14 +438,14 @@ export default function NotesPageClient({
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-tight transition-all hover-scale whitespace-nowrap flex-shrink-0 border ${filterType === type ? "bg-foreground text-background border-foreground" : "bg-foreground/[0.03] text-text-muted border-card-border hover:bg-foreground/[0.06] hover:text-foreground"}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover-scale whitespace-nowrap flex-shrink-0 border ${filterType === type ? "bg-foreground text-background border-foreground" : "bg-foreground/[0.03] text-text-muted border-card-border hover:bg-foreground/[0.06] hover:text-foreground"}`}
               >
                 {Icon && (
                   <Icon
-                    className={`${filterType === type ? "text-background" : noteTypeColors[type] || "text-text-muted"}`}
+                    className={filterType === type ? "text-background" : "text-text-muted"}
                   />
                 )}
-                <span>{type}</span>
+                <span>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
               </button>
             );
           })}
