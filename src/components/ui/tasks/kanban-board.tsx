@@ -71,16 +71,17 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
         outline: isOver ? `1.5px dashed color-mix(in oklab, ${color} 55%, transparent)` : undefined,
         outlineOffset: -6,
       }}
-      className="flex w-[300px] shrink-0 flex-col rounded-[28px] p-2 transition-[background-color] duration-200"
+      className="flex h-full min-h-0 w-[300px] shrink-0 flex-col rounded-[28px] p-2 transition-[background-color] duration-200"
     >
-      <header className="flex items-center gap-2.5 px-3 pb-2 pt-2.5">
+      <header className="flex shrink-0 items-center gap-2.5 px-3 pb-2 pt-2.5">
         <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
         <h3 className="text-sm font-semibold text-foreground">{statusMapping[col]}</h3>
         <span className="md-count ml-auto bg-background text-text-muted">{items.length}</span>
       </header>
 
       <SortableContext items={items.map((t) => String(t.id))} strategy={verticalListSortingStrategy}>
-        <div className="flex min-h-24 flex-1 flex-col gap-2">
+        {/* Each lane scrolls on its own; the page and the board stay put. */}
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain rounded-[22px] p-0.5">
           {items.map((task) => (
             <KanbanCard
               key={task.id}
@@ -296,8 +297,10 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
         </span>
       </p>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setActiveId(null)}>
-        <div ref={boardRef} onPointerDown={onBoardPointerDown} className="overflow-x-auto pb-2">
-          <div className="flex min-w-max items-start gap-3">
+        {/* A fixed-height board, like the attendance map: lanes fill it and
+            scroll inside, so long columns never stretch the page. */}
+        <div ref={boardRef} onPointerDown={onBoardPointerDown} className="h-[calc(100dvh-13rem)] min-h-[440px] overflow-x-auto pb-2 md:h-[calc(100dvh-11rem)]">
+          <div className="flex h-full min-w-max items-stretch gap-3">
             {columns.map((col) => (
               <Column
                 key={col}

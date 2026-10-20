@@ -65,7 +65,7 @@ export const AnnouncementForm = () => {
           <div className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-bold text-foreground italic flex items-center gap-3 tracking-tight">
-                <HiSpeakerphone className="text-[var(--pastel-yellow)]" />
+                <HiSpeakerphone className="text-[var(--warning)]" />
                 New announcement
               </h3>
               <button 
@@ -79,7 +79,7 @@ export const AnnouncementForm = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-[11px] font-semibold text-text-muted mb-2 ml-1">
-                  Announcement Title
+                  Title
                 </label>
                 <input
                   type="text"
@@ -94,7 +94,7 @@ export const AnnouncementForm = () => {
 
               <div>
                 <label className="block text-[11px] font-semibold text-text-muted mb-2 ml-1">
-                  Announcement Message
+                  Message
                 </label>
                 <textarea
                   value={content}
@@ -116,7 +116,7 @@ export const AnnouncementForm = () => {
                       key={t}
                       type="button"
                       onClick={() => setType(t)}
-                      className={`py-3 px-1 rounded-2xl border text-[11px] font-semibold tracking-tight transition-all flex flex-col items-center gap-1.5 ${
+                      className={`py-3 px-1 rounded-full border text-[11px] font-semibold tracking-tight transition-all flex flex-col items-center gap-1.5 ${
  type === t 
  ? 'bg-foreground/10 border-foreground/20 text-foreground ' 
  : 'bg-transparent border-card-border text-text-muted hover:bg-foreground/[0.02]'
@@ -126,7 +126,7 @@ export const AnnouncementForm = () => {
                       {t === 'success' && <FiAlertCircle size={16} className="text-success-text dark:text-success-text" />}
                       {t === 'warning' && <FiAlertTriangle size={16} className="text-warning-text dark:text-warning-text" />}
                       {t === 'error' && <FiAlertCircle size={16} className="text-danger-text dark:text-danger-text" />}
-                      {t === 'critical' && <FiAlertCircle size={16} className="text-purple-600 dark:text-purple-500" />}
+                      {t === 'critical' && <FiAlertCircle size={16} className="text-[var(--status-qa)] dark:text-[var(--status-qa)]" />}
                       {t}
                     </button>
                   ))}

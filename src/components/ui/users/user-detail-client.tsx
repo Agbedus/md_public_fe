@@ -106,7 +106,7 @@ export default function UserDetailClient({
 
     const roleColors: Record<string, string> = {
         super_admin: 'bg-danger/10 text-danger-text border-danger/20',
-        manager: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+        manager: 'bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)] text-[var(--status-qa)] border-[color-mix(in_oklab,var(--status-qa)_20%,transparent)]',
         staff: 'bg-accent/10 text-accent-text border-accent/20',
         client: 'bg-success/10 text-success-text border-success/20',
         user: 'bg-foreground/[0.06] text-text-muted border-foreground/5',
@@ -147,7 +147,7 @@ export default function UserDetailClient({
     };
 
     return (
-        <div className="space-y-8">
+        <div className="md-zen space-y-8">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link href={orgPath('/users')} className="p-2 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5">
@@ -166,7 +166,7 @@ export default function UserDetailClient({
                         <p className="text-text-muted text-sm">{user.email}</p>
                         <div className="flex gap-1 mt-1.5">
                             {user.roles?.map(role => (
-                                <span key={role} className={`px-2 py-0.5 rounded-full text-[11px] font-medium uppercase tracking-wider border ${roleColors[role] || roleColors.user}`}>
+                                <span key={role} className={`px-2 py-0.5 rounded-full text-[11px] font-medium capitalize border ${roleColors[role] || roleColors.user}`}>
                                     {role.replace('_', ' ')}
                                 </span>
                             ))}
@@ -176,10 +176,10 @@ export default function UserDetailClient({
             </div>
             
             {/* Activity Heatmap */}
-            <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4 overflow-hidden">
+            <div className="bg-card p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4 overflow-hidden">
                 <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-[11px] font-medium text-success-text uppercase tracking-wider bg-success/10 px-2 py-0.5 rounded">Activity Engine</h4>
-                    <span className="text-[11px] text-text-muted font-bold uppercase tracking-wider">Historical Performance</span>
+                    <h4 className="text-[11px] font-medium text-success-text capitalize bg-success/10 px-2 py-0.5 rounded">Activity</h4>
+                    <span className="text-[11px] text-text-muted font-bold capitalize">Past performance</span>
                 </div>
                 <ActivityHeatmap data={activityData} variant="full" />
             </div>
@@ -203,12 +203,12 @@ export default function UserDetailClient({
                             key={label}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="glass rounded-2xl p-5 border border-foreground/5 bg-foreground/[0.03]"
+                            className="bg-card rounded-2xl p-5 border border-foreground/5 bg-foreground/[0.03]"
                         >
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center border mb-3 ${c[color]}`}>
                                 <Icon className="w-4 h-4" />
                             </div>
-                            <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-1">{label}</p>
+                            <p className="text-[11px] font-medium text-text-muted capitalize mb-1">{label}</p>
                             <p className="text-2xl font-medium text-foreground">{value}</p>
                         </motion.div>
                     );
@@ -217,10 +217,10 @@ export default function UserDetailClient({
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Hours Per Task Chart */}
-                <div className="xl:col-span-1 glass rounded-2xl p-6 border border-foreground/5 bg-foreground/[0.03] space-y-4">
-                    <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
+                <div className="xl:col-span-1 bg-card rounded-2xl p-6 border border-foreground/5 bg-foreground/[0.03] space-y-4">
+                    <h2 className="text-[11px] font-medium text-text-muted capitalize flex items-center gap-2">
                         <FiActivity className="text-accent-text w-4 h-4" />
-                        Hours Per Task
+                        Hours per task
                     </h2>
                     {taskHours.length === 0 ? (
                         <p className="text-sm text-text-muted italic">No time logged yet.</p>
@@ -247,9 +247,9 @@ export default function UserDetailClient({
                 </div>
 
                 {/* Timesheet Table */}
-                <div className="xl:col-span-2 glass rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
+                <div className="xl:col-span-2 bg-card rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
                     <div className="px-6 py-4 border-b border-foreground/5">
-                        <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
+                        <h2 className="text-[11px] font-medium text-text-muted capitalize flex items-center gap-2">
                             <FiCalendar className="text-success-text w-4 h-4" />
                             Timesheet ({timeLogs.length} sessions)
                         </h2>
@@ -258,10 +258,10 @@ export default function UserDetailClient({
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-foreground/5 bg-foreground/[0.02]">
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Task</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Start</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">End</th>
-                                    <th className="px-6 py-3 text-right text-[11px] font-medium text-text-muted uppercase tracking-wider">Duration</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">Task</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">Start</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">End</th>
+                                    <th className="px-6 py-3 text-right text-[11px] font-medium text-text-muted capitalize">Duration</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-foreground/5">
@@ -310,7 +310,7 @@ export default function UserDetailClient({
                             {timeLogs.length > 0 && (
                                 <tfoot>
                                     <tr className="border-t border-foreground/5 bg-foreground/[0.02]">
-                                        <td colSpan={3} className="px-6 py-3 text-right text-[11px] font-medium text-text-muted uppercase tracking-wider">Total</td>
+                                        <td colSpan={3} className="px-6 py-3 text-right text-[11px] font-medium text-text-muted capitalize">Total</td>
                                         <td className="px-6 py-3 text-right text-sm font-medium text-foreground">{totalHours}h</td>
                                     </tr>
                                 </tfoot>
@@ -322,9 +322,9 @@ export default function UserDetailClient({
 
             {/* Time Off Section */}
             {localTimeOff.length > 0 && (
-                <div className="glass rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
+                <div className="bg-card rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
                     <div className="px-6 py-4 border-b border-foreground/5">
-                        <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
+                        <h2 className="text-[11px] font-medium text-text-muted capitalize flex items-center gap-2">
                             <FiSun className="text-warning-text w-4 h-4" />
                             Time Off Requests ({localTimeOff.length})
                         </h2>
@@ -333,14 +333,14 @@ export default function UserDetailClient({
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-foreground/5 bg-foreground/[0.02]">
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Type</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Period</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Days</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Justification</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted uppercase tracking-wider">Requested</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">Type</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">Period</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">Days</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">Justification</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">Status</th>
+                                    <th className="px-6 py-3 text-left text-[11px] font-medium text-text-muted capitalize">Requested</th>
                                     {isSuperAdmin && (
-                                        <th className="px-6 py-3 text-right text-[11px] font-medium text-text-muted uppercase tracking-wider">Actions</th>
+                                        <th className="px-6 py-3 text-right text-[11px] font-medium text-text-muted capitalize">Actions</th>
                                     )}
                                 </tr>
                             </thead>
@@ -376,7 +376,7 @@ export default function UserDetailClient({
                                                             <button
                                                                 onClick={() => handleApprove(req.id)}
                                                                 disabled={actionLoading === req.id}
-                                                                className="p-1.5 rounded-lg bg-success/10 hover:bg-success/20 text-success-text border border-success/20 transition-all disabled:opacity-50"
+                                                                className="p-1.5 rounded-full bg-success/10 hover:bg-success/20 text-success-text border border-success/20 transition-all disabled:opacity-50"
                                                                 title="Approve"
                                                             >
                                                                 {actionLoading === req.id ? (
@@ -388,7 +388,7 @@ export default function UserDetailClient({
                                                             <button
                                                                 onClick={() => handleReject(req.id)}
                                                                 disabled={actionLoading === req.id}
-                                                                className="p-1.5 rounded-lg bg-danger/10 hover:bg-danger/20 text-danger-text border border-danger/20 transition-all disabled:opacity-50"
+                                                                className="p-1.5 rounded-full bg-danger/10 hover:bg-danger/20 text-danger-text border border-danger/20 transition-all disabled:opacity-50"
                                                                 title="Reject"
                                                             >
                                                                 <FiX className="w-3.5 h-3.5" />

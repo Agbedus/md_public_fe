@@ -31,15 +31,15 @@ export const AnnouncementDropdown = ({ anchorRef, dropdownRef }: AnnouncementDro
       ref={dropdownRef}
       style={dropdownStyle}
       data-side={dropdownSide}
-      className={`z-[9999] w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-3xl border border-card-border bg-background py-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${dropdownSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
+      className={`z-[9999] w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-3xl border border-card-border bg-background py-2 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${dropdownSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
     >
       <div className="px-3.5 py-2.5 border-b border-card-border flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <FiMessageSquare className="text-[var(--pastel-yellow)]" size={16} />
+          <FiMessageSquare className="text-[var(--warning)]" size={16} />
           <p className="text-sm font-semibold text-foreground tracking-tight">Broadcasts</p>
         </div>
         {unreadCount > 0 && (
-          <span className="text-[11px] text-zinc-950 bg-warning px-2.5 py-1 rounded-full font-semibold shadow-sm animate-pulse">{unreadCount} New</span>
+          <span className="text-[11px] text-on-warning bg-warning px-2.5 py-1 rounded-full font-semibold animate-pulse">{unreadCount} New</span>
         )}
       </div>
       
@@ -55,11 +55,11 @@ export const AnnouncementDropdown = ({ anchorRef, dropdownRef }: AnnouncementDro
               className="px-4 py-4 hover:bg-foreground/[0.04] transition-colors cursor-pointer border-b border-card-border last:border-0 group"
             >
               <div className="flex gap-3">
-                <div className="w-10 h-10 bg-foreground/[0.03] border border-card-border flex items-center justify-center flex-shrink-0 group-hover:border-[var(--pastel-yellow)]/30 transition-colors shadow-sm rounded-full">
-                  <FiBell className="text-text-secondary group-hover:text-[var(--pastel-yellow)]" size={16} />
+                <div className="w-10 h-10 bg-foreground/[0.03] border border-card-border flex items-center justify-center flex-shrink-0 group-hover:border-[var(--warning)]/30 transition-colors rounded-full">
+                  <FiBell className="text-text-secondary group-hover:text-[var(--warning)]" size={16} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground font-semibold line-clamp-1 group-hover:text-[var(--pastel-yellow)] transition-colors tracking-tight">
+                  <p className="text-sm text-foreground font-semibold line-clamp-1 group-hover:text-[var(--warning)] transition-colors tracking-tight">
                     {announcement.title}
                   </p>
                   <p className="text-xs text-text-secondary line-clamp-2 mt-0.5 font-bold">
@@ -93,7 +93,7 @@ export const AnnouncementDropdown = ({ anchorRef, dropdownRef }: AnnouncementDro
             setIsDropdownOpen(false);
             setIsDrawerOpen(true);
           }}
-          className="w-full py-2 text-[11px] font-semibold text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] rounded-xl transition-all border border-card-border flex items-center justify-center gap-2 group"
+          className="w-full py-2 text-[11px] font-semibold text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] rounded-full transition-all border border-card-border flex items-center justify-center gap-2 group"
         >
           View all broadcasts
           <FiChevronRight className="group-hover:translate-x-0.5 transition-transform" />

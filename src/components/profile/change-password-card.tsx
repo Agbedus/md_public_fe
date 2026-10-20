@@ -49,9 +49,9 @@ export function ChangePasswordCard() {
   };
 
   return (
-    <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4">
-      <h4 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-        <FiLock className="text-success-text" /> Change Password
+    <div className="bg-card p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4">
+      <h4 className="text-sm font-bold text-foreground capitalize flex items-center gap-2">
+        <FiLock className="text-success-text" /> Change password
       </h4>
 
       <form onSubmit={handleSubmit} className="space-y-3">

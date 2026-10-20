@@ -94,7 +94,7 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
             className="md-btn md-btn-primary md-btn-sm"
           >
             {isUpdating ? (
-              <div className="h-3 w-3 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
             ) : (
               <FiCheck className="w-3 h-3" />
             )}

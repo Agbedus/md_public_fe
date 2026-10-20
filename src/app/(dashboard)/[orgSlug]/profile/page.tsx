@@ -66,10 +66,10 @@ export default async function ProfilePage() {
   const otherOrgs = organizations.filter(o => o.id !== user.currentOrganizationId);
 
   return (
-    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] space-y-4 px-3 py-4 pb-6 sm:px-4 md:min-h-screen md:space-y-8 md:py-8 md:pb-20">
+    <div className="md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] space-y-4 px-3 py-4 pb-6 sm:px-4 md:min-h-screen md:space-y-8 md:py-8 md:pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">My Profile</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">My profile</h1>
           <p className="text-text-muted text-sm">Manage your account and view your performance.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -98,9 +98,9 @@ export default async function ProfilePage() {
 
             {/* Organizations Membership Card */}
             {organizations.length > 0 && (
-              <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4">
-                <h4 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <FiUsers className="text-success-text" /> My Organizations
+              <div className="bg-card p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4">
+                <h4 className="text-sm font-bold text-foreground capitalize flex items-center gap-2">
+                  <FiUsers className="text-success-text" /> My organizations
                   <span className="text-[10px] font-bold text-text-muted ml-auto">{organizations.length}</span>
                 </h4>
                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -109,22 +109,22 @@ export default async function ProfilePage() {
                     const isCurrent = org.id === user.currentOrganizationId;
                     return (
                       <div key={org.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isCurrent ? 'bg-success/5 border-success/20' : 'bg-foreground/[0.03] border-foreground/5'}`}>
-                        <div className="w-8 h-8 rounded-lg bg-foreground/[0.08] flex items-center justify-center text-xs font-black text-foreground flex-shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-foreground/[0.08] flex items-center justify-center text-xs font-semibold text-foreground flex-shrink-0">
                           {org.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-foreground truncate">{org.name}</p>
-                            {isCurrent && <span className="text-[8px] font-black text-success-text uppercase tracking-wider bg-success/10 px-1 py-0.5 rounded">Active</span>}
+                            {isCurrent && <span className="text-[8px] font-semibold text-success-text capitalize bg-success/10 px-1 py-0.5 rounded">Active</span>}
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
                             {oRole && (
-                              <span className={`text-[10px] font-black uppercase tracking-wider ${orgRoleToneClasses[oRole.tone] || 'text-text-muted'}`}>
+                              <span className={`text-[10px] font-semibold capitalize ${orgRoleToneClasses[oRole.tone] || 'text-text-muted'}`}>
                                 {oRole.label}
                               </span>
                             )}
                             {org.membershipStatus && (
-                              <span className={`text-[9px] font-bold uppercase tracking-wider ${membershipStatusToneClasses[org.membershipStatus] || ''}`}>
+                              <span className={`text-[9px] font-bold capitalize ${membershipStatusToneClasses[org.membershipStatus] || ''}`}>
                                 {org.membershipStatus}
                               </span>
                             )}
@@ -138,19 +138,19 @@ export default async function ProfilePage() {
                 {currentOrg && user.orgSlug && (
                   <Link 
                     href={`/${user.orgSlug}/settings`}
-                    className="block w-full text-center py-2.5 rounded-xl border border-foreground/5 text-text-muted text-xs font-bold uppercase tracking-wider hover:bg-foreground/[0.03] transition-all"
+                    className="block w-full text-center py-2.5 rounded-xl border border-foreground/5 text-text-muted text-xs font-bold capitalize hover:bg-foreground/[0.03] transition-all"
                   >
-                    Organization Settings
+                    Organization settings
                   </Link>
                 )}
               </div>
             )}
 
             {/* Activity Heatmap Card */}
-            <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4 overflow-hidden">
+            <div className="bg-card p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4 overflow-hidden">
                 <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-[11px] font-medium text-success-text uppercase tracking-wider bg-success/10 px-2 py-0.5 rounded">Activity Engine</h4>
-                    <span className="text-[11px] text-text-muted font-bold uppercase tracking-wider">History</span>
+                    <h4 className="text-[11px] font-medium text-success-text capitalize bg-success/10 px-2 py-0.5 rounded">Activity</h4>
+                    <span className="text-[11px] text-text-muted font-bold capitalize">History</span>
                 </div>
                 <ActivityHeatmap data={activityData} variant="compact" />
             </div>
@@ -161,7 +161,7 @@ export default async function ProfilePage() {
             {/* Personalized Statistics */}
             <section className="hidden lg:block space-y-4">
                 <h3 className="text-lg lg:text-xl font-bold text-foreground px-2 flex items-center gap-2">
-                    <FiActivity className="text-success-text" /> Performance Overview
+                    <FiActivity className="text-success-text" /> Performance overview
                 </h3>
                 <ProfileStats stats={{
                     totalTasks: stats.totalTasks,
@@ -175,7 +175,7 @@ export default async function ProfilePage() {
             {/* Analytics & Charts */}
             <section className="hidden lg:block space-y-4">
                 <h3 className="text-xl font-bold text-foreground px-2 flex items-center gap-2">
-                    <FiZap className="text-warning-text" /> Productivity Metrics
+                    <FiZap className="text-warning-text" /> Productivity
                 </h3>
                 <ProfileCharts 
                     productivityData={productivityData}
@@ -189,10 +189,10 @@ export default async function ProfilePage() {
                 {/* High Priority Tasks */}
                 <section className="space-y-3 lg:space-y-4">
                 <div className="flex justify-between items-center px-2">
-                    <h3 className="text-base lg:text-lg font-bold text-foreground">Critical Focus</h3>
-                    <span className="text-[11px] lg:text-[11px] font-medium text-danger-text uppercase tracking-wider bg-danger/10 px-2 py-0.5 rounded">High Priority</span>
+                    <h3 className="text-base lg:text-lg font-bold text-foreground">Needs attention</h3>
+                    <span className="text-[11px] lg:text-[11px] font-medium text-danger-text capitalize bg-danger/10 px-2 py-0.5 rounded">High priority</span>
                 </div>
-                <div className="glass p-4 lg:p-5 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-3">
+                <div className="bg-card p-4 lg:p-5 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-3">
                     {keyTasks.length > 0 ? (
                     keyTasks.map((task: any, i: number) => (
                         <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-foreground/[0.03] border border-foreground/5 hover:bg-foreground/[0.08] transition-all group cursor-pointer border-l-4 border-l-danger/50">
@@ -215,7 +215,7 @@ export default async function ProfilePage() {
                     ) : (
                         <div className="py-10 text-center text-text-muted text-sm">No critical focus tasks detected.</div>
                     )}
-                    <button className="w-full py-3 rounded-2xl border border-foreground/5 text-text-muted text-xs font-bold uppercase tracking-wider hover:bg-foreground/[0.03] transition-all">View Task Board</button>
+                    <button className="w-full py-3 rounded-full border border-foreground/5 text-text-muted text-xs font-bold capitalize hover:bg-foreground/[0.03] transition-all">View task board</button>
                 </div>
                 </section>
 
@@ -223,9 +223,9 @@ export default async function ProfilePage() {
                 <section className="space-y-3 lg:space-y-4">
                 <div className="flex justify-between items-center px-2">
                     <h3 className="text-base lg:text-lg font-bold text-foreground">Knowledge</h3>
-                    <span className="text-[11px] lg:text-[11px] font-medium text-accent-text uppercase tracking-wider bg-accent/10 px-2 py-0.5 rounded">Captures</span>
+                    <span className="text-[11px] lg:text-[11px] font-medium text-accent-text capitalize bg-accent/10 px-2 py-0.5 rounded">Captures</span>
                 </div>
-                <div className="glass p-4 lg:p-5 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-3">
+                <div className="bg-card p-4 lg:p-5 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-3">
                     {recentNotes.length > 0 ? (
                     recentNotes.map((note: any, i: number) => (
                         <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-foreground/[0.03] border border-foreground/5 hover:bg-foreground/[0.08] transition-all group cursor-pointer border-l-4 border-l-accent/50">
@@ -234,14 +234,14 @@ export default async function ProfilePage() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent-text transition-colors">{note.title}</p>
-                            <p className="text-[11px] text-text-muted mt-1 uppercase tracking-wider font-medium">{note.type} • {new Date(note.updatedAt).toLocaleDateString()}</p>
+                            <p className="text-[11px] text-text-muted mt-1 capitalize font-medium">{note.type} • {new Date(note.updatedAt).toLocaleDateString()}</p>
                         </div>
                         </div>
                     ))
                     ) : (
                         <div className="py-10 text-center text-text-muted text-sm">No recent notes found.</div>
                     )}
-                    <button className="w-full py-3 rounded-2xl border border-foreground/5 text-text-muted text-xs font-bold uppercase tracking-wider hover:bg-foreground/[0.03] transition-all">Open Notebook</button>
+                    <button className="w-full py-3 rounded-full border border-foreground/5 text-text-muted text-xs font-bold capitalize hover:bg-foreground/[0.03] transition-all">Open notes</button>
                 </div>
                 </section>
             </div>

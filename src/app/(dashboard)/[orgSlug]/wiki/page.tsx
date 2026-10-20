@@ -196,7 +196,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'tasks',
         title: 'Tasks',
         icon: FiCheckSquare,
-        color: 'text-purple-400',
+        color: 'text-[var(--status-qa)]',
         topics: [
             { id: 'creating-tasks', title: 'Creating and assigning' },
             { id: 'board-and-table', title: 'Board and table views' },
@@ -348,7 +348,7 @@ export default function WikiPage() {
         : NAV;
 
     return (
-        <div className="flex h-[calc(100dvh-8rem)] overflow-hidden border-t border-card-border bg-background md:h-[calc(100vh-6rem)]">
+        <div className="md-zen flex h-[calc(100dvh-8rem)] overflow-hidden border-t border-card-border bg-background md:h-[calc(100vh-6rem)]">
             {/* Sidebar */}
             <aside className="hidden w-72 shrink-0 flex-col border-r border-card-border lg:flex">
                 <div className="space-y-4 border-b border-card-border p-5">
@@ -391,7 +391,7 @@ export default function WikiPage() {
                                 className="mb-1.5 flex w-full items-center gap-2 px-2 text-left"
                             >
                                 <section.icon className={`h-3.5 w-3.5 shrink-0 ${section.color}`} />
-                                <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                                <span className="text-xs font-semibold capitalize tracking-wide text-text-muted">
                                     {section.title}
                                 </span>
                             </button>
@@ -581,7 +581,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="tasks" title="Tasks" icon={FiCheckSquare} color="text-purple-400">
+                    <Section id="tasks" title="Tasks" icon={FiCheckSquare} color="text-[var(--status-qa)]">
                         <Topic id="creating-tasks" title="Creating and assigning">
                             <P>
                                 Add a task from the Tasks page, or from anywhere with the command

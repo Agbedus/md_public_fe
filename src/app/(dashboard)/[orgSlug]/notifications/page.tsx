@@ -70,7 +70,7 @@ function iconStyleFor(notification: Notification): string {
   const category = categoryFor(notification);
   if (category === 'attendance') return 'bg-accent/10 text-accent-text';
   if (category === 'tasks') return 'bg-success/10 text-success-text';
-  if (category === 'projects') return 'bg-purple-500/10 text-purple-500';
+  if (category === 'projects') return 'bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)] text-[var(--status-qa)]';
   if (category === 'notes') return 'bg-warning/10 text-warning-text';
   if (category === 'team') return 'bg-accent/10 text-accent-text';
   if (category === 'time_off') return 'bg-danger/10 text-danger-text';
@@ -143,20 +143,20 @@ export default function NotificationsPage() {
   };
 
   return (
-    <main className="mx-auto flex h-[calc(100dvh-8rem)] w-full max-w-[1600px] flex-col gap-4 overflow-hidden px-3 py-4 sm:px-4 md:py-8">
+    <main className="md-zen mx-auto flex h-[calc(100dvh-8rem)] w-full max-w-[1600px] flex-col gap-4 overflow-hidden px-3 py-4 sm:px-4 md:py-8">
       <header className="flex shrink-0 flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifications</h1>
           <p className="mt-1 text-sm text-text-muted">Updates that need your attention across this workspace.</p>
         </div>
         {unreadCount > 0 && (
-          <button type="button" onClick={() => void markAllAsRead()} disabled={isMarkingAllRead} aria-busy={isMarkingAllRead} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-card-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-[transform,opacity,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] disabled:cursor-wait disabled:opacity-70">
+          <button type="button" onClick={() => void markAllAsRead()} disabled={isMarkingAllRead} aria-busy={isMarkingAllRead} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-card-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-[transform,opacity,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] disabled:cursor-wait disabled:opacity-70">
             {isMarkingAllRead ? <FiLoader className="h-4 w-4 animate-spin text-success-text" /> : <FiCheck className="h-4 w-4 text-success-text" />} {isMarkingAllRead ? 'Marking read…' : 'Mark all read'}
           </button>
         )}
       </header>
 
-      <section className="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-card-border bg-card shadow-sm md:grid-cols-[minmax(300px,36%)_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
+      <section className="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-card-border bg-card md:grid-cols-[minmax(300px,36%)_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
         <div className={`${selected ? 'hidden md:flex' : 'flex'} min-h-0 min-w-0 flex-col border-card-border md:border-r`}>
           <div className="shrink-0 space-y-2 border-b border-card-border p-2.5">
             <div className="flex rounded-full bg-foreground/[0.05] p-1" aria-label="Notification views">
@@ -174,7 +174,7 @@ export default function NotificationsPage() {
                 <FiSearch className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
                 <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search notifications" className="h-11 w-full rounded-md border border-card-border bg-input-bg pl-8 pr-8 text-xs text-foreground outline-none placeholder:text-text-muted md:h-9" />
                 {searchQuery && (
-                  <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear notification search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-text-muted hover:bg-foreground/[0.05] hover:text-foreground md:h-7 md:w-7">
+                  <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear notification search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-text-muted hover:bg-foreground/[0.05] hover:text-foreground md:h-7 md:w-7">
                     <FiX className="h-3.5 w-3.5" />
                   </button>
                 )}
@@ -191,7 +191,7 @@ export default function NotificationsPage() {
           <div className="min-h-0 flex-1 overflow-y-auto">
             {grouped.length ? grouped.map(([label, items]) => (
               <section key={label} aria-labelledby={`notification-group-${label}`}>
-                <h2 id={`notification-group-${label}`} className="sticky top-0 z-10 border-b border-card-border bg-card/95 px-3 py-1.5 text-[11px] font-semibold text-text-muted backdrop-blur">{label}</h2>
+                <h2 id={`notification-group-${label}`} className="sticky top-0 z-10 border-b border-card-border bg-card/95 px-3 py-1.5 text-[11px] font-semibold text-text-muted">{label}</h2>
                 {items.map((notification) => {
                   const Icon = iconFor(notification);
                   return (
@@ -225,7 +225,7 @@ export default function NotificationsPage() {
           {selected ? (
             <>
               <div className="flex shrink-0 items-center justify-between border-b border-card-border p-4 sm:p-5">
-                <button type="button" onClick={() => setSelectedId(null)} className="grid h-11 w-11 place-items-center rounded-md text-text-muted hover:bg-foreground/[0.05] hover:text-foreground md:hidden" aria-label="Back to notifications"><FiChevronLeft className="h-5 w-5" /></button>
+                <button type="button" onClick={() => setSelectedId(null)} className="grid h-11 w-11 place-items-center rounded-full text-text-muted hover:bg-foreground/[0.05] hover:text-foreground md:hidden" aria-label="Back to notifications"><FiChevronLeft className="h-5 w-5" /></button>
                 <span className="text-xs font-medium text-text-muted">{format(new Date(selected.created_at), 'MMM d, yyyy · h:mm a')}</span>
               </div>
               <article className="flex flex-1 flex-col overflow-hidden p-5 sm:p-8">

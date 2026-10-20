@@ -28,7 +28,7 @@ export default function SettingsTabs({ user, phone, initialSmsEnabled, canManage
   const showOrgTab = canManageOrg && organization != null;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5 px-3 py-4 sm:px-4 md:space-y-6 md:py-8">
+    <div className="md-zen mx-auto max-w-2xl space-y-5 px-3 py-4 sm:px-4 md:space-y-6 md:py-8">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Settings</h1>

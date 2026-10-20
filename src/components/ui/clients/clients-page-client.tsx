@@ -165,7 +165,7 @@ export default function ClientsPageClient({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="md-zen space-y-8">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-10">
         <div>
@@ -179,7 +179,7 @@ export default function ClientsPageClient({
         {canCreateClient && (
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 p-1.5 h-9 lg:h-11 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
+            className="flex items-center gap-2 p-1.5 h-9 lg:h-11 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
           >
             <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
               <FiPlus className="w-4 h-4" />
@@ -191,7 +191,7 @@ export default function ClientsPageClient({
 
       <div className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10 overflow-x-auto pb-2 scrollbar-hide">
         <div className="relative w-full lg:w-96 group">
-          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors" />
+          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--accent)] transition-colors" />
           <input
             type="text"
             placeholder="Search clients..."
@@ -268,19 +268,19 @@ export default function ClientsPageClient({
           />
           <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-lg overflow-hidden">
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-white dark:bg-white/[0.03]">
-              <h2 className="text-xl font-black text-foreground uppercase tracking-tight italic">
+              <h2 className="text-xl font-semibold text-foreground capitalize tracking-tight italic">
                 Add client
               </h2>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
-                className="p-2 rounded-xl text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] transition-all"
+                className="p-2 rounded-full text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] transition-all"
               >
                 <FiX size={20} />
               </button>
             </div>
             <form action={handleCreate} className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
+                <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
                   Company name *
                 </label>
                 <input
@@ -292,8 +292,8 @@ export default function ClientsPageClient({
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-                  Primary Liaison
+                <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
+                  Main contact
                 </label>
                 <input
                   type="text"
@@ -303,8 +303,8 @@ export default function ClientsPageClient({
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-                  Secure Email
+                <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
+                  Email
                 </label>
                 <input
                   type="email"
@@ -314,8 +314,8 @@ export default function ClientsPageClient({
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-                  Digital Domain
+                <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
+                  Website
                 </label>
                 <input
                   type="url"
@@ -328,7 +328,7 @@ export default function ClientsPageClient({
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-white dark:bg-white/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
+                  className="px-6 py-2.5 rounded-full text-[11px] font-semibold capitalize text-text-secondary hover:text-foreground bg-white dark:bg-white/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
                   title="Cancel"
                 >
                   Abort
@@ -339,7 +339,7 @@ export default function ClientsPageClient({
                   title="Create Client"
                 >
                   <FiCheck className="w-4 h-4" />
-                  Establish Entity
+                  Add client
                 </button>
               </div>
             </form>
@@ -356,19 +356,19 @@ export default function ClientsPageClient({
           />
           <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-lg overflow-hidden">
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-white dark:bg-white/[0.03]">
-              <h2 className="text-xl font-black text-foreground uppercase tracking-tight italic">
+              <h2 className="text-xl font-semibold text-foreground capitalize tracking-tight italic">
                 Edit client
               </h2>
               <button
                 onClick={() => setEditingClient(null)}
-                className="p-2 rounded-xl text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] transition-all"
+                className="p-2 rounded-full text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] transition-all"
               >
                 <FiX size={20} />
               </button>
             </div>
             <form action={handleUpdate} className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
+                <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
                   Company name *
                 </label>
                 <input
@@ -380,8 +380,8 @@ export default function ClientsPageClient({
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-                  Primary Liaison
+                <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
+                  Main contact
                 </label>
                 <input
                   type="text"
@@ -391,8 +391,8 @@ export default function ClientsPageClient({
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-                  Secure Email
+                <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
+                  Email
                 </label>
                 <input
                   type="email"
@@ -402,8 +402,8 @@ export default function ClientsPageClient({
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5 ml-1">
-                  Digital Domain
+                <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
+                  Website
                 </label>
                 <input
                   type="url"
@@ -427,7 +427,7 @@ export default function ClientsPageClient({
                   title="Save Changes"
                 >
                   <FiCheck className="w-4 h-4" />
-                  Execute Changes
+                  Save changes
                 </button>
               </div>
             </form>

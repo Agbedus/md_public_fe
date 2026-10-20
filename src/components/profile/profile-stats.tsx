@@ -45,9 +45,9 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ stats }) => {
     {
       label: "Notes & Ideas",
       value: stats.totalNotes,
-      icon: <FiFileText className="w-5 h-5 text-violet-400" />,
-      bg: "bg-violet-500/10",
-      border: "border-violet-500/20",
+      icon: <FiFileText className="w-5 h-5 text-[var(--status-qa)]" />,
+      bg: "bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)]",
+      border: "border-[color-mix(in_oklab,var(--status-qa)_20%,transparent)]",
     },
   ];
 
@@ -56,7 +56,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ stats }) => {
       {statItems.map((item, idx) => (
         <div
           key={idx}
-          className={`glass p-5 rounded-2xl border ${item.border} ${item.bg} flex items-center gap-4 transition-all hover:scale-[1.02]`}
+          className={`bg-card p-5 rounded-2xl border ${item.border} ${item.bg} flex items-center gap-4 transition-all hover:scale-[1.02]`}
         >
           <div className="p-3 rounded-xl bg-background/50 border border-card-border">{item.icon}</div>
           <div>

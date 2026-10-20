@@ -12,24 +12,24 @@ interface WaitlistPageProps {
 
 const roleColors: Record<string, string> = {
     "C-Level Executive": 'bg-accent/10 text-accent-text border-accent/20',
-    "VP / Director": 'bg-violet-600/10 text-violet-400 border-violet-600/20',
+    "VP / Director": 'bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)] text-[var(--status-qa)] border-[color-mix(in_oklab,var(--status-qa)_20%,transparent)]',
     "Manager": 'bg-warning/10 text-warning-text border-warning/20',
     "Team Lead": 'bg-cyan-600/10 text-cyan-400 border-cyan-600/20',
     "Individual Contributor": 'bg-success/10 text-success-text border-success/20',
     "Consultant": 'bg-danger/10 text-danger-text border-danger/20',
     "Founder / Owner": 'bg-priority-high/10 text-priority-high-text border-priority-high/20',
-    "Other": 'bg-zinc-600/10 text-text-muted border-card-border',
+    "Other": 'bg-foreground/10 text-text-muted border-card-border',
 };
 
 const sourceColors: Record<string, string> = {
     "LinkedIn": 'bg-accent/10 text-accent-text border-accent/20',
-    "Twitter / X": 'bg-zinc-600/10 text-text-secondary border-card-border',
+    "Twitter / X": 'bg-foreground/10 text-text-secondary border-card-border',
     "Google Search": 'bg-success/10 text-success-text border-success/20',
-    "Friend / Referral": 'bg-purple-600/10 text-purple-400 border-purple-600/20',
+    "Friend / Referral": 'bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)] text-[var(--status-qa)] border-[color-mix(in_oklab,var(--status-qa)_20%,transparent)]',
     "Conference / Event": 'bg-warning/10 text-warning-text border-warning/20',
     "Blog / Article": 'bg-danger/10 text-danger-text border-danger/20',
     "Podcast": 'bg-priority-high/10 text-priority-high-text border-priority-high/20',
-    "Other": 'bg-zinc-600/10 text-text-muted border-card-border',
+    "Other": 'bg-foreground/10 text-text-muted border-card-border',
 };
 
 export default function WaitlistPage() {
@@ -69,7 +69,7 @@ export default function WaitlistPage() {
 
     if (isLoading) {
         return (
-            <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
+            <div className="md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
                 <div className="animate-pulse space-y-6">
                     <div className="h-8 w-48 bg-foreground/[0.03] rounded-xl" />
                     <div className="h-4 w-64 bg-foreground/[0.03] rounded-xl" />
@@ -117,8 +117,8 @@ export default function WaitlistPage() {
                             <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center border transition-all duration-500 relative ${color}`}>
                                 <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4 relative z-10" />
                             </div>
-                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">{label}</p>
-                            <span className="text-lg lg:text-xl font-medium text-foreground uppercase tracking-tight">{value}</span>
+                            <p className="text-[11px] font-bold text-text-muted capitalize">{label}</p>
+                            <span className="text-lg lg:text-xl font-medium text-foreground capitalize tracking-tight">{value}</span>
                         </div>
                     </motion.div>
                 ))}
@@ -144,9 +144,9 @@ export default function WaitlistPage() {
                             <select
                                 value={filterRole}
                                 onChange={e => setFilterRole(e.target.value)}
-                                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-10 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+                                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-10 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:capitalize appearance-none focus:outline-none"
                             >
-                                <option value="">All Roles</option>
+                                <option value="">All roles</option>
                                 {uniqueRoles.map(role => (
                                     <option key={role} value={role}>{role}</option>
                                 ))}
@@ -160,9 +160,9 @@ export default function WaitlistPage() {
                             <select
                                 value={filterSource}
                                 onChange={e => setFilterSource(e.target.value)}
-                                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-10 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+                                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-10 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:capitalize appearance-none focus:outline-none"
                             >
-                                <option value="">All Sources</option>
+                                <option value="">All sources</option>
                                 {uniqueSources.map(source => (
                                     <option key={source} value={source}>{source}</option>
                                 ))}
@@ -178,12 +178,12 @@ export default function WaitlistPage() {
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr className="bg-foreground/[0.03] border-b border-card-border">
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Name</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Company</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Role</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Source</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Contact</th>
-                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Signed Up</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Name</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Company</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Role</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Source</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Contact</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Signed up</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-card-border">
@@ -213,12 +213,12 @@ export default function WaitlistPage() {
                                             <span className="text-[10px] font-bold text-text-muted">{entry.company}</span>
                                         </td>
                                         <td className="px-6 py-3">
-                                            <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider border ${roleColors[entry.role] || roleColors["Other"]}`}>
+                                            <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-medium capitalize border ${roleColors[entry.role] || roleColors["Other"]}`}>
                                                 {entry.role}
                                             </span>
                                         </td>
                                         <td className="px-6 py-3">
-                                            <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider border ${sourceColors[entry.source] || sourceColors["Other"]}`}>
+                                            <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-medium capitalize border ${sourceColors[entry.source] || sourceColors["Other"]}`}>
                                                 {entry.source}
                                             </span>
                                         </td>

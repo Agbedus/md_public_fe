@@ -230,14 +230,14 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity }) => {
                 onClick={message.isReport ? handleDownloadPdf : handleDownload}
                 disabled={isDownloadingPdf}
                 aria-busy={isDownloadingPdf}
-                className="flex min-h-11 items-center gap-2 rounded-lg border border-card-border bg-foreground/[0.05] px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-text-muted transition-all hover:border-accent/30 hover:text-accent-text disabled:cursor-wait disabled:opacity-60"
+                className="flex min-h-11 items-center gap-2 rounded-full border border-card-border bg-foreground/[0.05] px-3 py-2 text-[10px] font-bold capitalize text-text-muted transition-all hover:border-accent/30 hover:text-accent-text disabled:cursor-wait disabled:opacity-60"
               >
                 {isDownloadingPdf ? <FiLoader className="h-3.5 w-3.5 animate-spin" /> : <FiDownload className="h-3.5 w-3.5" />}
                 {message.isReport ? (isDownloadingPdf ? 'Preparing PDF' : 'Download PDF') : 'Download .md'}
               </button>
               <button
                 onClick={handleCopy}
-                className="flex min-h-11 items-center gap-2 rounded-lg border border-card-border bg-foreground/[0.05] px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-text-muted transition-all hover:border-accent/30 hover:text-accent-text"
+                className="flex min-h-11 items-center gap-2 rounded-full border border-card-border bg-foreground/[0.05] px-3 py-2 text-[10px] font-bold capitalize text-text-muted transition-all hover:border-accent/30 hover:text-accent-text"
               >
                 <FiCopy className="w-3 h-3" />
                 {copied ? "Copied!" : "Copy"}

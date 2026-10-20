@@ -9,7 +9,7 @@ import { toast } from '@/lib/toast';
 
 const inputClass =
   'w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all';
-const labelClass = 'block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5 text-left';
+const labelClass = 'block text-[10px] font-bold text-text-muted capitalize mb-1.5 ml-0.5 text-left';
 
 interface ProfileInfoCardProps {
   email: string;
@@ -134,7 +134,7 @@ export function ProfileInfoCard({
   };
 
   return (
-    <div className="glass p-5 lg:p-8 rounded-3xl border border-foreground/5 bg-foreground/[0.03] backdrop-blur-xl flex flex-col items-center text-center">
+    <div className="bg-card p-5 lg:p-8 rounded-3xl border border-foreground/5 bg-foreground/[0.03] flex flex-col items-center text-center">
       {/* Avatar Section */}
       <div className="relative mb-4 lg:mb-6">
         {isEditing ? (
@@ -210,9 +210,9 @@ export function ProfileInfoCard({
               </div>
             )}
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted flex items-center gap-2"><FiShield className="w-4 h-4" /> Org Role</span>
+              <span className="text-text-muted flex items-center gap-2"><FiShield className="w-4 h-4" /> Org role</span>
               {orgRole ? (
-                <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider ${orgRoleToneClasses[orgRole.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5 border'}`}>
+                <span className={`px-2 py-0.5 rounded text-[11px] font-semibold capitalize ${orgRoleToneClasses[orgRole.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5 border'}`}>
                   {orgRole.label}
                 </span>
               ) : (
@@ -220,17 +220,17 @@ export function ProfileInfoCard({
               )}
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted flex items-center gap-2"><FiCheckCircle className="w-4 h-4" /> Platform Role</span>
+              <span className="text-text-muted flex items-center gap-2"><FiCheckCircle className="w-4 h-4" /> Platform role</span>
               <div className="flex gap-1 flex-wrap justify-end">
                 {platformRoles?.map(role => (
-                  <span key={role} className="text-text-muted font-bold uppercase tracking-wider text-[10px] bg-foreground/[0.06] px-1.5 py-0.5 rounded">
+                  <span key={role} className="text-text-muted font-bold capitalize text-[10px] bg-foreground/[0.06] px-1.5 py-0.5 rounded">
                     {role.replace('_', ' ')}
                   </span>
                 )) || <span className="text-text-muted">None</span>}
               </div>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted flex items-center gap-2"><FiCalendar className="w-4 h-4" /> Member Since</span>
+              <span className="text-text-muted flex items-center gap-2"><FiCalendar className="w-4 h-4" /> Member since</span>
               <span className="text-foreground font-medium text-xs">
                 {currentOrg?.joined_at ? new Date(currentOrg.joined_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : '—'}
               </span>
@@ -248,7 +248,7 @@ export function ProfileInfoCard({
           <button
             onClick={cancelEdit}
             disabled={isSaving}
-            className="flex min-h-11 flex-1 items-center justify-center gap-2 py-2.5 lg:py-3 rounded-md border border-card-border text-text-muted hover:text-foreground hover:bg-foreground/[0.03] transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] text-sm lg:text-base disabled:opacity-50"
+            className="flex min-h-11 flex-1 items-center justify-center gap-2 py-2.5 lg:py-3 rounded-full border border-card-border text-text-muted hover:text-foreground hover:bg-foreground/[0.03] transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] text-sm lg:text-base disabled:opacity-50"
           >
             <FiX className="w-4 h-4" /> Cancel
           </button>
@@ -265,9 +265,9 @@ export function ProfileInfoCard({
       ) : (
         <button
           onClick={openEdit}
-          className="w-full min-h-11 flex items-center justify-center gap-2 mt-6 lg:mt-8 py-2.5 lg:py-3 rounded-md bg-foreground/[0.03] border border-card-border text-foreground font-semibold hover:bg-foreground/[0.06] transition-[transform,background-color] duration-150 active:scale-[0.98] text-sm lg:text-base"
+          className="w-full min-h-11 flex items-center justify-center gap-2 mt-6 lg:mt-8 py-2.5 lg:py-3 rounded-full bg-foreground/[0.03] border border-card-border text-foreground font-semibold hover:bg-foreground/[0.06] transition-[transform,background-color] duration-150 active:scale-[0.98] text-sm lg:text-base"
         >
-          <FiEdit2 className="w-4 h-4" /> Edit Profile Details
+          <FiEdit2 className="w-4 h-4" /> Edit profile details
         </button>
       )}
     </div>

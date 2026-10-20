@@ -171,7 +171,7 @@ export const AnnouncementProvider: React.FC<{
                 {announcement.content && (
                   <p className="text-xs text-text-muted mt-1 line-clamp-2 leading-relaxed">{announcement.content}</p>
                 )}
-                <p className="text-[11px] text-[var(--pastel-yellow)] font-bold mt-1">Announcement</p>
+                <p className="text-[11px] text-[var(--warning)] font-bold mt-1">Announcement</p>
               </div>
             </div>
           ),
@@ -179,7 +179,7 @@ export const AnnouncementProvider: React.FC<{
         );
       } else {
         toast(announcement.title, {
-          icon: <HiSpeakerphone size={22} className="text-[var(--pastel-yellow)]" />,
+          icon: <HiSpeakerphone size={22} className="text-[var(--warning)]" />,
           duration: 6000,
         });
       }

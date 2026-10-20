@@ -67,7 +67,7 @@ export const AnnouncementDrawer = () => {
       case 'success': return 'text-success-text dark:text-success-text bg-success/10 border-success/20';
       case 'warning': return 'text-warning-text dark:text-warning-text bg-warning/10 border-warning/20';
       case 'error': return 'text-danger-text dark:text-danger-text bg-danger/10 border-danger/20';
-      case 'critical': return 'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20';
+      case 'critical': return 'text-[var(--status-qa)] dark:text-[var(--status-qa)] bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)] border-[color-mix(in_oklab,var(--status-qa)_20%,transparent)]';
       default: return 'text-accent-text dark:text-accent-text bg-accent/10 border-accent/20';
     }
   };
@@ -108,7 +108,7 @@ export const AnnouncementDrawer = () => {
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-background">
               <div>
                 <h2 className="text-xl font-bold text-foreground flex items-center gap-3 tracking-tight">
-                  <HiSpeakerphone className="text-[var(--pastel-yellow)]" />
+                  <HiSpeakerphone className="text-[var(--warning)]" />
                   Announcements
                 </h2>
                 <p className="text-xs text-text-muted mt-1">Notices for the whole organization.</p>
@@ -145,7 +145,7 @@ export const AnnouncementDrawer = () => {
 
                     <div className="flex-1 min-w-0 space-y-3">
                       <div className="flex justify-between items-start">
-                        <h3 className="text-sm font-bold text-foreground truncate group-hover:text-[var(--pastel-yellow)] transition-colors pr-8">
+                        <h3 className="text-sm font-bold text-foreground truncate group-hover:text-[var(--warning)] transition-colors pr-8">
                           {announcement.title}
                         </h3>
                         
@@ -155,7 +155,7 @@ export const AnnouncementDrawer = () => {
                               e.stopPropagation();
                               void handleDelete(announcement.id, announcement.title);
                             }}
-                            className="absolute top-5 right-5 p-2 text-text-muted hover:text-danger-text hover:bg-danger/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-danger/20"
+                            className="absolute top-5 right-5 p-2 text-text-muted hover:text-danger-text hover:bg-danger/10 rounded-full transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-danger/20"
                             title="Delete Announcement"
                           >
                             <FiTrash2 size={14} />
@@ -205,11 +205,11 @@ export const AnnouncementDrawer = () => {
               {canPublish && (
               <button
                 onClick={() => setIsAdminFormOpen(true)}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-[var(--pastel-yellow)]/30 text-xs text-text-muted hover:text-foreground transition-all duration-300 group"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-[var(--warning)]/30 text-xs text-text-muted hover:text-foreground transition-all duration-300 group"
                 title="Post New Announcement"
               >
                 <div className="p-1.5 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border rounded-full">
-                  <FiPlus className="w-3.5 h-3.5 text-[var(--pastel-yellow)]" />
+                  <FiPlus className="w-3.5 h-3.5 text-[var(--warning)]" />
                 </div>
                 <span className="font-semibold text-[11px]">New announcement</span>
               </button>
@@ -220,7 +220,7 @@ export const AnnouncementDrawer = () => {
                 <button className="p-3 text-text-secondary hover:text-foreground transition-colors bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:border-card-border rounded-full">
                   <FiInfo size={18} />
                 </button>
-                <div className="absolute bottom-full right-0 mb-4 w-72 p-5 bg-background border border-card-border rounded-3xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-[80]">
+                <div className="absolute bottom-full right-0 mb-4 w-72 p-5 bg-background border border-card-border rounded-3xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-[80]">
                   <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">
                     Stay updated with the latest platform news. All broadcasts are strictly for internal system purposes.
                   </p>

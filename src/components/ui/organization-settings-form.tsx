@@ -15,7 +15,7 @@ interface OrganizationSettingsFormProps {
 }
 
 const inputClass = "w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all";
-const labelClass = "block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5";
+const labelClass = "block text-[10px] font-bold text-text-muted capitalize mb-1.5 ml-0.5";
 
 /** Neutral icon chip — dark/gray with a plain foreground-colored icon, matching
  *  the treatment applied to the "My settings" tab; no per-section color coding. */
@@ -33,14 +33,14 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="glass p-5 rounded-2xl border border-card-border space-y-5">
+    <div className="bg-card p-5 rounded-2xl border border-card-border space-y-5">
       <div className="flex items-center gap-3 pb-4 border-b border-card-border">
         <div className={`p-2 rounded-xl border shrink-0 ${iconChipClass}`}>
           {icon}
         </div>
         <div className="min-w-0">
-          <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{title}</h2>
-          <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">{subtitle}</p>
+          <h2 className="text-sm font-bold text-foreground capitalize">{title}</h2>
+          <p className="text-[10px] text-text-muted font-bold capitalize mt-0.5">{subtitle}</p>
         </div>
       </div>
       {children}
@@ -188,13 +188,13 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
                 type="button"
                 onClick={() => logoInputRef.current?.click()}
                 disabled={isLogoSaving}
-                className="relative w-16 h-16 rounded-2xl overflow-hidden border border-card-border bg-foreground/[0.04] shrink-0 group disabled:cursor-wait"
+                className="relative w-16 h-16 rounded-full overflow-hidden border border-card-border bg-foreground/[0.04] shrink-0 group disabled:cursor-wait"
                 title="Change logo"
               >
                 {logoUrl ? (
                   <Image src={logoUrl} alt={fields.name} fill className="object-cover" />
                 ) : (
-                  <span className="w-full h-full flex items-center justify-center text-foreground/40 text-xl font-bold uppercase">
+                  <span className="w-full h-full flex items-center justify-center text-foreground/40 text-xl font-bold capitalize">
                     {fields.name.charAt(0) || "?"}
                   </span>
                 )}
@@ -356,7 +356,7 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
 
       {/* SAVE BAR */}
       <div className="flex items-center justify-between gap-4 pt-1">
-        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-text-muted">
+        <span className="flex items-center gap-1.5 text-[10px] font-bold capitalize text-text-muted">
           {isDirty ? "Unsaved changes" : "All changes saved"}
         </span>
         <button

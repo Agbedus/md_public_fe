@@ -31,7 +31,7 @@ export function EmptyState({ icon: Icon = FiInbox, title, description, action, c
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-5 px-4 py-2 text-sm font-medium rounded-xl bg-foreground/5 hover:bg-foreground/10 text-foreground/70 hover:text-foreground transition-colors border border-card-border"
+          className="mt-5 px-4 py-2 text-sm font-medium rounded-full bg-foreground/5 hover:bg-foreground/10 text-foreground/70 hover:text-foreground transition-colors border border-card-border"
         >
           {action.label}
         </button>

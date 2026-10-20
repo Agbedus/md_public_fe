@@ -248,7 +248,7 @@ export default function AssistantPage() {
             </motion.div>
           <div>
             <h1 className="text-lg font-bold text-foreground leading-none">Pip AI</h1>
-            <p className="text-[10px] text-text-muted uppercase tracking-widest font-bold mt-1">Intelligent Copilot</p>
+            <p className="text-[10px] text-text-muted capitalize font-bold mt-1">Your assistant</p>
           </div>
         </div>
       </div>
@@ -283,12 +283,12 @@ export default function AssistantPage() {
                     <button
                     key={idx}
                     onClick={() => handleSendMessage(item.action)}
-                    className="group flex min-h-32 flex-col items-start rounded-2xl border border-card-border bg-card p-3 text-left shadow-sm transition-all hover:border-foreground/20 hover:bg-foreground/[0.03] active:scale-[0.98] sm:p-4 md:p-5"
+                    className="group flex min-h-32 flex-col items-start rounded-full border border-card-border bg-card p-3 text-left transition-all hover:border-foreground/20 hover:bg-foreground/[0.03] active:scale-[0.98] sm:p-4 md:p-5"
                     >
                     <div className="p-2.5 bg-foreground/[0.04] border border-card-border text-text-muted group-hover:text-foreground group-hover:border-foreground/20 rounded-xl mb-3 transition-colors">
                         <item.icon className="w-5 h-5" />
                     </div>
-                    <h3 className="text-sm font-bold text-foreground mb-1 uppercase tracking-wider">{item.title}</h3>
+                    <h3 className="text-sm font-bold text-foreground mb-1 capitalize">{item.title}</h3>
                     <p className="hidden text-xs text-text-muted sm:block">{item.desc}</p>
                     </button>
                 ))}

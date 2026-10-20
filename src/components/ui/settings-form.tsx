@@ -47,7 +47,7 @@ interface SettingsFormProps {
 }
 
 const inputClass = "w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all font-numbers";
-const labelClass = "block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5";
+const labelClass = "block text-[10px] font-bold text-text-muted capitalize mb-1.5 ml-0.5";
 
 /** Neutral icon chip — dark/gray with a plain foreground-colored icon, no
  *  per-section color coding. Rolling out site-wide later; this page first. */
@@ -65,14 +65,14 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="glass p-5 rounded-2xl border border-card-border space-y-5">
+    <div className="bg-card p-5 rounded-2xl border border-card-border space-y-5">
       <div className="flex items-center gap-3 pb-4 border-b border-card-border">
         <div className={`p-2 rounded-xl border shrink-0 ${iconChipClass}`}>
           {icon}
         </div>
         <div className="min-w-0">
-          <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">{title}</h2>
-          <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">{subtitle}</p>
+          <h2 className="text-sm font-bold text-foreground capitalize">{title}</h2>
+          <p className="text-[10px] text-text-muted font-bold capitalize mt-0.5">{subtitle}</p>
         </div>
       </div>
       {children}
@@ -244,9 +244,9 @@ export default function SettingsForm({ user, phone, initialSmsEnabled }: Setting
               <div className="flex items-start gap-2 text-xs text-text-muted bg-foreground/[0.03] border border-card-border rounded-xl px-3 py-2.5 leading-relaxed">
                 <FiMessageSquare className="shrink-0 mt-0.5" size={13} />
                 {phone ? (
-                  <span>Sent to <span className="text-foreground font-medium">{phone}</span>. Wrong number? <Link href={orgPath("/profile")} className="text-[var(--pastel-blue)] hover:underline">Update it on your profile</Link>.</span>
+                  <span>Sent to <span className="text-foreground font-medium">{phone}</span>. Wrong number? <Link href={orgPath("/profile")} className="text-[var(--accent)] hover:underline">Update it on your profile</Link>.</span>
                 ) : (
-                  <span>You don&apos;t have a phone number on file yet. <Link href={orgPath("/profile")} className="text-[var(--pastel-blue)] hover:underline">Add one</Link> before turning this on.</span>
+                  <span>You don&apos;t have a phone number on file yet. <Link href={orgPath("/profile")} className="text-[var(--accent)] hover:underline">Add one</Link> before turning this on.</span>
                 )}
               </div>
             </div>
@@ -340,7 +340,7 @@ export default function SettingsForm({ user, phone, initialSmsEnabled }: Setting
 
       {/* SAVE BAR */}
       <div className="flex items-center justify-between gap-4 pt-1">
-        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-text-muted">
+        <span className="flex items-center gap-1.5 text-[10px] font-bold capitalize text-text-muted">
           <FiCloud size={12} className={isDirty ? "text-warning-text" : "text-success-text"} />
           {isDirty ? "Unsaved changes" : "All changes saved"}
         </span>

@@ -24,7 +24,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
             {/* Pending Overlay/Indicator */}
             {isPending && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/40 backdrop-blur-[1px] rounded-2xl pointer-events-none">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-card rounded-full border border-card-border animate-pulse text-[11px] font-bold text-foreground uppercase tracking-wider ">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-card rounded-full border border-card-border animate-pulse text-[11px] font-bold text-foreground capitalize ">
                         <div className="h-2 w-2 bg-success rounded-full animate-ping"></div>
                         Saving...
                     </div>
@@ -37,7 +37,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                         {client.companyName}
                     </h3>
                     {client.createdAt && (
-                        <div className="flex items-center gap-1.5 text-[11px] text-text-muted uppercase tracking-wider font-semibold">
+                        <div className="flex items-center gap-1.5 text-[11px] text-text-muted capitalize font-semibold">
                             <FiClock size={10} className="text-text-muted/50" />
                             <span>Added {format(new Date(client.createdAt), 'MMM yyyy')}</span>
                         </div>
@@ -49,7 +49,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                     <button
                         onClick={() => onEdit(client)}
                         disabled={isPending}
-                        className="p-2 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all active:scale-95 disabled:opacity-50"
+                        className="p-2 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all active:scale-95 disabled:opacity-50"
                         title="Edit Client"
                     >
                         <FiEdit2 className="w-4 h-4" />
@@ -57,7 +57,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                     <button
                         onClick={() => onDelete(client)}
                         disabled={isPending}
-                        className="p-2 rounded-xl bg-danger/5 hover:bg-danger/20 text-text-muted hover:text-danger-text border border-card-border hover:border-danger/20 transition-all active:scale-95 disabled:opacity-50"
+                        className="p-2 rounded-full bg-danger/5 hover:bg-danger/20 text-text-muted hover:text-danger-text border border-card-border hover:border-danger/20 transition-all active:scale-95 disabled:opacity-50"
                         title="Delete Client"
                     >
                         <FiTrash2 className="w-4 h-4" />
@@ -74,7 +74,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                             <FiUser className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[11px] uppercase tracking-wider text-text-muted font-bold mb-0.5">Contact</span>
+                            <span className="text-[11px] capitalize text-text-muted font-bold mb-0.5">Contact</span>
                             <span className="text-sm text-foreground font-medium">{client.contactPersonName}</span>
                         </div>
                     </div>
@@ -87,7 +87,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                             <FiMail className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col min-w-0">
-                            <span className="text-[11px] uppercase tracking-wider text-text-muted font-bold mb-0.5">Email</span>
+                            <span className="text-[11px] capitalize text-text-muted font-bold mb-0.5">Email</span>
                             <span className="text-sm text-foreground font-medium truncate">{client.contactEmail}</span>
                         </div>
                     </div>
@@ -100,7 +100,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                             <FiGlobe className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col min-w-0">
-                            <span className="text-[11px] uppercase tracking-wider text-text-muted font-bold mb-0.5">Website</span>
+                            <span className="text-[11px] capitalize text-text-muted font-bold mb-0.5">Website</span>
                             <a 
                                 href={client.websiteUrl.startsWith('http') ? client.websiteUrl : `https://${client.websiteUrl}`} 
                                 target="_blank" 

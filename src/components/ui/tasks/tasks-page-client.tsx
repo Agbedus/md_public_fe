@@ -1115,23 +1115,29 @@ export default function TasksPageClient({
       ) : (
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between gap-4 overflow-x-auto pb-1 scrollbar-hide">
-            <div className="flex items-center gap-1 bg-foreground/[0.03] p-1 w-fit rounded-xl border border-card-border flex-shrink-0">
+            <div className="flex w-fit flex-shrink-0 items-center gap-1 rounded-full bg-foreground/[0.05] p-1">
               <button
+                type="button"
                 onClick={() => setTableTab("active")}
-                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs font-semibold transition-all ${tableTab === "active" ? "bg-success text-zinc-950" : "text-text-muted hover:text-foreground"}`}
+                aria-pressed={tableTab === "active"}
+                className={`relative isolate min-h-9 rounded-full px-4 text-sm transition-colors ${tableTab === "active" ? "font-medium text-on-ink" : "text-text-muted hover:text-foreground"}`}
               >
+                {tableTab === "active" && <TabPill />}
                 Active
               </button>
               <button
+                type="button"
                 onClick={() => setTableTab("done")}
-                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs font-semibold transition-all ${tableTab === "done" ? "bg-success text-zinc-950" : "text-text-muted hover:text-foreground"}`}
+                aria-pressed={tableTab === "done"}
+                className={`relative isolate min-h-9 rounded-full px-4 text-sm transition-colors ${tableTab === "done" ? "font-medium text-on-ink" : "text-text-muted hover:text-foreground"}`}
               >
+                {tableTab === "done" && <TabPill />}
                 Done
               </button>
             </div>
           </div>
 
-          <div className="glass rounded-2xl overflow-hidden flex flex-col border border-card-border">
+          <div className="flex flex-col overflow-hidden rounded-[28px] bg-card">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <caption className="sr-only">Tasks table</caption>
@@ -1408,20 +1414,20 @@ export default function TasksPageClient({
                     <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
                       <FiPlus className="w-4 h-4" />
                     </div>
-                    <span>New Task</span>
+                    <span>New task</span>
                   </button>
                 )}
               </div>
 
               {isLoadingMore && (
-                <div className="flex items-center gap-4 bg-success/10 border border-success/20 py-2 px-4 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-xl shadow-xl ">
+                <div className="flex items-center gap-4 rounded-full border border-card-border bg-card py-2 pl-4 pr-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
                   <div className="flex flex-col items-end">
-                    <div className="text-[11px] text-success-text font-bold leading-none mb-1">
-                      Expanding
+                    <div className="mb-1 text-xs leading-none text-text-muted">
+                      Loading more
                     </div>
-                    <div className="h-1 w-12 bg-success/20 rounded-full overflow-hidden">
+                    <div className="h-1 w-12 overflow-hidden rounded-full bg-accent/20">
                       <motion.div
-                        className="h-full bg-success"
+                        className="h-full bg-accent"
                         initial={{ x: "-100%" }}
                         animate={{ x: "100%" }}
                         transition={{
@@ -1433,8 +1439,8 @@ export default function TasksPageClient({
                     </div>
                   </div>
                   <div className="relative h-6 w-6 flex items-center justify-center">
-                    <div className="absolute inset-0 border-2 border-success/10 rounded-full"></div>
-                    <div className="absolute inset-0 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 rounded-full border-2 border-accent/15"></div>
+                    <div className="absolute inset-0 animate-spin rounded-full border-2 border-accent border-t-transparent"></div>
                   </div>
                 </div>
               )}

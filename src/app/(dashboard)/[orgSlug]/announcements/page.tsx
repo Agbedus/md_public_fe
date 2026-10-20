@@ -66,7 +66,7 @@ export default function AnnouncementsPage() {
             case 'success': return 'text-success-text bg-success/10 border-success/20';
             case 'warning': return 'text-warning-text bg-warning/10 border-warning/20';
             case 'error': return 'text-danger-text bg-danger/10 border-danger/20';
-            case 'critical': return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
+            case 'critical': return 'text-[var(--status-qa)] bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)] border-[color-mix(in_oklab,var(--status-qa)_20%,transparent)]';
             default: return 'text-accent-text bg-accent/10 border-accent/20';
         }
     };
@@ -82,12 +82,12 @@ export default function AnnouncementsPage() {
     };
 
     return (
-        <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
+        <div className="md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
             {/* Header */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight flex items-center gap-3">
-                        <HiSpeakerphone className="text-[var(--pastel-yellow)]" />
+                        <HiSpeakerphone className="text-[var(--warning)]" />
                         Announcements
                     </h1>
                     <p className="text-text-muted text-sm">
@@ -98,7 +98,7 @@ export default function AnnouncementsPage() {
                 {canPublish && (
                     <button
                         onClick={() => setIsAdminFormOpen(true)}
-                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[var(--pastel-yellow)]/10 border border-[var(--pastel-yellow)]/20 text-[var(--pastel-yellow)] hover:bg-[var(--pastel-yellow)]/20 transition-all duration-300 font-bold text-xs group"
+                        className="flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--warning)]/10 border border-[var(--warning)]/20 text-[var(--warning)] hover:bg-[var(--warning)]/20 transition-all duration-300 font-bold text-xs group"
                     >
                         <FiPlus className="text-lg group-hover:rotate-90 transition-transform" />
                         New announcement
@@ -109,7 +109,7 @@ export default function AnnouncementsPage() {
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4 mb-10">
                 <div className="relative flex-1 group">
-                    <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-yellow)] transition-colors" />
+                    <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--warning)] transition-colors" />
                     <input
                         type="text"
                         placeholder="Search announcements..."
@@ -124,7 +124,7 @@ export default function AnnouncementsPage() {
                         <button
                             key={type}
                             onClick={() => setFilterType(type)}
-                            className={`px-4 py-2 rounded-xl text-[11px] font-bold transition-all ${
+                            className={`px-4 py-2 rounded-full text-[11px] font-bold transition-all ${
  filterType === type 
  ? 'bg-foreground/[0.08] text-foreground border border-foreground/10 ' 
  : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'
@@ -157,14 +157,14 @@ export default function AnnouncementsPage() {
                                 {canRemove(announcement.creator_id) && (
                                     <button 
                                         onClick={() => void handleDelete(announcement.id, announcement.title)}
-                                        className="p-2 text-text-muted hover:text-danger-text hover:bg-danger/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                        className="p-2 text-text-muted hover:text-danger-text hover:bg-danger/10 rounded-full transition-all opacity-0 group-hover:opacity-100"
                                     >
                                         <FiTrash2 size={16} />
                                     </button>
                                 )}
                             </div>
 
-                            <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-[var(--pastel-yellow)] transition-colors leading-tight">
+                            <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-[var(--warning)] transition-colors leading-tight">
                                 {announcement.title}
                             </h3>
                             
@@ -190,7 +190,7 @@ export default function AnnouncementsPage() {
                                 </div>
 
                                 <div className="p-2 bg-foreground/[0.03] rounded-lg border border-foreground/5">
-                                    <HiSpeakerphone className="text-zinc-700" size={14} />
+                                    <HiSpeakerphone className="text-foreground" size={14} />
                                 </div>
                             </div>
                         </motion.div>
@@ -199,7 +199,7 @@ export default function AnnouncementsPage() {
 
                 {filteredAnnouncements.length === 0 && (
                     <div className="col-span-full py-32 text-center">
-                        <FiMessageSquare size={64} className="mx-auto text-zinc-800 mb-6" />
+                        <FiMessageSquare size={64} className="mx-auto text-foreground mb-6" />
                         <h3 className="text-xl font-bold text-text-muted">No matching announcements</h3>
                         <p className="text-text-muted mt-2 font-medium">Try adjusting your filters or check back later.</p>
                     </div>

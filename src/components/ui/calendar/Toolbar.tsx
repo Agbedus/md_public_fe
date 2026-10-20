@@ -4,8 +4,8 @@ import { format } from "date-fns";
 import { FiChevronLeft, FiChevronRight, FiPlus, FiSun } from "react-icons/fi";
 import type { CalendarView } from "@/types/calendar";
 import TimezoneClocks from "./TimezoneClocks";
-
 import { TabPill } from '@/components/ui/tab-pill';
+
 interface ToolbarProps {
   currentDate: Date;
   view: CalendarView;
@@ -21,142 +21,105 @@ interface ToolbarProps {
   hideViewSwitcher?: boolean;
 }
 
+type CalendarFilter = 'projects' | 'tasks' | 'events' | 'timeOff';
+
 export default function Toolbar({ 
   currentDate, view, onPrev, onNext, onToday, onChangeView, onAddEvent,
   onRequestTimeOff, canRequestTimeOff,
   activeFilter, setActiveFilter,
   hideViewSwitcher
 }: ToolbarProps) {
+  const categories: { id: CalendarFilter; label: string; dot: string; group: 'calendar' | 'timeline' }[] = [
+    { id: 'events', label: 'Events', dot: 'var(--status-qa)', group: 'calendar' },
+    { id: 'tasks', label: 'Tasks', dot: 'var(--accent)', group: 'calendar' },
+    { id: 'projects', label: 'Projects', dot: 'var(--status-review)', group: 'timeline' },
+    { id: 'timeOff', label: 'Time off', dot: 'var(--warning)', group: 'timeline' },
+  ];
+  const iconButton = "grid h-9 w-9 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground";
+
   return (
-    <div className="flex flex-col gap-6 mb-8">
-      <div className="bg-card p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-card-border">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-foreground/[0.05] rounded-full border border-card-border p-1">
-              <button onClick={onPrev} className="p-2 text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] transition-all rounded-full">
+    <div className="mb-6 flex flex-col gap-4">
+      {/* Navigation, title, actions */}
+      <div className="flex flex-col gap-3 rounded-[28px] bg-card p-3 sm:flex-row sm:items-center sm:justify-between sm:pl-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-0.5 rounded-full bg-foreground/[0.05] p-0.5">
+            <button type="button" onClick={onPrev} aria-label="Previous" className={iconButton}>
               <FiChevronLeft className="h-4 w-4" />
-              </button>
-              <button onClick={onNext} className="p-2 text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] transition-all rounded-full">
-              <FiChevronRight className="h-4 w-4" />
-              </button>
-          </div>
-          <button 
-              onClick={onToday} 
-              className="px-4 py-2 rounded-full bg-foreground/[0.05] border border-card-border text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] text-sm font-medium transition-all"
-          >
+            </button>
+            <button type="button" onClick={onToday} className="min-h-9 rounded-full px-3.5 text-sm font-medium text-text-secondary transition-colors hover:bg-foreground/[0.06] hover:text-foreground">
               Today
-          </button>
-          {onAddEvent && (
-              <button 
-                  onClick={onAddEvent} 
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--pastel-indigo)]/10 border border-[var(--pastel-indigo)]/20 text-[var(--pastel-indigo)] hover:bg-[var(--pastel-indigo)]/20 text-sm font-bold transition-all ml-2"
-              >
-                  <FiPlus className="h-4 w-4" />
-                  <span>Event</span>
-              </button>
+            </button>
+            <button type="button" onClick={onNext} aria-label="Next" className={iconButton}>
+              <FiChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">
+            {format(currentDate, "MMMM yyyy")}
+          </h2>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {!hideViewSwitcher && (
+            <div className="flex items-center gap-1 rounded-full bg-foreground/[0.05] p-1" role="group" aria-label="Calendar view">
+              {(['month', 'week', 'day'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => onChangeView?.(v)}
+                  aria-pressed={view === v}
+                  className={`relative isolate min-h-9 rounded-full px-3.5 text-sm transition-colors ${
+                    view === v ? "font-medium text-on-ink" : "text-text-muted hover:text-foreground"
+                  }`}
+                >
+                  {view === v && <TabPill />}
+                  {v.charAt(0).toUpperCase() + v.slice(1)}
+                </button>
+              ))}
+            </div>
           )}
           {canRequestTimeOff && onRequestTimeOff && (
-              <button 
-                  onClick={onRequestTimeOff} 
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-warning/10 border border-warning/20 text-warning-text hover:bg-warning/20 text-sm font-bold transition-all"
-              >
-                  <FiSun className="h-4 w-4" />
-                  <span>Time Off</span>
-              </button>
+            <button type="button" onClick={onRequestTimeOff} className="md-btn md-btn-secondary md-btn-sm">
+              <FiSun className="h-4 w-4" />
+              Time off
+            </button>
+          )}
+          {onAddEvent && (
+            <button type="button" onClick={onAddEvent} className="md-btn md-btn-primary md-btn-sm">
+              New event
+              <span className="md-btn-chip"><FiPlus /></span>
+            </button>
           )}
         </div>
-        
-        <div className="text-xl font-bold text-foreground tracking-tight">
-          {format(currentDate, "MMMM yyyy")}
-        </div>
-
-        {!hideViewSwitcher && (
-          <div className="flex items-center space-x-1 bg-foreground/[0.05] p-1 rounded-full border border-card-border">
-            {(['month', 'week', 'day'] as const).map((v) => (
-                <button
-                    key={v}
-                    onClick={() => onChangeView?.(v)}
-                    className={`relative isolate px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        view === v ? "text-on-ink" : "text-(--text-muted) hover:text-foreground"
-                    }`}
-                >
-                    {view === v && <TabPill id="calendar-view" />}
-                    {v.charAt(0).toUpperCase() + v.slice(1)}
-                </button>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Filter Toggles */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-2">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-              {/* Main Calendar Group */}
-              <div className="flex flex-col gap-2.5">
-                  <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.2em] px-1">Main Calendar</span>
-                  <div className="flex items-center gap-2">
-                      <FilterToggle
-                        label="Events"
-                        active={activeFilter === 'events'}
-                        onClick={() => setActiveFilter('events')}
-                        color="purple"
-                      />
-                      <FilterToggle
-                        label="Tasks"
-                        active={activeFilter === 'tasks'}
-                        onClick={() => setActiveFilter('tasks')}
-                        color="emerald"
-                      />
-                  </div>
-              </div>
+      {/* What the calendar shows: one choice at a time, as tabs */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="-mx-1 flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-foreground/[0.05] p-1 scrollbar-hide" role="tablist" aria-label="Show on calendar">
+          {categories.map((c, i) => (
+            <React.Fragment key={c.id}>
+              {i > 0 && c.group !== categories[i - 1].group && (
+                <span className="mx-1 h-5 w-px shrink-0 bg-card-border" aria-hidden="true" />
+              )}
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeFilter === c.id}
+                onClick={() => setActiveFilter(c.id)}
+                title={c.group === 'calendar' ? 'Calendar view' : 'Timeline view'}
+                className={`relative isolate inline-flex min-h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-sm transition-colors ${
+                  activeFilter === c.id ? "font-medium text-on-ink" : "text-text-secondary hover:text-foreground"
+                }`}
+              >
+                {activeFilter === c.id && <TabPill />}
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.dot }} />
+                {c.label}
+              </button>
+            </React.Fragment>
+          ))}
+        </div>
 
-              <div className="hidden sm:block h-6 w-px bg-card-border self-end mb-2" />
-
-              {/* Timeline Group */}
-              <div className="flex flex-col gap-2.5">
-                  <span className="text-[10px] font-black text-(--text-muted) uppercase tracking-[0.2em] px-1">Timeline (Gantt)</span>
-                  <div className="flex items-center gap-2">
-                      <FilterToggle
-                        label="Projects"
-                        active={activeFilter === 'projects'}
-                        onClick={() => setActiveFilter('projects')}
-                        color="indigo"
-                      />
-                      <FilterToggle
-                        label="Time Off"
-                        active={activeFilter === 'timeOff'}
-                        onClick={() => setActiveFilter('timeOff')}
-                        color="amber"
-                      />
-                  </div>
-              </div>
-          </div>
-
-          <TimezoneClocks />
+        <TimezoneClocks />
       </div>
     </div>
   );
-}
-
-function FilterToggle({ label, active, onClick, color }: { label: string, active: boolean, onClick: () => void, color: 'indigo' | 'emerald' | 'purple' | 'amber' }) {
-    const activeColors = {
-        indigo: 'bg-accent/10 dark:bg-accent/40 border-accent dark:border-accent text-accent-text dark:text-accent-text',
-        emerald: 'bg-success/10 dark:bg-success/40 border-success dark:border-success text-success-text dark:text-success-text',
-        purple: 'bg-purple-100 dark:bg-purple-900/40 border-purple-400 dark:border-purple-600 text-purple-600 dark:text-purple-300',
-        amber: 'bg-warning/10 dark:bg-warning/40 border-warning dark:border-warning text-warning-text dark:text-warning-text'
-    };
-
-    return (
-        <button
-            onClick={onClick}
-            className={`
-                px-4 py-2 rounded-full border text-xs font-bold uppercase tracking-widest transition-all duration-300
-                ${active 
-                    ? activeColors[color] 
-                    : 'bg-foreground/[0.02] border-card-border text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.04]'
-                }
-            `}
-        >
-            {label}
-        </button>
-    );
 }

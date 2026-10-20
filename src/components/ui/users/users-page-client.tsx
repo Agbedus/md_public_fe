@@ -149,7 +149,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
   const canDelete = userRoles.includes('super_admin');
 
   return (
-    <div className="space-y-8">
+    <div className="md-zen space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-10">
         <div>
@@ -161,7 +161,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
       {/* Search & Actions */}
       <div className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10">
         <div className="relative w-full lg:w-96 group">
-          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors"/>
+          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--accent)] transition-colors"/>
           <input
             type="text"
             placeholder="Search team members..."
@@ -178,14 +178,14 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-card-border bg-foreground/[0.03]">
-                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Member</th>
-                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Access Interface</th>
-                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Assigned Roles</th>
-                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">System ID</th>
-                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Time Off</th>
-                <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Productivity</th>
+                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Member</th>
+                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Open profile</th>
+                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Roles</th>
+                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">System ID</th>
+                <th scope="col" className="px-6 py-4 text-left text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Time off</th>
+                <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Productivity</th>
                 {(canEdit || canDelete) && (
-                  <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Operations</th>
+                  <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted capitalize whitespace-nowrap">Operations</th>
                 )}
               </tr>
             </thead>
@@ -256,7 +256,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                     ) : (
                         <div className="flex flex-wrap gap-1">
                             {user.roles?.map(role => (
-                                <span key={role} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight bg-foreground/[0.06] text-text-muted border border-card-border">
+                                <span key={role} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold capitalize tracking-tight bg-foreground/[0.06] text-text-muted border border-card-border">
                                 {role.replace('_', ' ')}
                                 </span>
                             ))}
@@ -312,7 +312,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                       <Link
                         href={orgPath(`/users/${user.id}`)}
                         onClick={e => e.stopPropagation()}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent-text hover:text-accent-text border border-accent/20 text-[11px] font-medium uppercase tracking-wider transition-all"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent-text hover:text-accent-text border border-accent/20 text-[11px] font-medium capitalize transition-all"
                       >
                         <FiClock className="w-3 h-3" />
                         Timesheet
@@ -329,14 +329,14 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                             <>
                                 <button
                                     onClick={saveUser}
-                                    className="p-1.5 rounded-lg hover:bg-success/10 text-success-text hover:text-success-text transition-colors"
+                                    className="p-1.5 rounded-full hover:bg-success/10 text-success-text hover:text-success-text transition-colors"
                                     title="Save"
                                 >
                                     <FiCheck className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={cancelEditing}
-                                    className="p-1.5 rounded-lg hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors"
+                                    className="p-1.5 rounded-full hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors"
                                     title="Cancel"
                                 >
                                     <FiX className="w-4 h-4" />
@@ -347,7 +347,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                                 {canEdit && (
                                  <button
                                     onClick={() => startEditing(user)}
-                                    className="p-1.5 rounded-lg hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors"
+                                    className="p-1.5 rounded-full hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors"
                                     title="Edit"
                                 >
                                     <FiEdit2 className="w-4 h-4" />
@@ -356,7 +356,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                                 {canDelete && (
                                 <button
                                     onClick={() => handleDelete(user)}
-                                    className="p-1.5 rounded-lg hover:bg-danger/10 text-text-muted hover:text-danger-text transition-colors"
+                                    className="p-1.5 rounded-full hover:bg-danger/10 text-text-muted hover:text-danger-text transition-colors"
                                     title="Delete"
                                 >
                                     <FiTrash2 className="w-4 h-4" />

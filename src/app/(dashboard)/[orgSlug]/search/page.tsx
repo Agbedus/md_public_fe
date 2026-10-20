@@ -52,14 +52,14 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
+    <div className="md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Search</h1>
         <p className="text-text-muted text-sm">Find a task or note across your organization.</p>
       </div>
 
       <form onSubmit={handleSearch} className="relative w-full lg:w-96 group mb-10">
-        <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors" />
+        <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--accent)] transition-colors" />
         <input
           type="text"
           value={query}

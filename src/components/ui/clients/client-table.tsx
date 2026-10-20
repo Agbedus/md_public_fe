@@ -22,12 +22,12 @@ export default function ClientTable({ clients, onEdit, onDelete, canModifyClient
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-foreground/[0.03] border-b border-card-border">
-              <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">Company</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">Contact</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">Email</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider hidden lg:table-cell">Website</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider hidden sm:table-cell">Added</th>
-              <th className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider text-right">Actions</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize">Company</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize">Contact</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize">Email</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize hidden lg:table-cell">Website</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize hidden sm:table-cell">Added</th>
+              <th className="px-6 py-4 text-[11px] font-bold text-text-muted capitalize text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-card-border">
@@ -45,7 +45,7 @@ export default function ClientTable({ clients, onEdit, onDelete, canModifyClient
                     <div style={avatarStyle(client.companyName)} className="w-8 h-8 rounded-full bg-foreground/[0.07] flex items-center justify-center text-foreground font-bold">
                       {client.companyName[0].toUpperCase()}
                     </div>
-                    <span className="text-sm font-bold text-foreground uppercase tracking-tight">{client.companyName}</span>
+                    <span className="text-sm font-bold text-foreground capitalize tracking-tight">{client.companyName}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-foreground">
@@ -80,14 +80,14 @@ export default function ClientTable({ clients, onEdit, onDelete, canModifyClient
                     <>
                     <button
                       onClick={() => onEdit(client)}
-                      className="p-1.5 rounded-lg bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all"
+                      className="p-1.5 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all"
                       title="Edit"
                     >
                       <FiEdit2 size={14} />
                     </button>
                     <button
                       onClick={() => onDelete(client)}
-                      className="p-1.5 rounded-lg bg-danger/10 hover:bg-danger/20 text-danger-text hover:text-danger-text border border-card-border hover:border-danger/20 transition-all"
+                      className="p-1.5 rounded-full bg-danger/10 hover:bg-danger/20 text-danger-text hover:text-danger-text border border-card-border hover:border-danger/20 transition-all"
                       title="Delete"
                     >
                       <FiTrash2 size={14} />

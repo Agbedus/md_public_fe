@@ -143,7 +143,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
 
   return (
     <div className="p-4 pt-2">
-      <div className="bg-white dark:bg-card p-2 relative flex flex-col w-full max-w-full rounded-[2rem] border border-card-border shadow-sm">
+      <div className="bg-white dark:bg-card p-2 relative flex flex-col w-full max-w-full rounded-[2rem] border border-card-border">
         <TextareaAutosize
           minRows={1}
           maxRows={8}
@@ -212,7 +212,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
                 <button
                     type="button"
                     onClick={onStop}
-                    className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 shrink-0"
+                    className="group flex items-center justify-center p-1.5 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 shrink-0"
                     aria-label="Stop generating"
                     title="Stop"
                 >
@@ -225,7 +225,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
                     type="button"
                     onClick={handleSend}
                     disabled={!displayValue.trim()}
-                    className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0"
+                    className="group flex items-center justify-center p-1.5 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0"
                     aria-label="Send message"
                     title="Send"
                 >
