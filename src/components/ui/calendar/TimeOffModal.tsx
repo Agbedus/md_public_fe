@@ -8,6 +8,7 @@ import { CustomDatePicker } from "@/components/ui/inputs/custom-date-picker";
 import { format } from "date-fns";
 import { toast } from "@/lib/toast";
 
+import { BusyIcon, useButtonStatus } from '@/components/ui/busy-icon';
 interface TimeOffModalProps {
     open: boolean;
     onClose: () => void;
@@ -29,6 +30,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
     const [attachment, setAttachment] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const status = useButtonStatus();
 
     const requiresJustification = type !== 'leave';
 
@@ -52,6 +54,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
         }
 
         setIsSubmitting(true);
+            status.start();
         try {
             const formData = new FormData();
             formData.set('type', type);
@@ -64,6 +67,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
 
             const result = await createTimeOffRequest(formData);
             if (result.success) {
+                await status.succeed();
                 toast.success('Time-off request submitted');
                 onCreated(result.data);
                 onClose();
@@ -81,6 +85,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
             toast.error('An unexpected error occurred');
         } finally {
             setIsSubmitting(false);
+            status.reset();
         }
     };
 
@@ -266,7 +271,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                             aria-busy={isSubmitting}
                             className="md-btn md-btn-primary disabled:cursor-wait"
                         >
-                            {isSubmitting ? 'Submitting request…' : 'Submit request'} <span className="md-btn-chip">{isSubmitting ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+                            {isSubmitting ? 'Submitting request…' : 'Submit request'} <span className="md-btn-chip"><BusyIcon state={status.state} icon=<FiCheck /> /></span>
 
                         </button>
                     </div>

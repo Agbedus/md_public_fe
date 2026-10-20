@@ -2,11 +2,12 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { FiMail, FiShield, FiCalendar, FiCheckSquare, FiBriefcase, FiCheckCircle, FiEdit2, FiCamera, FiCheck, FiX, FiLoader, FiLock } from 'react-icons/fi';
+import { FiMail, FiShield, FiCalendar, FiCheckSquare, FiBriefcase, FiCheckCircle, FiEdit2, FiCamera, FiCheck, FiX, FiLock } from 'react-icons/fi';
 import { updateMyProfile, uploadMyAvatar } from '@/app/(dashboard)/[orgSlug]/profile/actions';
 import { orgRoleToneClasses } from '@/types/organization';
 import { toast } from '@/lib/toast';
 
+import { Spinner } from '@/components/ui/busy-icon';
 const inputClass =
   'w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all';
 const labelClass = 'block text-[10px] font-bold text-text-muted capitalize mb-1.5 ml-0.5 text-left';
@@ -258,7 +259,7 @@ export function ProfileInfoCard({
             aria-busy={isSaving}
             className="md-btn md-btn-primary flex-1 lg:py-3 lg:text-base"
           >
-            {isSaving ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiCheck className="w-4 h-4" />}
+            {isSaving ? <Spinner className="w-4 h-4" /> : <FiCheck className="w-4 h-4" />}
             {isSaving ? 'Saving...' : 'Save changes'}
           </button>
         </div>

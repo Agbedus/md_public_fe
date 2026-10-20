@@ -5,7 +5,6 @@ import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer
 import {
   FiAlertCircle,
   FiCheckCircle,
-  FiLoader,
   FiMail,
   FiSend,
   FiUsers,
@@ -17,6 +16,7 @@ import { EmailChipInput } from './email-chip-input';
 import { Portal } from './portal';
 import { toast } from '@/lib/toast';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -311,7 +311,7 @@ export function InviteMemberModal({
                                   ) : delivery.status === 'failed' ? (
                                     <FiAlertCircle className="h-4 w-4" />
                                   ) : delivery.status === 'sending' ? (
-                                    <FiLoader className="h-4 w-4 animate-spin" />
+                                    <Spinner className="h-4 w-4" />
                                   ) : (
                                     <FiMail className="h-4 w-4" />
                                   )}

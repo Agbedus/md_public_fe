@@ -129,7 +129,7 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
                         data-side={tooltipSide}
                         // A tooltip must never take the pointer: overlapping the
                         // cursor would pull hover off the avatar and flicker.
-                        className={`pointer-events-none w-48 p-2 bg-card border border-card-border rounded-lg shadow-lg animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999] ${tooltipSide === 'top' ? 'origin-bottom' : 'origin-top'}`}
+                        className={`pointer-events-none w-48 p-2 bg-card border border-card-border rounded-[24px] animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999] ${tooltipSide === 'top' ? 'origin-bottom' : 'origin-top'}`}
                     >
                         <div className="flex items-center gap-2">
                             <div className="h-8 w-8 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-foreground/10">

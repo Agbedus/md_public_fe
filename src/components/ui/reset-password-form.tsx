@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
-import { FiLock, FiArrowRight, FiLoader, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle, FiMail } from 'react-icons/fi';
+import { FiLock, FiArrowRight, FiEye, FiEyeOff, FiCheckCircle, FiAlertCircle, FiMail } from 'react-icons/fi';
 import { resetPassword, getResetTokenInfo } from '@/app/lib/actions';
 import { toast } from '@/lib/toast';
 
+import { BusyIcon, Spinner } from '@/components/ui/busy-icon';
 const formItem = {
   hidden: { opacity: 0, y: 10 },
   visible: (i: number) => ({
@@ -76,7 +77,7 @@ export default function ResetPasswordForm() {
   if (!tokenInfo || tokenInfo.token !== token) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-text-muted">
-        <FiLoader className="h-6 w-6 animate-spin" />
+        <Spinner className="h-6 w-6" />
         <p className="text-sm">Checking your reset link...</p>
       </div>
     );
@@ -213,16 +214,8 @@ export default function ResetPasswordForm() {
           disabled={isPending}
           className="md-btn md-btn-primary md-btn-block w-full"
         >
-          <span className={isPending ? 'opacity-0' : ''}>
-            Reset password
-          </span>
-          <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiArrowRight /></span>
-          {isPending && (
-            <span className="absolute inset-0 flex items-center justify-center gap-2">
-              <FiLoader className="h-4 w-4 animate-spin" />
-              <span>Resetting...</span>
-            </span>
-          )}
+          <span>{isPending ? 'Resetting…' : 'Reset password'}</span>
+          <span className="md-btn-chip"><BusyIcon state={isPending ? 'loading' : 'idle'} icon={<FiArrowRight />} /></span>
         </button>
       </motion.div>
     </form>

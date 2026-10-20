@@ -8,10 +8,12 @@ import { toast } from '@/lib/toast';
 import { Toggle } from '@/components/ui/inputs/toggle';
 import { CustomTimePicker } from '@/components/ui/inputs/custom-time-picker';
 
+import { BusyIcon, useButtonStatus } from '@/components/ui/busy-icon';
 export default function PolicyEditor({ officeLocationId }: { officeLocationId: number }) {
     const [policy, setPolicy] = useState<AttendancePolicy | null>(null);
     const [isPending, startTransition] = useTransition();
     const [isSaving, setIsSaving] = useState(false);
+    const saveStatus = useButtonStatus();
     const [form, setForm] = useState({
         auto_clock_in: true,
         auto_clock_out: true,
@@ -56,11 +58,14 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
 
     const handleSave = async () => {
         setIsSaving(true);
+        saveStatus.start();
         const result = await updateAttendancePolicy(officeLocationId, form);
         if (result.success) {
-            toast.success('Policy updated successfully');
+            toast.success('Policy updated');
+            void saveStatus.succeed();
         } else {
             toast.error(result.error || 'Failed to update policy');
+            saveStatus.reset();
         }
         setIsSaving(false);
     };
@@ -240,7 +245,7 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                             className="md-btn md-btn-primary disabled:cursor-wait"
                         >
                             {isSaving ? 'Saving…' : 'Save policy'}
-                            <span className="md-btn-chip">{isSaving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+                            <span className="md-btn-chip"><BusyIcon state={saveStatus.state} icon={<FiCheck />} /></span>
                         </button>
                     </div>
                 </div>

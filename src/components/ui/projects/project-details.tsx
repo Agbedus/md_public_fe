@@ -85,7 +85,7 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                     </div>
 
                     <div className="mb-6 flex items-center gap-3 pr-24 sm:pr-36">
-                        <span className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold capitalize border ${
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold capitalize border ${
  project.status === 'completed' ? 'bg-success/10 text-success-text dark:text-success-text border-success/20' :
  project.status === 'in_progress' ? 'bg-accent/10 text-accent-text dark:text-accent-text border-accent/20' :
  'bg-foreground/[0.03] text-text-muted border-card-border'

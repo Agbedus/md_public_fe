@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { toast } from '@/lib/toast';
 import { FiCheck } from 'react-icons/fi';
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -126,11 +127,11 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
               type="checkbox" 
               checked={qaRequired}
               onChange={(e) => setQaRequired(e.target.checked)}
-              className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-purple-500/40 checked:border-purple-400 transition-all"
+              className="peer md-check"
             />
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-purple-400 rounded-sm opacity-0 peer-checked:opacity-100 transition-opacity" />
+            <FiCheck className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
           </div>
-          <span className="text-xs font-bold text-text-muted group-hover:text-purple-400 transition-colors">QA Required</span>
+          <span className="text-xs font-bold text-text-muted group-hover:text-foreground transition-colors">QA required</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer group">
           <div className="relative flex items-center">
@@ -138,16 +139,16 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
               type="checkbox" 
               checked={reviewRequired}
               onChange={(e) => setReviewRequired(e.target.checked)}
-              className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-accent/40 checked:border-accent transition-all"
+              className="peer md-check"
             />
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-accent rounded-sm opacity-0 peer-checked:opacity-100 transition-opacity" />
+            <FiCheck className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
           </div>
-          <span className="text-xs font-bold text-text-muted group-hover:text-accent-text transition-colors">Review Required</span>
+          <span className="text-xs font-bold text-text-muted group-hover:text-foreground transition-colors">Review required</span>
         </label>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1 text-foreground">Depends On (Task ID)</label>
+        <label className="block text-sm font-medium mb-1 text-foreground">Depends on (task ID)</label>
         <input
           type="number"
           value={dependsOn}
@@ -162,7 +163,7 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
         disabled={loading}
         className="md-btn md-btn-primary w-full"
       >
-        {loading ? 'Creating...' : 'Create Task'} <span className="md-btn-chip"><FiCheck /></span>
+        {loading ? 'Creating…' : 'Create task'} <span className="md-btn-chip"><BusyIcon state={loading ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
 
       </button>
     </form>

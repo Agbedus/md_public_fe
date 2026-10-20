@@ -6,6 +6,7 @@ import type { Note } from '@/types/note';
 import type { Task } from '@/types/task';
 import SlashCommandEditor from '../editor/slash-command-editor';
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 interface NoteFormModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -181,7 +182,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 className="md-btn md-btn-primary"
                                 title={initialNote ? 'Update Note' : 'Save Note'}
                             >
-                                <span>{initialNote ? 'Update note' : 'Save note'}</span> <span className="md-btn-chip"><FiCheck /></span>
+                                <span>{initialNote ? 'Update note' : 'Save note'}</span> <span className="md-btn-chip"><BusyIcon state={isSaving ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
 
                             </button>
                         </div>

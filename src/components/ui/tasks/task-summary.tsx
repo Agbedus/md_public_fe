@@ -7,6 +7,7 @@ import { format, subDays, isSameDay } from 'date-fns';
 import { toast } from '@/lib/toast';
 import { useConfirm } from '@/providers/confirmation-provider';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface TaskSummarySectionProps {
   tasks: Task[];
 }
@@ -94,7 +95,7 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
             className="md-btn md-btn-primary md-btn-sm"
           >
             {isUpdating ? (
-              <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+              <Spinner className="h-3 w-3" />
             ) : (
               <FiCheck className="w-3 h-3" />
             )}

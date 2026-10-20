@@ -51,13 +51,13 @@ export function SmsFeatureBanner({ userKey }: { userKey?: string | null }) {
           <div className="bg-card border border-card-border rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2.5 rounded-xl bg-success/10 border border-success/20 shrink-0">
-                  <FiMessageSquare className="text-success-text text-lg" />
+                <div className="p-2.5 rounded-xl bg-accent/10 border border-accent/20 shrink-0">
+                  <FiMessageSquare className="text-accent-text text-lg" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-base font-semibold text-foreground tracking-tight">SMS notifications</h3>
-                    <span className="px-1.5 py-0.5 rounded bg-success/15 text-success-text text-[9px] font-black uppercase tracking-widest">New</span>
+                    <span className="px-1.5 py-0.5 rounded bg-accent/15 text-accent-text text-[9px] font-black uppercase tracking-widest">New</span>
                   </div>
                   <p className="text-xs text-text-muted">Now available for your account</p>
                 </div>

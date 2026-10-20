@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import { FiCheckSquare } from 'react-icons/fi';
 
+import { TabPill } from '@/components/ui/tab-pill';
 interface ActivityItem {
   date: string;
   count: number;
@@ -50,12 +51,14 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
 
   const getLevelColor = (level: number) => {
     switch (level) {
-      case 0: return 'bg-background/50 border border-card-border hover:bg-background/80';
-      case 1: return 'bg-success/20 text-success-text hover:bg-success/30';
-      case 2: return 'bg-success/40 text-success-text hover:bg-success/50';
-      case 3: return 'bg-success/70 text-success-text hover:bg-success/80';
-      case 4: return 'bg-success text-zinc-900 hover:bg-success';
-      default: return 'bg-background/50 border border-card-border';
+      // A blue ramp that tips into violet at the very top, so intensity reads
+      // as a range rather than one loud colour.
+      case 0: return 'bg-foreground/[0.06]';
+      case 1: return 'bg-accent/25';
+      case 2: return 'bg-accent/55';
+      case 3: return 'bg-accent';
+      case 4: return 'bg-[var(--status-qa)]';
+      default: return 'bg-foreground/[0.06]';
     }
   };
 
@@ -87,18 +90,18 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
   return (
     <div className={`w-full ${variant === 'compact' ? 'space-y-3' : 'space-y-4'}`}>
       {/* Period Selector */}
-      <div className="flex justify-between items-center bg-background/50 border border-card-border rounded-lg p-1">
+      <div className="flex items-center justify-between gap-1 rounded-full bg-foreground/[0.05] p-1">
         {[30, 90, 180, 365].map((p) => (
           <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={`flex-1 text-[11px] font-bold py-1 px-2 rounded-md transition-all ${
-              period === p 
-              ? 'bg-success/20 text-success-text ' 
-              : 'text-(--text-muted) hover:text-foreground'
+            type="button"
+            className={`relative isolate min-h-8 flex-1 rounded-full px-2 text-xs transition-colors ${
+              period === p ? 'font-medium text-on-ink' : 'text-text-muted hover:text-foreground'
             }`}
           >
-            {p}D
+            {period === p && <TabPill />}
+            {p}d
           </button>
         ))}
       </div>
@@ -134,7 +137,7 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
                         {week.map((day, dayIndex) => (
                         <div 
                             key={dayIndex}
-                            className={`${cellSize} rounded-[1px] transition-all cursor-pointer ${getLevelColor(day.level)}`}
+                            className={`${cellSize} rounded-[3px] transition-all cursor-pointer ${getLevelColor(day.level)}`}
                             onMouseEnter={(e) => {
                               const rect = e.currentTarget.getBoundingClientRect();
                               setHoveredDay({
@@ -153,21 +156,19 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
         </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-between text-[11px] text-(--text-muted) font-bold uppercase tracking-wider pt-2 border-t border-card-border">
+      <div className="flex items-center justify-between text-[11px] text-text-muted pt-2 border-t border-card-border">
         <div className="flex items-center gap-2">
           <span>Less</span>
           <div className="flex gap-1">
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-background/50 border border-card-border"></div>
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-success/20"></div>
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-success/40"></div>
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-success/70"></div>
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-success"></div>
+            {['bg-foreground/[0.06]', 'bg-accent/25', 'bg-accent/55', 'bg-accent', 'bg-[var(--status-qa)]'].map((c) => (
+              <div key={c} className={`h-2.5 w-2.5 rounded-[3px] ${c}`} />
+            ))}
           </div>
           <span>More</span>
         </div>
-        <div className="flex items-center gap-1.5 text-success-text/70">
+        <div className="flex items-center gap-1.5 text-text-muted">
            <FiCheckSquare className="w-3 h-3" />
-           <span>Activity Grid</span>
+           <span>Activity</span>
         </div>
       </div>
 
@@ -178,7 +179,7 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
         >
           <div className="bg-card border border-card-border px-3 py-1.5 rounded-lg whitespace-nowrap backdrop-blur-md shadow-xl">
               <p className="text-[11px] font-bold text-foreground">{format(new Date(hoveredDay.day.date), 'MMMM d, yyyy')}</p>
-              <p className="text-[11px] text-success-text mt-0.5">{getFunMessage(hoveredDay.day.count)}</p>
+              <p className="text-[11px] text-accent-text mt-0.5">{getFunMessage(hoveredDay.day.count)}</p>
           </div>
           <div className="w-2 h-2 bg-card border-r border-b border-card-border rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2"></div>
         </div>,

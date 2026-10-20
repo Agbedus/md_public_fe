@@ -9,6 +9,7 @@ import { CustomNumberInput } from "@/components/ui/inputs/custom-number-input";
 import { format } from "date-fns";
 import { toast } from "@/lib/toast";
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 interface EventModalProps {
   open: boolean;
   initialStart?: Date | null;
@@ -502,7 +503,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                 form="create-event-form"
                 disabled={submitting}
                 className="md-btn md-btn-primary">
-                Create event <span className="md-btn-chip">{submitting ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+                Create event <span className="md-btn-chip"><BusyIcon state={submitting ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
               </button>
         </div>
       </div>

@@ -61,6 +61,7 @@ import { emit, on } from "@/lib/event-bus";
 import { trackAction } from "@/lib/recent-actions";
 
 import { TabPill } from '@/components/ui/tab-pill';
+import { BusyIcon, Spinner } from '@/components/ui/busy-icon';
 /** The snake_case task shape the API returns. */
 interface ApiTaskShape {
   id: number;
@@ -595,11 +596,11 @@ export default function TasksPageClient({
               setNewQARequired(e.target.checked);
               setIsDirty(true);
             }}
-            className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-purple-500/40 checked:border-purple-400 transition-all"
+            className="peer md-check"
           />
-          <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-purple-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
+          <FiCheck className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
         </div>
-        <span className="text-xs font-medium text-text-muted group-hover:text-purple-400 transition-colors">
+        <span className="text-xs font-medium text-text-muted group-hover:text-foreground transition-colors">
           QA
         </span>
       </label>
@@ -612,11 +613,11 @@ export default function TasksPageClient({
               setNewReviewRequired(e.target.checked);
               setIsDirty(true);
             }}
-            className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-accent/40 checked:border-accent transition-all"
+            className="peer md-check"
           />
-          <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-accent-text opacity-0 peer-checked:opacity-100 transition-opacity" />
+          <FiCheck className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
         </div>
-        <span className="text-xs font-medium text-text-muted group-hover:text-accent-text transition-colors">
+        <span className="text-xs font-medium text-text-muted group-hover:text-foreground transition-colors">
           Review
         </span>
       </label>
@@ -984,7 +985,7 @@ export default function TasksPageClient({
 
           <div className="relative group flex-shrink-0">
             <div className="h-9 lg:h-11 w-9 lg:w-36 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
-              <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
+              <FiFilter className="text-text-muted group-hover:text-foreground transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
               <select
                 value={filterPriority}
                 onChange={(e) => setFilterPriority(e.target.value)}
@@ -1004,7 +1005,7 @@ export default function TasksPageClient({
 
           <div className="relative group flex-shrink-0">
             <div className="h-9 lg:h-11 w-9 lg:w-36 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
-              <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
+              <FiFilter className="text-text-muted group-hover:text-foreground transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -1024,7 +1025,7 @@ export default function TasksPageClient({
 
           <div className="relative group flex-shrink-0">
               <div className="h-9 lg:h-11 w-9 lg:w-40 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
-                <FiFolder className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
+                <FiFolder className="text-text-muted group-hover:text-foreground transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
                 <select
                   aria-label="Filter tasks by project"
                   value={filterProjectId}
@@ -1137,7 +1138,15 @@ export default function TasksPageClient({
             </div>
           </div>
 
-          <div className="flex flex-col overflow-hidden rounded-[28px] bg-card">
+          {/* Switching Active/Done swaps the whole table with a short fade, so rows
+              from the old tab never linger or drift over the new one. */}
+          <motion.div
+            key={tableTab}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+            className="flex flex-col overflow-hidden rounded-[28px] bg-card"
+          >
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <caption className="sr-only">Tasks table</caption>
@@ -1218,7 +1227,7 @@ export default function TasksPageClient({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-card-border">
-                  <AnimatePresence initial={false} mode="popLayout">
+                  <AnimatePresence initial={false}>
                     {filteredTasks.map((task, index) => (
                       <TaskCard
                         key={task.id}
@@ -1440,12 +1449,12 @@ export default function TasksPageClient({
                   </div>
                   <div className="relative h-6 w-6 flex items-center justify-center">
                     <div className="absolute inset-0 rounded-full border-2 border-accent/15"></div>
-                    <div className="absolute inset-0 animate-spin rounded-full border-2 border-accent border-t-transparent"></div>
+                    <Spinner className="h-4 w-4 text-accent-text" />
                   </div>
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
@@ -1572,7 +1581,7 @@ export default function TasksPageClient({
                   disabled={isPending || savingCreate}
                   className="md-btn md-btn-primary"
                 >
-                  Create task <span className="md-btn-chip">{savingCreate ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+                  Create task <span className="md-btn-chip"><BusyIcon state={savingCreate ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
 
                 </button>
               </div>

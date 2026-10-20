@@ -5,10 +5,11 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, type Variants } from 'framer-motion';
-import { FiLoader, FiCheckCircle, FiAlertCircle, FiArrowRight, FiUsers, FiLink } from 'react-icons/fi';
+import { FiCheckCircle, FiAlertCircle, FiArrowRight, FiUsers, FiLink } from 'react-icons/fi';
 import { toast } from '@/lib/toast';
 import { acceptOrganizationInvitation, joinOrganizationByInvite } from '@/lib/org-actions';
 
+import { Spinner } from '@/components/ui/busy-icon';
 const container = {
   hidden: { opacity: 0 },
   visible: {
@@ -207,7 +208,7 @@ function InvitationContent() {
 
         {!error && (loading || !authChecked || shouldRouteToLogin || shouldAutoAccept) ? (
           <motion.div variants={item as Variants} className="flex flex-col items-center gap-4 py-12">
-            <FiLoader className="w-8 h-8 text-accent-text animate-spin" />
+            <Spinner className="w-8 h-8 text-accent-text" />
             <p className="text-sm text-text-muted">
               {shouldRouteToLogin
                 ? `Preparing sign in for ${orgInfo?.name || 'your new workspace'}…`

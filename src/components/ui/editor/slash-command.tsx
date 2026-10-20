@@ -93,7 +93,7 @@ export const getSuggestionItems = ({
     {
       title: "Bullet List",
       description: "Create a simple bulleted list.",
-      icon: <FiList size={18} className="text-[var(--pastel-emerald)]" />,
+      icon: <FiList size={18} className="text-accent-text" />,
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleBulletList().run();
       },
@@ -217,7 +217,7 @@ export const CommandList = forwardRef<
       ref={listRef}
       role="listbox"
       aria-label="Note slash commands"
-      className="w-72 max-w-[calc(100vw-24px)] max-h-[min(320px,50dvh)] overflow-y-auto overscroll-contain bg-card border border-card-border rounded-xl shadow-lg p-1"
+      className="w-72 max-w-[calc(100vw-24px)] max-h-[min(320px,50dvh)] overflow-y-auto overscroll-contain md-menu"
     >
       {props.items.map((item: CommandItemProps, index: number) => (
         <button
@@ -225,19 +225,15 @@ export const CommandList = forwardRef<
           role="option"
           aria-selected={index === selectedIndex}
           onMouseDown={(event) => event.preventDefault()}
-          className={`flex items-center gap-3 w-full px-3 py-2 text-left rounded-xl transition-all ${
-            index === selectedIndex
-              ? "bg-foreground/[0.07] text-foreground border border-card-border"
-              : "text-text-secondary hover:bg-foreground/[0.04] hover:text-foreground border border-transparent"
-          }`}
+          className={`md-menu-item !px-2 ${index === selectedIndex ? "bg-foreground/[0.06]" : "text-text-secondary"}`}
           key={item.title}
           onClick={() => selectItem(index)}
         >
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-foreground/[0.03] border border-card-border flex-shrink-0">
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-foreground/[0.05]">
             {item.icon}
           </div>
           <div>
-            <p className="text-xs font-medium">{item.title}</p>
+            <p className="text-sm font-medium">{item.title}</p>
             <p className="text-[11px] text-text-muted">{item.description}</p>
           </div>
         </button>

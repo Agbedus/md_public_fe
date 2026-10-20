@@ -18,6 +18,7 @@ import PendingInvitations from '@/components/ui/team/pending-invitations';
 import type { InvitationStats, PendingInvitation } from '@/app/(dashboard)/[orgSlug]/team/actions';
 
 import { TabPill } from '@/components/ui/tab-pill';
+import { Spinner } from '@/components/ui/busy-icon';
 interface TeamPageClientProps {
   members: OrganizationMembershipWithUser[];
   currentUserId: string;
@@ -169,7 +170,7 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border border-card-border bg-foreground/[0.03] text-foreground hover:bg-foreground/[0.06] transition-all whitespace-nowrap"
       >
         {isLoading ? (
-          <span className="w-3 h-3 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+          <Spinner className="w-3 h-3 text-foreground" />
         ) : (
           role.icon
         )}
@@ -182,7 +183,7 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
             ref={panelRef}
             data-side={panelSide}
             style={panelStyle}
-            className={`z-[9999] min-w-[230px] overflow-y-auto rounded-xl border border-card-border bg-background animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${panelSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
+            className={`z-[9999] min-w-[230px] md-menu overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${panelSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
           >
             {options.map((opt) => {
               const cfg = roleConfig[opt];
@@ -192,16 +193,14 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
                   key={opt}
                   onClick={() => { onRoleChange(member.user_id, opt); setOpen(false); }}
                   disabled={isLoading || isCurrent}
-                  className={`w-full flex items-start gap-2 px-3 py-2 text-left transition-colors hover:bg-foreground/[0.05] ${
-                    isCurrent ? 'bg-foreground/[0.03]' : ''
-                  } disabled:opacity-50`}
+                  className={`md-menu-item !items-start py-2.5 ${isCurrent ? 'bg-foreground/[0.04]' : ''}`}
                 >
                   <span className={`mt-0.5 ${cfg.color}`}>{cfg.icon}</span>
                   <span className="min-w-0">
-                    <span className={`block text-xs font-medium ${isCurrent ? 'text-foreground' : 'text-text-muted'}`}>
+                    <span className={`block text-sm font-medium ${isCurrent ? 'text-foreground' : 'text-text-secondary'}`}>
                       {cfg.label}
                     </span>
-                    <span className="block text-[10px] text-text-muted/70 leading-tight mt-0.5">
+                    <span className="mt-0.5 block text-xs leading-tight text-text-muted">
                       {cfg.hint}
                     </span>
                   </span>
@@ -441,7 +440,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
               title="Approve member"
             >
               {loadingId === m.user_id ? (
-                <span className="block w-3.5 h-3.5 border-2 border-success/30 border-t-success rounded-full animate-spin" />
+                <Spinner className="w-3.5 h-3.5 text-success-text" />
               ) : (
                 <FiUserPlus size={14} />
               )}
@@ -453,7 +452,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
               title="Reject member"
             >
               {loadingId === m.user_id ? (
-                <span className="block w-3.5 h-3.5 border-2 border-danger/30 border-t-danger rounded-full animate-spin" />
+                <Spinner className="w-3.5 h-3.5 text-danger-text" />
               ) : (
                 <FiUserX size={14} />
               )}
@@ -470,7 +469,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                 title="Suspend member"
               >
                 {loadingId === m.user_id ? (
-                  <span className="block w-3.5 h-3.5 border-2 border-warning/30 border-t-warning rounded-full animate-spin" />
+                  <Spinner className="w-3.5 h-3.5 text-warning-text" />
                 ) : (
                   <FiPause size={14} />
                 )}
@@ -483,7 +482,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                 title="Reactivate member"
               >
                 {loadingId === m.user_id ? (
-                  <span className="block w-3.5 h-3.5 border-2 border-success/30 border-t-success rounded-full animate-spin" />
+                  <Spinner className="w-3.5 h-3.5 text-success-text" />
                 ) : (
                   <FiPlay size={14} />
                 )}
@@ -496,7 +495,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
               title="Remove member"
             >
               {loadingId === m.user_id ? (
-                <span className="block w-3.5 h-3.5 border-2 border-danger/30 border-t-danger rounded-full animate-spin" />
+                <Spinner className="w-3.5 h-3.5 text-danger-text" />
               ) : (
                 <FiTrash2 size={14} />
               )}
@@ -841,7 +840,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                 className="md-btn md-btn-danger flex-1"
               >
                 {loadingId === confirmAction.userId ? (
-                  <span className="block w-4 h-4 border-2 border-foreground/30 border-t-white rounded-full animate-spin" />
+                  <Spinner className="w-4 h-4 text-foreground" />
                 ) : null}
                 {loadingId === confirmAction.userId ? 'Working…' : confirmAction.action === 'remove' ? 'Remove member' : 'Suspend member'}
               </button>

@@ -55,7 +55,7 @@ export function LegalDocument({
       };
 
   return (
-    <div className="min-h-screen bg-[#090a0c] text-white selection:bg-success/30 overflow-x-hidden">
+    <div className="min-h-screen bg-[#090a0c] text-white selection:bg-accent/30 overflow-x-hidden">
 
       {/* Navigation */}
       <nav className="fixed top-0 inset-x-0 z-50 px-6 pt-6">
@@ -100,9 +100,9 @@ export function LegalDocument({
           {/* TL;DR */}
           <motion.div
             {...revealOnScroll}
-            className="rounded-3xl border border-success/15 bg-success/[0.04] p-8 flex flex-col sm:flex-row gap-5"
+            className="rounded-3xl border border-accent/15 bg-accent/[0.04] p-8 flex flex-col sm:flex-row gap-5"
           >
-            <div className="w-10 h-10 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success-text shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text shrink-0">
               {highlight.icon}
             </div>
             <div className="space-y-1.5">

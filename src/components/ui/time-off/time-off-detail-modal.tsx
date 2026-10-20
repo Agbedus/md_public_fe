@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FiX, FiCheck, FiTrash2, FiLoader, FiFileText, FiExternalLink } from 'react-icons/fi';
+import { FiX, FiCheck, FiTrash2, FiFileText, FiExternalLink } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
 import { useOrgSlug } from '@/hooks/use-org-slug';
 
@@ -12,6 +12,7 @@ import type { User } from '@/types/user';
 import { avatarStyle } from '@/lib/avatar-color';
 import { formatStatus } from '@/lib/format-status';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface TimeOffDetailModalProps {
     request: TimeOffRequest | null;
     user: User | undefined;
@@ -172,7 +173,7 @@ export default function TimeOffDetailModal({
                             disabled={actionLoading !== null}
                             className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-danger-text hover:border-danger/20 hover:bg-danger/10 transition-all text-xs font-bold disabled:opacity-50 flex items-center gap-2"
                         >
-                            {actionLoading === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
+                            {actionLoading === 'delete' ? <Spinner className="h-4 w-4" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
                         </button>
                         <div className="flex items-center gap-3">
                             <button
@@ -181,7 +182,7 @@ export default function TimeOffDetailModal({
                                 className="px-5 py-2.5 rounded-xl bg-danger/10 border border-danger/20 text-danger-text hover:bg-danger/20 transition-all text-xs font-bold disabled:opacity-50 flex items-center gap-2"
                             >
                                 {actionLoading === 'reject' ? (
-                                    <FiLoader className="h-4 w-4 animate-spin" />
+                                    <Spinner className="h-4 w-4" />
                                 ) : (
                                     <FiX className="w-3.5 h-3.5" />
                                 )}
@@ -193,7 +194,7 @@ export default function TimeOffDetailModal({
                                 className="md-btn md-btn-primary md-btn-sm"
                             >
                                 {actionLoading === 'approve' ? (
-                                    <FiLoader className="h-4 w-4 animate-spin" />
+                                    <Spinner className="h-4 w-4" />
                                 ) : (
                                     <FiCheck className="w-3.5 h-3.5" />
                                 )}
@@ -210,7 +211,7 @@ export default function TimeOffDetailModal({
                             disabled={actionLoading !== null}
                             className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-danger-text hover:border-danger/20 hover:bg-danger/10 transition-all text-xs font-bold disabled:opacity-50 flex items-center gap-2"
                         >
-                            {actionLoading === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
+                            {actionLoading === 'delete' ? <Spinner className="h-4 w-4" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
                         </button>
                     </div>
                 )}

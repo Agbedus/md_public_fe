@@ -8,7 +8,6 @@ import {
     FiAlertCircle,
     FiCheck,
     FiCheckCircle,
-    FiLoader,
     FiMap,
     FiMapPin,
     FiNavigation,
@@ -18,6 +17,7 @@ import { toast } from '@/lib/toast';
 import { Portal } from '@/components/ui/portal';
 import type { MapIdentity } from './map-markers';
 
+import { Spinner } from '@/components/ui/busy-icon';
 const OfficeLocationPicker = dynamic(() => import('./office-location-picker'), {
     ssr: false,
     loading: () => <div className="h-full w-full animate-pulse bg-foreground/[0.04]" />,
@@ -159,7 +159,7 @@ export function OfficeLocationFields({
                             disabled={isLocating}
                             className="md-btn md-btn-secondary md-btn-sm"
                         >
-                            {isLocating ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiNavigation className="h-4 w-4" />}
+                            {isLocating ? <Spinner className="h-4 w-4" /> : <FiNavigation className="h-4 w-4" />}
                             {isLocating ? 'Finding…' : 'Use my location'}
                         </button>
                         <button type="button" onClick={openPicker} className="md-btn md-btn-primary md-btn-sm">

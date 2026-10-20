@@ -368,7 +368,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                         left: `${ownerCoords.left}px`,
                                         transform: 'translate(-50%, -100%)',
                                     }}
-                                    className="mb-2 w-48 origin-bottom p-3 bg-background border border-card-border rounded-xl shadow-xl animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
+                                    className="mb-2 w-48 origin-bottom p-3 bg-card border border-card-border rounded-[24px] animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="h-9 w-9 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
@@ -411,7 +411,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                         style={dropdownStyle}
                                         data-side={dropdownSide}
                                         aria-busy={isSharing}
-                                        className="z-[9999] w-64 overflow-y-auto rounded-2xl border border-card-border bg-background p-3 shadow-2xl space-y-3"
+                                        className="z-[9999] w-64 overflow-y-auto rounded-[24px] border border-card-border bg-card p-3 space-y-3"
                                     >
                                         <div>
                                             <p className="text-[11px] font-semibold text-text-muted mb-2 ml-1">Grant Access</p>
@@ -576,7 +576,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                             style={dropdownStyle}
                             data-side={dropdownSide}
                             aria-busy={isSharing}
-                            className="z-[9999] w-64 overflow-y-auto rounded-2xl border border-card-border bg-background p-3 shadow-2xl space-y-3 text-left"
+                            className="z-[9999] w-64 overflow-y-auto rounded-[24px] border border-card-border bg-card p-3 space-y-3 text-left"
                         >
                             <div>
                                 <p className="text-[11px] font-semibold text-text-muted mb-2 ml-1">Grant Access</p>
@@ -644,7 +644,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                             left: `${ownerCoords.left}px`,
                             transform: 'translate(-50%, -100%)',
                         }}
-                        className="mb-2 w-48 origin-bottom p-3 bg-background border border-card-border rounded-xl shadow-xl animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
+                        className="mb-2 w-48 origin-bottom p-3 bg-card border border-card-border rounded-[24px] animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
                         >
                         <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">

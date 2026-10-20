@@ -8,6 +8,7 @@ import { createOrganization } from '@/lib/org-actions';
 import { toast } from '@/lib/toast';
 import { siteUrl } from '@/lib/seo';
 
+import { Spinner } from '@/components/ui/busy-icon';
 const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 
 // Shown as the prefix on the workspace-slug field. Derived from siteUrl so a
@@ -55,7 +56,7 @@ export default function CreateWorkspaceForm() {
             <label className="block"><span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">Workspace URL</span><div className="flex h-11 items-center overflow-hidden rounded-full border border-card-border bg-background "><span className="border-r border-card-border px-3 text-xs text-text-muted">{workspaceUrlHost}/</span><input value={slug} onChange={(event) => { setSlugTouched(true); setSlug(slugify(event.target.value)); }} className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none" placeholder="acme-studio" /></div></label>
             <label className="block"><span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">What does this team do? <span className="normal-case font-normal tracking-normal">(optional)</span></span><textarea value={description} onChange={(event) => setDescription(event.target.value.slice(0, 300))} rows={3} className="w-full resize-none rounded-xl border border-card-border bg-background px-3 py-2.5 text-sm outline-none " /></label>
             {error && <p className="rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger-text">{error}</p>}
-            <button disabled={pending || !name.trim() || !slug.trim()} className="md-btn md-btn-primary w-full">{pending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <FiCheck />} {pending ? 'Creating…' : 'Create workspace'}</button>
+            <button disabled={pending || !name.trim() || !slug.trim()} className="md-btn md-btn-primary w-full">{pending ? <Spinner className="h-4 w-4 text-white" /> : <FiCheck />} {pending ? 'Creating…' : 'Create workspace'}</button>
           </form>
         </div>
       </div>

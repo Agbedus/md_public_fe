@@ -2,12 +2,13 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { FiX, FiCamera, FiCheck, FiLock, FiLoader } from 'react-icons/fi';
+import { FiX, FiCamera, FiCheck, FiLock } from 'react-icons/fi';
 import type { OrganizationMembershipWithUser } from '@/types/organization';
 import { updateMemberProfile, uploadMemberAvatar } from '@/app/(dashboard)/[orgSlug]/team/actions';
 import { toast } from '@/lib/toast';
 import { Portal } from '@/components/ui/portal';
 
+import { Spinner } from '@/components/ui/busy-icon';
 const inputClass =
   'w-full px-3 py-2 rounded-full bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all';
 const labelClass = 'block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5';
@@ -194,7 +195,7 @@ export function MemberEditModal({ member, isSelf, onClose, onSaved }: MemberEdit
               disabled={!isDirty || isSaving}
               className="md-btn md-btn-primary md-btn-sm"
             >
-              {isSaving ? <FiLoader size={13} className="animate-spin" /> : <FiCheck size={13} />}
+              {isSaving ? <Spinner className="h-[13px] w-[13px]" /> : <FiCheck size={13} />}
               {isSaving ? 'Saving...' : 'Save changes'}
             </button>
           </div>

@@ -10,6 +10,7 @@ import { useConfirm } from '@/providers/confirmation-provider';
 
 import { User } from '@/types/user';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface ProjectCardProps {
   project: Project;
   users: User[];
@@ -89,7 +90,7 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
             className="p-1.5 rounded-lg hover:bg-danger/10 text-text-muted hover:text-danger-text transition-colors disabled:opacity-50 border border-transparent hover:border-danger/20 hover-scale"
             title="Delete project"
           >
-            {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-danger"></div> : <FiTrash2 className="w-3.5 h-3.5" />}
+            {isDeleting ? <Spinner className="h-3.5 w-3.5 text-danger-text" /> : <FiTrash2 className="w-3.5 h-3.5" />}
           </button>
           </>
           )}
@@ -125,7 +126,7 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
             if (!project.tags || !Array.isArray(project.tags)) return null;
             
             return project.tags.slice(0, 3).map((tag: string, idx: number) => (
-              <span key={idx} className="px-1.5 py-0.5 rounded-md text-[11px] lg:text-[11px] bg-background/50 text-text-muted border border-card-border whitespace-nowrap">
+              <span key={idx} className="px-1.5 py-0.5 rounded-full text-[11px] lg:text-[11px] bg-background/50 text-text-muted border border-card-border whitespace-nowrap">
                 {tag}
               </span>
             ));

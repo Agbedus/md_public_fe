@@ -18,7 +18,6 @@ import {
     FiFileText,
     FiBriefcase,
     FiBookOpen,
-    FiLoader,
     FiTarget
 } from "react-icons/fi";
 import { useTheme } from "@/providers/theme-provider";
@@ -30,6 +29,7 @@ import { getProjects } from "@/app/(dashboard)/[orgSlug]/projects/actions";
 import { emit } from "@/lib/event-bus";
 import { Project } from "@/types/project";
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface CommandMenuProps {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -182,7 +182,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
             />
             
             {isSearching && (
-                <FiLoader className="ml-2 animate-spin text-text-muted" />
+                <Spinner className="ml-2 text-text-muted" />
             )}
           </div>
           
@@ -207,7 +207,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                                 >
                                     <div className={`p-2 rounded-lg border border-card-border bg-foreground/[0.03] group-hover:scale-110 transition-transform`}>
                                         {res.type === 'task' && <FiCheckSquare className="text-purple-400" />}
-                                        {res.type === 'project' && <FiBriefcase className="text-success-text" />}
+                                        {res.type === 'project' && <FiBriefcase className="text-accent-text" />}
                                         {res.type === 'wiki' && <FiBookOpen className="text-warning-text" />}
                                     </div>
                                     <div className="flex flex-col">
@@ -234,7 +234,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                                     onSelect={() => setView('create-task')}
                                     className="flex cursor-pointer select-none items-center rounded-xl px-3 py-3 text-sm text-text-secondary hover:bg-foreground/[0.05] hover:text-foreground aria-selected:bg-foreground/[0.05] aria-selected:text-foreground transition-all duration-200 group"
                                 >
-                                    <div className="p-2 rounded-lg border border-card-border bg-success/10 text-success-text mr-3 group-hover:scale-110 transition-transform">
+                                    <div className="p-2 rounded-lg border border-card-border bg-accent/10 text-accent-text mr-3 group-hover:scale-110 transition-transform">
                                         <FiPlus />
                                     </div>
                                     <div className="flex flex-col">
@@ -259,7 +259,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                                     <span className="font-medium">Tasks</span>
                                 </Command.Item>
                                 <Command.Item onSelect={() => runCommand(() => router.push(orgHref("/projects")))} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-foreground/[0.05] transition-colors cursor-pointer">
-                                    <FiBriefcase className="text-success-text" />
+                                    <FiBriefcase className="text-accent-text" />
                                     <span className="font-medium">Projects</span>
                                 </Command.Item>
                                 <Command.Item onSelect={() => runCommand(() => router.push(orgHref("/settings")))} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-foreground/[0.05] transition-colors cursor-pointer">
@@ -315,7 +315,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                                         onClick={() => setTaskProjectId(String(p.id))}
                                         className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all text-left ${
  taskProjectId === String(p.id)
- ? 'bg-success/10 border-success text-success-text'
+ ? 'bg-accent/10 border-accent text-accent-text'
  : 'bg-foreground/[0.03] border-card-border text-text-muted hover:border-card-border/50 hover:bg-foreground/[0.05]'
  }`}
                                     >
@@ -329,7 +329,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                                     onClick={() => setTaskProjectId("")}
                                     className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all text-left ${
  taskProjectId === ""
- ? 'bg-success/10 border-success text-success-text'
+ ? 'bg-accent/10 border-accent text-accent-text'
  : 'bg-foreground/[0.03] border-card-border text-text-muted hover:border-card-border/50 hover:bg-foreground/[0.05]'
  }`}
                                 >
@@ -346,7 +346,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                             disabled={!taskName || isSubmitting}
                             className="md-btn md-btn-primary"
                         >
-                            {isSubmitting ? <FiLoader className="animate-spin" /> : <FiTarget />}
+                            {isSubmitting ? <Spinner className="h-4 w-4" /> : <FiTarget />}
                             <span>Create task</span>
                         </button>
                     </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { register } from '@/app/lib/actions';
-import { FiUser, FiMail, FiLock, FiArrowRight, FiArrowLeft, FiLoader, FiEye, FiEyeOff, FiBriefcase, FiLink, FiCheck, FiGlobe, FiPhone, FiXCircle, FiMessageSquare } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiArrowRight, FiArrowLeft, FiEye, FiEyeOff, FiBriefcase, FiLink, FiCheck, FiGlobe, FiPhone, FiXCircle, FiMessageSquare } from 'react-icons/fi';
 import Link from 'next/link';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { toast } from '@/lib/toast';
@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { ALL_COUNTRIES, CODE_TO_DIAL, getFlagEmoji } from '@/lib/countries';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 
+import { BusyIcon, Spinner } from '@/components/ui/busy-icon';
 // Public, unauthenticated lookup — same endpoint and same client-exposed base
 // URL the standalone /invite page already uses to preview an invite before
 // the visitor has an account.
@@ -148,16 +149,16 @@ function SearchableCountrySelect({
           ref={dropdownRef}
           style={dropdownStyle}
           data-side={dropdownSide}
-          className={`z-[9999] w-72 rounded-xl border border-card-border bg-background shadow-lg shadow-black/5 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${dropdownSide === 'top' ? 'origin-bottom' : 'origin-top'}`}
+          className={`z-[9999] w-72 md-menu overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${dropdownSide === 'top' ? 'origin-bottom' : 'origin-top'}`}
         >
-          <div className="p-1.5 border-b border-card-border">
+          <div className="p-1 pb-1.5">
             <input
               ref={searchRef}
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search countries..."
-              className="w-full px-3 py-2 text-sm bg-foreground/[0.03] border border-card-border rounded-lg text-foreground placeholder:text-text-muted/40 outline-none focus:bg-foreground/[0.06] transition-all"
+              className="h-10 w-full border border-card-border bg-input-bg px-4 text-sm text-foreground placeholder:text-text-muted"
               autoFocus
             />
           </div>
@@ -167,9 +168,7 @@ function SearchableCountrySelect({
                 key={country.code}
                 type="button"
                 onClick={() => { onChange(country.code); setIsOpen(false); setSearch(''); }}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors ${
-                  country.code === value ? 'bg-accent/10 text-accent-text' : 'text-foreground hover:bg-foreground/[0.03]'
-                }`}
+                className={`md-menu-item ${country.code === value ? 'bg-accent/10 text-accent-text' : ''}`}
               >
                 <span className="text-base leading-none">{getFlagEmoji(country.code)}</span>
                 <span className="flex-1 truncate">{country.name}</span>
@@ -875,7 +874,7 @@ export default function RegisterForm({
                         />
                         <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                           {inviteStatus === 'checking' && (
-                            <FiLoader className="h-4 w-4 text-text-muted animate-spin" />
+                            <Spinner className="h-4 w-4 text-text-muted" />
                           )}
                           {inviteStatus === 'valid' && (
                             <FiCheck className="h-4 w-4 text-success-text" />
@@ -1092,16 +1091,8 @@ export default function RegisterForm({
               disabled={isPending || (step === 3 && !agreedToTerms)}
               className="md-btn md-btn-primary md-btn-block w-full"
             >
-              <span className={isPending ? 'opacity-0' : ''}>
-                Create account
-              </span>
-              <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiArrowRight /></span>
-              {isPending && (
-                <span className="absolute inset-0 flex items-center justify-center gap-2">
-                  <FiLoader className="h-4 w-4 animate-spin" />
-                  <span>Creating account...</span>
-                </span>
-              )}
+              <span>{isPending ? 'Creating account…' : 'Create account'}</span>
+          <span className="md-btn-chip"><BusyIcon state={isPending ? 'loading' : 'idle'} icon={<FiArrowRight />} /></span>
             </button>
           </motion.div>
         )}

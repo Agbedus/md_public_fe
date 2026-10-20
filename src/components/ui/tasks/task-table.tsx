@@ -9,6 +9,7 @@ import { useConfirm } from '@/providers/confirmation-provider';
 import { avatarStyle } from '@/lib/avatar-color';
 import { formatStatus } from '@/lib/format-status';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface TaskTableProps {
     tasks: Task[];
     updateTask: (formData: FormData) => Promise<{ success: boolean; error?: string } | undefined>;
@@ -83,7 +84,7 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
                                                 className="p-2 text-success-text hover:text-success-text disabled:opacity-50"
                                             >
                                                 {isSubmitting ? (
-                                                    <div className="h-3.5 w-3.5 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
+                                                    <Spinner className="h-3.5 w-3.5 text-success-text" />
                                                 ) : (
                                                     <FiCheck className="w-4 h-4" />
                                                 )}

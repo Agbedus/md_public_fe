@@ -14,6 +14,7 @@ import { useConfirm } from "@/providers/confirmation-provider";
 import { toast } from "@/lib/toast";
 import { avatarStyle } from '@/lib/avatar-color';
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 interface Props {
   event: CalendarEvent | null;
   open: boolean;
@@ -727,7 +728,7 @@ export default function EventDetailModal({
                             form="edit-event-form"
                             disabled={submitting}
                             className="md-btn md-btn-primary">
-                Save changes <span className="md-btn-chip">{submitting ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+                Save changes <span className="md-btn-chip"><BusyIcon state={submitting ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
                         </button>
                     </div>
                 </>

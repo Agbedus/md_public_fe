@@ -121,7 +121,7 @@ export default function TeamAttendanceTable({ records }: { records: AttendanceRe
                                         {hours != null ? `${hours.toFixed(1)}h` : '—'}
                                     </td>
                                     <td className="px-6 py-3 whitespace-nowrap">
-                                        <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${aColors.bg} ${aColors.text} border border-card-border`}>
+                                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${aColors.bg} ${aColors.text} border border-card-border`}>
                                             {attendanceStateLabels[aState as AttendanceState] || 'Unknown'}
                                         </span>
                                     </td>

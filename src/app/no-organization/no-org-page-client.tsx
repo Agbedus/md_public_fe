@@ -6,8 +6,9 @@ import { switchOrganization } from '@/lib/org-actions';
 import type { OrgBrief } from '@/types/organization';
 import { WorkspaceLoadingSkeleton } from '@/components/ui/workspace-loading-skeleton';
 import { toast } from '@/lib/toast';
-import { FiBriefcase, FiLoader } from 'react-icons/fi';
+import { FiBriefcase } from 'react-icons/fi';
 
+import { Spinner } from '@/components/ui/busy-icon';
 export default function NoOrgPageClient({ organizations }: { organizations: OrgBrief[] }) {
   const router = useRouter();
   const [switching, setSwitching] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export default function NoOrgPageClient({ organizations }: { organizations: OrgB
                 )}
               </div>
               {switching === org.id && (
-                <FiLoader className="h-5 w-5 animate-spin text-text-muted" aria-hidden="true" />
+                <Spinner className="h-5 w-5 text-text-muted" />
               )}
             </button>
           ))}

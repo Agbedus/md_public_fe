@@ -8,6 +8,7 @@ import { toast } from '@/lib/toast';
 import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 const formItem = {
   hidden: { opacity: 0, y: 10 },
   visible: (i: number) => ({
@@ -150,16 +151,8 @@ export default function LoginForm() {
           disabled={isPending}
           className="md-btn md-btn-primary md-btn-block w-full"
         >
-          <span className={isPending ? 'opacity-0' : ''}>
-            {organizationName ? 'Sign in and join' : 'Sign in'}
-          </span>
-          <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiArrowRight /></span>
-          {isPending && (
-            <span className="absolute inset-0 flex items-center justify-center gap-2">
-              <FiLoader className="h-4 w-4 animate-spin" />
-              <span>{organizationName ? 'Joining workspace…' : 'Signing in...'}</span>
-            </span>
-          )}
+          <span>{isPending ? organizationName ? 'Joining workspace…' : 'Signing in...' : organizationName ? 'Sign in and join' : 'Sign in'}</span>
+          <span className="md-btn-chip"><BusyIcon state={isPending ? 'loading' : 'idle'} icon={<FiArrowRight />} /></span>
         </button>
       </motion.div>
     </form>

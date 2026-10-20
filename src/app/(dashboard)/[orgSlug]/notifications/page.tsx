@@ -6,13 +6,13 @@ import {
   FiAlertTriangle, FiBell, FiCalendar, FiCheck, FiCheckCircle,
   FiChevronLeft, FiChevronRight, FiClock, FiFileText, FiInbox,
   FiLayers, FiSearch, FiUserPlus, FiX, FiXCircle,
-  FiLoader,
-} from 'react-icons/fi';
+  } from 'react-icons/fi';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { Notification, useNotifications } from '@/components/ui/notifications/notification-provider';
 import { avatarStyle } from '@/lib/avatar-color';
 
 import { TabPill } from '@/components/ui/tab-pill';
+import { Spinner } from '@/components/ui/busy-icon';
 type InboxView = 'all' | 'attention' | 'unread';
 type Category = 'all' | 'attendance' | 'tasks' | 'projects' | 'notes' | 'team' | 'time_off' | 'events' | 'system';
 
@@ -69,7 +69,7 @@ function iconStyleFor(notification: Notification): string {
 
   const category = categoryFor(notification);
   if (category === 'attendance') return 'bg-accent/10 text-accent-text';
-  if (category === 'tasks') return 'bg-success/10 text-success-text';
+  if (category === 'tasks') return 'bg-accent/10 text-accent-text';
   if (category === 'projects') return 'bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)] text-[var(--status-qa)]';
   if (category === 'notes') return 'bg-warning/10 text-warning-text';
   if (category === 'team') return 'bg-accent/10 text-accent-text';
@@ -151,7 +151,7 @@ export default function NotificationsPage() {
         </div>
         {unreadCount > 0 && (
           <button type="button" onClick={() => void markAllAsRead()} disabled={isMarkingAllRead} aria-busy={isMarkingAllRead} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-card-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-[transform,opacity,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] disabled:cursor-wait disabled:opacity-70">
-            {isMarkingAllRead ? <FiLoader className="h-4 w-4 animate-spin text-success-text" /> : <FiCheck className="h-4 w-4 text-success-text" />} {isMarkingAllRead ? 'Marking read…' : 'Mark all read'}
+            {isMarkingAllRead ? <Spinner className="h-4 w-4 text-accent-text" /> : <FiCheck className="h-4 w-4 text-accent-text" />} {isMarkingAllRead ? 'Marking read…' : 'Mark all read'}
           </button>
         )}
       </header>
@@ -213,7 +213,7 @@ export default function NotificationsPage() {
               </section>
             )) : (
               <div className="flex min-h-80 flex-col items-center justify-center px-6 text-center">
-                <span className="grid h-14 w-14 place-items-center rounded-xl bg-success/10 text-success-text"><FiInbox className="h-6 w-6" /></span>
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-accent/10 text-accent-text"><FiInbox className="h-6 w-6" /></span>
                 <h2 className="mt-4 text-base font-semibold text-foreground">You’re all caught up</h2>
                 <p className="mt-1 max-w-xs text-sm text-text-muted">There are no notifications matching this view.</p>
               </div>
@@ -230,7 +230,7 @@ export default function NotificationsPage() {
               </div>
               <article className="flex flex-1 flex-col overflow-hidden p-5 sm:p-8">
                 <div className="max-w-2xl">
-                  <span className="text-xs font-semibold capitalize text-success-text">{categoryFor(selected).replace('_', ' ')}</span>
+                  <span className="text-xs font-semibold capitalize text-accent-text">{categoryFor(selected).replace('_', ' ')}</span>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{selected.title}</h2>
                   <p className="mt-4 text-base leading-7 text-text-secondary">{selected.message}</p>
                   <div className="mt-6 flex items-center gap-3 rounded-xl border border-card-border bg-foreground/[0.02] p-4">

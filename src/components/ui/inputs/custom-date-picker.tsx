@@ -179,7 +179,7 @@ export function CustomDatePicker({
             ref={dropdownRef}
             style={dropdownStyle}
             data-side={dropdownSide}
-            className={`z-[9999] flex w-80 max-w-[calc(100vw-1.5rem)] flex-col overflow-y-auto rounded-xl border border-card-border bg-card shadow-xl animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${
+            className={`z-[9999] flex w-80 max-w-[calc(100vw-1.5rem)] flex-col overflow-y-auto rounded-[24px] border border-card-border bg-card animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${
                 dropdownSide === 'top' ? 'origin-bottom' : 'origin-top'
               }`}
           >

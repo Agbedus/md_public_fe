@@ -27,7 +27,6 @@ import {
   FiCopy,
   FiDownload,
   FiGrid,
-  FiLoader,
   FiMail,
   FiShare2,
   FiSmartphone,
@@ -37,6 +36,7 @@ import {
 import { toast } from '@/lib/toast';
 import { Portal } from '@/components/ui/portal';
 
+import { Spinner } from '@/components/ui/busy-icon';
 type ShareChannel =
   | 'facebook'
   | 'instagram'
@@ -460,7 +460,7 @@ export function ShareButton({
                 <div className="p-5 sm:p-6">
                   {isLoading && (
                     <div className="flex min-h-64 flex-col items-center justify-center gap-3 text-text-muted" aria-live="polite">
-                      <FiLoader className="h-5 w-5 animate-spin text-success-text" />
+                      <Spinner className="h-5 w-5 text-success-text" />
                       <p className="text-sm">Preparing your tracked share link…</p>
                     </div>
                   )}
@@ -551,7 +551,7 @@ export function ShareButton({
                             </div>
                             <div className="flex flex-wrap items-center justify-center gap-2">
                               <button type="button" onClick={() => void downloadQrPng()} disabled={isPreparingQr} className="md-btn md-btn-primary disabled:cursor-wait">
-                                {isPreparingQr ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiDownload className="h-4 w-4" />}
+                                {isPreparingQr ? <Spinner className="h-4 w-4" /> : <FiDownload className="h-4 w-4" />}
                                 Download PNG
                               </button>
                               <button type="button" onClick={() => void copyQrPng()} disabled={isPreparingQr} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-foreground ring-1 ring-inset ring-card-border transition-colors hover:bg-foreground/[0.05] disabled:cursor-wait disabled:opacity-60">

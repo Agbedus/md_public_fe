@@ -11,6 +11,7 @@ import type { MapIdentity } from './map-markers';
 
 import { TabPill } from '@/components/ui/tab-pill';
 
+import { BusyIcon, useButtonStatus } from '@/components/ui/busy-icon';
 export default function OfficeSettings({ initialLocations, organization, cartoApiLink }: { initialLocations: OfficeLocation[]; organization?: MapIdentity; cartoApiLink?: string }) {
     const [locations, setLocations] = useState(initialLocations);
     const [selectedId, setSelectedId] = useState<number | 'new'>(
@@ -42,6 +43,7 @@ export default function OfficeSettings({ initialLocations, organization, cartoAp
     });
 
     const [isSaving, setIsSaving] = useState(false);
+    const saveStatus = useButtonStatus();
 
     const handleSelect = (id: number | 'new') => {
         setSelectedId(id);
@@ -73,6 +75,7 @@ export default function OfficeSettings({ initialLocations, organization, cartoAp
     const handleSaveOffice = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
+        saveStatus.start();
         const data = {
             name: form.name,
             latitude: parseFloat(form.latitude),
@@ -96,9 +99,11 @@ export default function OfficeSettings({ initialLocations, organization, cartoAp
                 setLocations(prev => prev.map(l => (l.id === tempId ? result.location : l)));
                 setSelectedId(result.location.id);
                 toast.success('Office location created');
+                void saveStatus.succeed();
             } else {
                 setLocations(previous);
                 toast.error(result.error || 'Failed to create location');
+                saveStatus.reset();
             }
         } else {
             const id = selectedId;
@@ -110,9 +115,11 @@ export default function OfficeSettings({ initialLocations, organization, cartoAp
             if (result.success && result.location) {
                 setLocations(prev => prev.map(l => (l.id === id ? result.location : l)));
                 toast.success('Office location updated');
+                void saveStatus.succeed();
             } else {
                 setLocations(previous);
                 toast.error(result.error || 'Failed to update location');
+                saveStatus.reset();
             }
         }
         setIsSaving(false);
@@ -243,7 +250,7 @@ export default function OfficeSettings({ initialLocations, organization, cartoAp
                                     className="md-btn md-btn-primary disabled:cursor-wait"
                                 >
                                     {isSaving ? 'Saving…' : 'Save changes'}
-                                    <span className="md-btn-chip">{isSaving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+                                    <span className="md-btn-chip"><BusyIcon state={saveStatus.state} icon={<FiCheck />} /></span>
                                 </button>
                                 {selectedId === 'new' && locations.length > 0 && (
                                     <button

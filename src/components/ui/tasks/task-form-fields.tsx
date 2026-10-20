@@ -38,11 +38,11 @@ export default function TaskFormFields() {
                             type="checkbox" 
                             name="qa_required"
                             value="true"
-                            className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-purple-500/40 checked:border-purple-400 transition-all"
+                            className="peer md-check"
                         />
-                        <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-purple-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
+                        <FiCheck className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
                     </div>
-                    <span className="text-xs font-bold text-text-muted group-hover:text-purple-400 transition-colors">QA Required</span>
+                    <span className="text-xs font-bold text-text-muted group-hover:text-foreground transition-colors">QA required</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer group">
                     <div className="relative flex items-center">
@@ -50,15 +50,15 @@ export default function TaskFormFields() {
                             type="checkbox" 
                             name="review_required"
                             value="true"
-                            className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-accent/40 checked:border-accent transition-all"
+                            className="peer md-check"
                         />
-                        <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-accent-text opacity-0 peer-checked:opacity-100 transition-opacity" />
+                        <FiCheck className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
                     </div>
-                    <span className="text-xs font-bold text-text-muted group-hover:text-accent-text transition-colors">Review Required</span>
+                    <span className="text-xs font-bold text-text-muted group-hover:text-foreground transition-colors">Review required</span>
                 </label>
             </div>
             <div className="space-y-2">
-                <label htmlFor="depends_on_id" className="block text-sm font-medium text-text-secondary">Depends On (Task ID)</label>
+                <label htmlFor="depends_on_id" className="block text-sm font-medium text-text-secondary">Depends on (task ID)</label>
                 <input
                     type="number"
                     name="depends_on_id"

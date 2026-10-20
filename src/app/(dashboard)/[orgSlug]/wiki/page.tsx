@@ -40,7 +40,7 @@ function Section({
     id,
     title,
     icon: Icon,
-    color = 'text-success-text',
+    color = 'text-accent-text',
     children,
 }: {
     id: string;
@@ -164,7 +164,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'latest',
         title: 'Latest changes',
         icon: FiInfo,
-        color: 'text-success-text',
+        color: 'text-accent-text',
         topics: [
             { id: 'docs-version', title: 'Docs version' },
             { id: 'recent-updates', title: 'What changed recently' },
@@ -227,7 +227,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'calendar',
         title: 'Calendar and time off',
         icon: FiCalendar,
-        color: 'text-success-text',
+        color: 'text-accent-text',
         topics: [
             { id: 'events', title: 'Events' },
             { id: 'time-off', title: 'Requesting time off' },
@@ -280,7 +280,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'sharing',
         title: 'Sharing MyndDesk',
         icon: FiShare2,
-        color: 'text-success-text',
+        color: 'text-accent-text',
         topics: [
             { id: 'sharing-options', title: 'Ways to share' },
             { id: 'sharing-qr', title: 'Custom QR codes' },
@@ -363,7 +363,7 @@ export default function WikiPage() {
                     </button>
 
                     <div className="flex items-center gap-2.5">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success-text">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent-text">
                             <FiBookOpen className="h-4 w-4" />
                         </span>
                         <div>
@@ -410,7 +410,7 @@ export default function WikiPage() {
                                         <FiChevronRight
                                             aria-hidden="true"
                                             className={`h-3.5 w-3.5 transition-opacity ${
-                                                activeId === topic.id ? 'text-success-text opacity-100' : 'opacity-0'
+                                                activeId === topic.id ? 'text-accent-text opacity-100' : 'opacity-0'
                                             }`}
                                         />
                                         <span>{topic.title}</span>
@@ -441,7 +441,7 @@ export default function WikiPage() {
                         </P>
                     </header>
 
-                    <Section id="latest" title="Latest changes" icon={FiInfo} color="text-success-text">
+                    <Section id="latest" title="Latest changes" icon={FiInfo} color="text-accent-text">
                         <Topic id="docs-version" title="Docs version">
                             <P>
                                 This wiki is versioned as <strong className="font-medium text-foreground">v{DOC_VERSION}</strong>.
@@ -662,7 +662,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="calendar" title="Calendar and time off" icon={FiCalendar} color="text-success-text">
+                    <Section id="calendar" title="Calendar and time off" icon={FiCalendar} color="text-accent-text">
                         <Topic id="events" title="Events">
                             <P>
                                 The calendar shows events alongside task due dates, project
@@ -893,7 +893,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="sharing" title="Sharing MyndDesk" icon={FiShare2} color="text-success-text">
+                    <Section id="sharing" title="Sharing MyndDesk" icon={FiShare2} color="text-accent-text">
                         <Topic id="sharing-options" title="Ways to share">
                             <P>
                                 Share MyndDesk from the landing page, sidebar, your profile or

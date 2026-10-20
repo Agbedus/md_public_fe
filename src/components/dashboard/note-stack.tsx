@@ -126,7 +126,7 @@ export function NoteStack({ notes }: { notes: Note[] }) {
                             </div>
                         </div>
                         
-                        <h3 className="text-lg font-bold text-foreground leading-tight mb-2 group-hover/card:text-[var(--pastel-emerald)] transition-colors line-clamp-2 uppercase tracking-tight">
+                        <h3 className="text-lg font-bold text-foreground leading-tight mb-2 group-hover/card:text-accent-text transition-colors line-clamp-2 uppercase tracking-tight">
                             {notes[currentIndex].title}
                         </h3>
                         
@@ -139,7 +139,7 @@ export function NoteStack({ notes }: { notes: Note[] }) {
                     
                     <div className="mt-auto pt-3 border-t border-card-border/50 flex items-center justify-between shrink-0 relative z-10">
                         <div className="flex items-center gap-2">
-                            <div className="w-1 h-1 rounded-full bg-success/50" />
+                            <div className="w-1 h-1 rounded-full bg-accent/50" />
                             <p className="text-[9px] text-(--text-muted) font-bold font-numbers uppercase tracking-widest" suppressHydrationWarning>
                                 {notes[currentIndex].updatedAt ? new Date(notes[currentIndex].updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'ARCHIVED'}
                             </p>

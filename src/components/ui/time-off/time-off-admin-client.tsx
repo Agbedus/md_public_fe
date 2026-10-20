@@ -5,7 +5,7 @@ import React, { useState, useMemo, useTransition, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiSearch, FiCheck, FiClock, FiX, FiSun, FiCalendar, FiTrash2, FiPlus, FiLoader } from 'react-icons/fi';
+import { FiSearch, FiCheck, FiClock, FiX, FiSun, FiCalendar, FiTrash2, FiPlus } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/lib/toast';
@@ -21,6 +21,7 @@ import { avatarStyle } from '@/lib/avatar-color';
 import { TabPill } from '@/components/ui/tab-pill';
 import { formatStatus } from '@/lib/format-status';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface TimeOffAdminClientProps {
     initialRequests: TimeOffRequest[];
     users: User[];
@@ -335,7 +336,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                                 title="Approve"
                                                             >
                                                                 {actionLoading?.id === req.id && actionLoading.type === 'approve' ? (
-                                                                    <FiLoader className="h-4 w-4 animate-spin" />
+                                                                    <Spinner className="h-4 w-4" />
                                                                 ) : (
                                                                     <FiCheck className="w-3.5 h-3.5" />
                                                                 )}
@@ -346,7 +347,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                                 className="grid h-9 w-9 place-items-center bg-danger/10 hover:bg-danger/20 text-danger-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
                                                                 title="Reject"
                                                             >
-                                                                {actionLoading?.id === req.id && actionLoading.type === 'reject' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiX className="w-3.5 h-3.5" />}
+                                                                {actionLoading?.id === req.id && actionLoading.type === 'reject' ? <Spinner className="h-4 w-4" /> : <FiX className="w-3.5 h-3.5" />}
                                                             </button>
                                                         </>
                                                     )}
@@ -356,7 +357,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                         className="grid h-9 w-9 place-items-center hover:bg-danger/10 text-text-muted hover:text-danger-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
                                                         title="Delete"
                                                     >
-                                                        {actionLoading?.id === req.id && actionLoading.type === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />}
+                                                        {actionLoading?.id === req.id && actionLoading.type === 'delete' ? <Spinner className="h-4 w-4" /> : <FiTrash2 className="w-3.5 h-3.5" />}
                                                     </button>
                                                 </div>
                                             </td>

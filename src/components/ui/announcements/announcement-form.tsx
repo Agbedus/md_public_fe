@@ -7,6 +7,7 @@ import { useAnnouncements } from './announcement-provider';
 import { AnnouncementType } from '@/types/announcement';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 export const AnnouncementForm = () => {
   const { createAnnouncement, isAdminFormOpen, setIsAdminFormOpen } = useAnnouncements();
   const [title, setTitle] = useState('');
@@ -147,7 +148,7 @@ export const AnnouncementForm = () => {
                   className="md-btn md-btn-primary"
                 >
                   {loading ? 'Sending…' : 'Send announcement'}
-                  <span className="md-btn-chip">{loading ? <FiLoader className="animate-spin" /> : <HiSpeakerphone />}</span>
+                  <span className="md-btn-chip"><BusyIcon state={loading ? 'loading' : 'idle'} icon={<HiSpeakerphone />} /></span>
                 </button>
               </div>
             </form>

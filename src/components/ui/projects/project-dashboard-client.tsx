@@ -246,7 +246,7 @@ export default function ProjectDashboardClient({
                                 {/* Impact Stats Grid */}
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                                     <StatCard icon={FiCheckSquare} color="indigo" label="Tasks completed" value={`${completedTasks}/${tasks.length}`} subValue={`${Math.round(taskProgress)}% done`} />
-                                    <StatCard icon={FiDollarSign} color="emerald" label="Budget spent" value={`$${(project.spent || 0).toLocaleString()}`} subValue={`of $${(project.budget || 0).toLocaleString()} budget`} />
+                                    <StatCard icon={FiDollarSign} color="indigo" label="Budget spent" value={`$${(project.spent || 0).toLocaleString()}`} subValue={`of $${(project.budget || 0).toLocaleString()} budget`} />
                                     <StatCard icon={FiClock} color="amber" label="Due date" value={project.endDate ? format(new Date(project.endDate), 'MMM dd') : 'N/A'} subValue="Target completion" />
                                     <StatCard icon={FiTrendingUp} color="rose" label="Hours logged" value={totalHoursLogged > 0 ? `${totalHoursLogged.toFixed(1)}h` : '0h'} subValue="Across all tasks" />
                                 </div>
@@ -303,7 +303,7 @@ export default function ProjectDashboardClient({
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
-                                                    <FiLayout className="text-success-text" />
+                                                    <FiLayout className="text-text-muted" />
                                                     Active Operations
                                                 </h3>
                                                 <button onClick={() => setActiveView('tasks')} className="text-[11px] font-medium text-text-muted hover:text-foreground transition-colors flex items-center gap-2">
@@ -341,7 +341,7 @@ export default function ProjectDashboardClient({
                                                                          )}
                                                                      </td>
                                                                      <td className="px-6 py-3">
-                                                                         <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium capitalize border ${
+                                                                         <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium capitalize border ${
  task.status === 'DONE' 
  ? 'bg-success/10 text-success-text dark:text-success-text border-success/20' 
  : task.status === 'IN_PROGRESS'
@@ -375,7 +375,7 @@ export default function ProjectDashboardClient({
                                             </div>
                                             <div className="rounded-2xl p-6 border border-card-border bg-card flex flex-col gap-4">
                                                 <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
-                                                    <FiDollarSign className="text-success-text" />
+                                                    <FiDollarSign className="text-text-muted" />
                                                     Financial Telemetry
                                                 </h3>
                                                 <div className="space-y-4">
@@ -469,7 +469,7 @@ export default function ProjectDashboardClient({
                                                 </div>
                                                 <div className="flex items-center justify-between text-[11px] font-medium">
                                                     <span className="text-text-muted">Last updated</span>
-                                                    <span className="text-success-text dark:text-success-text">Encrypted</span>
+                                                    <span className="text-text-muted">Encrypted</span>
                                                 </div>
                                             </div>
                                         </div>

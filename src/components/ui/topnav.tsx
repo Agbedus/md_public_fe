@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { switchOrganization } from '@/lib/org-actions';
 import { useDashboard } from './dashboard-layout';
-import { FiBell, FiSearch, FiUser, FiSettings, FiLogOut, FiHelpCircle, FiMessageSquare, FiChevronDown, FiCheck, FiAlertCircle, FiX, FiHome, FiPlus, FiLoader } from 'react-icons/fi';
+import { FiBell, FiSearch, FiUser, FiSettings, FiLogOut, FiHelpCircle, FiMessageSquare, FiChevronDown, FiCheck, FiAlertCircle, FiX, FiHome, FiPlus } from 'react-icons/fi';
 import { useNotifications } from './notifications/notification-provider';
 import { useAnnouncements } from './announcements/announcement-provider';
 import { AnnouncementDropdown } from './announcements/announcement-dropdown';
@@ -22,6 +22,7 @@ import { Portal } from '@/components/ui/portal';
 import { OrganizationAvatar } from './organization-avatar';
 import { avatarStyle } from '@/lib/avatar-color';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface TopNavProps {
   user?: {
     name?: string | null;
@@ -213,25 +214,23 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                   transition={{ duration: 0.15 }}
                   style={orgSwitcherMenuStyle}
                   data-side={orgSwitcherMenuSide}
-                  className={`z-[9999] w-[min(16rem,calc(100vw-1.5rem))] overflow-y-auto rounded-3xl border border-card-border bg-card md:w-64 ${orgSwitcherMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
+                  className={`z-[9999] w-[min(16rem,calc(100vw-1.5rem))] md-menu overflow-y-auto md:w-64 ${orgSwitcherMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
                 >
-                  <div className="px-3 py-2 border-b border-card-border">
-                    <p className="text-[11px] font-semibold text-text-muted">Switch Organization</p>
-                  </div>
-                  <div className="max-h-[240px] overflow-y-auto py-1">
+                  <p className="md-menu-label">Switch organization</p>
+                  <div className="max-h-[240px] overflow-y-auto">
                     {organizations.map((org) => {
                       const orgRole = org.role ? presentOrgRole(org.role) : null;
                       return (
                         <button
                           key={org.id}
                           onClick={() => handleSwitchOrg(org.id)}
-                          className={`flex min-h-10 items-center w-full gap-2.5 px-3 py-2 text-sm transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] ${
- org.id === currentOrgId ? 'text-foreground font-bold' : 'text-text-secondary'
+                          className={`md-menu-item ${
+ org.id === currentOrgId ? 'text-foreground font-medium' : 'text-text-secondary'
  }`}
                         >
                           <OrganizationAvatar name={org.name} logoUrl={org.logo_url} size={24} />
                           <div className="flex-1 min-w-0 text-left">
-                            <p className="truncate text-xs">{org.name}</p>
+                            <p className="truncate text-sm">{org.name}</p>
                             {orgRole && (
                               <p className={`text-[11px] font-semibold mt-0.5 ${orgRoleToneClasses[orgRole.tone] || 'text-text-muted'}`}>
                                 {orgRole.label}
@@ -245,8 +244,8 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                       );
                     })}
                   </div>
-                  <div className="border-t border-card-border p-1.5">
-                    <button onClick={() => { setIsOrgSwitcherOpen(false); router.push('/create-workspace'); }} className="flex w-full items-center gap-2 rounded-full px-2.5 py-2 text-xs font-semibold text-text-secondary transition hover:bg-foreground/[0.05] hover:text-foreground">
+                  <div className="mt-1 border-t border-card-border pt-1">
+                    <button onClick={() => { setIsOrgSwitcherOpen(false); router.push('/create-workspace'); }} className="md-menu-item text-text-secondary hover:text-foreground">
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/12 text-accent-text"><FiPlus size={14} /></span>
                       Create workspace
                     </button>
@@ -383,7 +382,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                         aria-busy={isMarkingAllRead}
                         className="flex min-h-9 flex-1 items-center justify-center gap-2 rounded-full border border-transparent py-2 text-[11px] font-semibold text-text-muted transition-[transform,opacity,background-color] duration-150 hover:border-card-border hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
                       >
-                        {isMarkingAllRead && <FiLoader className="h-3.5 w-3.5 animate-spin" />}
+                        {isMarkingAllRead && <Spinner className="h-3.5 w-3.5" />}
                         {isMarkingAllRead ? 'Marking read…' : 'Mark all as read'}
                       </button>
                     )}
@@ -496,58 +495,58 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                     ref={userMenuRef}
                     style={userMenuStyle}
                     data-side={userMenuSide}
-                    className={`z-[9999] w-52 overflow-y-auto rounded-3xl border border-card-border bg-background py-2 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${userMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
+                    className={`z-[9999] w-56 md-menu overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${userMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
                   >
-                  <div className="px-3.5 py-2.5 border-b border-card-border mb-1">
+                  <div className="mb-1 border-b border-card-border px-3.5 pb-2.5 pt-2">
                       <p className="text-base font-semibold text-foreground truncate tracking-tight">{user.name || 'User'}</p>
-                      <p className="text-[11px] text-text-muted font-normal truncate lowercase">{user.email}</p>
+                      <p className="truncate text-xs text-text-muted">{user.email}</p>
                   </div>
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/dashboard` : "/dashboard"} 
-                      className="flex items-center px-3.5 py-2 text-sm text-foreground font-normal hover:bg-foreground/[0.05] transition-all duration-300 active:bg-foreground/[0.04] group"
+                      className="md-menu-item group"
                       onClick={() => setIsOpen(false)}
                   >
-                      <FiHome className="mr-3 text-[var(--pastel-amber)] icon-nudge" />
+                      <FiHome className="text-text-muted icon-nudge" />
                       Dashboard
                   </Link>
                   
                   <Link 
                       href={orgSlug ? `/${orgSlug}/profile` : "/profile"} 
-                      className="flex items-center px-3.5 py-2 text-sm text-foreground font-normal hover:bg-foreground/[0.05] transition-all duration-300 active:bg-foreground/[0.04] group"
+                      className="md-menu-item group"
                       onClick={() => setIsOpen(false)}
                   >
-                      <FiUser className="mr-3 text-[var(--pastel-blue)] icon-nudge" />
-                      My Profile
+                      <FiUser className="text-text-muted icon-nudge" />
+                      My profile
                   </Link>
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/notifications` : "/notifications"} 
-                      className="flex items-center px-3.5 py-2 text-sm text-foreground font-normal hover:bg-foreground/[0.05] transition-all duration-300 active:bg-foreground/[0.04] group"
+                      className="md-menu-item group"
                       onClick={() => setIsOpen(false)}
                   >
-                      <FiBell className="mr-3 text-[var(--pastel-rose)] icon-nudge" />
+                      <FiBell className="text-text-muted icon-nudge" />
                       Notifications
                   </Link>
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/settings` : "/settings"} 
-                      className="flex items-center px-3.5 py-2 text-sm text-foreground font-normal hover:bg-foreground/[0.05] transition-all duration-300 active:bg-foreground/[0.04] group"
+                      className="md-menu-item group"
                       onClick={() => setIsOpen(false)}
                   >
-                      <FiSettings className="mr-3 text-[var(--pastel-teal)] icon-nudge" />
+                      <FiSettings className="text-text-muted icon-nudge" />
                       Settings
                   </Link>
                   
-                  <div className="border-t border-card-border my-2"></div>
+                  <div className="md-menu-sep" />
                   
                   <form action="/logout" method="get">
                       <button
                           type="submit"
-                          className="flex w-full items-center px-3.5 py-2 text-sm text-danger-text font-normal hover:bg-danger/10 transition-colors group active:scale-[0.98]"
+                          className="md-menu-item group text-danger-text hover:!bg-danger/10"
                       >
-                          <FiLogOut className="mr-3 icon-nudge" />
-                          Sign Out
+                          <FiLogOut className="icon-nudge" />
+                          Sign out
                       </button>
                   </form>
                   </div>

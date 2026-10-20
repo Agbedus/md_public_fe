@@ -386,7 +386,7 @@ export default function SlashCommandEditor({
             data-note-editor-controls
             onMouseDown={(event) => event.preventDefault()}
             style={{ position: "fixed", ...menuCoords }}
-            className="z-[9999] flex max-w-[calc(100vw-16px)] items-center overflow-x-auto rounded-xl border border-card-border bg-background p-1 shadow-lg"
+            className="z-[9999] flex max-w-[calc(100vw-16px)] items-center overflow-x-auto rounded-[24px] border border-card-border bg-card p-1"
           >
             <Tool
               label="Bold"

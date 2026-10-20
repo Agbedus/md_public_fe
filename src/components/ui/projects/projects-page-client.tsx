@@ -49,6 +49,7 @@ import ProjectsLoading from "@/app/(dashboard)/[orgSlug]/projects/loading";
 import { formatStatus } from '@/lib/format-status';
 
 import { TabPill } from '@/components/ui/tab-pill';
+import { BusyIcon } from '@/components/ui/busy-icon';
 interface ProjectsPageClientProps {
   /** Signed-in user's permission subject, for ownership-aware edit/delete. */
   subject?: PermissionSubjectProps | null;
@@ -637,7 +638,7 @@ export default function ProjectsPageClient({
                   disabled={isCreating}
                   className="md-btn md-btn-primary"
                 >
-                  Create project <span className="md-btn-chip">{isCreating ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+                  Create project <span className="md-btn-chip"><BusyIcon state={isCreating ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
 
                 </button>
               </div>
@@ -685,7 +686,7 @@ export default function ProjectsPageClient({
                   disabled={isUpdating}
                   className="md-btn md-btn-primary"
                 >
-                  Execute Changes <span className="md-btn-chip">{isUpdating ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+                  Save changes <span className="md-btn-chip"><BusyIcon state={isUpdating ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
 
                 </button>
               </div>

@@ -261,13 +261,13 @@ export default function TimezoneClocks() {
             exit={{ opacity: 0, scale: 0.985 }}
             style={pickerStyle}
             data-side={pickerSide}
-            className={`z-[9999] w-64 bg-card border border-card-border rounded-2xl shadow-2xl overflow-y-auto ${pickerSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
+            className={`z-[9999] w-64 md-menu overflow-y-auto ${pickerSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
           >
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-card-border">
+            <div className="md-menu-label">
               <FiGlobe className="h-3.5 w-3.5 text-text-muted" />
-              <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Cities</span>
+              <span>Cities</span>
             </div>
-            <div className="max-h-72 overflow-y-auto py-1.5">
+            <div className="max-h-72 overflow-y-auto">
               {COMMON_TIMEZONES.map((opt) => {
                 const isSaved = clocks.some((c) => c.tz === opt.tz);
                 const isOnlyOne = isSaved && clocks.length === 1;
@@ -276,12 +276,12 @@ export default function TimezoneClocks() {
                     key={opt.tz}
                     onClick={() => toggleCity(opt.tz)}
                     disabled={isOnlyOne}
-                    className={`w-full flex items-center justify-between gap-2 px-4 py-2 text-left text-xs font-medium transition-colors hover:bg-foreground/[0.05] disabled:opacity-40 disabled:cursor-not-allowed ${
+                    className={`md-menu-item justify-between ${
                       isSaved ? 'text-foreground' : 'text-text-muted'
                     }`}
                   >
                     <span>{opt.label}</span>
-                    {isSaved && <FiCheck className="h-3.5 w-3.5 text-success-text shrink-0" />}
+                    {isSaved && <FiCheck className="h-3.5 w-3.5 shrink-0 text-accent-text" />}
                   </button>
                 );
               })}
@@ -289,7 +289,7 @@ export default function TimezoneClocks() {
             {hasMultiple && (
               <button
                 onClick={removeCurrent}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-xs font-medium text-danger-text hover:bg-danger/10 border-t border-card-border transition-colors"
+                className="md-menu-item mt-1 text-danger-text hover:!bg-danger/10"
               >
                 <FiTrash2 className="h-3.5 w-3.5" />
                 Remove {cityLabel(current.tz)}

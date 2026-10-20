@@ -16,6 +16,7 @@ import { toast } from '@/lib/toast';
 import { avatarStyle } from '@/lib/avatar-color';
 import { formatStatus } from '@/lib/format-status';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface TimeLog {
     id: number;
     task_id: number;
@@ -108,7 +109,7 @@ export default function UserDetailClient({
         super_admin: 'bg-danger/10 text-danger-text border-danger/20',
         manager: 'bg-[color-mix(in_oklab,var(--status-qa)_10%,transparent)] text-[var(--status-qa)] border-[color-mix(in_oklab,var(--status-qa)_20%,transparent)]',
         staff: 'bg-accent/10 text-accent-text border-accent/20',
-        client: 'bg-success/10 text-success-text border-success/20',
+        client: 'bg-accent/10 text-accent-text border-accent/20',
         user: 'bg-foreground/[0.06] text-text-muted border-foreground/5',
     };
 
@@ -178,7 +179,7 @@ export default function UserDetailClient({
             {/* Activity Heatmap */}
             <div className="bg-card p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4 overflow-hidden">
                 <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-[11px] font-medium text-success-text capitalize bg-success/10 px-2 py-0.5 rounded">Activity</h4>
+                    <h4 className="text-[11px] font-medium text-accent-text bg-accent/12 px-2.5 py-0.5 rounded-full">Activity</h4>
                     <span className="text-[11px] text-text-muted font-bold capitalize">Past performance</span>
                 </div>
                 <ActivityHeatmap data={activityData} variant="full" />
@@ -250,7 +251,7 @@ export default function UserDetailClient({
                 <div className="xl:col-span-2 bg-card rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
                     <div className="px-6 py-4 border-b border-foreground/5">
                         <h2 className="text-[11px] font-medium text-text-muted capitalize flex items-center gap-2">
-                            <FiCalendar className="text-success-text w-4 h-4" />
+                            <FiCalendar className="text-text-muted w-4 h-4" />
                             Timesheet ({timeLogs.length} sessions)
                         </h2>
                     </div>
@@ -380,7 +381,7 @@ export default function UserDetailClient({
                                                                 title="Approve"
                                                             >
                                                                 {actionLoading === req.id ? (
-                                                                    <div className="w-3.5 h-3.5 border-2 border-success border-t-transparent rounded-full animate-spin" />
+                                                                    <Spinner className="w-3.5 h-3.5 text-success-text" />
                                                                 ) : (
                                                                     <FiCheck className="w-3.5 h-3.5" />
                                                                 )}

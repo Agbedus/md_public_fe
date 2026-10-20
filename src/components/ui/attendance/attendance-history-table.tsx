@@ -32,7 +32,7 @@ export default function AttendanceHistoryTable({ records }: { records: Attendanc
         <div className="bg-card rounded-[28px] border border-card-border overflow-hidden flex flex-col">
             <div className="p-4 lg:px-6 py-4 border-b border-card-border bg-background/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <FiCheckCircle className="text-success-text w-4 h-4" />
+                    <FiCheckCircle className="text-text-muted w-4 h-4" />
                     <h3 className="text-sm font-semibold text-foreground">Activity history</h3>
                 </div>
                 <span className="md-count bg-foreground/[0.06] text-text-muted">
@@ -98,7 +98,7 @@ export default function AttendanceHistoryTable({ records }: { records: Attendanc
                                         {hours != null ? `${hours.toFixed(1)}h` : '—'}
                                     </td>
                                     <td className="px-6 py-3 whitespace-nowrap">
-                                        <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${aColors.bg} ${aColors.text} border border-card-border`}>
+                                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${aColors.bg} ${aColors.text} border border-card-border`}>
                                             {attendanceStateLabels[aState as AttendanceState] || 'Unknown'}
                                         </span>
                                     </td>

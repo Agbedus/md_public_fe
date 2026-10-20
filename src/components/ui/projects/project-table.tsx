@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/lib/toast';
 import { useConfirm } from '@/providers/confirmation-provider';
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface ProjectTableProps {
   projects: Project[];
   users: User[];
@@ -327,7 +328,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                   title="Save"
                                 >
                                   {isSubmitting ? (
-                                    <div className="w-3.5 h-3.5 border-2 border-success border-t-transparent rounded-full animate-spin" />
+                                    <Spinner className="w-3.5 h-3.5 text-success-text" />
                                   ) : (
                                     <FiCheck className="w-4 h-4" />
                                   )}
@@ -375,12 +376,12 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                   )}
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium capitalize border whitespace-nowrap ${statusColors[project.status] ?? statusColors.planning}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium capitalize border whitespace-nowrap ${statusColors[project.status] ?? statusColors.planning}`}>
                     {statusMapping[project.status] ?? project.status ?? '—'}
                   </span>
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium capitalize border whitespace-nowrap ${
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium capitalize border whitespace-nowrap ${
  project.priority === 'high' ? 'bg-[var(--pastel-rose)]/10 text-[var(--pastel-rose)] border-[var(--pastel-rose)]/20' :
  project.priority === 'medium' ? 'bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20' :
  'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
@@ -527,7 +528,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                    className="md-btn md-btn-primary md-btn-sm"
                                  >
                                    {isSubmitting ? (
-                                     <div className="h-3.5 w-3.5 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
+                                     <Spinner className="h-3.5 w-3.5 text-success-text" />
                                    ) : (
                                      <FiCheck className="w-4 h-4" />
                                    )}
@@ -693,7 +694,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                title="Save"
                              >
                                {isSubmitting ? (
-                                 <div className="w-3.5 h-3.5 border-2 border-success border-t-transparent rounded-full animate-spin" />
+                                 <Spinner className="w-3.5 h-3.5 text-success-text" />
                                ) : (
                                  <FiCheck className="w-4 h-4" />
                                )}

@@ -148,24 +148,24 @@ export function Combobox({
           <div
             ref={dropdownRef}
             style={dropdownStyle}
-            className={`z-[9999] bg-background border border-card-border shadow-lg shadow-black/10 rounded-xl overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${
+            className={`z-[9999] md-menu overflow-y-auto animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${
               dropdownSide === 'top' ? 'origin-bottom' : 'origin-top'
             }`}
           >
-            <div className="p-2 border-b border-foreground/5">
+            <div className="p-1 pb-1.5">
               <div className="relative">
-                <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted w-3.5 h-3.5" />
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted w-3.5 h-3.5" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-colors"
+                  className="h-10 w-full border border-card-border bg-input-bg pl-9 pr-3 text-sm text-foreground placeholder:text-text-muted"
                   autoFocus
                 />
               </div>
             </div>
-            <div className="max-h-48 overflow-y-auto p-1">
+            <div className="max-h-56 overflow-y-auto">
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option) => {
                   const isSelected = multiple
@@ -177,20 +177,18 @@ export function Combobox({
                       key={option.value}
                       type="button"
                       onClick={() => handleSelect(option.value)}
-                      className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between group transition-colors ${
-                        isSelected ? 'bg-accent/10 text-accent-text' : 'text-text-secondary hover:bg-foreground/[0.03] hover:text-foreground'
-                      }`}
+                      className={`md-menu-item group justify-between ${isSelected ? 'bg-accent/10' : ''}`}
                     >
                       <div>
-                        <div className="font-medium text-xs text-foreground">{option.label}</div>
-                        {option.subLabel && <div className="text-[11px] text-text-muted group-hover:text-text-secondary">{option.subLabel}</div>}
+                        <div className="text-sm text-foreground">{option.label}</div>
+                        {option.subLabel && <div className="text-xs text-text-muted">{option.subLabel}</div>}
                       </div>
-                      {isSelected && <FiCheck className="w-4 h-4" />}
+                      {isSelected && <FiCheck className="h-4 w-4 shrink-0 text-accent-text" />}
                     </button>
                   );
                 })
               ) : (
-                <div className="px-3 py-4 text-center text-xs text-text-muted italic">
+                <div className="px-3 py-4 text-center text-sm text-text-muted">
                   No results found
                 </div>
               )}

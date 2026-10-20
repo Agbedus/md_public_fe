@@ -3,11 +3,12 @@ import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
-import { FiDownload, FiCopy, FiLoader } from 'react-icons/fi';
+import { FiDownload, FiCopy } from 'react-icons/fi';
 import { toast } from '@/lib/toast';
 import PipMascot from './pip-mascot';
 import { PipStatusIndicator, type PipActivity } from './pip-status-indicator';
 
+import { Spinner } from '@/components/ui/busy-icon';
 const NoteWidget = dynamic(() => import('./widgets/NoteWidget'));
 const TaskWidget = dynamic(() => import('./widgets/TaskWidget'));
 const ProjectWidget = dynamic(() => import('./widgets/ProjectWidget'));
@@ -232,7 +233,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity }) => {
                 aria-busy={isDownloadingPdf}
                 className="flex min-h-11 items-center gap-2 rounded-full border border-card-border bg-foreground/[0.05] px-3 py-2 text-[10px] font-bold capitalize text-text-muted transition-all hover:border-accent/30 hover:text-accent-text disabled:cursor-wait disabled:opacity-60"
               >
-                {isDownloadingPdf ? <FiLoader className="h-3.5 w-3.5 animate-spin" /> : <FiDownload className="h-3.5 w-3.5" />}
+                {isDownloadingPdf ? <Spinner className="h-3.5 w-3.5" /> : <FiDownload className="h-3.5 w-3.5" />}
                 {message.isReport ? (isDownloadingPdf ? 'Preparing PDF' : 'Download PDF') : 'Download .md'}
               </button>
               <button

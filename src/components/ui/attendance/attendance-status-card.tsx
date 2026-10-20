@@ -13,6 +13,7 @@ import { useIsClient } from '@/hooks/use-is-client';
 import { useOrgSlug } from '@/hooks/use-org-slug';
 import { workspaceCacheKey } from '@/lib/workspace-cache';
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 interface AttendanceStatusCardProps {
     record: AttendanceRecord | null;
     /** Starts open; the compact row is enough for most visits. */
@@ -207,7 +208,7 @@ export default function AttendanceStatusCard({ record: initialRecord, defaultExp
                         className="md-btn md-btn-primary md-btn-sm shrink-0 disabled:cursor-wait"
                     >
                         <span className="hidden sm:inline">{busyLabel ?? 'Clock in'}</span>
-                        <span className="md-btn-chip">{clockInPhase !== 'idle' ? <FiLoader className="animate-spin" /> : <FiClock />}</span>
+                        <span className="md-btn-chip"><BusyIcon state={clockInPhase !== 'idle' ? 'loading' : 'idle'} icon={<FiClock />} /></span>
                     </button>
                 ) : (
                     <button

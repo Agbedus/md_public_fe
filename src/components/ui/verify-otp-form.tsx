@@ -7,6 +7,7 @@ import { FiArrowLeft, FiLoader, FiCheck, FiClock } from 'react-icons/fi';
 import { verifyOtp, resendOtp } from '@/app/lib/actions';
 import { toast } from '@/lib/toast';
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 const easeOut = [0.23, 1, 0.32, 1] as [number, number, number, number];
 
 const formItem = {
@@ -245,16 +246,8 @@ export default function VerifyOtpForm() {
           disabled={isPending || digits.join('').length !== 6}
           className="md-btn md-btn-primary md-btn-block w-full"
         >
-          <span className={isPending ? 'opacity-0' : ''}>
-            Verify account
-          </span>
-          <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiCheck /></span>
-          {isPending && (
-            <span className="absolute inset-0 flex items-center justify-center gap-2">
-              <FiLoader className="h-4 w-4 animate-spin" />
-              <span>Verifying...</span>
-            </span>
-          )}
+          <span>{isPending ? 'Verifying…' : 'Verify account'}</span>
+          <span className="md-btn-chip"><BusyIcon state={isPending ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
         </button>
       </motion.div>
 

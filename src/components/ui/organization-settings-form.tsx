@@ -10,6 +10,7 @@ import { updateOrganizationSettings } from "@/lib/org-actions";
 import { uploadOrganizationLogo } from "@/app/(dashboard)/[orgSlug]/settings/actions";
 import type { OrganizationSettings } from "@/types/organization";
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface OrganizationSettingsFormProps {
   organization: OrganizationSettings;
 }
@@ -200,7 +201,7 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
                 )}
                 <span className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                   {isLogoSaving ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    <Spinner className="h-4 w-4 text-white" />
                   ) : (
                     <FiCamera size={16} />
                   )}
@@ -367,7 +368,7 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
         >
           {isSaving ? (
             <>
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-success"></div>
+              <Spinner className="h-3 w-3 text-success-text" />
               Saving...
             </>
           ) : (

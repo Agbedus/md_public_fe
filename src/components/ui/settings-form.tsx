@@ -10,6 +10,7 @@ import Link from "next/link";
 import { updateMySmsPreference } from "@/app/(dashboard)/[orgSlug]/settings/actions";
 import { useOrgPath } from "@/hooks/use-org-path";
 
+import { Spinner } from '@/components/ui/busy-icon';
 interface UserSettings {
   emailNotifications: boolean;
   pushNotifications: boolean;
@@ -198,7 +199,7 @@ export default function SettingsForm({ user, phone, initialSmsEnabled }: Setting
   if (!isLoaded) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-success"></div>
+        <Spinner className="h-6 w-6 text-success-text" />
         <p className="text-xs text-text-muted">Loading your settings...</p>
       </div>
     );
@@ -352,7 +353,7 @@ export default function SettingsForm({ user, phone, initialSmsEnabled }: Setting
         >
           {isSaving ? (
             <>
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-success"></div>
+              <Spinner className="h-3 w-3 text-success-text" />
               Saving...
             </>
           ) : (

@@ -256,7 +256,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                     ) : (
                         <div className="flex flex-wrap gap-1">
                             {user.roles?.map(role => (
-                                <span key={role} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold capitalize tracking-tight bg-foreground/[0.06] text-text-muted border border-card-border">
+                                <span key={role} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold capitalize tracking-tight bg-foreground/[0.06] text-text-muted border border-card-border">
                                 {role.replace('_', ' ')}
                                 </span>
                             ))}

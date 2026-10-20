@@ -100,7 +100,7 @@ export default async function ProfilePage() {
             {organizations.length > 0 && (
               <div className="bg-card p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4">
                 <h4 className="text-sm font-bold text-foreground capitalize flex items-center gap-2">
-                  <FiUsers className="text-success-text" /> My organizations
+                  <FiUsers className="text-text-muted" /> My organizations
                   <span className="text-[10px] font-bold text-text-muted ml-auto">{organizations.length}</span>
                 </h4>
                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -161,7 +161,7 @@ export default async function ProfilePage() {
             {/* Personalized Statistics */}
             <section className="hidden lg:block space-y-4">
                 <h3 className="text-lg lg:text-xl font-bold text-foreground px-2 flex items-center gap-2">
-                    <FiActivity className="text-success-text" /> Performance overview
+                    <FiActivity className="text-text-muted" /> Performance overview
                 </h3>
                 <ProfileStats stats={{
                     totalTasks: stats.totalTasks,
@@ -190,17 +190,17 @@ export default async function ProfilePage() {
                 <section className="space-y-3 lg:space-y-4">
                 <div className="flex justify-between items-center px-2">
                     <h3 className="text-base lg:text-lg font-bold text-foreground">Needs attention</h3>
-                    <span className="text-[11px] lg:text-[11px] font-medium text-danger-text capitalize bg-danger/10 px-2 py-0.5 rounded">High priority</span>
+                    <span className="text-[11px] lg:text-[11px] font-medium text-danger-text bg-danger/12 px-2.5 py-0.5 rounded-full">High priority</span>
                 </div>
-                <div className="bg-card p-4 lg:p-5 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-3">
+                <div className="space-y-2 rounded-[28px] bg-card p-3 lg:p-4">
                     {keyTasks.length > 0 ? (
                     keyTasks.map((task: any, i: number) => (
-                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-foreground/[0.03] border border-foreground/5 hover:bg-foreground/[0.08] transition-all group cursor-pointer border-l-4 border-l-danger/50">
-                        <div className="p-2 rounded-xl bg-danger/10 text-danger-text transition-colors group-hover:bg-danger/20">
+                        <div key={i} className="group flex cursor-pointer items-center gap-4 rounded-[22px] bg-background p-3 pr-4 transition-colors hover:bg-foreground/[0.04]">
+                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-danger/12 text-danger-text">
                             <FiZap className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-danger-text transition-colors">{task.title}</p>
+                            <p className="text-sm font-semibold text-foreground truncate ">{task.title}</p>
                             <div className="flex items-center gap-3 mt-1 text-[11px] text-text-muted">
                                 <span className="flex items-center gap-1">
                                     <FiClock className="w-3 h-3" /> {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
@@ -213,9 +213,9 @@ export default async function ProfilePage() {
                         </div>
                     ))
                     ) : (
-                        <div className="py-10 text-center text-text-muted text-sm">No critical focus tasks detected.</div>
+                        <div className="py-10 text-center text-text-muted text-sm">Nothing urgent right now.</div>
                     )}
-                    <button className="w-full py-3 rounded-full border border-foreground/5 text-text-muted text-xs font-bold capitalize hover:bg-foreground/[0.03] transition-all">View task board</button>
+                    <button className="md-btn md-btn-secondary md-btn-sm mt-1 w-full">View task board</button>
                 </div>
                 </section>
 
@@ -223,17 +223,17 @@ export default async function ProfilePage() {
                 <section className="space-y-3 lg:space-y-4">
                 <div className="flex justify-between items-center px-2">
                     <h3 className="text-base lg:text-lg font-bold text-foreground">Knowledge</h3>
-                    <span className="text-[11px] lg:text-[11px] font-medium text-accent-text capitalize bg-accent/10 px-2 py-0.5 rounded">Captures</span>
+                    <span className="text-[11px] lg:text-[11px] font-medium text-accent-text bg-accent/12 px-2.5 py-0.5 rounded-full">Captures</span>
                 </div>
-                <div className="bg-card p-4 lg:p-5 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-3">
+                <div className="space-y-2 rounded-[28px] bg-card p-3 lg:p-4">
                     {recentNotes.length > 0 ? (
                     recentNotes.map((note: any, i: number) => (
-                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-foreground/[0.03] border border-foreground/5 hover:bg-foreground/[0.08] transition-all group cursor-pointer border-l-4 border-l-accent/50">
-                        <div className={`p-2 rounded-xl bg-foreground/[0.03] ${note.color || 'text-text-muted'}`}>
+                        <div key={i} className="group flex cursor-pointer items-center gap-4 rounded-[22px] bg-background p-3 pr-4 transition-colors hover:bg-foreground/[0.04]">
+                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent/12 text-accent-text">
                             <FiFileText className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent-text transition-colors">{note.title}</p>
+                            <p className="text-sm font-semibold text-foreground truncate ">{note.title}</p>
                             <p className="text-[11px] text-text-muted mt-1 capitalize font-medium">{note.type} • {new Date(note.updatedAt).toLocaleDateString()}</p>
                         </div>
                         </div>
@@ -241,7 +241,7 @@ export default async function ProfilePage() {
                     ) : (
                         <div className="py-10 text-center text-text-muted text-sm">No recent notes found.</div>
                     )}
-                    <button className="w-full py-3 rounded-full border border-foreground/5 text-text-muted text-xs font-bold capitalize hover:bg-foreground/[0.03] transition-all">Open notes</button>
+                    <button className="md-btn md-btn-secondary md-btn-sm mt-1 w-full">Open notes</button>
                 </div>
                 </section>
             </div>

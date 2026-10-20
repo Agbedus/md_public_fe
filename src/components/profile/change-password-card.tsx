@@ -5,6 +5,7 @@ import { FiLock, FiEye, FiEyeOff, FiLoader, FiCheck } from 'react-icons/fi';
 import { changeMyPassword } from '@/app/(dashboard)/[orgSlug]/profile/actions';
 import { toast } from '@/lib/toast';
 
+import { BusyIcon } from '@/components/ui/busy-icon';
 export function ChangePasswordCard() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -51,7 +52,7 @@ export function ChangePasswordCard() {
   return (
     <div className="bg-card p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4">
       <h4 className="text-sm font-bold text-foreground capitalize flex items-center gap-2">
-        <FiLock className="text-success-text" /> Change password
+        <FiLock className="text-text-muted" /> Change password
       </h4>
 
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -115,16 +116,8 @@ export function ChangePasswordCard() {
           disabled={isPending}
           className="md-btn md-btn-primary md-btn-block w-full"
         >
-          <span className={isPending ? 'opacity-0' : ''}>
-            Update password
-          </span>
-          <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiCheck /></span>
-          {isPending && (
-            <span className="absolute inset-0 flex items-center justify-center gap-2">
-              <FiLoader className="h-4 w-4 animate-spin" />
-              <span>Updating...</span>
-            </span>
-          )}
+          <span>{isPending ? 'Updating…' : 'Update password'}</span>
+          <span className="md-btn-chip"><BusyIcon state={isPending ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
         </button>
       </form>
     </div>
