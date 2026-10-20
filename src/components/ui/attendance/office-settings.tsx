@@ -8,13 +8,8 @@ import { toast } from '@/lib/toast';
 import PolicyEditor from './policy-editor';
 import { OfficeLocationFields } from './office-location-fields';
 import type { MapIdentity } from './map-markers';
-import dynamic from 'next/dynamic';
 
 import { TabPill } from '@/components/ui/tab-pill';
-const MapComponent = dynamic(() => import('./office-map'), {
-    ssr: false,
-    loading: () => <div className="w-full h-full min-h-[400px] rounded-2xl bg-background/50 border border-card-border animate-pulse flex items-center justify-center p-8 text-center text-(--text-muted) text-sm">Loading visualizer...</div>
-});
 
 export default function OfficeSettings({ initialLocations, organization, cartoApiLink }: { initialLocations: OfficeLocation[]; organization?: MapIdentity; cartoApiLink?: string }) {
     const [locations, setLocations] = useState(initialLocations);

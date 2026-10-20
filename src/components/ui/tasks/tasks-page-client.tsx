@@ -60,6 +60,7 @@ import { useConfirm } from "@/providers/confirmation-provider";
 import { emit, on } from "@/lib/event-bus";
 import { trackAction } from "@/lib/recent-actions";
 
+import { TabPill } from '@/components/ui/tab-pill';
 /** The snake_case task shape the API returns. */
 interface ApiTaskShape {
   id: number;
@@ -1058,14 +1059,10 @@ export default function TasksPageClient({
           <div className="flex bg-foreground/[0.05] p-1 h-9 lg:h-11 rounded-full flex-shrink-0 ml-auto">
             <button
               onClick={() => setViewMode("table")}
-              className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+              className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             >
               {viewMode === "table" && (
-                <motion.div
-                  layoutId="toggle-active"
-                  transition={{ type: "spring", duration: 0.4, bounce: 0 }}
-                  className="tab-pill-on absolute inset-0 rounded-full bg-ink"
-                />
+                <TabPill className="tab-pill-on bg-ink" />
               )}
               <span className="relative z-10">
                 <FiList className="w-5 h-5" />
@@ -1073,14 +1070,10 @@ export default function TasksPageClient({
             </button>
             <button
               onClick={() => setViewMode("kanban")}
-              className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+              className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             >
               {viewMode === "kanban" && (
-                <motion.div
-                  layoutId="toggle-active"
-                  transition={{ type: "spring", duration: 0.4, bounce: 0 }}
-                  className="tab-pill-on absolute inset-0 rounded-full bg-ink"
-                />
+                <TabPill className="tab-pill-on bg-ink" />
               )}
               <span className="relative z-10">
                 <FiGrid className="w-5 h-5" />

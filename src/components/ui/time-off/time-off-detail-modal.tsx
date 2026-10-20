@@ -108,25 +108,25 @@ export default function TimeOffDetailModal({
                     {/* Detail Grid */}
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                         <div>
-                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Type</p>
-                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${typeColors[request.type] || typeColors.other}`}>
+                            <p className="text-[11px] font-bold text-text-muted mb-1">Type</p>
+                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${typeColors[request.type] || typeColors.other}`}>
                                 {typeLabels[request.type] || request.type}
                             </span>
                         </div>
                         <div>
-                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Duration</p>
+                            <p className="text-[11px] font-bold text-text-muted mb-1">Duration</p>
                             <p className="text-sm font-bold text-foreground font-numbers">{days} {days === 1 ? 'day' : 'days'}</p>
                         </div>
                         <div>
-                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Start Date</p>
+                            <p className="text-[11px] font-bold text-text-muted mb-1">Start date</p>
                             <p className="text-sm text-foreground">{format(new Date(request.start_date), 'MMM dd, yyyy')}</p>
                         </div>
                         <div>
-                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">End Date</p>
+                            <p className="text-[11px] font-bold text-text-muted mb-1">End date</p>
                             <p className="text-sm text-foreground">{format(new Date(request.end_date), 'MMM dd, yyyy')}</p>
                         </div>
                         <div>
-                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Requested On</p>
+                            <p className="text-[11px] font-bold text-text-muted mb-1">Requested on</p>
                             <p className="text-sm text-foreground">
                                 {request.requested_at ? format(new Date(request.requested_at), 'MMM dd, yyyy') : '—'}
                             </p>
@@ -135,7 +135,7 @@ export default function TimeOffDetailModal({
 
                     {/* Justification */}
                     <div className="pt-6 border-t border-card-border">
-                        <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2">Justification</p>
+                        <p className="text-[11px] font-bold text-text-muted mb-2">Justification</p>
                         <p className="text-sm text-foreground leading-relaxed">
                             {request.justification || <span className="italic text-text-muted/50">No justification provided.</span>}
                         </p>
@@ -143,7 +143,7 @@ export default function TimeOffDetailModal({
 
                     {request.attachment_name && (
                         <div className="border-t border-card-border pt-5">
-                            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-text-muted">Attachment</p>
+                            <p className="mb-2 text-[11px] font-bold text-text-muted">Attachment</p>
                             <a
                                 href={`/api/time-off/${request.id}/attachment`}
                                 target="_blank"
@@ -170,7 +170,7 @@ export default function TimeOffDetailModal({
                         <button
                             onClick={() => onDelete(request.id)}
                             disabled={actionLoading !== null}
-                            className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-danger-text hover:border-danger/20 hover:bg-danger/10 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
+                            className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-danger-text hover:border-danger/20 hover:bg-danger/10 transition-all text-xs font-bold disabled:opacity-50 flex items-center gap-2"
                         >
                             {actionLoading === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
                         </button>
@@ -178,7 +178,7 @@ export default function TimeOffDetailModal({
                             <button
                                 onClick={() => onReject(request.id)}
                                 disabled={actionLoading !== null}
-                                className="px-5 py-2.5 rounded-xl bg-danger/10 border border-danger/20 text-danger-text hover:bg-danger/20 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
+                                className="px-5 py-2.5 rounded-xl bg-danger/10 border border-danger/20 text-danger-text hover:bg-danger/20 transition-all text-xs font-bold disabled:opacity-50 flex items-center gap-2"
                             >
                                 {actionLoading === 'reject' ? (
                                     <FiLoader className="h-4 w-4 animate-spin" />
@@ -208,7 +208,7 @@ export default function TimeOffDetailModal({
                         <button
                             onClick={() => onDelete(request.id)}
                             disabled={actionLoading !== null}
-                            className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-danger-text hover:border-danger/20 hover:bg-danger/10 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
+                            className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-danger-text hover:border-danger/20 hover:bg-danger/10 transition-all text-xs font-bold disabled:opacity-50 flex items-center gap-2"
                         >
                             {actionLoading === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
                         </button>

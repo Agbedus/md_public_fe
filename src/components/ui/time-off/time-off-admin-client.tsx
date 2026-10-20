@@ -5,7 +5,7 @@ import React, { useState, useMemo, useTransition, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiSearch, FiCheck, FiClock, FiX, FiSun, FiFilter, FiCalendar, FiTrash2, FiPlus, FiLoader } from 'react-icons/fi';
+import { FiSearch, FiCheck, FiClock, FiX, FiSun, FiCalendar, FiTrash2, FiPlus, FiLoader } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/lib/toast';
@@ -18,6 +18,7 @@ import { useConfirm } from '@/providers/confirmation-provider';
 import TimeOffDetailModal from './time-off-detail-modal';
 import TimeOffModal from '@/components/ui/calendar/TimeOffModal';
 import { avatarStyle } from '@/lib/avatar-color';
+import { TabPill } from '@/components/ui/tab-pill';
 import { formatStatus } from '@/lib/format-status';
 
 interface TimeOffAdminClientProps {
@@ -26,21 +27,21 @@ interface TimeOffAdminClientProps {
 }
 
 const statusColors: Record<string, string> = {
-    pending: 'bg-warning/10 text-warning-text border-warning/20',
-    approved: 'bg-success/10 text-success-text border-success/20',
-    rejected: 'bg-danger/10 text-danger-text border-danger/20',
+    pending: 'bg-warning/15 text-warning-text',
+    approved: 'bg-success/15 text-success-text',
+    rejected: 'bg-danger/12 text-danger-text',
 };
 
 const typeColors: Record<string, string> = {
-    leave: 'bg-accent/10 text-accent-text border-accent/20',
-    off: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-    sick: 'bg-danger/10 text-danger-text border-danger/20',
-    other: 'bg-zinc-500/10 text-text-muted border-card-border',
+    leave: 'bg-accent/12 text-accent-text',
+    off: 'bg-[color-mix(in_oklab,var(--status-qa)_15%,transparent)] text-[var(--status-qa)]',
+    sick: 'bg-danger/12 text-danger-text',
+    other: 'bg-warning/15 text-warning-text',
 };
 
 const typeLabels: Record<string, string> = {
     leave: 'Leave',
-    off: 'Day Off',
+    off: 'Day off',
     sick: 'Sick',
     other: 'Other',
 };
@@ -138,9 +139,9 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
 
     const handleDelete = async (id: number) => {
         const confirmed = await confirm({
-            title: 'Delete Time-Off Request',
+            title: 'Delete time-off request',
             message: 'Are you sure you want to delete this time-off request permanently? This action cannot be undone.',
-            confirmText: 'Delete Request',
+            confirmText: 'Delete request',
             type: 'danger'
         });
 
@@ -167,104 +168,85 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
 
     return (
         <>
-        <div className="space-y-5 md:space-y-8">
+        <div className="md-zen space-y-5 md:space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
                 <div>
-                    <h1 className="mb-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                        Time off requests
+                    <h1 className="m-1 text-3xl font-bold tracking-tight text-foreground">
+                        Time off
                     </h1>
-                    <p className="text-text-muted text-sm">Review and manage team time-off requests.</p>
+                    <p className="m-1 text-sm text-text-muted">Review and manage your team’s requests.</p>
                 </div>
                 <button
                     onClick={() => setRequestModalOpen(true)}
-                    className="flex min-h-11 items-center gap-2 self-start rounded-xl border border-warning/20 bg-warning/10 px-4 py-2 text-sm font-bold text-warning-text transition-all hover:bg-warning/20 dark:text-warning-text md:self-auto"
+                    className="md-btn md-btn-primary self-start md:self-auto"
                 >
-                    <FiPlus className="h-4 w-4" />
-                    <span>Request Time Off</span>
+                    Request time off
+                    <span className="md-btn-chip"><FiPlus /></span>
                 </button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {/* Stats: click one to filter the list */}
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 {[
-                    { label: 'Pending', value: pending, icon: FiClock, tone: 'var(--warning)' },
-                    { label: 'Approved', value: approved, icon: FiCheck, tone: 'var(--success)' },
-                    { label: 'Rejected', value: rejected, icon: FiX, tone: 'var(--danger)' },
-                ].map((stat) => (
-                    <StatTile key={stat.label} {...stat} />
+                    { key: '', label: 'All requests', value: requests.length, icon: FiCalendar, tone: 'var(--accent)' },
+                    { key: 'pending', label: 'Pending', value: pending, icon: FiClock, tone: 'var(--warning)' },
+                    { key: 'approved', label: 'Approved', value: approved, icon: FiCheck, tone: 'var(--success)' },
+                    { key: 'rejected', label: 'Rejected', value: rejected, icon: FiX, tone: 'var(--danger)' },
+                ].map(({ key, ...stat }) => (
+                    <StatTile key={stat.label} {...stat} isActive={filterStatus === key} onClick={() => setFilterStatus(key)} />
                 ))}
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div className="flex items-center gap-2 w-full overflow-x-auto pb-2 scrollbar-hide">
-                    <div className="relative flex-1 min-w-[140px] max-w-sm group">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-warning-text transition-colors w-3.5 h-3.5" />
-                        <input
-                            type="text"
-                            placeholder="Search by name or reason..."
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full h-11 pl-9 pr-10 bg-input-bg border border-card-border rounded-md focus:outline-none text-foreground placeholder:text-text-muted transition-colors text-sm"
-                        />
-                        {searchQuery && (
-                            <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear time-off search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98] rounded-full">
-                                <FiX className="h-4 w-4" />
-                            </button>
-                        )}
-                    </div>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="relative w-full lg:max-w-sm">
+                    <FiSearch className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                    <input
+                        type="text"
+                        placeholder="Search by name or reason"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="h-11 w-full border border-card-border bg-input-bg pl-10 pr-11 text-sm text-foreground placeholder:text-text-muted"
+                    />
+                    {searchQuery && (
+                        <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear time-off search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground">
+                            <FiX className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
 
-                    <div className="relative group flex-shrink-0">
-                        <div className="h-11 w-36 bg-foreground/[0.03] border border-card-border rounded-full flex items-center pl-3 relative overflow-hidden focus-within:outline-none focus-within:bg-foreground/[0.06] transition-all">
-                            <FiFilter className="text-text-muted absolute left-3 top-1/2 -translate-y-1/2 z-10 w-3.5 h-3.5" />
-                            <select
-                                value={filterStatus}
-                                onChange={e => setFilterStatus(e.target.value)}
-                                className="bg-transparent border-none pl-8 pr-4 w-full h-full text-text-muted cursor-pointer text-[11px] font-bold uppercase tracking-wider appearance-none focus:outline-none"
-                            >
-                                <option value="" className="bg-card">All Status</option>
-                                <option value="pending" className="bg-card">Pending</option>
-                                <option value="approved" className="bg-card">Approved</option>
-                                <option value="rejected" className="bg-card">Rejected</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="relative group flex-shrink-0">
-                        <div className="h-11 w-36 bg-foreground/[0.03] border border-card-border rounded-full flex items-center pl-3 relative overflow-hidden focus-within:outline-none focus-within:bg-foreground/[0.06] transition-all">
-                            <FiCalendar className="text-text-muted absolute left-3 top-1/2 -translate-y-1/2 z-10 w-3.5 h-3.5" />
-                            <select
-                                value={filterType}
-                                onChange={e => setFilterType(e.target.value)}
-                                className="bg-transparent border-none pl-8 pr-4 w-full h-full text-text-muted cursor-pointer text-[11px] font-bold uppercase tracking-wider appearance-none focus:outline-none"
-                            >
-                                <option value="" className="bg-card">All Types</option>
-                                <option value="leave" className="bg-card">Leave</option>
-                                <option value="off" className="bg-card">Day Off</option>
-                                <option value="sick" className="bg-card">Sick</option>
-                                <option value="other" className="bg-card">Other</option>
-                            </select>
-                        </div>
-                    </div>
+                <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 py-1 scrollbar-hide" role="group" aria-label="Filter by type">
+                    {([['', 'All types'], ['leave', 'Leave'], ['off', 'Day off'], ['sick', 'Sick'], ['other', 'Other']] as const).map(([value, label]) => (
+                        <button
+                            key={value || 'all'}
+                            type="button"
+                            onClick={() => setFilterType(value)}
+                            aria-pressed={filterType === value}
+                            className={`relative isolate inline-flex min-h-9 shrink-0 items-center whitespace-nowrap rounded-full px-3.5 text-sm transition-colors active:scale-[0.97] ${filterType === value ? 'text-on-ink' : 'bg-foreground/[0.04] text-text-secondary hover:bg-foreground/[0.07] hover:text-foreground'}`}
+                        >
+                            {filterType === value && <TabPill />}
+                            {label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
             {/* Table */}
-            <div className="bg-card rounded-2xl overflow-hidden border border-card-border">
+            <div className="overflow-hidden rounded-[28px] bg-card">
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
-                        <caption className="sr-only">Time Off Requests</caption>
+                        <caption className="sr-only">Time-off requests</caption>
                         <thead>
-                            <tr className="border-b border-card-border bg-foreground/[0.03] text-left">
-                                <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Employee</th>
-                                <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Type</th>
-                                <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Period</th>
-                                <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Days</th>
-                                <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Justification</th>
-                                <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Status</th>
-                                <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Requested</th>
-                                <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Actions</th>
+                            <tr className="border-b border-card-border text-left">
+                                <th scope="col" className="px-6 py-4 whitespace-nowrap text-xs font-medium text-text-muted">Employee</th>
+                                <th scope="col" className="px-6 py-4 whitespace-nowrap text-xs font-medium text-text-muted">Type</th>
+                                <th scope="col" className="px-6 py-4 whitespace-nowrap text-xs font-medium text-text-muted">Period</th>
+                                <th scope="col" className="px-6 py-4 whitespace-nowrap text-xs font-medium text-text-muted">Days</th>
+                                <th scope="col" className="px-6 py-4 whitespace-nowrap text-xs font-medium text-text-muted">Justification</th>
+                                <th scope="col" className="px-6 py-4 whitespace-nowrap text-xs font-medium text-text-muted">Status</th>
+                                <th scope="col" className="px-6 py-4 whitespace-nowrap text-xs font-medium text-text-muted">Requested</th>
+                                <th scope="col" className="px-6 py-4 text-right whitespace-nowrap text-xs font-medium text-text-muted">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-card-border">
@@ -272,7 +254,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                 {filteredRequests.length === 0 && (
                                     <tr>
                                         <td colSpan={8} className="px-6 py-16 text-center">
-                                            <FiSun className="w-8 h-8 text-text-muted/20 mx-auto mb-3" />
+                                            <span className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-foreground/[0.05]"><FiSun className="h-5 w-5 text-text-muted" /></span>
                                             <p className="text-text-muted text-sm">No time-off requests found.</p>
                                         </td>
                                     </tr>
@@ -287,7 +269,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0, height: 0 }}
                                             onClick={() => setSelectedRequest(req)}
-                                            className="hover:bg-foreground/[0.02] transition-colors cursor-pointer"
+                                            className={`cursor-pointer transition-colors hover:bg-foreground/[0.03] ${req.status === 'pending' ? 'bg-warning/[0.05]' : ''}`}
                                         >
                                             {/* Employee */}
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -300,17 +282,17 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <Link href={orgPath(`/users/${req.user_id}`)} className="text-sm font-bold text-foreground hover:text-warning-text transition-colors" onClick={e => e.stopPropagation()}>
+                                                        <Link href={orgPath(`/users/${req.user_id}`)} className="text-sm font-medium text-foreground transition-colors hover:text-accent-text" onClick={e => e.stopPropagation()}>
                                                             {user?.fullName || 'Unknown'}
                                                         </Link>
-                                                        <p className="text-[11px] text-text-muted/50">{user?.email}</p>
+                                                        <p className="text-xs text-text-muted">{user?.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
 
                                             {/* Type */}
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${typeColors[req.type] || typeColors.other}`}>
+                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${typeColors[req.type] || typeColors.other}`}>
                                                     {typeLabels[req.type] || req.type}
                                                 </span>
                                             </td>
@@ -320,7 +302,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                 {format(new Date(req.start_date), 'MMM dd')} — {format(new Date(req.end_date), 'MMM dd, yyyy')}
                                             </td>
                                             {/* Days */}
-                                            <td className="px-6 py-4 whitespace-nowrap text-xs font-bold text-foreground font-numbers">
+                                            <td className="px-6 py-4 whitespace-nowrap font-numbers text-sm font-semibold text-foreground">
                                                 {days}d
                                             </td>
 
@@ -331,7 +313,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
 
                                             {/* Status */}
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusColors[req.status]}`}>
+                                                <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusColors[req.status]}`}>
                                                     {formatStatus(req.status)}
                                                 </span>
                                             </td>
@@ -349,7 +331,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); handleApprove(req.id); }}
                                                                 disabled={actionLoading?.id === req.id}
-                                                                className="grid h-11 w-11 place-items-center bg-success/10 hover:bg-success/20 text-success-text border border-success/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
+                                                                className="grid h-9 w-9 place-items-center bg-success/10 hover:bg-success/20 text-success-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
                                                                 title="Approve"
                                                             >
                                                                 {actionLoading?.id === req.id && actionLoading.type === 'approve' ? (
@@ -361,7 +343,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); handleReject(req.id); }}
                                                                 disabled={actionLoading?.id === req.id}
-                                                                className="grid h-11 w-11 place-items-center bg-danger/10 hover:bg-danger/20 text-danger-text border border-danger/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
+                                                                className="grid h-9 w-9 place-items-center bg-danger/10 hover:bg-danger/20 text-danger-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
                                                                 title="Reject"
                                                             >
                                                                 {actionLoading?.id === req.id && actionLoading.type === 'reject' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiX className="w-3.5 h-3.5" />}
@@ -371,7 +353,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                     <button
                                                         onClick={e => { e.stopPropagation(); handleDelete(req.id); }}
                                                         disabled={actionLoading?.id === req.id}
-                                                        className="grid h-11 w-11 place-items-center hover:bg-danger/10 text-text-muted hover:text-danger-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
+                                                        className="grid h-9 w-9 place-items-center hover:bg-danger/10 text-text-muted hover:text-danger-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
                                                         title="Delete"
                                                     >
                                                         {actionLoading?.id === req.id && actionLoading.type === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />}

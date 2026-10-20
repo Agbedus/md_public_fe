@@ -36,6 +36,7 @@ import type { PermissionSubjectProps } from "@/lib/permission-subject";
 
 import ClientsLoading from "@/app/(dashboard)/[orgSlug]/clients/loading";
 
+import { TabPill } from '@/components/ui/tab-pill';
 interface ClientsPageClientProps {
   initialClients?: Client[];
   subject?: PermissionSubjectProps | null;
@@ -203,15 +204,11 @@ export default function ClientsPageClient({
         <div className="flex bg-foreground/[0.05] p-1 rounded-full h-9 lg:h-11 flex-shrink-0">
           <button
             onClick={() => setViewMode("grid")}
-            className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+            className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             title="Grid view"
           >
             {viewMode === "grid" && (
-              <motion.div
-                layoutId="toggle-active"
-                transition={{ type: "spring", duration: 0.4, bounce: 0 }}
-                className="tab-pill-on absolute inset-0 rounded-full bg-ink"
-              />
+              <TabPill className="tab-pill-on bg-ink" />
             )}
             <span className="relative z-10">
               <FiGrid className="w-5 h-5" />
@@ -219,15 +216,11 @@ export default function ClientsPageClient({
           </button>
           <button
             onClick={() => setViewMode("table")}
-            className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+            className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             title="Table view"
           >
             {viewMode === "table" && (
-              <motion.div
-                layoutId="toggle-active"
-                transition={{ type: "spring", duration: 0.4, bounce: 0 }}
-                className="tab-pill-on absolute inset-0 rounded-full bg-ink"
-              />
+              <TabPill className="tab-pill-on bg-ink" />
             )}
             <span className="relative z-10">
               <FiList className="w-5 h-5" />
