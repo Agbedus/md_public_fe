@@ -63,17 +63,17 @@ export default function WorkspaceOnboarding({ organizationId, orgSlug, role, ini
         <section className="mb-8 overflow-hidden rounded-2xl border border-card-border bg-card">
           <div className="flex items-start justify-between gap-4 border-b border-card-border px-5 py-4 sm:px-6">
             <div><p className="text-sm font-semibold text-foreground">Set up your workspace</p><p className="mt-1 text-xs text-text-muted">A few small steps will make MyndDesk useful to your whole team.</p></div>
-            <button onClick={dismissChecklist} aria-label="Dismiss setup checklist" className="rounded-lg p-1.5 text-text-muted hover:bg-foreground/[0.05] hover:text-foreground"><FiX /></button>
+            <button onClick={dismissChecklist} aria-label="Dismiss setup checklist" className="p-1.5 text-text-muted hover:bg-foreground/[0.05] hover:text-foreground rounded-full"><FiX /></button>
           </div>
           <div className="grid sm:grid-cols-2 xl:grid-cols-3">
             {items.map((item) => item.label === 'Invite your team' && canInvite ? (
               <button key={item.label} onClick={() => setInviteOpen(true)} className="flex items-center gap-3 border-b border-card-border px-5 py-4 text-left transition hover:bg-foreground/[0.025] sm:border-r xl:last:border-r-0">
-                {item.done ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500"><FiCheck size={13} /></span> : <FiCircle className="text-text-muted/50" />}
+                {item.done ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success/10 text-success-text"><FiCheck size={13} /></span> : <FiCircle className="text-text-muted/50" />}
                 <span className={`min-w-0 flex-1 text-sm ${item.done ? 'text-text-muted line-through' : 'text-foreground'}`}>{item.label}</span><FiChevronRight className="text-text-muted" />
               </button>
             ) : (
               <Link key={item.label} href={item.href} className="flex items-center gap-3 border-b border-card-border px-5 py-4 transition hover:bg-foreground/[0.025] sm:border-r xl:last:border-r-0">
-                {item.done ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500"><FiCheck size={13} /></span> : <FiCircle className="text-text-muted/50" />}
+                {item.done ? <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success/10 text-success-text"><FiCheck size={13} /></span> : <FiCircle className="text-text-muted/50" />}
                 <span className={`min-w-0 flex-1 text-sm ${item.done ? 'text-text-muted line-through' : 'text-foreground'}`}>{item.label}</span><FiChevronRight className="text-text-muted" />
               </Link>
             ))}

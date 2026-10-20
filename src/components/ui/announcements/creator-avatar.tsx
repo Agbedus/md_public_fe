@@ -6,6 +6,7 @@ import useSWR from 'swr';
 import { User } from '@/types/announcement';
 import { useAnnouncements } from './announcement-provider';
 import { getUser } from '@/app/(dashboard)/[orgSlug]/users/actions';
+import { avatarStyle } from '@/lib/avatar-color';
 
 interface CreatorAvatarProps {
   userId: string;
@@ -74,14 +75,12 @@ export const CreatorAvatar: React.FC<CreatorAvatarProps> = ({
 
   return (
     <div 
-      className={`rounded-full flex items-center justify-center font-bold border border-card-border flex-shrink-0 transition-all ${className} ${isLoading ? 'animate-pulse' : ''}`}
+      className={`rounded-full flex items-center justify-center font-semibold flex-shrink-0 transition-all ${className} ${isLoading ? 'animate-pulse' : ''}`}
       style={{ 
         width: size, 
         height: size, 
         fontSize: Math.max(8, size * 0.4),
-        backgroundColor: isLoading ? 'var(--card)' : bgColor,
-        color: '#18181b', // zinc-900 (darker text for pastel backgrounds)
-        textShadow: '0 0 1px rgba(255,255,255,0.3)'
+        ...(isLoading ? { backgroundColor: 'var(--card)' } : avatarStyle(name)),
       }}
     >
       {isLoading ? "" : initials}

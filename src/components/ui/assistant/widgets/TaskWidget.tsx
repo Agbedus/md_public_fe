@@ -7,16 +7,16 @@ interface TaskWidgetProps {
 }
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  IN_PROGRESS: { label: "In Progress", color: "text-blue-400",    bg: "bg-blue-400/10" },
-  DONE:        { label: "Done",        color: "text-emerald-400", bg: "bg-emerald-400/10" },
-  TODO:        { label: "To Do",       color: "text-yellow-400",  bg: "bg-yellow-400/10" },
+  IN_PROGRESS: { label: "In Progress", color: "text-accent-text",    bg: "bg-accent/10" },
+  DONE:        { label: "Done",        color: "text-success-text", bg: "bg-success/10" },
+  TODO:        { label: "To Do",       color: "text-warning-text",  bg: "bg-warning/10" },
   BACKLOG:     { label: "Backlog",     color: "text-text-muted",    bg: "bg-zinc-400/10" },
 };
 
 const priorityConfig: Record<string, { label: string; color: string }> = {
-  high:   { label: "High",   color: "text-red-400" },
-  medium: { label: "Medium", color: "text-orange-400" },
-  low:    { label: "Low",    color: "text-green-400" },
+  high:   { label: "High",   color: "text-danger-text" },
+  medium: { label: "Medium", color: "text-priority-high-text" },
+  low:    { label: "Low",    color: "text-success-text" },
 };
 
 export default function TaskWidget({ task }: TaskWidgetProps) {
@@ -37,7 +37,7 @@ export default function TaskWidget({ task }: TaskWidgetProps) {
   const isOverdue = task.dueDate && new Date(task.dueDate).getTime() < renderedAt;
 
   return (
-    <div className="bg-foreground/[0.03] border border-card-border rounded-xl hover:bg-foreground/[0.06] hover:border-indigo-500/20 transition-all px-4 py-3">
+    <div className="bg-foreground/[0.03] border border-card-border rounded-xl hover:bg-foreground/[0.06] hover:border-accent/20 transition-all px-4 py-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           {/* Title */}
@@ -57,7 +57,7 @@ export default function TaskWidget({ task }: TaskWidgetProps) {
             <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-foreground/[0.03] border border-card-border ${priority.color}`}>
               {priority.label}
             </span>
-            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-foreground/[0.03] border border-card-border ${isOverdue ? "text-red-400" : "text-text-muted"}`}>
+            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-foreground/[0.03] border border-card-border ${isOverdue ? "text-danger-text" : "text-text-muted"}`}>
               {formatDate(task.dueDate)}
             </span>
           </div>
@@ -65,7 +65,7 @@ export default function TaskWidget({ task }: TaskWidgetProps) {
 
         <Link
           href={`/tasks?id=${task.id}`}
-          className="text-[11px] font-bold uppercase tracking-wider text-indigo-400 hover:text-indigo-300 whitespace-nowrap flex-shrink-0 transition-colors"
+          className="text-[11px] font-bold uppercase tracking-wider text-accent-text hover:text-accent-text whitespace-nowrap flex-shrink-0 transition-colors"
         >
           View →
         </Link>

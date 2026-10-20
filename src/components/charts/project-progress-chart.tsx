@@ -37,7 +37,7 @@ const ProjectProgressChart = ({ data }: { data: Array<{ name: string; progress: 
           }}
           formatter={(value: any) => [`${value}%`, 'Progress']}
         />
-        <Bar dataKey="progress" radius={[0, 4, 4, 0]} barSize={12}>
+        <Bar dataKey="progress" radius={[999, 999, 999, 999]} barSize={12}>
           {data.map((entry, index) => (
             <Cell 
                 key={`cell-${index}`} 

@@ -164,14 +164,14 @@ export const AnnouncementProvider: React.FC<{
                 width={36}
                 height={36}
                 unoptimized
-                className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-card-border"
+                className="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-card-border"
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground leading-tight">{announcement.title}</p>
                 {announcement.content && (
                   <p className="text-xs text-text-muted mt-1 line-clamp-2 leading-relaxed">{announcement.content}</p>
                 )}
-                <p className="text-[10px] text-[var(--pastel-yellow)] font-bold uppercase tracking-wider mt-1">Announcement</p>
+                <p className="text-[11px] text-[var(--pastel-yellow)] font-bold mt-1">Announcement</p>
               </div>
             </div>
           ),

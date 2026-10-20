@@ -121,8 +121,8 @@ export function PipStatusIndicator({ activity }: PipStatusIndicatorProps) {
         >
           {(activity === 'thinking' || activity === 'analyzing') && (
             <>
-              <span className={`pip-status-glow absolute inset-0 rounded-full blur-md ${activity === 'analyzing' ? 'bg-purple-500' : 'bg-indigo-500'}`} aria-hidden="true" />
-              <svg viewBox="0 0 28 28" className={`relative h-6 w-6 ${activity === 'analyzing' ? 'text-purple-500' : 'text-indigo-500'}`} fill="none" aria-hidden="true">
+              <span className={`pip-status-glow absolute inset-0 rounded-full blur-md ${activity === 'analyzing' ? 'bg-purple-500' : 'bg-accent'}`} aria-hidden="true" />
+              <svg viewBox="0 0 28 28" className={`relative h-6 w-6 ${activity === 'analyzing' ? 'text-purple-500' : 'text-accent-text'}`} fill="none" aria-hidden="true">
                 <path className="pip-status-trace" d="M13.9 23.2c-2.2 0-3.5-1.1-3.8-3-2.1.1-3.6-1.5-3.3-3.5-1.8-.8-2.2-3.1-.8-4.5-1-1.8.2-4 2.2-4.2.2-2.1 2.3-3.3 4.1-2.4.5-1.3 2.8-1.3 3.3 0 1.9-.9 4 .3 4.1 2.4 2 .2 3.2 2.4 2.2 4.2 1.4 1.4 1 3.7-.8 4.5.3 2-1.2 3.6-3.3 3.5-.3 1.9-1.6 3-3.8 3V5.6" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" />
                 <path className="pip-status-trace" d="M10.1 9.1c1.8.1 2.9 1.2 3.8 2.7m4-2.7c-1.8.1-2.9 1.2-3.8 2.7m-7.3 4.9c1.3-.8 2.8-.7 4.1.2m10.3-.2c-1.3-.8-2.8-.7-4.1.2M10 20.2c.2-1.5 1-2.5 2.3-3.1m5.7 3.1c-.2-1.5-1-2.5-2.3-3.1" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
               </svg>
@@ -130,7 +130,7 @@ export function PipStatusIndicator({ activity }: PipStatusIndicatorProps) {
           )}
 
           {activity === 'writing' && (
-            <svg viewBox="0 0 28 28" className="h-6 w-6 text-indigo-500" fill="none" aria-hidden="true">
+            <svg viewBox="0 0 28 28" className="h-6 w-6 text-accent-text" fill="none" aria-hidden="true">
               <path className="pip-status-trace" d="M6.2 21.8 7.5 17 18.2 6.3c.9-.9 2.3-.9 3.2 0l.3.3c.9.9.9 2.3 0 3.2L11 20.5l-4.8 1.3Z" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" strokeLinejoin="round" />
               <path className="pip-status-trace" d="m16.8 7.7 3.5 3.5M7.5 17l3.5 3.5M5 23.2h18" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
             </svg>

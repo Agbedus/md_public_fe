@@ -4,7 +4,9 @@ import React, { useState, useTransition, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import type { OrganizationMembershipWithUser, OrgRole, MembershipStatus } from '@/types/organization';
 import { isPrivilegedOrgRole, toOrgRole } from '@/types/organization';
-import { FiShield, FiStar, FiUser, FiUserCheck, FiEye, FiClock, FiXCircle, FiCheck, FiUserPlus, FiUserX, FiLink, FiCopy, FiSend, FiChevronDown, FiAlertTriangle, FiTrash2, FiPause, FiPlay, FiSearch, FiFilter, FiEdit2 } from 'react-icons/fi';
+import { StatTile } from '@/components/ui/stat-tile';
+import { FiShield, FiStar, FiUser, FiUserCheck, FiEye, FiClock, FiXCircle, FiCheck, FiUserPlus, FiUserX, FiLink, FiCopy, FiSend, FiChevronDown, FiAlertTriangle, FiTrash2, FiPause, FiPlay, FiSearch, FiFilter, FiEdit2, FiGrid, FiList, FiDownload, FiMail } from 'react-icons/fi';
+import { avatarStyle } from '@/lib/avatar-color';
 import { approveMember, rejectMember as rejectMemberAction, updateMemberRole, suspendMember, removeMember as removeMemberAction } from '@/app/(dashboard)/[orgSlug]/team/actions';
 import { canEditMemberProfile } from '@/lib/org-permissions';
 import { toast } from '@/lib/toast';
@@ -15,6 +17,7 @@ import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 import PendingInvitations from '@/components/ui/team/pending-invitations';
 import type { InvitationStats, PendingInvitation } from '@/app/(dashboard)/[orgSlug]/team/actions';
 
+import { TabPill } from '@/components/ui/tab-pill';
 interface TeamPageClientProps {
   members: OrganizationMembershipWithUser[];
   currentUserId: string;
@@ -33,36 +36,36 @@ const roleConfig: Record<OrgRole, RoleDisplay> = {
     label: 'Owner',
     hint: 'Full control of the organization',
     icon: <FiStar size={14} />,
-    color: 'text-amber-500',
-    bg: 'bg-amber-500/10',
+    color: 'text-[var(--status-qa)]',
+    bg: 'bg-[color-mix(in_oklab,var(--status-qa)_14%,transparent)]',
   },
   admin: {
     label: 'Admin',
     hint: "Can edit or remove anyone's work",
     icon: <FiShield size={14} />,
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10',
+    color: 'text-[var(--accent)]',
+    bg: 'bg-[color-mix(in_oklab,var(--accent)_14%,transparent)]',
   },
   manager: {
     label: 'Manager',
     hint: 'Sees everything, changes only their own',
     icon: <FiEye size={14} />,
-    color: 'text-teal-500',
-    bg: 'bg-teal-500/10',
+    color: 'text-[var(--status-review)]',
+    bg: 'bg-[color-mix(in_oklab,var(--status-review)_14%,transparent)]',
   },
   member: {
     label: 'Member',
     hint: 'Creates and manages their own work',
     icon: <FiUserCheck size={14} />,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-500/10',
+    color: 'text-text-secondary',
+    bg: 'bg-foreground/[0.05]',
   },
   guest: {
     label: 'Guest',
     hint: 'Read-only, shared items only',
     icon: <FiUser size={14} />,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10',
+    color: 'text-text-secondary',
+    bg: 'bg-foreground/[0.05]',
   },
 };
 
@@ -82,18 +85,18 @@ function displayRole(role: string | null | undefined): RoleDisplay {
 const statusConfig: Record<MembershipStatus, { label: string; color: string; bg: string }> = {
   active: {
     label: 'Active',
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-500/10',
+    color: 'text-success-text',
+    bg: 'bg-success/15',
   },
   pending: {
     label: 'Pending',
-    color: 'text-amber-500',
-    bg: 'bg-amber-500/10',
+    color: 'text-warning-text',
+    bg: 'bg-warning/15',
   },
   suspended: {
     label: 'Suspended',
-    color: 'text-red-500',
-    bg: 'bg-red-500/10',
+    color: 'text-danger-text',
+    bg: 'bg-danger/12',
   },
 };
 
@@ -179,7 +182,7 @@ function RoleDropdown({ member, isOwner, isLoading, onRoleChange }: {
             ref={panelRef}
             data-side={panelSide}
             style={panelStyle}
-            className={`z-[9999] min-w-[230px] overflow-y-auto rounded-xl border border-card-border bg-background shadow-lg shadow-black/10 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${panelSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
+            className={`z-[9999] min-w-[230px] overflow-y-auto rounded-xl border border-card-border bg-background animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${panelSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
           >
             {options.map((opt) => {
               const cfg = roleConfig[opt];
@@ -247,6 +250,8 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [sortBy, setSortBy] = useState<'role' | 'name' | 'recent'>('role');
+  const [view, setView] = useState<'list' | 'grid'>('list');
   const handleCopyInvite = () => {
     if (!inviteCode) return;
     const origin = window.location.origin;
@@ -256,7 +261,18 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const statusCounts = localMembers.reduce<Record<string, number>>((acc, m) => {
+    acc[m.status] = (acc[m.status] ?? 0) + 1;
+    return acc;
+  }, {});
+
   const sorted = [...localMembers].sort((a, b) => {
+    if (sortBy === 'name') {
+      return (a.user.full_name || a.user.email).localeCompare(b.user.full_name || b.user.email);
+    }
+    if (sortBy === 'recent') {
+      return new Date(b.joined_at).getTime() - new Date(a.joined_at).getTime();
+    }
     const roleOrder: Record<OrgRole, number> = { owner: 0, admin: 1, manager: 2, member: 3, guest: 4 };
     const rank = (r: string) => roleOrder[toOrgRole(r) as OrgRole] ?? 99;
     return rank(a.role) - rank(b.role);
@@ -266,6 +282,36 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
     const matchesStatus = filterStatus === 'all' || m.status === filterStatus;
     return matchesSearch && matchesRole && matchesStatus;
   });
+
+  // Download the members currently shown (after search, filters and sort).
+  const handleExport = () => {
+    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+    const rows = [
+      ['Name', 'Email', 'Job title', 'Phone', 'Role', 'Status', 'Joined'],
+      ...sorted.map((m) => [
+        m.user.full_name || '',
+        m.user.email,
+        m.user.job_title || '',
+        m.user.phone || '',
+        displayRole(m.role).label,
+        statusConfig[m.status]?.label ?? m.status,
+        m.joined_at ? new Date(m.joined_at).toISOString().slice(0, 10) : '',
+      ]),
+    ];
+    const blob = new Blob([rows.map((r) => r.map(escape).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'team-members.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${sorted.length} member${sorted.length === 1 ? '' : 's'}`);
+  };
+
+  const handleCopyEmail = (email: string) => {
+    void navigator.clipboard.writeText(email);
+    toast.success('Email copied');
+  };
 
   /**
    * Whether the current user may change or remove this member.
@@ -375,6 +421,91 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
     });
   };
 
+  const renderActions = (m: OrganizationMembershipWithUser, mayAct: boolean, isCurrentUser: boolean) => (
+      <div className="flex items-center justify-end gap-1">
+        {canEditProfileOf(m) && (
+          <button
+            onClick={() => setEditingMember(m)}
+            className="grid h-8 w-8 place-items-center rounded-full text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-colors"
+            title={isCurrentUser ? 'Edit your profile' : 'Edit member profile'}
+          >
+            <FiEdit2 size={14} />
+          </button>
+        )}
+        {canManage && m.status === 'pending' && (
+          <>
+            <button
+              onClick={() => handleApprove(m.user_id)}
+              disabled={loadingId === m.user_id}
+              className="grid h-8 w-8 place-items-center rounded-full bg-success/12 text-success-text hover:bg-success/20 transition-colors disabled:opacity-50"
+              title="Approve member"
+            >
+              {loadingId === m.user_id ? (
+                <span className="block w-3.5 h-3.5 border-2 border-success/30 border-t-success rounded-full animate-spin" />
+              ) : (
+                <FiUserPlus size={14} />
+              )}
+            </button>
+            <button
+              onClick={() => handleReject(m.user_id)}
+              disabled={loadingId === m.user_id}
+              className="grid h-8 w-8 place-items-center rounded-full text-text-muted hover:bg-danger/12 hover:text-danger-text transition-colors disabled:opacity-50"
+              title="Reject member"
+            >
+              {loadingId === m.user_id ? (
+                <span className="block w-3.5 h-3.5 border-2 border-danger/30 border-t-danger rounded-full animate-spin" />
+              ) : (
+                <FiUserX size={14} />
+              )}
+            </button>
+          </>
+        )}
+        {mayAct && m.status !== 'pending' && (
+          <>
+            {m.status === 'active' ? (
+              <button
+                onClick={() => setConfirmAction({ userId: m.user_id, name: m.user.full_name || m.user.email, action: 'suspend' })}
+                disabled={loadingId === m.user_id}
+                className="grid h-8 w-8 place-items-center rounded-full text-text-muted hover:bg-warning/15 hover:text-warning-text transition-colors disabled:opacity-50"
+                title="Suspend member"
+              >
+                {loadingId === m.user_id ? (
+                  <span className="block w-3.5 h-3.5 border-2 border-warning/30 border-t-warning rounded-full animate-spin" />
+                ) : (
+                  <FiPause size={14} />
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={() => handleActivate(m.user_id)}
+                disabled={loadingId === m.user_id}
+                className="grid h-8 w-8 place-items-center rounded-full bg-success/12 text-success-text hover:bg-success/20 transition-colors disabled:opacity-50"
+                title="Reactivate member"
+              >
+                {loadingId === m.user_id ? (
+                  <span className="block w-3.5 h-3.5 border-2 border-success/30 border-t-success rounded-full animate-spin" />
+                ) : (
+                  <FiPlay size={14} />
+                )}
+              </button>
+            )}
+            <button
+              onClick={() => setConfirmAction({ userId: m.user_id, name: m.user.full_name || m.user.email, action: 'remove' })}
+              disabled={loadingId === m.user_id}
+              className="grid h-8 w-8 place-items-center rounded-full text-text-muted hover:bg-danger/12 hover:text-danger-text transition-colors disabled:opacity-50"
+              title="Remove member"
+            >
+              {loadingId === m.user_id ? (
+                <span className="block w-3.5 h-3.5 border-2 border-danger/30 border-t-danger rounded-full animate-spin" />
+              ) : (
+                <FiTrash2 size={14} />
+              )}
+            </button>
+          </>
+        )}
+      </div>
+  );
+
   return (
     <div>
       <div className="mb-8 flex items-start justify-between gap-4">
@@ -384,73 +515,105 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
           {inviteCode && canManage && (
             <button
               onClick={handleCopyInvite}
-              className="mt-2 flex items-center gap-1.5 text-xs text-text-muted hover:text-foreground transition-colors"
+              className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-full bg-foreground/[0.05] px-3.5 text-xs text-text-muted transition-colors hover:bg-foreground/[0.08] hover:text-foreground"
+              title="Copy invite link"
             >
               <FiLink size={12} />
-              <span className="font-mono tracking-wider">{inviteCode}</span>
-              <FiCopy size={12} className={copied ? 'text-emerald-400' : ''} />
+              <span className="font-mono">{inviteCode}</span>
+              {copied ? <FiCheck size={12} className="text-success-text" /> : <FiCopy size={12} />}
             </button>
           )}
         </div>
         {canManage && (
-          <button
-            onClick={() => setInviteModalOpen(true)}
-            className="flex items-center gap-2 p-1.5 h-9 lg:h-11 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
-          >
-            <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-              <FiSend size={16} />
-            </div>
-            Invite Members
+          <button onClick={() => setInviteModalOpen(true)} className="md-btn md-btn-primary shrink-0">
+            Invite members <span className="md-btn-chip"><FiSend /></span>
           </button>
         )}
       </div>
 
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {([
+          { label: 'Members', value: localMembers.length, icon: FiUser, tone: 'var(--accent)', onClick: () => { setFilterStatus('all'); setFilterRole('all'); } },
+          { label: 'Active', value: statusCounts.active ?? 0, icon: FiCheck, tone: 'var(--success)', onClick: () => setFilterStatus('active') },
+          { label: 'Pending approval', value: statusCounts.pending ?? 0, icon: FiClock, tone: 'var(--warning)', onClick: () => setFilterStatus('pending') },
+          { label: 'Admins & owners', value: localMembers.filter((m) => ['owner', 'admin'].includes(toOrgRole(m.role) ?? '')).length, icon: FiShield, tone: 'var(--status-qa)', onClick: () => { setFilterStatus('all'); setFilterRole('admin'); } },
+        ]).map((stat) => (
+          <StatTile key={stat.label} {...stat} />
+        ))}
+      </div>
+
       {canManage && <PendingInvitations invitations={invitations} stats={invitationStats} />}
 
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-        <div className="relative flex-1 min-w-[140px] max-w-sm group">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5"/>
-          <input
-            type="text"
-            placeholder="Search members..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-4 h-9 lg:h-11 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] text-foreground placeholder:text-text-muted/50 transition-all text-xs lg:text-sm"
-          />
-        </div>
-
-        <div className="relative group flex-shrink-0">
-          <div className="h-9 lg:h-11 w-9 lg:w-36 bg-foreground/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
-            <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
-            <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
-            >
-              <option value="all" className="bg-card">Role</option>
-              <option value="owner" className="bg-card">Owner</option>
-              <option value="admin" className="bg-card">Admin</option>
-              <option value="manager" className="bg-card">Manager</option>
-              <option value="member" className="bg-card">Member</option>
-              <option value="guest" className="bg-card">Guest</option>
-            </select>
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[180px] flex-1 sm:max-w-sm">
+            <FiSearch className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
+            <input
+              type="text"
+              placeholder="Search members"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-10 w-full border border-transparent bg-foreground/[0.04] pl-10 pr-4 text-sm text-foreground placeholder:text-text-muted/60 focus:bg-background"
+            />
+          </div>
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            aria-label="Filter by role"
+            className="h-10 cursor-pointer border border-transparent bg-foreground/[0.04] pl-4 text-sm text-text-secondary"
+          >
+            <option value="all">All roles</option>
+            <option value="owner">Owner</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+            <option value="member">Member</option>
+            <option value="guest">Guest</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as 'role' | 'name' | 'recent')}
+            aria-label="Sort members"
+            className="h-10 cursor-pointer border border-transparent bg-foreground/[0.04] pl-4 text-sm text-text-secondary"
+          >
+            <option value="role">Sort by role</option>
+            <option value="name">Sort by name</option>
+            <option value="recent">Newest first</option>
+          </select>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center rounded-full bg-foreground/[0.04] p-1" role="group" aria-label="Layout">
+              {([['list', FiList, 'List view'], ['grid', FiGrid, 'Grid view']] as const).map(([value, Icon, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setView(value)}
+                  aria-pressed={view === value}
+                  aria-label={label}
+                  className={`relative isolate grid h-8 w-8 place-items-center rounded-full transition-colors ${view === value ? 'text-on-ink' : 'text-text-muted hover:text-foreground'}`}
+                >
+                  {view === value && <TabPill id="team-layout" />}
+                  <Icon size={14} />
+                </button>
+              ))}
+            </div>
+            <button type="button" onClick={handleExport} className="md-btn md-btn-secondary md-btn-sm" disabled={sorted.length === 0}>
+              <FiDownload size={14} /> Export
+            </button>
           </div>
         </div>
-
-        <div className="relative group flex-shrink-0">
-          <div className="h-9 lg:h-11 w-9 lg:w-36 bg-foreground/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
-            <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by status">
+          {([['all', 'All', localMembers.length], ['active', 'Active', statusCounts.active ?? 0], ['pending', 'Pending', statusCounts.pending ?? 0], ['suspended', 'Suspended', statusCounts.suspended ?? 0]] as const).map(([value, label, count]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setFilterStatus(value)}
+              aria-pressed={filterStatus === value}
+              className={`relative isolate inline-flex min-h-9 items-center gap-2 rounded-full px-3.5 text-sm transition-colors ${filterStatus === value ? 'text-on-ink' : 'bg-foreground/[0.04] text-text-secondary hover:bg-foreground/[0.07]'}`}
             >
-              <option value="all" className="bg-card">Status</option>
-              <option value="active" className="bg-card">Active</option>
-              <option value="pending" className="bg-card">Pending</option>
-              <option value="suspended" className="bg-card">Suspended</option>
-            </select>
-          </div>
+              {filterStatus === value && <TabPill id="team-status-filter" />}
+              {label}
+              <span className={`md-count ${filterStatus === value ? 'bg-on-ink/15 text-on-ink' : 'bg-background text-text-muted'}`}>{count}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -475,17 +638,65 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
           <p className="text-text-muted">No team members found</p>
         </div>
       ) : (
+        view === 'grid' ? (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {sorted.map((m) => {
+            const isCurrentUser = m.user_id === currentUserId;
+            const mayAct = canActOn(m);
+            const roleDisplay = displayRole(m.role);
+            const status = statusConfig[m.status];
+            const name = m.user.full_name || m.user.email.split('@')[0];
+            return (
+              <article key={m.id} className="flex flex-col rounded-[28px] bg-card p-5">
+                <div className="flex items-start gap-3">
+                  <div className="relative h-12 w-12 shrink-0">
+                    {m.user.avatar_url ? (
+                      <Image src={m.user.avatar_url} alt={name} fill className="rounded-full object-cover" />
+                    ) : (
+                      <div style={avatarStyle(m.user.full_name || m.user.email)} className="flex h-12 w-12 items-center justify-center rounded-full text-base font-semibold">
+                        {(m.user.full_name || m.user.email || '?')[0].toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-foreground">
+                      {name}
+                      {isCurrentUser && <span className="rounded-full bg-accent/12 px-2 py-0.5 text-[11px] font-medium text-accent-text">You</span>}
+                    </p>
+                    <p className="truncate text-xs text-text-muted">{m.user.job_title || 'No job title'}</p>
+                  </div>
+                  <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${status.bg} ${status.color}`}>{status.label}</span>
+                </div>
+                <div className="mt-4 space-y-1.5 text-xs text-text-muted">
+                  <a href={`mailto:${m.user.email}`} className="flex items-center gap-2 truncate hover:text-foreground"><FiMail size={12} className="shrink-0" />{m.user.email}</a>
+                  {m.user.phone && <p className="flex items-center gap-2"><FiUser size={12} className="shrink-0" />{m.user.phone}</p>}
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-2 border-t border-card-border pt-3">
+                  {mayAct ? (
+                    <RoleDropdown member={m} isOwner={isOwner} isLoading={loadingId === m.user_id} onRoleChange={handleRoleChange} />
+                  ) : (
+                    <span title={roleDisplay.hint} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${roleDisplay.bg} ${roleDisplay.color}`}>
+                      {roleDisplay.icon}{roleDisplay.label}
+                    </span>
+                  )}
+                  {renderActions(m, mayAct, isCurrentUser)}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        ) : (
         <div className="bg-card border border-card-border rounded-2xl overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-card-border bg-foreground/[0.02]">
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Member</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Job Title</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Email</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Phone</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Role</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Status</th>
-                <th className="text-right px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wider">Actions</th>
+              <tr className="border-b border-card-border">
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted">Member</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted">Job title</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted">Email</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted">Phone</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted">Role</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted">Status</th>
+                <th className="text-right px-5 py-3 text-xs font-medium text-text-muted">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-card-border">
@@ -497,7 +708,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                 const status = statusConfig[m.status];
 
                 return (
-                  <tr key={m.id} className="hover:bg-foreground/[0.02] transition-colors">
+                  <tr key={m.id} className={`transition-colors hover:bg-foreground/[0.025] ${m.status === 'pending' ? 'bg-warning/[0.06]' : ''}`}>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <div className="relative w-9 h-9 flex-shrink-0">
@@ -509,20 +720,25 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                               className="rounded-full object-cover"
                             />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-foreground/[0.06] flex items-center justify-center text-sm font-bold text-foreground/60">
+                            <div style={avatarStyle(m.user.full_name || m.user.email)} className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold">
                               {initial}
                             </div>
                           )}
                         </div>
+                        <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-medium text-foreground whitespace-nowrap">
                             {m.user.full_name || m.user.email.split('@')[0]}
                           </span>
                           {isCurrentUser && (
-                            <span className="text-[10px] font-medium text-text-muted bg-foreground/[0.05] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                            <span className="rounded-full bg-accent/12 px-2 py-0.5 text-[11px] font-medium text-accent-text">
                               You
                             </span>
                           )}
+                        </div>
+                        {m.joined_at && (
+                          <p className="text-xs text-text-muted">Joined {new Date(m.joined_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</p>
+                        )}
                         </div>
                       </div>
                     </td>
@@ -532,12 +748,22 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                       </span>
                     </td>
                     <td className="px-5 py-3">
-                      <a
-                        href={`mailto:${m.user.email}`}
-                        className="text-xs text-text-muted hover:text-foreground transition-colors whitespace-nowrap"
-                      >
-                        {m.user.email}
-                      </a>
+                      <span className="group/email inline-flex items-center gap-1.5">
+                        <a
+                          href={`mailto:${m.user.email}`}
+                          className="text-xs text-text-muted hover:text-foreground transition-colors whitespace-nowrap"
+                        >
+                          {m.user.email}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyEmail(m.user.email)}
+                          className="grid h-6 w-6 place-items-center rounded-full text-text-muted opacity-0 transition-opacity hover:bg-foreground/[0.06] hover:text-foreground focus-visible:opacity-100 group-hover/email:opacity-100"
+                          aria-label={`Copy ${m.user.email}`}
+                        >
+                          <FiCopy size={11} />
+                        </button>
+                      </span>
                     </td>
                     <td className="px-5 py-3">
                       <span className="text-xs text-text-muted whitespace-nowrap">
@@ -566,88 +792,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                       </span>
                     </td>
                     <td className="px-5 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        {canEditProfileOf(m) && (
-                          <button
-                            onClick={() => setEditingMember(m)}
-                            className="p-1.5 rounded-lg bg-foreground/[0.03] text-text-muted hover:text-foreground hover:bg-foreground/[0.06] border border-card-border transition-all"
-                            title={isCurrentUser ? 'Edit your profile' : 'Edit member profile'}
-                          >
-                            <FiEdit2 size={14} />
-                          </button>
-                        )}
-                        {canManage && m.status === 'pending' && (
-                          <>
-                            <button
-                              onClick={() => handleApprove(m.user_id)}
-                              disabled={loadingId === m.user_id}
-                              className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all disabled:opacity-50"
-                              title="Approve member"
-                            >
-                              {loadingId === m.user_id ? (
-                                <span className="block w-3.5 h-3.5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
-                              ) : (
-                                <FiUserPlus size={14} />
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleReject(m.user_id)}
-                              disabled={loadingId === m.user_id}
-                              className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 transition-all disabled:opacity-50"
-                              title="Reject member"
-                            >
-                              {loadingId === m.user_id ? (
-                                <span className="block w-3.5 h-3.5 border-2 border-rose-400/30 border-t-rose-400 rounded-full animate-spin" />
-                              ) : (
-                                <FiUserX size={14} />
-                              )}
-                            </button>
-                          </>
-                        )}
-                        {mayAct && m.status !== 'pending' && (
-                          <>
-                            {m.status === 'active' ? (
-                              <button
-                                onClick={() => setConfirmAction({ userId: m.user_id, name: m.user.full_name || m.user.email, action: 'suspend' })}
-                                disabled={loadingId === m.user_id}
-                                className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 transition-all disabled:opacity-50"
-                                title="Suspend member"
-                              >
-                                {loadingId === m.user_id ? (
-                                  <span className="block w-3.5 h-3.5 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
-                                ) : (
-                                  <FiPause size={14} />
-                                )}
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleActivate(m.user_id)}
-                                disabled={loadingId === m.user_id}
-                                className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all disabled:opacity-50"
-                                title="Reactivate member"
-                              >
-                                {loadingId === m.user_id ? (
-                                  <span className="block w-3.5 h-3.5 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
-                                ) : (
-                                  <FiPlay size={14} />
-                                )}
-                              </button>
-                            )}
-                            <button
-                              onClick={() => setConfirmAction({ userId: m.user_id, name: m.user.full_name || m.user.email, action: 'remove' })}
-                              disabled={loadingId === m.user_id}
-                              className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 transition-all disabled:opacity-50"
-                              title="Remove member"
-                            >
-                              {loadingId === m.user_id ? (
-                                <span className="block w-3.5 h-3.5 border-2 border-rose-400/30 border-t-rose-400 rounded-full animate-spin" />
-                              ) : (
-                                <FiTrash2 size={14} />
-                              )}
-                            </button>
-                          </>
-                        )}
-                      </div>
+                      {renderActions(m, mayAct, isCurrentUser)}
                     </td>
                   </tr>
                 );
@@ -655,18 +800,19 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
             </tbody>
           </table>
         </div>
+        )
       )}
 
       {confirmAction && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md" onClick={() => setConfirmAction(null)} />
-          <div className="relative w-full max-w-sm bg-background border border-card-border rounded-[1.5rem] p-6 shadow-xl">
+          <div className="relative w-full max-w-sm bg-background border border-card-border rounded-[28px] p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                <FiAlertTriangle className="w-5 h-5 text-amber-400" />
+              <div className="w-10 h-10 rounded-full bg-danger/12 flex items-center justify-center">
+                <FiAlertTriangle className="w-5 h-5 text-danger-text" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-foreground capitalize">
+                <h3 className="text-base font-semibold text-foreground capitalize">
                   {confirmAction.action} member
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
@@ -679,7 +825,7 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={() => setConfirmAction(null)}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-text-muted hover:text-foreground border border-card-border hover:bg-foreground/[0.03] transition-all"
+                className="md-btn md-btn-secondary flex-1"
               >
                 Cancel
               </button>
@@ -692,12 +838,12 @@ export default function TeamPageClient({ members, currentUserId, currentOrgRole,
                   }
                 }}
                 disabled={loadingId === confirmAction.userId}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-all disabled:opacity-50"
+                className="md-btn md-btn-danger flex-1"
               >
                 {loadingId === confirmAction.userId ? (
                   <span className="block w-4 h-4 border-2 border-foreground/30 border-t-white rounded-full animate-spin" />
                 ) : null}
-                {loadingId === confirmAction.userId ? 'Processing...' : `Confirm ${confirmAction.action}`}
+                {loadingId === confirmAction.userId ? 'Working…' : confirmAction.action === 'remove' ? 'Remove member' : 'Suspend member'}
               </button>
             </div>
           </div>

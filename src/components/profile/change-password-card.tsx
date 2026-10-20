@@ -51,7 +51,7 @@ export function ChangePasswordCard() {
   return (
     <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4">
       <h4 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-        <FiLock className="text-emerald-400" /> Change Password
+        <FiLock className="text-success-text" /> Change Password
       </h4>
 
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -113,12 +113,12 @@ export function ChangePasswordCard() {
         <button
           type="submit"
           disabled={isPending}
-          className="relative w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+          className="md-btn md-btn-primary md-btn-block w-full"
         >
-          <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
-            <FiCheck className="h-4 w-4" />
+          <span className={isPending ? 'opacity-0' : ''}>
             Update password
           </span>
+          <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiCheck /></span>
           {isPending && (
             <span className="absolute inset-0 flex items-center justify-center gap-2">
               <FiLoader className="h-4 w-4 animate-spin" />

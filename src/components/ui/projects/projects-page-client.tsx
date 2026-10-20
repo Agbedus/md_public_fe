@@ -1,5 +1,7 @@
 "use client";
 
+import { StatTile } from "@/components/ui/stat-tile";
+import type { IconType } from "react-icons";
 import React, { useState, useMemo, useCallback } from "react";
 import { Project } from "@/types/project";
 import { User } from "@/types/user";
@@ -31,7 +33,6 @@ import {
   updateProject,
   deleteProject,
 } from "@/app/(dashboard)/[orgSlug]/projects/actions";
-import { Sparkline } from "@/components/ui/sparkline";
 import { subDays, isSameDay } from "date-fns";
 import { useProjects } from "@/hooks/use-projects";
 import { toast } from "@/lib/toast";
@@ -45,6 +46,7 @@ import { useNotes } from "@/hooks/use-notes";
 import { useTasks } from "@/hooks/use-tasks";
 import { Task } from "@/types/task";
 import ProjectsLoading from "@/app/(dashboard)/[orgSlug]/projects/loading";
+import { formatStatus } from '@/lib/format-status';
 
 interface ProjectsPageClientProps {
   /** Signed-in user's permission subject, for ownership-aware edit/delete. */
@@ -292,7 +294,7 @@ export default function ProjectsPageClient({
   }
 
   return (
-    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
+    <div className="md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
       {/* Header Section */}
       <div className="hidden lg:flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-10">
         <div>
@@ -308,7 +310,7 @@ export default function ProjectsPageClient({
             onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center gap-2 p-1.5 h-9 lg:h-11 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
           >
-            <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+            <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
               <FiPlus className="w-4 h-4" />
             </div>
             <span>New project</span>
@@ -324,7 +326,7 @@ export default function ProjectsPageClient({
           onClick={() => setIsCreateModalOpen(true)}
           className="group flex min-h-11 items-center gap-2 rounded-xl border border-card-border bg-foreground/[0.03] px-3 text-xs text-text-muted transition-all duration-200 hover:bg-foreground/[0.06] hover:text-foreground"
         >
-          <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+          <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
             <FiPlus className="w-3.5 h-3.5" />
           </div>
           <span>New</span>
@@ -332,14 +334,14 @@ export default function ProjectsPageClient({
       </div>
 
       {/* Portfolio Intelligence Grid */}
-      <div className="flex overflow-x-auto pb-2 scrollbar-hide lg:grid lg:grid-cols-4 gap-3 lg:gap-6 mb-6 lg:mb-12">
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:mb-12 lg:grid-cols-4">
         <PortfolioStatCard
           icon={FiActivity}
           label="Active projects"
           value={projectsWithTasks
             .filter((p) => p.status === "in_progress")
             .length.toString()}
-          subValue={`${projectsWithTasks.length} Total`}
+          subValue={`${projectsWithTasks.length} total`}
           color="indigo"
           trend={trends.active}
         />
@@ -398,8 +400,8 @@ export default function ProjectsPageClient({
       <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         <div className="lg:col-span-2 bg-card rounded-2xl p-6 border border-card-border">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-3">
-              <FiPie className="text-indigo-400" />
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-3">
+              <FiPie className="text-accent-text" />
               Projects by status
             </h3>
           </div>
@@ -413,9 +415,9 @@ export default function ProjectsPageClient({
                   (count / (projectsWithTasks.length || 1)) * 100;
                 const colors = {
                   planning: "bg-zinc-500",
-                  in_progress: "bg-indigo-500",
-                  completed: "bg-emerald-500",
-                  on_hold: "bg-amber-500",
+                  in_progress: "bg-accent",
+                  completed: "bg-success",
+                  on_hold: "bg-warning",
                 };
                 return (
                   <div
@@ -423,7 +425,7 @@ export default function ProjectsPageClient({
                     className="p-3 rounded-xl bg-foreground/[0.03] border border-card-border space-y-2 group/status"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider group-hover/status:text-foreground transition-colors">
+                      <span className="text-[11px] font-bold text-text-muted capitalize group-hover/status:text-foreground transition-colors">
                         {status.replace("_", " ")}
                       </span>
                       <span className="text-xs font-bold text-foreground">
@@ -446,8 +448,8 @@ export default function ProjectsPageClient({
         </div>
 
         <div className="bg-card rounded-2xl p-6 border border-card-border">
-          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-3 mb-6">
-            <FiActivity className="text-rose-400" />
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-3 mb-6">
+            <FiActivity className="text-danger-text" />
             High priority
           </h3>
           <div className="space-y-4">
@@ -457,24 +459,24 @@ export default function ProjectsPageClient({
               .map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-rose-500/5 border border-rose-500/10"
+                  className="flex items-center justify-between p-3 rounded-xl bg-danger/5 border border-danger/10"
                 >
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-foreground uppercase tracking-tight truncate max-w-[120px]">
+                    <span className="text-[11px] font-bold text-foreground capitalize tracking-tight truncate max-w-[120px]">
                       {p.name}
                     </span>
-                    <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-bold text-danger-text capitalize">
                       {p.key} high priority
                     </span>
                   </div>
-                  <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider bg-foreground/[0.03] px-2 py-0.5 rounded border border-card-border">
-                    {p.status.replace("_", " ")}
+                  <span className="text-[11px] font-bold text-text-muted capitalize bg-foreground/[0.03] px-2 py-0.5 rounded border border-card-border">
+                    {formatStatus(p.status)}
                   </span>
                 </div>
               ))}
             {projectsWithTasks.filter((p) => p.priority === "high").length ===
               0 && (
-              <p className="text-[11px] font-bold text-text-muted/30 uppercase tracking-wider text-center py-4">
+              <p className="text-[11px] font-bold text-text-muted/30 text-center py-4">
                 No high priority projects
               </p>
             )}
@@ -491,12 +493,12 @@ export default function ProjectsPageClient({
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9 lg:h-11 pl-8 pr-4 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none focus:border-card-border text-foreground placeholder:text-text-muted/50 transition-all text-xs lg:text-sm"
+              className="w-full h-9 lg:h-11 pl-8 pr-4 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none text-foreground placeholder:text-text-muted/50 transition-all text-xs lg:text-sm"
             />
           </div>
 
           <div className="relative group flex-shrink-0">
-            <div className="h-9 lg:h-11 w-9 lg:w-44 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:border-card-border">
+            <div className="h-9 lg:h-11 w-9 lg:w-44 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden ">
               <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3.5 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
               <select
                 value={statusFilter}
@@ -523,17 +525,17 @@ export default function ProjectsPageClient({
           </div>
         </div>
 
-        <div className="flex bg-foreground/[0.03] p-1 rounded-xl border border-card-border h-9 lg:h-11 flex-shrink-0 ml-auto">
+        <div className="flex bg-foreground/[0.05] p-1 rounded-full h-9 lg:h-11 flex-shrink-0 ml-auto">
           <button
             onClick={() => setViewMode("list")}
-            className="relative flex items-center justify-center h-full px-2 rounded-lg text-text-muted hover:text-foreground transition-colors duration-200"
+            className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             title="Table view"
           >
             {viewMode === "list" && (
               <motion.div
                 layoutId="toggle-active"
-                transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                className="absolute inset-0 bg-card rounded-lg border border-card-border"
+                transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                className="tab-pill-on absolute inset-0 rounded-full bg-ink"
               />
             )}
             <span className="relative z-10">
@@ -542,14 +544,14 @@ export default function ProjectsPageClient({
           </button>
           <button
             onClick={() => setViewMode("grid")}
-            className="relative flex items-center justify-center h-full px-2 rounded-lg text-text-muted hover:text-foreground transition-colors duration-200"
+            className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             title="Grid view"
           >
             {viewMode === "grid" && (
               <motion.div
                 layoutId="toggle-active"
-                transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                className="absolute inset-0 bg-card rounded-lg border border-card-border"
+                transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                className="tab-pill-on absolute inset-0 rounded-full bg-ink"
               />
             )}
             <span className="relative z-10">
@@ -613,14 +615,14 @@ export default function ProjectsPageClient({
             className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md transition-opacity"
             onClick={() => setIsCreateModalOpen(false)}
           />
-          <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-5xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
+          <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-5xl overflow-hidden">
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-foreground/[0.03]">
-              <h2 className="text-xl font-black text-foreground uppercase tracking-tight italic">
+              <h2 className="text-xl font-semibold text-foreground tracking-tight italic">
                 New project
               </h2>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
-                className="p-2 rounded-xl text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] transition-all"
+                className="p-2 text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] transition-all rounded-full"
               >
                 <FiX size={20} />
               </button>
@@ -633,21 +635,17 @@ export default function ProjectsPageClient({
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
+                  className="md-btn md-btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-on-ink bg-ink hover:bg-ink/85 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-2"
+                  className="md-btn md-btn-primary"
                 >
-                  {isCreating ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <FiCheck className="w-4 h-4" />
-                  )}
-                  Create project
+                  Create project <span className="md-btn-chip">{isCreating ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+
                 </button>
               </div>
             </form>
@@ -661,14 +659,14 @@ export default function ProjectsPageClient({
             className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md transition-opacity"
             onClick={() => setEditingProject(null)}
           />
-          <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-5xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
+          <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-5xl overflow-hidden">
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-foreground/[0.03]">
-              <h2 className="text-xl font-black text-foreground uppercase tracking-tight italic">
+              <h2 className="text-xl font-semibold text-foreground tracking-tight italic">
                 Edit project
               </h2>
               <button
                 onClick={() => setEditingProject(null)}
-                className="p-2 rounded-xl text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] transition-all"
+                className="p-2 text-text-secondary hover:text-foreground hover:bg-foreground/[0.05] transition-all rounded-full"
               >
                 <FiX size={20} />
               </button>
@@ -685,21 +683,17 @@ export default function ProjectsPageClient({
                 <button
                   type="button"
                   onClick={() => setEditingProject(null)}
-                  className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
+                  className="md-btn md-btn-secondary"
                 >
                   Discard
                 </button>
                 <button
                   type="submit"
                   disabled={isUpdating}
-                  className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2"
+                  className="md-btn md-btn-primary"
                 >
-                  {isUpdating ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <FiCheck className="w-4 h-4" />
-                  )}
-                  Execute Changes
+                  Execute Changes <span className="md-btn-chip">{isUpdating ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+
                 </button>
               </div>
             </form>
@@ -711,71 +705,24 @@ export default function ProjectsPageClient({
 }
 
 function PortfolioStatCard({
-  icon: Icon,
+  icon,
   color,
   label,
   value,
   subValue,
-  trend,
 }: {
-  icon: any;
+  icon: IconType;
   color: "indigo" | "emerald" | "amber" | "rose";
   label: string;
   value: string;
   subValue: string;
   trend?: number[];
 }) {
-  const colors = {
-    indigo:
-      "text-indigo-400 bg-indigo-500/10 border-indigo-500/20 -indigo-500/10",
-    emerald:
-      "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 -emerald-500/10",
-    amber: "text-amber-400 bg-amber-500/10 border-amber-500/20 -amber-500/10",
-    rose: "text-rose-400 bg-rose-500/10 border-rose-500/20 -rose-500/10",
+  const tones = {
+    indigo: "var(--accent)",
+    emerald: "var(--success)",
+    amber: "var(--warning)",
+    rose: "var(--status-qa)",
   };
-
-  const sparkColors = {
-    indigo: "#818cf8",
-    emerald: "#34d399",
-    amber: "#fbbf24",
-    rose: "#fb7185",
-  };
-
-  return (
-    <div className="bg-card rounded-xl lg:rounded-2xl p-3 lg:p-5 border border-card-border relative overflow-hidden group hover:scale-[1.02] hover:border-foreground/10 transition-all duration-500 flex-shrink-0 min-w-[140px] lg:min-w-0">
-      <div className="flex flex-col gap-2 lg:gap-4 relative z-10 h-full justify-between">
-        <div className="flex justify-between items-start">
-          <div
-            className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center border transition-all duration-500 relative ${colors[color]}`}
-          >
-            <div className="absolute inset-0 rounded-lg lg:rounded-xl bg-current opacity-10 blur-sm group-hover:opacity-20 transition-opacity" />
-            <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4 relative z-10" />
-          </div>
-          {trend && (
-            <div className="h-6 w-12 lg:h-8 lg:w-16 opacity-40 group-hover:opacity-100 transition-all duration-300">
-              <Sparkline
-                data={trend}
-                color={sparkColors[color]}
-                width={64}
-                height={32}
-              />
-            </div>
-          )}
-        </div>
-        <div>
-          <p className="text-[11px] lg:text-[11px] font-bold text-text-muted uppercase tracking-wider mb-0.5 lg:mb-1 truncate">
-            {label}
-          </p>
-          <div className="flex flex-col lg:flex-row lg:items-baseline gap-0.5 lg:gap-2">
-            <span className="text-lg lg:text-xl font-medium font-numbers text-foreground uppercase tracking-tight">
-              {value}
-            </span>
-            <span className="text-[11px] lg:text-[11px] font-bold text-text-muted/50 uppercase tracking-wider truncate">
-              {subValue}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <StatTile icon={icon} label={label} value={value} hint={subValue} tone={tones[color]} />;
 }

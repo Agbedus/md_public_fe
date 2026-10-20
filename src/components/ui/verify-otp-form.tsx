@@ -223,19 +223,19 @@ export default function VerifyOtpForm() {
             <FiClock className="h-3.5 w-3.5 text-text-muted" />
             <span className="text-text-muted">
               Code expires in{' '}
-              <span className={expirySeconds < 60 ? 'text-rose-500 font-medium' : 'text-text-muted'}>
+              <span className={expirySeconds < 60 ? 'text-danger-text font-medium' : 'text-text-muted'}>
                 {formatTime(expirySeconds)}
               </span>
             </span>
           </>
         ) : (
-          <span className="text-rose-500 text-sm">Code expired — request a new one</span>
+          <span className="text-danger-text text-sm">Code expired — request a new one</span>
         )}
       </motion.div>
 
       {attemptsLeft !== null && (
         <motion.div custom={2.5} variants={formItem as Variants} initial="hidden" animate="visible" className="text-center">
-          <span className="text-xs text-rose-500">{attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining</span>
+          <span className="text-xs text-danger-text">{attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining</span>
         </motion.div>
       )}
 
@@ -243,12 +243,12 @@ export default function VerifyOtpForm() {
         <button
           type="submit"
           disabled={isPending || digits.join('').length !== 6}
-          className="relative w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
+          className="md-btn md-btn-primary md-btn-block w-full"
         >
-          <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
-            <FiCheck className="h-4 w-4" />
+          <span className={isPending ? 'opacity-0' : ''}>
             Verify account
           </span>
+          <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiCheck /></span>
           {isPending && (
             <span className="absolute inset-0 flex items-center justify-center gap-2">
               <FiLoader className="h-4 w-4 animate-spin" />
@@ -265,7 +265,7 @@ export default function VerifyOtpForm() {
             type="button"
             onClick={handleResend}
             disabled={resendCooldown > 0 || isPending}
-            className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors disabled:text-text-muted/40 disabled:cursor-not-allowed"
+            className="text-accent-text hover:underline underline-offset-4 font-medium transition-colors disabled:text-text-muted/40 disabled:cursor-not-allowed"
           >
             {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
           </button>

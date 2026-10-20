@@ -195,10 +195,10 @@ export const NotificationProvider: React.FC<{
       : null;
 
     enqueueToast(() => {
-      let icon = <FiInfo size={22} className="text-blue-400" />;
-      if (notification.type === 'success') icon = <FiCheckCircle size={22} className="text-emerald-400" />;
-      if (notification.type === 'error') icon = <FiAlertCircle size={22} className="text-rose-400" />;
-      if (notification.type === 'warning') icon = <FiAlertCircle size={22} className="text-amber-400" />;
+      let icon = <FiInfo size={22} className="text-accent-text" />;
+      if (notification.type === 'success') icon = <FiCheckCircle size={22} className="text-success-text" />;
+      if (notification.type === 'error') icon = <FiAlertCircle size={22} className="text-danger-text" />;
+      if (notification.type === 'warning') icon = <FiAlertCircle size={22} className="text-warning-text" />;
 
       if (sender?.image) {
         if (getSoundEffectsEnabled(user)) {
@@ -223,7 +223,7 @@ export const NotificationProvider: React.FC<{
                 width={36}
                 height={36}
                 unoptimized
-                className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border border-card-border"
+                className="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-card-border"
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground leading-tight">{notification.title}</p>
@@ -307,11 +307,11 @@ export const NotificationProvider: React.FC<{
                   toast(`${verb} ${REALTIME_LABELS[resource] ?? resource}: ${label}`, {
                     icon:
                       action === 'created' ? (
-                        <FiCheckCircle className="text-emerald-400" />
+                        <FiCheckCircle className="text-success-text" />
                       ) : action === 'deleted' ? (
-                        <FiAlertCircle className="text-amber-400" />
+                        <FiAlertCircle className="text-warning-text" />
                       ) : (
-                        <FiInfo className="text-blue-400" />
+                        <FiInfo className="text-accent-text" />
                       ),
                     duration: 3000,
                   });

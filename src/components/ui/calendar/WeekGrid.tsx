@@ -29,16 +29,16 @@ interface WeekGridProps {
 const HOURS = eachHourOfInterval({ start: startOfDay(new Date()), end: endOfDay(new Date()) }).slice(0, 24);
 
 const COLOR_PALETTE = [
-    { bg: 'bg-indigo-50 dark:bg-indigo-950/60', border: 'border-indigo-500', text: 'text-indigo-600 dark:text-indigo-300' },
-    { bg: 'bg-emerald-50 dark:bg-emerald-950/60', border: 'border-emerald-500', text: 'text-emerald-600 dark:text-emerald-300' },
-    { bg: 'bg-rose-50 dark:bg-rose-950/60', border: 'border-rose-500', text: 'text-rose-600 dark:text-rose-300' },
-    { bg: 'bg-yellow-50 dark:bg-yellow-950/60', border: 'border-yellow-500', text: 'text-yellow-600 dark:text-yellow-300' },
-    { bg: 'bg-sky-50 dark:bg-sky-950/60', border: 'border-sky-500', text: 'text-sky-600 dark:text-sky-300' },
+    { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
+    { bg: 'bg-success/10 dark:bg-success/60', border: 'border-success', text: 'text-success-text dark:text-success-text' },
+    { bg: 'bg-danger/10 dark:bg-danger/60', border: 'border-danger', text: 'text-danger-text dark:text-danger-text' },
+    { bg: 'bg-warning/10 dark:bg-warning/60', border: 'border-warning', text: 'text-warning-text dark:text-warning-text' },
+    { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
     { bg: 'bg-purple-50 dark:bg-purple-950/60', border: 'border-purple-500', text: 'text-purple-600 dark:text-purple-300' },
     { bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/60', border: 'border-fuchsia-500', text: 'text-fuchsia-600 dark:text-fuchsia-300' },
     { bg: 'bg-teal-50 dark:bg-teal-950/60', border: 'border-teal-500', text: 'text-teal-600 dark:text-teal-300' },
-    { bg: 'bg-orange-50 dark:bg-orange-950/60', border: 'border-orange-500', text: 'text-orange-600 dark:text-orange-300' },
-    { bg: 'bg-blue-50 dark:bg-blue-950/60', border: 'border-blue-500', text: 'text-blue-600 dark:text-blue-300' },
+    { bg: 'bg-priority-high/10 dark:bg-priority-high/60', border: 'border-priority-high', text: 'text-priority-high-text dark:text-priority-high-text' },
+    { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
     { bg: 'bg-lime-50 dark:bg-lime-950/60', border: 'border-lime-500', text: 'text-lime-600 dark:text-lime-300' },
     { bg: 'bg-pink-50 dark:bg-pink-950/60', border: 'border-pink-500', text: 'text-pink-600 dark:text-pink-300' },
 ];
@@ -55,11 +55,11 @@ function getColorForId(id: string) {
 function privacyClasses(p?: CalendarEvent["privacy"]) {
   switch (p) {
     case "public":
-      return { dot: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]", border: "border-emerald-500/30", text: "text-emerald-700 dark:text-emerald-400" };
+      return { dot: "bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]", border: "border-success/30", text: "text-success-text dark:text-success-text" };
     case "private":
-      return { dot: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]", border: "border-amber-500/30", text: "text-amber-700 dark:text-amber-400" };
+      return { dot: "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]", border: "border-warning/30", text: "text-warning-text dark:text-warning-text" };
     case "confidential":
-      return { dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-rose-500/30", text: "text-rose-700 dark:text-rose-400" };
+      return { dot: "bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-danger/30", text: "text-danger-text dark:text-danger-text" };
     default:
       return { dot: "bg-slate-400", border: "border-card-border", text: "text-text-secondary" };
   }
@@ -68,11 +68,11 @@ function privacyClasses(p?: CalendarEvent["privacy"]) {
 function taskClasses(status?: string) {
   switch (status) {
     case "completed":
-      return { dot: "", border: "border-emerald-500/30", text: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-500/5" };
+      return { dot: "", border: "border-success/30", text: "text-success-text dark:text-success-text", bg: "bg-success/5" };
     case "in_progress":
-      return { dot: "", border: "border-amber-500/30", text: "text-amber-700 dark:text-amber-400", bg: "bg-amber-500/5" };
+      return { dot: "", border: "border-warning/30", text: "text-warning-text dark:text-warning-text", bg: "bg-warning/5" };
     default:
-      return { dot: "", border: "border-sky-500/30", text: "text-sky-700 dark:text-sky-400", bg: "bg-sky-500/5" };
+      return { dot: "", border: "border-accent/30", text: "text-accent-text dark:text-accent-text", bg: "bg-accent/5" };
   }
 }
 
@@ -113,8 +113,8 @@ export default function WeekGrid({ date, events = [], onSelectDateTime, onEventC
           <div key={d.toISOString()} className="px-3 py-2 text-center border-r border-card-border last:border-r-0">
             <div className="text-[10px] font-black text-(--text-muted) uppercase tracking-widest mb-1">{format(d, "EEE")}</div>
             <div className={`
-              inline-flex h-8 w-8 items-center justify-center rounded-xl text-sm font-black
-              ${isSameDay(d, new Date()) ? "bg-indigo-500 text-white" : "text-foreground"}
+              inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-black
+              ${isSameDay(d, new Date()) ? "bg-accent text-on-accent" : "text-foreground"}
             `}>
               {format(d, "d")}
             </div>
@@ -187,7 +187,7 @@ export default function WeekGrid({ date, events = [], onSelectDateTime, onEventC
                             <div 
                                 onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e); }}
                                 className={`
-                                    h-full px-2 flex items-center gap-2 rounded-lg border cursor-pointer transition-all hover:brightness-105 dark:hover:brightness-110 active:scale-[0.98] shadow-sm
+                                    h-full px-2 flex items-center gap-2 rounded-full border cursor-pointer transition-all hover:brightness-105 dark:hover:brightness-110 active:scale-[0.98] shadow-sm
                                     ${barColor.bg} ${barColor.border}
                                     ${!isStarting ? 'rounded-l-none border-l-0' : ''}
                                     ${!isEnding ? 'rounded-r-none border-r-0' : ''}
@@ -244,7 +244,7 @@ export default function WeekGrid({ date, events = [], onSelectDateTime, onEventC
                       role="button"
                       tabIndex={0}
                       onClick={() => onSelectDateTime?.(slotStart)}
-                      className="h-16 border-b border-card-border hover:bg-blue-50 dark:hover:bg-white/[0.06] text-left p-1 transition-colors group/slot overflow-hidden"
+                      className="h-16 border-b border-card-border hover:bg-accent/10 dark:hover:bg-white/[0.06] text-left p-1 transition-colors group/slot overflow-hidden"
                     >
                       {slotEvents.length > 0 && (() => {
                         const e = slotEvents[0];
@@ -294,7 +294,7 @@ export default function WeekGrid({ date, events = [], onSelectDateTime, onEventC
                               <div
                                   role="button"
                                   onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e); }}
-                                  className={`w-full truncate text-[9px] px-1.5 py-0.5 rounded-lg border ${c.border} bg-foreground/[0.05] hover:bg-foreground/[0.1] flex items-center gap-1.5 transition-colors cursor-pointer leading-tight`}
+                                  className={`w-full truncate text-[9px] px-1.5 py-0.5 rounded-full border ${c.border} bg-foreground/[0.05] hover:bg-foreground/[0.1] flex items-center gap-1.5 transition-colors cursor-pointer leading-tight`}
                               >
                                   {isTask ? (
                                       <FiCheckCircle className={`h-2.5 w-2.5 ${c.text}`} />
@@ -308,7 +308,7 @@ export default function WeekGrid({ date, events = [], onSelectDateTime, onEventC
                               <div
                                 role="button"
                                 onClick={(ev) => { ev.stopPropagation(); setPopupData({ date, slotStart, events: slotEvents }); }}
-                                className="w-full text-[9px] font-bold text-text-secondary uppercase tracking-wider px-1.5 py-0.5 rounded-lg bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-card-border transition-colors cursor-pointer text-center leading-tight"
+                                className="w-full text-[9px] font-bold text-text-secondary uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-card-border transition-colors cursor-pointer text-center leading-tight"
                               >
                                 + {remaining} more
                               </div>
@@ -341,7 +341,7 @@ export default function WeekGrid({ date, events = [], onSelectDateTime, onEventC
                   <h3 className="text-foreground text-xl font-black tracking-tight">{format(popupData.slotStart, "h:mm a")} — {format(popupData.slotStart, "EEEE, MMM d")}</h3>
                   <p className="text-text-secondary text-xs font-bold uppercase tracking-widest mt-1">{popupData.events.length} Items</p>
                 </div>
-                <button onClick={() => setPopupData(null)} className="p-2 hover:bg-foreground/[0.05] rounded-2xl text-(--text-muted) hover:text-foreground transition-colors">
+                <button onClick={() => setPopupData(null)} className="p-2 hover:bg-foreground/[0.05] text-(--text-muted) hover:text-foreground transition-colors rounded-full">
                   <FiX className="w-5 h-5" />
                 </button>
               </div>
@@ -355,23 +355,23 @@ export default function WeekGrid({ date, events = [], onSelectDateTime, onEventC
                     <div
                       key={e.id}
                       onClick={() => { onEventClick?.(e); setPopupData(null); }}
-                      className="bg-foreground/[0.05] border border-card-border rounded-xl px-3 py-2 hover:bg-foreground/[0.1] transition-all cursor-pointer group/card active:scale-[0.98] w-full"
+                      className="bg-foreground/[0.05] border border-card-border rounded-full px-3 py-2 hover:bg-foreground/[0.1] transition-all cursor-pointer group/card active:scale-[0.98] w-full"
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-1.5 rounded-lg ${(c as any).bg || ''} border ${c.border.replace('/50', '/20')} ${c.text}`}>
+                        <div className={`p-1.5 rounded-full ${(c as any).bg || ''} border ${c.border.replace('/50', '/20')} ${c.text}`}>
                           {isTask ? <FiCheckCircle className="w-3.5 h-3.5" /> : <FiCalendar className="w-3.5 h-3.5" />}
                         </div>
 
                         <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-foreground font-bold text-xs group-hover/card:text-indigo-400 transition-colors uppercase tracking-tight truncate">{e.title}</h4>
+                            <h4 className="text-foreground font-bold text-xs group-hover/card:text-accent-text transition-colors uppercase tracking-tight truncate">{e.title}</h4>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-[9px] font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1">
                                 <FiClock className="w-2.5 h-2.5" /> {format(new Date(e.start), 'h:mm a')}
                               </span>
                             </div>
                           </div>
-                          <FiChevronRight className="w-4 h-4 text-text-muted group-hover/card:text-indigo-400 transition-colors flex-shrink-0" />
+                          <FiChevronRight className="w-4 h-4 text-text-muted group-hover/card:text-accent-text transition-colors flex-shrink-0" />
                         </div>
                       </div>
                     </div>

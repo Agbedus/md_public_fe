@@ -156,7 +156,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
         initial={{ opacity: 0, scale: 0.95, y: -20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: -20 }}
-        className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-card-border bg-card shadow-2xl"
+        className="relative w-full max-w-2xl overflow-hidden rounded-[28px] border border-card-border bg-card shadow-2xl"
       >
         <Command className="w-full bg-transparent" loop>
           <div className="flex items-center border-b border-card-border px-4 h-14">
@@ -198,7 +198,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                 >
                     {/* Search Results */}
                     {query.length >= 2 && results.length > 0 && (
-                        <Command.Group heading="Global Search Results" className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-3 py-2">
+                        <Command.Group heading="Global Search Results" className="text-xs font-bold text-text-muted px-3 py-2">
                             {results.map((res) => (
                                 <Command.Item
                                     key={`${res.type}-${res.id}`}
@@ -207,12 +207,12 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                                 >
                                     <div className={`p-2 rounded-lg border border-card-border bg-foreground/[0.03] group-hover:scale-110 transition-transform`}>
                                         {res.type === 'task' && <FiCheckSquare className="text-purple-400" />}
-                                        {res.type === 'project' && <FiBriefcase className="text-emerald-400" />}
-                                        {res.type === 'wiki' && <FiBookOpen className="text-amber-400" />}
+                                        {res.type === 'project' && <FiBriefcase className="text-success-text" />}
+                                        {res.type === 'wiki' && <FiBookOpen className="text-warning-text" />}
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="font-bold tracking-tight">{res.title}</span>
-                                        {res.subtitle && <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">{res.subtitle}</span>}
+                                        {res.subtitle && <span className="text-xs text-text-muted font-bold">{res.subtitle}</span>}
                                     </div>
                                     <FiChevronRight className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </Command.Item>
@@ -229,29 +229,29 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
 
                     {query.length < 2 && (
                         <>
-                            <Command.Group heading="Quick Actions" className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-3 py-2">
+                            <Command.Group heading="Quick Actions" className="text-xs font-bold text-text-muted px-3 py-2">
                                 <Command.Item
                                     onSelect={() => setView('create-task')}
                                     className="flex cursor-pointer select-none items-center rounded-xl px-3 py-3 text-sm text-text-secondary hover:bg-foreground/[0.05] hover:text-foreground aria-selected:bg-foreground/[0.05] aria-selected:text-foreground transition-all duration-200 group"
                                 >
-                                    <div className="p-2 rounded-lg border border-card-border bg-emerald-500/10 text-emerald-400 mr-3 group-hover:scale-110 transition-transform">
+                                    <div className="p-2 rounded-lg border border-card-border bg-success/10 text-success-text mr-3 group-hover:scale-110 transition-transform">
                                         <FiPlus />
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="font-bold tracking-tight">Create New Task</span>
-                                        <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Quickly add to your backlog</span>
+                                        <span className="text-xs text-text-muted font-bold">Quickly add to your backlog</span>
                                     </div>
                                     <div className="ml-auto flex items-center gap-1.5 opacity-40">
-                                        <kbd className="h-5 px-1.5 rounded border border-card-border bg-foreground/[0.05] text-[10px] font-mono">T</kbd>
+                                        <kbd className="h-5 px-1.5 rounded border border-card-border bg-foreground/[0.05] text-xs font-mono">T</kbd>
                                     </div>
                                 </Command.Item>
                             </Command.Group>
 
                             <Command.Separator className="my-2 h-px bg-card-border" />
 
-                            <Command.Group heading="Navigation" className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-3 py-2">
+                            <Command.Group heading="Navigation" className="text-xs font-bold text-text-muted px-3 py-2">
                                 <Command.Item onSelect={() => runCommand(() => router.push(orgHref("/dashboard")))} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-foreground/[0.05] transition-colors cursor-pointer">
-                                    <FiHome className="text-blue-400" />
+                                    <FiHome className="text-accent-text" />
                                     <span className="font-medium">Dashboard</span>
                                 </Command.Item>
                                 <Command.Item onSelect={() => runCommand(() => router.push(orgHref("/tasks")))} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-foreground/[0.05] transition-colors cursor-pointer">
@@ -259,24 +259,24 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                                     <span className="font-medium">Tasks</span>
                                 </Command.Item>
                                 <Command.Item onSelect={() => runCommand(() => router.push(orgHref("/projects")))} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-foreground/[0.05] transition-colors cursor-pointer">
-                                    <FiBriefcase className="text-emerald-400" />
+                                    <FiBriefcase className="text-success-text" />
                                     <span className="font-medium">Projects</span>
                                 </Command.Item>
                                 <Command.Item onSelect={() => runCommand(() => router.push(orgHref("/settings")))} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-foreground/[0.05] transition-colors cursor-pointer">
-                                    <FiSettings className="text-indigo-400" />
+                                    <FiSettings className="text-accent-text" />
                                     <span className="font-medium">Settings</span>
                                 </Command.Item>
                             </Command.Group>
 
                             <Command.Separator className="my-2 h-px bg-card-border" />
 
-                            <Command.Group heading="Appearance" className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-3 py-2">
+                            <Command.Group heading="Appearance" className="text-xs font-bold text-text-muted px-3 py-2">
                                 <Command.Item onSelect={() => runCommand(() => setTheme('light'))} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-foreground/[0.05] transition-colors cursor-pointer">
-                                    <FiSun className="text-amber-400" />
+                                    <FiSun className="text-warning-text" />
                                     <span className="font-medium">Light Mode</span>
                                 </Command.Item>
                                 <Command.Item onSelect={() => runCommand(() => setTheme('dark'))} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-foreground/[0.05] transition-colors cursor-pointer">
-                                    <FiMoon className="text-blue-400" />
+                                    <FiMoon className="text-accent-text" />
                                     <span className="font-medium">Dark Mode</span>
                                 </Command.Item>
                             </Command.Group>
@@ -296,28 +296,28 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                 >
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Task Title</label>
+                            <label className="text-xs font-bold text-text-muted">Task Title</label>
                             <input 
                                 value={taskName}
                                 onChange={(e) => setTaskName(e.target.value)}
                                 placeholder="What needs to be done?"
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 outline-none focus:border-emerald-500/50 transition-colors"
+                                className="w-full bg-foreground/[0.03] border border-card-border rounded-xl px-4 py-3 outline-none transition-colors"
                                 autoFocus
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Select Project</label>
+                            <label className="text-xs font-bold text-text-muted">Select Project</label>
                             <div className="grid grid-cols-2 gap-2">
                                 {projects.map((p) => (
                                     <button
                                         key={p.id}
                                         onClick={() => setTaskProjectId(String(p.id))}
                                         className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all text-left ${
-                                            taskProjectId === String(p.id)
-                                                ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                                                : 'bg-foreground/[0.03] border-card-border text-text-muted hover:border-card-border/50 hover:bg-foreground/[0.05]'
-                                        }`}
+ taskProjectId === String(p.id)
+ ? 'bg-success/10 border-success text-success-text'
+ : 'bg-foreground/[0.03] border-card-border text-text-muted hover:border-card-border/50 hover:bg-foreground/[0.05]'
+ }`}
                                     >
                                         <div className="flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-current opacity-50" />
@@ -328,10 +328,10 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                                 <button
                                     onClick={() => setTaskProjectId("")}
                                     className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all text-left ${
-                                        taskProjectId === ""
-                                            ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                                            : 'bg-foreground/[0.03] border-card-border text-text-muted hover:border-card-border/50 hover:bg-foreground/[0.05]'
-                                    }`}
+ taskProjectId === ""
+ ? 'bg-success/10 border-success text-success-text'
+ : 'bg-foreground/[0.03] border-card-border text-text-muted hover:border-card-border/50 hover:bg-foreground/[0.05]'
+ }`}
                                 >
                                     No Project (Backlog)
                                 </button>
@@ -340,11 +340,11 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-card-border">
-                        <span className="text-[10px] text-text-muted font-bold uppercase tracking-widest">Press ⌘ + Enter to save</span>
+                        <span className="text-xs text-text-muted font-bold">Press ⌘ + Enter to save</span>
                         <button
                             onClick={handleCreateTask}
                             disabled={!taskName || isSubmitting}
-                            className="bg-ink hover:bg-ink/85 disabled:opacity-50 disabled:hover:bg-ink text-on-ink font-bold py-2.5 px-8 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                            className="md-btn md-btn-primary"
                         >
                             {isSubmitting ? <FiLoader className="animate-spin" /> : <FiTarget />}
                             <span>Create task</span>
@@ -355,19 +355,19 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
             </AnimatePresence>
           </Command.List>
           
-          <div className="border-t border-card-border px-4 py-3 flex items-center justify-between text-[11px] text-text-muted font-bold uppercase tracking-wider">
+          <div className="border-t border-card-border px-4 py-3 flex items-center justify-between text-[11px] text-text-muted font-bold">
              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
-                    <kbd className="h-5 px-1.5 rounded border border-card-border bg-foreground/[0.05] font-mono text-[10px]">↑↓</kbd>
+                    <kbd className="h-5 px-1.5 rounded border border-card-border bg-foreground/[0.05] font-mono text-xs">↑↓</kbd>
                     <span>Navigate</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <kbd className="h-5 px-1.5 rounded border border-card-border bg-foreground/[0.05] font-mono text-[10px]">↵</kbd>
+                    <kbd className="h-5 px-1.5 rounded border border-card-border bg-foreground/[0.05] font-mono text-xs">↵</kbd>
                     <span>Select</span>
                 </div>
              </div>
              <div className="flex items-center gap-1.5">
-                <kbd className="h-5 px-1.5 rounded border border-card-border bg-foreground/[0.05] font-mono text-[10px]">esc</kbd>
+                <kbd className="h-5 px-1.5 rounded border border-card-border bg-foreground/[0.05] font-mono text-xs">esc</kbd>
                 <span>{view === 'main' ? 'Close' : 'Back'}</span>
              </div>
           </div>

@@ -175,7 +175,7 @@ export default function OfficeMap({
                 {userLocation && (
                     <Marker position={userLocation} icon={userIcon}>
                         <Popup>
-                            <span className="font-semibold text-xs text-sky-400">Your Current Location</span>
+                            <span className="font-semibold text-xs text-accent-text">Your Current Location</span>
                         </Popup>
                     </Marker>
                 )}

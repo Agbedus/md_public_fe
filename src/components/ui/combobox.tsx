@@ -178,7 +178,7 @@ export function Combobox({
                       type="button"
                       onClick={() => handleSelect(option.value)}
                       className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between group transition-colors ${
-                        isSelected ? 'bg-indigo-500/10 text-indigo-400' : 'text-text-secondary hover:bg-foreground/[0.03] hover:text-foreground'
+                        isSelected ? 'bg-accent/10 text-accent-text' : 'text-text-secondary hover:bg-foreground/[0.03] hover:text-foreground'
                       }`}
                     >
                       <div>

@@ -5,6 +5,7 @@ import { createTask } from '@/app/(dashboard)/[orgSlug]/tasks/actions';
 import { CustomDatePicker } from '@/components/ui/inputs/custom-date-picker';
 import { format } from 'date-fns';
 import { toast } from '@/lib/toast';
+import { FiCheck } from 'react-icons/fi';
 
 export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
   const [name, setName] = useState('');
@@ -129,7 +130,7 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
             />
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-purple-400 rounded-sm opacity-0 peer-checked:opacity-100 transition-opacity" />
           </div>
-          <span className="text-xs font-bold text-text-muted group-hover:text-purple-400 transition-colors uppercase tracking-wider">QA Required</span>
+          <span className="text-xs font-bold text-text-muted group-hover:text-purple-400 transition-colors">QA Required</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer group">
           <div className="relative flex items-center">
@@ -137,11 +138,11 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
               type="checkbox" 
               checked={reviewRequired}
               onChange={(e) => setReviewRequired(e.target.checked)}
-              className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-blue-500/40 checked:border-blue-400 transition-all"
+              className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-accent/40 checked:border-accent transition-all"
             />
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-blue-400 rounded-sm opacity-0 peer-checked:opacity-100 transition-opacity" />
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-accent rounded-sm opacity-0 peer-checked:opacity-100 transition-opacity" />
           </div>
-          <span className="text-xs font-bold text-text-muted group-hover:text-blue-400 transition-colors uppercase tracking-wider">Review Required</span>
+          <span className="text-xs font-bold text-text-muted group-hover:text-accent-text transition-colors">Review Required</span>
         </label>
       </div>
 
@@ -159,9 +160,10 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded transition-colors disabled:opacity-50"
+        className="md-btn md-btn-primary w-full"
       >
-        {loading ? 'Creating...' : 'Create Task'}
+        {loading ? 'Creating...' : 'Create Task'} <span className="md-btn-chip"><FiCheck /></span>
+
       </button>
     </form>
   );

@@ -182,14 +182,14 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
         onClick={onClose}
       />
 
-      <div className="relative flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-3xl border border-card-border bg-background shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] md:max-h-[90vh] md:max-w-3xl md:rounded-[2.5rem]">
+      <div className="relative flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-3xl border border-card-border bg-background shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] md:max-h-[90vh] md:max-w-3xl md:rounded-[28px]">
         {/* Header */}
         <div className="flex flex-none items-center justify-between border-b border-card-border bg-card px-4 py-4 sm:px-6 md:px-8 md:py-5">
-          <div id="create-event-title" className="text-foreground font-black tracking-tight text-lg uppercase italic">Add event</div>
+          <div id="create-event-title" className="text-foreground font-semibold tracking-tight text-lg italic">Add event</div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl hover:bg-foreground/[0.05] text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border"
+            className="inline-flex h-9 w-9 items-center justify-center hover:bg-foreground/[0.05] text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border rounded-full"
             aria-label="Close"
           >
             <FiX className="h-5 w-5" />
@@ -202,10 +202,10 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
             {/* All-day toggle at top */}
             <div className="flex items-center justify-between gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-foreground/[0.06] rounded-lg">
+                    <div className="p-2 bg-foreground/[0.06] rounded-full">
                         <FiCalendar className="text-foreground/60 w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+                    <span className="text-xs font-semibold text-text-muted">
                         Temporal Mode
                     </span>
                 </div>
@@ -214,21 +214,21 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                 id="allday"
                 onClick={() => handleAllDayChange(!allDay)}
                 aria-pressed={allDay}
-                className={`relative inline-flex h-10 items-center rounded-xl border p-1 transition-all duration-300 ${
-                    allDay ? "bg-foreground/[0.08] border-foreground/20" : "bg-background border-card-border"
-                }`}
+                className={`relative inline-flex h-10 items-center rounded-full border p-1 transition-all duration-300 ${
+ allDay ? "bg-foreground/[0.08] border-foreground/20" : "bg-background border-card-border"
+ }`}
                 >
                 <span
-                    className={`inline-flex items-center px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all duration-300 ${
-                    allDay ? "bg-foreground/[0.12] text-foreground" : "bg-transparent text-text-muted"
-                    }`}
+                    className={`inline-flex items-center px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
+ allDay ? "bg-foreground/[0.12] text-foreground" : "bg-transparent text-text-muted"
+ }`}
                 >
                     Full Duration
                 </span>
                 <span
-                    className={`inline-flex items-center px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all duration-300 ${
-                    !allDay ? "bg-background text-foreground shadow-sm border border-card-border" : "bg-transparent text-text-muted"
-                    }`}
+                    className={`inline-flex items-center px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
+ !allDay ? "bg-background text-foreground shadow-sm border border-card-border" : "bg-transparent text-text-muted"
+ }`}
                 >
                     Precision
                 </span>
@@ -238,11 +238,11 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
             {/* Primary fields */}
             <div className="space-y-6">
                 <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Task name</label>
+                <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Task name</label>
                 <input
                     value={title}
                     onChange={(e)=>setTitle(e.target.value)}
-                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
+                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                     placeholder="Operational designation..."
                     required
                 />
@@ -250,8 +250,8 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1 flex items-center gap-1.5">
-                    <FiClock className="text-blue-500" /> Commencement
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
+                    <FiClock className="text-accent-text" /> Commencement
                     </label>
                     <CustomDatePicker
                         value={start}
@@ -265,8 +265,8 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                     />
                 </div>
                 <div>
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1 flex items-center gap-1.5">
-                    <FiClock className="text-blue-500" /> Termination
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
+                    <FiClock className="text-accent-text" /> Termination
                     </label>
                     <CustomDatePicker
                         value={end}
@@ -283,13 +283,13 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                 </div>
 
                 <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1 flex items-center gap-1.5">
-                    <FiMapPin className="text-blue-500" /> Office location
+                <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
+                    <FiMapPin className="text-accent-text" /> Office location
                 </label>
                 <input
                     value={location}
                     onChange={(e)=>setLocation(e.target.value)}
-                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
+                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                     placeholder="Physical or virtual deployment zone"
                 />
                 </div>
@@ -298,33 +298,33 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
             {/* Advanced options */}
             <div className="space-y-6 pt-4">
                 <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] whitespace-nowrap">Additional details</span>
+                    <span className="text-xs font-semibold text-text-muted whitespace-nowrap">Additional details</span>
                     <div className="h-px w-full bg-foreground/[0.05]" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Assigned to</label>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Assigned to</label>
                     <input
                         value={organizer}
                         onChange={(e)=>setOrganizer(e.target.value)}
-                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                         placeholder="Command authority"
                     />
                     </div>
 
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Assigned Personnel</label>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Assigned Personnel</label>
                     <input
                         value={attendees}
                         onChange={(e)=>setAttendees(e.target.value)}
-                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold"
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                         placeholder="Authorized identifiers (comma separated)"
                     />
                     </div>
 
                     <div>
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Status</label>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Status</label>
                     <div className="flex flex-wrap gap-2">
                         {([
                         { v: "tentative", label: "Tentative" },
@@ -335,11 +335,11 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             type="button"
                             key={opt.v}
                             onClick={() => setStatus(opt.v)}
-                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${
-                            status === opt.v
-                                ? "border-blue-500/60 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
-                            }`}
+                            className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all duration-300 ${
+ status === opt.v
+ ? "border-accent/60 bg-accent/10 text-accent-text dark:text-accent-text"
+ : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
+ }`}
                         >
                             {opt.label}
                         </button>
@@ -348,18 +348,18 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                     </div>
 
                     <div>
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Security Classification</label>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Security Classification</label>
                     <div className="flex flex-wrap gap-2">
                         {([
-                        { v: "public", label: "Public", color: "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10" },
-                        { v: "private", label: "Private", color: "border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10" },
-                        { v: "confidential", label: "Restricted", color: "border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10" },
+                        { v: "public", label: "Public", color: "border-success/30 text-success-text dark:text-success-text bg-success/10" },
+                        { v: "private", label: "Private", color: "border-warning/30 text-warning-text dark:text-warning-text bg-warning/10" },
+                        { v: "confidential", label: "Restricted", color: "border-danger/30 text-danger-text dark:text-danger-text bg-danger/10" },
                         ] as const).map((opt) => (
                         <button
                             type="button"
                             key={opt.v}
                             onClick={() => setPrivacy(opt.v)}
-                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${
+                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-full border transition-all duration-300 ${
                             privacy === opt.v
                                 ? `${opt.color}`
                                 : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
@@ -372,7 +372,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                     </div>
 
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Repeat</label>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Repeat</label>
                     <div className="flex flex-wrap gap-2">
                         {([
                         { v: "none", label: "Static" },
@@ -385,11 +385,11 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             type="button"
                             key={opt.v}
                             onClick={() => setRecurrence(opt.v)}
-                            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all duration-300 ${
-                            recurrence === opt.v
-                                ? "border-blue-500/60 bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
-                            }`}
+                            className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all duration-300 ${
+ recurrence === opt.v
+ ? "border-accent/60 bg-accent/10 text-accent-text dark:text-accent-text"
+ : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
+ }`}
                         >
                             {opt.label}
                         </button>
@@ -398,7 +398,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                     </div>
 
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Chromatic Designation</label>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Chromatic Designation</label>
                     <div className="flex flex-wrap gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
                         {(["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4"] as const).map((c) => (
                         <button
@@ -406,8 +406,8 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             key={c}
                             onClick={() => setColor(c)}
                             className={`h-6 w-6 rounded-full border-2 transition-all duration-500 ${
-                            color === c ? "border-foreground scale-110 shadow-lg" : "border-transparent opacity-40 hover:opacity-100 hover:scale-110"
-                            }`}
+ color === c ? "border-foreground scale-110 shadow-lg" : "border-transparent opacity-40 hover:opacity-100 hover:scale-110"
+ }`}
                             style={{ backgroundColor: c }}
                         />
                         ))}
@@ -415,22 +415,22 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                     </div>
 
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Summary</label>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Summary</label>
                     <textarea
                         value={description}
                         onChange={(e)=>setDescription(e.target.value)}
-                        className="w-full min-h-32 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-blue-500/30 transition-all font-bold resize-none custom-scrollbar"
+                        className="w-full min-h-32 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold resize-none custom-scrollbar"
                         placeholder="What is this event about?"
                     />
                     </div>
 
                     <div className="md:col-span-2">
-                    <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-3 ml-1 flex items-center gap-1.5">
-                        <FiBell className="text-blue-500" /> Proactive Notifications
+                    <label className="block text-xs font-semibold text-text-muted mb-3 ml-1 flex items-center gap-1.5">
+                        <FiBell className="text-accent-text" /> Proactive Notifications
                     </label>
                     <div className="flex flex-wrap gap-2 mb-4">
                         {reminders.map((r, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-2 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border border-card-border bg-foreground/[0.06] text-text-secondary shadow-sm">
+                        <span key={idx} className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-semibold rounded-full border border-card-border bg-foreground/[0.06] text-text-secondary shadow-sm">
                              {r.days > 0 && `${r.days}D `}
                              {r.hours > 0 && `${r.hours}H `}
                              {r.minutes > 0 && `${r.minutes}M `}
@@ -440,12 +440,12 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             </button>
                         </span>
                         ))}
-                        {reminders.length === 0 && <p className="text-[10px] font-black text-text-muted/30 uppercase tracking-widest italic ml-1">No alerts configured</p>}
+                        {reminders.length === 0 && <p className="text-xs font-semibold text-text-muted/30 italic ml-1">No alerts configured</p>}
                     </div>
                     
                     <div className="flex flex-wrap items-end gap-3 p-5 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl">
                         <div className="flex-1 min-w-[70px]">
-                            <label className="block text-[9px] uppercase font-black tracking-[0.2em] text-text-muted mb-2 ml-1">Days</label>
+                            <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Days</label>
                             <CustomNumberInput
                                 value={rDays}
                                 onChange={(val) => setRDays(Number(val) || 0)}
@@ -453,7 +453,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             />
                         </div>
                         <div className="flex-1 min-w-[70px]">
-                            <label className="block text-[9px] uppercase font-black tracking-[0.2em] text-text-muted mb-2 ml-1">Hours</label>
+                            <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Hours</label>
                             <CustomNumberInput
                                 value={rHours}
                                 onChange={(val) => setRHours(Number(val) || 0)}
@@ -462,7 +462,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             />
                         </div>
                         <div className="flex-1 min-w-[70px]">
-                            <label className="block text-[9px] uppercase font-black tracking-[0.2em] text-text-muted mb-2 ml-1">Mins</label>
+                            <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Mins</label>
                             <CustomNumberInput
                                 value={rMinutes}
                                 onChange={(val) => setRMinutes(Number(val) || 0)}
@@ -477,7 +477,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
                             setReminders((prev) => [...prev, { days: rDays, hours: rHours, minutes: rMinutes }]);
                             setRDays(0); setRHours(0); setRMinutes(0);
                         }}
-                        className="h-11 px-5 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest rounded-xl bg-foreground/10 text-foreground border border-card-border hover:bg-foreground/[0.15] transition-all active:scale-95 shadow-sm"
+                        className="h-11 px-5 inline-flex items-center gap-2 text-xs font-semibold rounded-full bg-foreground/10 text-foreground border border-card-border hover:bg-foreground/[0.15] transition-all active:scale-95 shadow-sm"
                         >
                         <FiPlus className="h-4 w-4" /> Add Protocol
                         </button>
@@ -489,23 +489,20 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
         </div>
 
         {/* Fixed Footer */}
-        <div className="flex-none flex items-center justify-end gap-3 p-6 border-t border-card-border bg-white dark:bg-white/[0.03]">
+        <div className="flex-none flex items-center justify-end gap-3 p-6 border-t border-card-border bg-background">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-white dark:bg-white/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
-              >
-                Abort
+                className="md-btn md-btn-secondary">
+                Cancel
               </button>
             
               <button
                 type="submit"
                 form="create-event-form"
                 disabled={submitting}
-                className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-muted hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] transition-all border border-card-border disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {submitting ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-foreground/60"></div> : <FiCheck className="h-4 w-4" />}
-                Confirm Entry
+                className="md-btn md-btn-primary">
+                Create event <span className="md-btn-chip">{submitting ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
               </button>
         </div>
       </div>

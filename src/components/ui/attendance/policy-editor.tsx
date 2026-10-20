@@ -65,8 +65,8 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
         setIsSaving(false);
     };
 
-    const inputClass = "w-full px-3 py-1.5 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all font-numbers placeholder:text-text-muted/50";
-    const labelClass = "block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5";
+    const inputClass = "h-11 w-full rounded-full border border-card-border bg-input-bg px-4 text-sm text-foreground transition-colors placeholder:text-text-muted/50 font-numbers";
+    const labelClass = "mb-1.5 ml-3 block text-xs font-medium text-text-muted";
 
     // Helper to strip :SS for HTML time input
     const toTimeValue = (val: string | null) => val ? val.substring(0, 5) : '';
@@ -74,31 +74,31 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
     const fromTimeValue = (val: string) => `${val}:00`;
 
     return (
-        <div className="glass p-6 rounded-[32px] border border-card-border space-y-6">
+        <div className="space-y-5 rounded-[28px] bg-card p-5 sm:p-6">
             <div className="flex items-center gap-3 border-b border-card-border pb-4">
-                <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                    <FiSettings className="w-4 h-4 text-indigo-400" />
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-accent/12 text-accent-text">
+                    <FiSettings className="h-4 w-4" />
                 </div>
                 <div>
-                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Attendance policy</h3>
-                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">Automations & Grace Thresholds</p>
+                    <h3 className="text-base font-semibold text-foreground">Attendance policy</h3>
+                    <p className="mt-0.5 text-xs text-text-muted">Automations, time windows and grace periods</p>
                 </div>
             </div>
 
             {isPending ? (
                 <div className="space-y-4">
                     {[...Array(3)].map((_, i) => (
-                        <div key={i} className="h-12 bg-foreground/[0.02] rounded-2xl animate-pulse border border-card-border" />
+                        <div key={i} className="h-14 rounded-full bg-foreground/[0.04] animate-pulse" />
                     ))}
                 </div>
             ) : (
                 <div className="space-y-6">
                     {/* Automation Toggles */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-foreground/[0.02] border border-card-border">
+                        <div className="flex items-center justify-between gap-3 rounded-full bg-foreground/[0.03] py-3 pl-5 pr-3">
                             <div>
-                                <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Auto Clock-In</p>
-                                <p className="text-[9px] text-text-muted font-bold uppercase tracking-tight mt-0.5 italic">Geofence Trigger</p>
+                                <p className="text-sm font-medium text-foreground">Auto clock-in</p>
+                                <p className="mt-0.5 text-xs text-text-muted">Triggered by the geofence</p>
                             </div>
                             <Toggle
                                 label="Auto clock-in"
@@ -106,10 +106,10 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                                 onChange={(next) => setForm(f => ({ ...f, auto_clock_in: next }))}
                             />
                         </div>
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-foreground/[0.02] border border-card-border">
+                        <div className="flex items-center justify-between gap-3 rounded-full bg-foreground/[0.03] py-3 pl-5 pr-3">
                             <div>
-                                <p className="text-[10px] font-bold text-foreground uppercase tracking-wider">Auto Clock-Out</p>
-                                <p className="text-[9px] text-text-muted font-bold uppercase tracking-tight mt-0.5 italic">Geofence Trigger</p>
+                                <p className="text-sm font-medium text-foreground">Auto clock-out</p>
+                                <p className="mt-0.5 text-xs text-text-muted">Triggered by the geofence</p>
                             </div>
                             <Toggle
                                 label="Auto clock-out"
@@ -122,21 +122,21 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                     {/* Windows & Thresholds */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
-                            <h4 className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-indigo-500" />
-                                Synchronized Windows
+                            <h4 className="ml-1 flex items-center gap-2 text-sm font-medium text-foreground">
+                                <span className="h-2 w-2 rounded-full bg-accent" />
+                                Time windows
                             </h4>
-                            <div className="p-4 rounded-2xl bg-foreground/[0.02] border border-card-border space-y-4">
+                            <div className="space-y-4 rounded-[24px] bg-foreground/[0.03] p-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className={labelClass}>Check-in Open</label>
+                                        <label className={labelClass}>Check-in opens</label>
                                         <CustomTimePicker
                                             value={toTimeValue(form.check_in_open_time)}
                                             onChange={val => setForm(f => ({ ...f, check_in_open_time: fromTimeValue(val) }))}
                                         />
                                     </div>
                                     <div>
-                                        <label className={labelClass}>Check-in Close</label>
+                                        <label className={labelClass}>Check-in closes</label>
                                         <CustomTimePicker
                                             value={toTimeValue(form.check_in_close_time)}
                                             onChange={val => setForm(f => ({ ...f, check_in_close_time: fromTimeValue(val) }))}
@@ -145,14 +145,14 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className={labelClass}>Shift Start</label>
+                                        <label className={labelClass}>Shift start</label>
                                         <CustomTimePicker
                                             value={toTimeValue(form.work_start_time)}
                                             onChange={val => setForm(f => ({ ...f, work_start_time: fromTimeValue(val) }))}
                                         />
                                     </div>
                                     <div>
-                                        <label className={labelClass}>Shift End</label>
+                                        <label className={labelClass}>Shift end</label>
                                         <CustomTimePicker
                                             value={toTimeValue(form.work_end_time)}
                                             onChange={val => setForm(f => ({ ...f, work_end_time: fromTimeValue(val) }))}
@@ -163,14 +163,14 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                         </div>
 
                         <div className="space-y-4">
-                            <h4 className="text-[9px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-amber-500" />
-                                Grace Thresholds (Min)
+                            <h4 className="ml-1 flex items-center gap-2 text-sm font-medium text-foreground">
+                                <span className="h-2 w-2 rounded-full bg-warning" />
+                                Grace periods <span className="font-normal text-text-muted">(minutes)</span>
                             </h4>
-                            <div className="p-4 rounded-2xl bg-foreground/[0.02] border border-card-border space-y-4">
+                            <div className="space-y-4 rounded-[24px] bg-foreground/[0.03] p-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className={labelClass}>Temp. Out</label>
+                                        <label className={labelClass}>Temporarily out</label>
                                         <input
                                             type="number"
                                             value={form.temporarily_out_grace_minutes}
@@ -179,7 +179,7 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                                         />
                                     </div>
                                     <div>
-                                        <label className={labelClass}>Exclusion</label>
+                                        <label className={labelClass}>Out of office</label>
                                         <input
                                             type="number"
                                             value={form.out_of_office_grace_minutes}
@@ -190,7 +190,7 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className={labelClass}>Return Pulse</label>
+                                        <label className={labelClass}>Return pulse</label>
                                         <input
                                             type="number"
                                             value={form.return_to_office_confirmation_minutes}
@@ -199,7 +199,7 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                                         />
                                     </div>
                                     <div>
-                                        <label className={labelClass}>Auto-Out</label>
+                                        <label className={labelClass}>Auto clock-out at</label>
                                         <CustomTimePicker
                                             value={toTimeValue(form.auto_clock_out_time)}
                                             onChange={val => setForm(f => ({ ...f, auto_clock_out_time: fromTimeValue(val) }))}
@@ -208,7 +208,7 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className={labelClass}>Auto-In Delay</label>
+                                        <label className={labelClass}>Auto clock-in delay</label>
                                         <input
                                             type="number"
                                             value={form.auto_clock_in_delay_minutes}
@@ -217,7 +217,7 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                                         />
                                     </div>
                                     <div>
-                                        <label className={labelClass}>Audit Interval</label>
+                                        <label className={labelClass}>Audit interval</label>
                                         <input
                                             type="number"
                                             value={form.presence_audit_interval_minutes}
@@ -231,14 +231,16 @@ export default function PolicyEditor({ officeLocationId }: { officeLocationId: n
                     </div>
 
                     {/* Save */}
-                    <div className="pt-2">
+                    <div className="flex justify-end border-t border-card-border pt-4">
                         <button
+                            type="button"
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="flex items-center gap-2 px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                            aria-busy={isSaving}
+                            className="md-btn md-btn-primary disabled:cursor-wait"
                         >
-                            <FiCheck className="w-3.5 h-3.5" />
-                            {isSaving ? 'Synchronizing...' : 'Commit Policy'}
+                            {isSaving ? 'Saving…' : 'Save policy'}
+                            <span className="md-btn-chip">{isSaving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
                         </button>
                     </div>
                 </div>

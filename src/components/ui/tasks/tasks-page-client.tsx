@@ -611,11 +611,11 @@ export default function TasksPageClient({
               setNewReviewRequired(e.target.checked);
               setIsDirty(true);
             }}
-            className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-blue-500/40 checked:border-blue-400 transition-all"
+            className="peer h-4 w-4 appearance-none rounded border border-card-border bg-foreground/[0.03] checked:bg-accent/40 checked:border-accent transition-all"
           />
-          <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-blue-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
+          <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-accent-text opacity-0 peer-checked:opacity-100 transition-opacity" />
         </div>
-        <span className="text-xs font-medium text-text-muted group-hover:text-blue-400 transition-colors">
+        <span className="text-xs font-medium text-text-muted group-hover:text-accent-text transition-colors">
           Review
         </span>
       </label>
@@ -916,7 +916,7 @@ export default function TasksPageClient({
   };
 
   return (
-    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
+    <div className="md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
       <div className="hidden lg:block mb-6">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight m-1.5">
           Tasks
@@ -967,14 +967,14 @@ export default function TasksPageClient({
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-10 h-11 bg-input-bg border border-card-border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 text-foreground placeholder:text-text-muted transition-colors text-sm"
+              className="w-full pl-9 pr-10 h-11 bg-input-bg border border-card-border rounded-md focus:outline-none text-foreground placeholder:text-text-muted transition-colors text-sm"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
                 aria-label="Clear task search"
-                className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98]"
+                className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98] rounded-full"
               >
                 <FiX className="h-4 w-4" />
               </button>
@@ -982,7 +982,7 @@ export default function TasksPageClient({
           </div>
 
           <div className="relative group flex-shrink-0">
-            <div className="h-9 lg:h-11 w-9 lg:w-36 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:border-card-border transition-all">
+            <div className="h-9 lg:h-11 w-9 lg:w-36 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
               <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
               <select
                 value={filterPriority}
@@ -1002,7 +1002,7 @@ export default function TasksPageClient({
           </div>
 
           <div className="relative group flex-shrink-0">
-            <div className="h-9 lg:h-11 w-9 lg:w-36 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:border-card-border transition-all">
+            <div className="h-9 lg:h-11 w-9 lg:w-36 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
               <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
               <select
                 value={filterStatus}
@@ -1022,7 +1022,7 @@ export default function TasksPageClient({
           </div>
 
           <div className="relative group flex-shrink-0">
-              <div className="h-9 lg:h-11 w-9 lg:w-40 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:border-card-border transition-all">
+              <div className="h-9 lg:h-11 w-9 lg:w-40 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
                 <FiFolder className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
                 <select
                   aria-label="Filter tasks by project"
@@ -1046,25 +1046,25 @@ export default function TasksPageClient({
           <button
             onClick={() => setFilterMyTasks((f) => !f)}
             className={`flex items-center gap-2 h-9 lg:h-11 px-3 lg:px-4 rounded-xl border text-xs font-medium transition-all flex-shrink-0 ${
-              filterMyTasks
-                ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-600 dark:text-indigo-300"
-                : "bg-foreground/[0.03] border-card-border text-text-muted hover:text-foreground hover:border-card-border"
-            }`}
+ filterMyTasks
+ ? "bg-accent/20 border-accent/40 text-accent-text dark:text-accent-text"
+ : "bg-foreground/[0.03] border-card-border text-text-muted hover:text-foreground hover:border-card-border"
+ }`}
           >
             <FiUser className="w-3.5 h-3.5" />
             <span className="hidden lg:inline">My tasks</span>
           </button>
 
-          <div className="flex bg-foreground/[0.03] p-1 h-9 lg:h-11 rounded-xl border border-card-border flex-shrink-0 ml-auto">
+          <div className="flex bg-foreground/[0.05] p-1 h-9 lg:h-11 rounded-full flex-shrink-0 ml-auto">
             <button
               onClick={() => setViewMode("table")}
-              className="relative flex items-center justify-center h-full px-2 rounded-lg text-text-muted hover:text-foreground transition-colors duration-200"
+              className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             >
               {viewMode === "table" && (
                 <motion.div
                   layoutId="toggle-active"
-                  transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                  className="absolute inset-0 bg-card rounded-lg border border-card-border"
+                  transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                  className="tab-pill-on absolute inset-0 rounded-full bg-ink"
                 />
               )}
               <span className="relative z-10">
@@ -1073,13 +1073,13 @@ export default function TasksPageClient({
             </button>
             <button
               onClick={() => setViewMode("kanban")}
-              className="relative flex items-center justify-center h-full px-2 rounded-lg text-text-muted hover:text-foreground transition-colors duration-200"
+              className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             >
               {viewMode === "kanban" && (
                 <motion.div
                   layoutId="toggle-active"
-                  transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                  className="absolute inset-0 bg-card rounded-lg border border-card-border"
+                  transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                  className="tab-pill-on absolute inset-0 rounded-full bg-ink"
                 />
               )}
               <span className="relative z-10">
@@ -1091,7 +1091,7 @@ export default function TasksPageClient({
       </div>
 
       {errorMsg && (
-        <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-500 dark:text-red-400 text-sm flex items-center gap-2">
+        <div className="mb-6 rounded-xl border border-danger/20 bg-danger/10 p-4 text-danger-text dark:text-danger-text text-sm flex items-center gap-2">
           <FiX className="h-4 w-4" />
           {errorMsg}
         </div>
@@ -1125,13 +1125,13 @@ export default function TasksPageClient({
             <div className="flex items-center gap-1 bg-foreground/[0.03] p-1 w-fit rounded-xl border border-card-border flex-shrink-0">
               <button
                 onClick={() => setTableTab("active")}
-                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs font-semibold transition-all ${tableTab === "active" ? "bg-emerald-500 text-zinc-950" : "text-text-muted hover:text-foreground"}`}
+                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs font-semibold transition-all ${tableTab === "active" ? "bg-success text-zinc-950" : "text-text-muted hover:text-foreground"}`}
               >
                 Active
               </button>
               <button
                 onClick={() => setTableTab("done")}
-                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs font-semibold transition-all ${tableTab === "done" ? "bg-emerald-500 text-zinc-950" : "text-text-muted hover:text-foreground"}`}
+                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs font-semibold transition-all ${tableTab === "done" ? "bg-success text-zinc-950" : "text-text-muted hover:text-foreground"}`}
               >
                 Done
               </button>
@@ -1350,19 +1350,14 @@ export default function TasksPageClient({
                               type="submit"
                               form="create-task-form"
                               disabled={isPending || savingCreate}
-                              className="inline-flex items-center p-1.5 border border-transparent rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-all"
+                              className="grid h-8 w-8 place-items-center rounded-full bg-ink text-on-ink transition-opacity hover:opacity-90 disabled:opacity-50"
                             >
-                              {savingCreate ? (
-                                <div className="h-3.5 w-3.5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                              ) : (
-                                <FiCheck className="h-3.5 w-3.5" />
-                              )}
-                            </button>
+                              </button>
                             <button
                               type="button"
                               onClick={handleCancelCreate}
                               disabled={savingCreate}
-                              className="inline-flex items-center p-1.5 border border-card-border rounded-lg text-text-muted bg-foreground/[0.03] hover:bg-foreground/[0.06] hover:text-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 disabled:opacity-50 transition-all"
+                              className="inline-flex items-center p-1.5 border border-card-border text-text-muted bg-foreground/[0.03] hover:bg-foreground/[0.06] hover:text-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 disabled:opacity-50 transition-all rounded-full"
                             >
                               <FiX className="h-3 w-3" />
                             </button>
@@ -1417,7 +1412,7 @@ export default function TasksPageClient({
                     }}
                     className="flex items-center gap-2 p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
                   >
-                    <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+                    <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
                       <FiPlus className="w-4 h-4" />
                     </div>
                     <span>New Task</span>
@@ -1426,14 +1421,14 @@ export default function TasksPageClient({
               </div>
 
               {isLoadingMore && (
-                <div className="flex items-center gap-4 bg-emerald-500/10 border border-emerald-500/20 py-2 px-4 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-xl shadow-xl shadow-emerald-500/5">
+                <div className="flex items-center gap-4 bg-success/10 border border-success/20 py-2 px-4 rounded-2xl animate-in fade-in slide-in-from-bottom-2 duration-500 backdrop-blur-xl shadow-xl ">
                   <div className="flex flex-col items-end">
-                    <div className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest leading-none mb-1">
+                    <div className="text-[11px] text-success-text font-bold leading-none mb-1">
                       Expanding
                     </div>
-                    <div className="h-1 w-12 bg-emerald-500/20 rounded-full overflow-hidden">
+                    <div className="h-1 w-12 bg-success/20 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-emerald-500"
+                        className="h-full bg-success"
                         initial={{ x: "-100%" }}
                         animate={{ x: "100%" }}
                         transition={{
@@ -1445,8 +1440,8 @@ export default function TasksPageClient({
                     </div>
                   </div>
                   <div className="relative h-6 w-6 flex items-center justify-center">
-                    <div className="absolute inset-0 border-2 border-emerald-500/10 rounded-full"></div>
-                    <div className="absolute inset-0 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 border-2 border-success/10 rounded-full"></div>
+                    <div className="absolute inset-0 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 </div>
               )}
@@ -1474,7 +1469,7 @@ export default function TasksPageClient({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 12 }}
               transition={{ type: "spring", damping: 26, stiffness: 320 }}
-              className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-card border border-card-border rounded-2xl shadow-2xl"
+              className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-card border border-card-border rounded-[28px] shadow-2xl"
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-card-border sticky top-0 bg-card z-10">
                 <h2 className="text-base font-bold text-foreground tracking-tight">
@@ -1495,7 +1490,7 @@ export default function TasksPageClient({
                     onClick={handleCancelCreate}
                     title="Cancel"
                     aria-label="Cancel"
-                    className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
+                    className="p-2 text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all rounded-full"
                   >
                     <FiX className="w-4 h-4" />
                   </button>
@@ -1568,7 +1563,7 @@ export default function TasksPageClient({
                   type="button"
                   onClick={handleCancelCreate}
                   disabled={savingCreate}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-text-muted hover:text-foreground transition-colors disabled:opacity-50"
+                  className="md-btn md-btn-secondary"
                 >
                   Cancel
                 </button>
@@ -1576,14 +1571,10 @@ export default function TasksPageClient({
                   type="submit"
                   form="create-task-form"
                   disabled={isPending || savingCreate}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm font-bold transition-all disabled:opacity-50"
+                  className="md-btn md-btn-primary"
                 >
-                  {savingCreate ? (
-                    <div className="h-3.5 w-3.5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <FiCheck className="h-4 w-4" />
-                  )}
-                  Create task
+                  Create task <span className="md-btn-chip">{savingCreate ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
+
                 </button>
               </div>
             </motion.div>

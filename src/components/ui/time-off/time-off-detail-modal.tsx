@@ -9,6 +9,8 @@ import { useOrgSlug } from '@/hooks/use-org-slug';
 
 import type { TimeOffRequest } from '@/types/time-off';
 import type { User } from '@/types/user';
+import { avatarStyle } from '@/lib/avatar-color';
+import { formatStatus } from '@/lib/format-status';
 
 interface TimeOffDetailModalProps {
     request: TimeOffRequest | null;
@@ -21,15 +23,15 @@ interface TimeOffDetailModalProps {
 }
 
 const statusColors: Record<string, string> = {
-    pending: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    approved: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    rejected: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    pending: 'bg-warning/10 text-warning-text border-warning/20',
+    approved: 'bg-success/10 text-success-text border-success/20',
+    rejected: 'bg-danger/10 text-danger-text border-danger/20',
 };
 
 const typeColors: Record<string, string> = {
-    leave: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    leave: 'bg-accent/10 text-accent-text border-accent/20',
     off: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-    sick: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    sick: 'bg-danger/10 text-danger-text border-danger/20',
     other: 'bg-zinc-500/10 text-text-muted border-card-border',
 };
 
@@ -62,23 +64,23 @@ export default function TimeOffDetailModal({
         >
             <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md transition-opacity" />
 
-            <div className="relative bg-background border border-card-border rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
+            <div className="relative bg-background border border-card-border rounded-[2.5rem] w-full max-w-lg overflow-hidden">
                 {/* Header */}
                 <div className="p-6 border-b border-card-border flex justify-between items-center bg-foreground/[0.03]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                            <FiCheck className="w-5 h-5 text-amber-400" />
+                        <div className="w-10 h-10 bg-warning/10 border border-warning/20 flex items-center justify-center rounded-full">
+                            <FiCheck className="w-5 h-5 text-warning-text" />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-foreground">Time-Off Details</h2>
-                            <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusColors[request.status]}`}>
-                                {request.status}
+                            <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusColors[request.status]}`}>
+                                {formatStatus(request.status)}
                             </span>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-foreground/[0.05] rounded-xl transition-colors text-text-muted hover:text-foreground"
+                        className="p-2 hover:bg-foreground/[0.05] transition-colors text-text-muted hover:text-foreground rounded-full"
                     >
                         <FiX size={20} />
                     </button>
@@ -91,12 +93,12 @@ export default function TimeOffDetailModal({
                         {user?.avatarUrl ? (
                             <Image src={user.avatarUrl} alt={user.fullName || ''} width={48} height={48} className="rounded-full object-cover border border-card-border" />
                         ) : (
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
+                            <div style={avatarStyle(user?.fullName || user?.email)} className="w-12 h-12 rounded-full bg-foreground/[0.06] flex items-center justify-center text-foreground font-bold text-lg">
                                 {(user?.fullName || user?.email || '?').charAt(0).toUpperCase()}
                             </div>
                         )}
                         <div>
-                            <Link href={orgPath(`/users/${request.user_id}`)} className="text-base font-bold text-foreground hover:text-amber-400 transition-colors">
+                            <Link href={orgPath(`/users/${request.user_id}`)} className="text-base font-bold text-foreground hover:text-warning-text transition-colors">
                                 {user?.fullName || 'Unknown'}
                             </Link>
                             <p className="text-sm text-text-muted">{user?.email}</p>
@@ -148,7 +150,7 @@ export default function TimeOffDetailModal({
                                 rel="noreferrer"
                                 className="flex min-h-11 items-center gap-3 rounded-xl border border-card-border bg-input-bg px-3 py-2 transition-colors hover:border-foreground/15 hover:bg-foreground/[0.05]"
                             >
-                                <FiFileText className="h-4 w-4 shrink-0 text-rose-500" />
+                                <FiFileText className="h-4 w-4 shrink-0 text-danger-text" />
                                 <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{request.attachment_name}</span>
                                 {request.attachment_size && (
                                     <span className="text-[10px] text-text-muted">{Math.ceil(request.attachment_size / 1024)} KB</span>
@@ -168,7 +170,7 @@ export default function TimeOffDetailModal({
                         <button
                             onClick={() => onDelete(request.id)}
                             disabled={actionLoading !== null}
-                            className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-rose-400 hover:border-rose-500/20 hover:bg-rose-500/10 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
+                            className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-danger-text hover:border-danger/20 hover:bg-danger/10 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
                         >
                             {actionLoading === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
                         </button>
@@ -176,7 +178,7 @@ export default function TimeOffDetailModal({
                             <button
                                 onClick={() => onReject(request.id)}
                                 disabled={actionLoading !== null}
-                                className="px-5 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
+                                className="px-5 py-2.5 rounded-xl bg-danger/10 border border-danger/20 text-danger-text hover:bg-danger/20 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
                             >
                                 {actionLoading === 'reject' ? (
                                     <FiLoader className="h-4 w-4 animate-spin" />
@@ -188,7 +190,7 @@ export default function TimeOffDetailModal({
                             <button
                                 onClick={() => onApprove(request.id)}
                                 disabled={actionLoading !== null}
-                                className="px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
+                                className="md-btn md-btn-primary md-btn-sm"
                             >
                                 {actionLoading === 'approve' ? (
                                     <FiLoader className="h-4 w-4 animate-spin" />
@@ -206,7 +208,7 @@ export default function TimeOffDetailModal({
                         <button
                             onClick={() => onDelete(request.id)}
                             disabled={actionLoading !== null}
-                            className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-rose-400 hover:border-rose-500/20 hover:bg-rose-500/10 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
+                            className="px-4 py-2 rounded-xl border border-card-border text-text-muted hover:text-danger-text hover:border-danger/20 hover:bg-danger/10 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex items-center gap-2"
                         >
                             {actionLoading === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />} Delete
                         </button>

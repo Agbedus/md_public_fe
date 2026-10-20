@@ -46,7 +46,7 @@ interface SettingsFormProps {
   initialSmsEnabled: boolean;
 }
 
-const inputClass = "w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] focus:border-emerald-500/40 transition-all font-numbers";
+const inputClass = "w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all font-numbers";
 const labelClass = "block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5";
 
 /** Neutral icon chip — dark/gray with a plain foreground-colored icon, no
@@ -198,7 +198,7 @@ export default function SettingsForm({ user, phone, initialSmsEnabled }: Setting
   if (!isLoaded) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500"></div>
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-success"></div>
         <p className="text-xs text-text-muted">Loading your settings...</p>
       </div>
     );
@@ -341,18 +341,18 @@ export default function SettingsForm({ user, phone, initialSmsEnabled }: Setting
       {/* SAVE BAR */}
       <div className="flex items-center justify-between gap-4 pt-1">
         <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-text-muted">
-          <FiCloud size={12} className={isDirty ? "text-amber-500" : "text-emerald-500"} />
+          <FiCloud size={12} className={isDirty ? "text-warning-text" : "text-success-text"} />
           {isDirty ? "Unsaved changes" : "All changes saved"}
         </span>
         <button
           type="submit"
           disabled={isSaving || !isDirty}
           aria-busy={isSaving}
-          className="flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          className="md-btn md-btn-primary"
         >
           {isSaving ? (
             <>
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-emerald-500"></div>
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-success"></div>
               Saving...
             </>
           ) : (

@@ -60,7 +60,7 @@ export const AnnouncementForm = () => {
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          className="relative w-full max-w-lg bg-background border border-card-border rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden"
+          className="relative w-full max-w-lg bg-background border border-card-border rounded-[28px] overflow-hidden"
         >
           <div className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
             <div className="flex justify-between items-center">
@@ -70,7 +70,7 @@ export const AnnouncementForm = () => {
               </h3>
               <button 
                 onClick={() => setIsAdminFormOpen(false)}
-                className="p-2 hover:bg-foreground/[0.05] rounded-xl text-text-secondary hover:text-foreground transition-all"
+                className="p-2 hover:bg-foreground/[0.05] text-text-secondary hover:text-foreground transition-all rounded-full"
               >
                 <FiX size={20} />
               </button>
@@ -78,7 +78,7 @@ export const AnnouncementForm = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">
+                <label className="block text-[11px] font-semibold text-text-muted mb-2 ml-1">
                   Announcement Title
                 </label>
                 <input
@@ -86,28 +86,28 @@ export const AnnouncementForm = () => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="What's the big news?"
-                  className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-emerald-500/30 transition-all font-bold"
+                  className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                   required
                   disabled={loading}
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">
+                <label className="block text-[11px] font-semibold text-text-muted mb-2 ml-1">
                   Announcement Message
                 </label>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Keep it concise and clear..."
-                  className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-emerald-500/30 transition-all min-h-[120px] font-bold resize-none"
+                  className="w-full bg-foreground/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all min-h-[120px] font-bold resize-none"
                   required
                   disabled={loading}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-1 ml-1">
+                <label className="block text-[11px] font-semibold text-text-muted mb-1 ml-1">
                   Classification
                 </label>
                 <div className="grid grid-cols-5 gap-2">
@@ -116,16 +116,16 @@ export const AnnouncementForm = () => {
                       key={t}
                       type="button"
                       onClick={() => setType(t)}
-                      className={`py-3 px-1 rounded-2xl border text-[9px] font-black uppercase tracking-tight transition-all flex flex-col items-center gap-1.5 ${
-                        type === t 
-                          ? 'bg-foreground/10 border-foreground/20 text-foreground ' 
-                          : 'bg-transparent border-card-border text-text-muted hover:bg-foreground/[0.02]'
-                      }`}
+                      className={`py-3 px-1 rounded-2xl border text-[11px] font-semibold tracking-tight transition-all flex flex-col items-center gap-1.5 ${
+ type === t 
+ ? 'bg-foreground/10 border-foreground/20 text-foreground ' 
+ : 'bg-transparent border-card-border text-text-muted hover:bg-foreground/[0.02]'
+ }`}
                     >
-                      {t === 'info' && <FiInfo size={16} className="text-blue-600 dark:text-blue-500" />}
-                      {t === 'success' && <FiAlertCircle size={16} className="text-emerald-600 dark:text-emerald-500" />}
-                      {t === 'warning' && <FiAlertTriangle size={16} className="text-amber-600 dark:text-amber-500" />}
-                      {t === 'error' && <FiAlertCircle size={16} className="text-rose-600 dark:text-rose-500" />}
+                      {t === 'info' && <FiInfo size={16} className="text-accent-text dark:text-accent-text" />}
+                      {t === 'success' && <FiAlertCircle size={16} className="text-success-text dark:text-success-text" />}
+                      {t === 'warning' && <FiAlertTriangle size={16} className="text-warning-text dark:text-warning-text" />}
+                      {t === 'error' && <FiAlertCircle size={16} className="text-danger-text dark:text-danger-text" />}
                       {t === 'critical' && <FiAlertCircle size={16} className="text-purple-600 dark:text-purple-500" />}
                       {t}
                     </button>
@@ -134,7 +134,7 @@ export const AnnouncementForm = () => {
               </div>
 
               {error && (
-                <div className="flex items-center gap-3 text-xs text-rose-400 bg-rose-500/10 p-4 rounded-2xl border border-rose-500/10 animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center gap-3 text-xs text-danger-text bg-danger/10 p-4 rounded-2xl border border-danger/10 animate-in fade-in zoom-in-95 duration-200">
                   <FiAlertCircle size={16} className="flex-shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -144,19 +144,10 @@ export const AnnouncementForm = () => {
                 <button
                   type="submit"
                   disabled={loading || !title.trim() || !content.trim()}
-                  className="px-8 py-3 bg-yellow-400 hover:bg-yellow-300 text-black text-xs font-bold rounded-2xl transition-all  hover:-[var(--pastel-yellow)]/20 disabled:opacity-50 disabled:hover: flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
+                  className="md-btn md-btn-primary"
                 >
-                  {loading ? (
-                    <>
-                      <FiLoader className="animate-spin" size={16} />
-                      Broadcasting...
-                    </>
-                  ) : (
-                    <>
-                      <HiSpeakerphone size={16} />
-                      Broadcast Now
-                    </>
-                  )}
+                  {loading ? 'Sending…' : 'Send announcement'}
+                  <span className="md-btn-chip">{loading ? <FiLoader className="animate-spin" /> : <HiSpeakerphone />}</span>
                 </button>
               </div>
             </form>

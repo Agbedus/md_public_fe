@@ -98,7 +98,7 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
             
             if ((isTimeOffEvent && activeFilter === 'timeOff') || (!isTimeOffEvent && activeFilter === 'events')) {
                 const status = isTimeOffEvent ? 'approved' : undefined;
-                const color = isTimeOffEvent ? 'bg-emerald-400' : ev.color;
+                const color = isTimeOffEvent ? 'bg-success' : ev.color;
                 
                 const user = isTimeOffEvent ? users.find((u: User) => u.id === ev.userId) : undefined;
 
@@ -122,7 +122,7 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
           .forEach((t: Task) => {
             const statusMap = t.status === "DONE" ? "completed" : t.status === "IN_PROGRESS" ? "in_progress" : "task";
             const color =
-              statusMap === "completed" ? "bg-emerald-400" : statusMap === "in_progress" ? "bg-amber-400" : "bg-sky-400";
+              statusMap === "completed" ? "bg-success" : statusMap === "in_progress" ? "bg-warning" : "bg-accent";
             items.push({
               id: `task-${t.id}`,
               title: t.name,
@@ -173,7 +173,7 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
               start: new Date(r.start_date),
               end: new Date(r.end_date),
               allDay: true,
-              color: 'bg-amber-300/80',
+              color: 'bg-warning/80',
               description: r.justification || '',
               isTimeOff: true,
               timeOffStatus: r.status,

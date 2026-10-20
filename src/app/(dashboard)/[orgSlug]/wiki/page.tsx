@@ -40,7 +40,7 @@ function Section({
     id,
     title,
     icon: Icon,
-    color = 'text-emerald-400',
+    color = 'text-success-text',
     children,
 }: {
     id: string;
@@ -112,12 +112,12 @@ function Callout({
         <div
             className={`max-w-[68ch] rounded-xl border p-4 ${
                 isWarning
-                    ? 'border-amber-500/30 bg-amber-500/[0.06]'
+                    ? 'border-warning/30 bg-warning/[0.06]'
                     : 'border-card-border bg-foreground/[0.02]'
             }`}
         >
             <div className="mb-1.5 flex items-center gap-2">
-                <Icon className={`h-3.5 w-3.5 ${isWarning ? 'text-amber-600 dark:text-amber-400' : 'text-text-muted'}`} />
+                <Icon className={`h-3.5 w-3.5 ${isWarning ? 'text-warning-text dark:text-warning-text' : 'text-text-muted'}`} />
                 <span className="text-xs font-semibold text-foreground">{title}</span>
             </div>
             <div className="text-sm leading-6 text-text-secondary">{children}</div>
@@ -164,7 +164,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'latest',
         title: 'Latest changes',
         icon: FiInfo,
-        color: 'text-emerald-400',
+        color: 'text-success-text',
         topics: [
             { id: 'docs-version', title: 'Docs version' },
             { id: 'recent-updates', title: 'What changed recently' },
@@ -174,7 +174,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'getting-started',
         title: 'Getting started',
         icon: FiBookOpen,
-        color: 'text-blue-400',
+        color: 'text-accent-text',
         topics: [
             { id: 'what-it-is', title: 'What this platform does' },
             { id: 'organizations', title: 'Organizations' },
@@ -185,7 +185,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'roles',
         title: 'Roles and permissions',
         icon: FiShield,
-        color: 'text-rose-400',
+        color: 'text-danger-text',
         topics: [
             { id: 'the-five-roles', title: 'The five roles' },
             { id: 'the-rules', title: 'What each role can do' },
@@ -217,7 +217,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'notes',
         title: 'Notes',
         icon: FiFileText,
-        color: 'text-yellow-400',
+        color: 'text-warning-text',
         topics: [
             { id: 'notes-basics', title: 'Writing notes' },
             { id: 'sharing-notes', title: 'Sharing' },
@@ -227,7 +227,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'calendar',
         title: 'Calendar and time off',
         icon: FiCalendar,
-        color: 'text-green-400',
+        color: 'text-success-text',
         topics: [
             { id: 'events', title: 'Events' },
             { id: 'time-off', title: 'Requesting time off' },
@@ -237,7 +237,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'attendance',
         title: 'Attendance',
         icon: FiMapPin,
-        color: 'text-sky-400',
+        color: 'text-accent-text',
         topics: [
             { id: 'clocking-in', title: 'Clocking in and out' },
             { id: 'office-locations', title: 'Office locations' },
@@ -257,7 +257,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'notifications',
         title: 'Announcements and alerts',
         icon: FiBell,
-        color: 'text-indigo-400',
+        color: 'text-accent-text',
         topics: [
             { id: 'announcements', title: 'Announcements' },
             { id: 'who-gets-notified', title: 'Who gets notified' },
@@ -280,7 +280,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'sharing',
         title: 'Sharing MyndDesk',
         icon: FiShare2,
-        color: 'text-emerald-400',
+        color: 'text-success-text',
         topics: [
             { id: 'sharing-options', title: 'Ways to share' },
             { id: 'sharing-qr', title: 'Custom QR codes' },
@@ -291,7 +291,7 @@ const NAV: { id: string; title: string; icon: React.ElementType; color: string; 
         id: 'focus',
         title: 'Focus timer',
         icon: FiClock,
-        color: 'text-orange-400',
+        color: 'text-priority-high-text',
         topics: [{ id: 'focus-basics', title: 'Running a session' }],
     },
     {
@@ -363,7 +363,7 @@ export default function WikiPage() {
                     </button>
 
                     <div className="flex items-center gap-2.5">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success-text">
                             <FiBookOpen className="h-4 w-4" />
                         </span>
                         <div>
@@ -410,7 +410,7 @@ export default function WikiPage() {
                                         <FiChevronRight
                                             aria-hidden="true"
                                             className={`h-3.5 w-3.5 transition-opacity ${
-                                                activeId === topic.id ? 'text-emerald-500 opacity-100' : 'opacity-0'
+                                                activeId === topic.id ? 'text-success-text opacity-100' : 'opacity-0'
                                             }`}
                                         />
                                         <span>{topic.title}</span>
@@ -441,7 +441,7 @@ export default function WikiPage() {
                         </P>
                     </header>
 
-                    <Section id="latest" title="Latest changes" icon={FiInfo} color="text-emerald-400">
+                    <Section id="latest" title="Latest changes" icon={FiInfo} color="text-success-text">
                         <Topic id="docs-version" title="Docs version">
                             <P>
                                 This wiki is versioned as <strong className="font-medium text-foreground">v{DOC_VERSION}</strong>.
@@ -470,7 +470,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="getting-started" title="Getting started" icon={FiBookOpen} color="text-blue-400">
+                    <Section id="getting-started" title="Getting started" icon={FiBookOpen} color="text-accent-text">
                         <Topic id="what-it-is" title="What this platform does">
                             <P>
                                 This is a shared workspace for running day-to-day operations. It
@@ -506,7 +506,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="roles" title="Roles and permissions" icon={FiShield} color="text-rose-400">
+                    <Section id="roles" title="Roles and permissions" icon={FiShield} color="text-danger-text">
                         <Topic id="the-five-roles" title="The five roles">
                             <P>
                                 Every person in an organization has one role. Roles run from most to
@@ -643,7 +643,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="notes" title="Notes" icon={FiFileText} color="text-yellow-400">
+                    <Section id="notes" title="Notes" icon={FiFileText} color="text-warning-text">
                         <Topic id="notes-basics" title="Writing notes">
                             <P>
                                 Notes are for anything that does not fit a task — meeting minutes,
@@ -662,7 +662,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="calendar" title="Calendar and time off" icon={FiCalendar} color="text-green-400">
+                    <Section id="calendar" title="Calendar and time off" icon={FiCalendar} color="text-success-text">
                         <Topic id="events" title="Events">
                             <P>
                                 The calendar shows events alongside task due dates, project
@@ -695,7 +695,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="attendance" title="Attendance" icon={FiMapPin} color="text-sky-400">
+                    <Section id="attendance" title="Attendance" icon={FiMapPin} color="text-accent-text">
                         <Topic id="clocking-in" title="Clocking in and out">
                             <P>
                                 Attendance uses your device location. When you arrive within range of
@@ -769,7 +769,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="notifications" title="Announcements and alerts" icon={FiBell} color="text-indigo-400">
+                    <Section id="notifications" title="Announcements and alerts" icon={FiBell} color="text-accent-text">
                         <Topic id="announcements" title="Announcements">
                             <P>
                                 Announcements go to everyone in the organization at once — useful for
@@ -893,7 +893,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="sharing" title="Sharing MyndDesk" icon={FiShare2} color="text-emerald-400">
+                    <Section id="sharing" title="Sharing MyndDesk" icon={FiShare2} color="text-success-text">
                         <Topic id="sharing-options" title="Ways to share">
                             <P>
                                 Share MyndDesk from the landing page, sidebar, your profile or
@@ -935,7 +935,7 @@ export default function WikiPage() {
                         </Topic>
                     </Section>
 
-                    <Section id="focus" title="Focus timer" icon={FiClock} color="text-orange-400">
+                    <Section id="focus" title="Focus timer" icon={FiClock} color="text-priority-high-text">
                         <Topic id="focus-basics" title="Running a session">
                             <P>
                                 Focus mode runs a work-and-break timer for concentrated stretches of

@@ -36,11 +36,11 @@ export default function OverrideModal({ record, onClose, onOverride }: Props) {
 
             await onOverride(record.id, clockInISO, clockOutISO);
             toast.success('Attendance overridden successfully', {
-                icon: <FiCheckCircle size={22} className="text-emerald-400" />
+                icon: <FiCheckCircle size={22} className="text-success-text" />
             });
         } catch {
             toast.error('Failed to override attendance', {
-                icon: <FiXCircle size={22} className="text-rose-400" />
+                icon: <FiXCircle size={22} className="text-danger-text" />
             });
         } finally {
             setIsSubmitting(false);
@@ -54,14 +54,14 @@ export default function OverrideModal({ record, onClose, onOverride }: Props) {
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-3 border-b border-card-border bg-foreground/[0.03]">
                     <div>
-                        <h3 className="text-sm font-bold text-foreground tracking-tight">Manual Override</h3>
-                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">
+                        <h3 className="text-sm font-bold text-foreground tracking-tight">Manual override</h3>
+                        <p className="text-[10px] text-text-muted font-bold mt-0.5">
                             {record.userName || 'User'} · {dateSource ? new Date(dateSource + (dateSource.includes('T') ? '' : 'T00:00:00')).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Today'}
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
+                        className="p-1.5 rounded-full text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
                     >
                         <FiX className="w-4 h-4" />
                     </button>
@@ -70,8 +70,8 @@ export default function OverrideModal({ record, onClose, onOverride }: Props) {
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     <div className="grid grid-cols-1 gap-5">
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1">
-                                <FiClock className="inline mr-1.5 text-indigo-400" />
+                            <label className="block text-[10px] font-bold text-text-muted ml-1">
+                                <FiClock className="inline mr-1.5 text-accent-text" />
                                 Clock In Time
                             </label>
                             <CustomTimePicker
@@ -81,8 +81,8 @@ export default function OverrideModal({ record, onClose, onOverride }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1">
-                                <FiClock className="inline mr-1.5 text-rose-400" />
+                            <label className="block text-[10px] font-bold text-text-muted ml-1">
+                                <FiClock className="inline mr-1.5 text-danger-text" />
                                 Clock Out Time
                             </label>
                             <CustomTimePicker
@@ -96,14 +96,14 @@ export default function OverrideModal({ record, onClose, onOverride }: Props) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-text-muted bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:text-foreground transition-all"
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-[10px] font-bold text-text-muted bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:text-foreground transition-all"
                         >
                             Terminate
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                            className="md-btn md-btn-primary md-btn-sm flex-1"
                         >
                             <FiCheck className="w-4 h-4" />
                             {isSubmitting ? 'Syncing...' : 'Commit'}

@@ -20,7 +20,7 @@ function formatTime(iso: string | null | undefined): string {
 export default function AttendanceHistoryTable({ records }: { records: AttendanceRecord[] }) {
     if (records.length === 0) {
         return (
-            <div className="glass p-12 rounded-2xl border border-card-border text-center">
+            <div className="bg-card p-12 rounded-[28px] border border-card-border text-center">
                 <FiClock className="text-4xl text-(--text-muted) mx-auto mb-4" />
                 <p className="text-text-secondary text-sm font-medium">No activity logged yet.</p>
                 <p className="text-(--text-muted) text-xs mt-1">Your location history will appear here once you clock in.</p>
@@ -29,27 +29,27 @@ export default function AttendanceHistoryTable({ records }: { records: Attendanc
     }
 
     return (
-        <div className="glass rounded-2xl border border-card-border overflow-hidden flex flex-col">
+        <div className="bg-card rounded-[28px] border border-card-border overflow-hidden flex flex-col">
             <div className="p-4 lg:px-6 py-4 border-b border-card-border bg-background/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <FiCheckCircle className="text-emerald-500 w-4 h-4" />
-                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Activity History</h3>
+                    <FiCheckCircle className="text-success-text w-4 h-4" />
+                    <h3 className="text-sm font-semibold text-foreground">Activity history</h3>
                 </div>
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest bg-foreground/[0.05] px-2 py-0.5 rounded-md border border-card-border">
-                    {records.length} Logs
+                <span className="md-count bg-foreground/[0.06] text-text-muted">
+                    {records.length} logs
                 </span>
             </div>
             <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm border-collapse">
                     <thead>
                         <tr className="border-b border-card-border bg-background/30">
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">In</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Out</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">First Seen</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Last Seen</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Hours</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Date</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">In</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Out</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">First seen</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Last seen</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Hours</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Status</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-card-border">
@@ -81,7 +81,7 @@ export default function AttendanceHistoryTable({ records }: { records: Attendanc
                                     <td className="px-6 py-3 whitespace-nowrap">
                                         {firstSeen ? (
                                             <span className="inline-flex items-center gap-1.5 text-text-muted font-numbers text-xs" suppressHydrationWarning>
-                                                <div className="w-1 h-1 rounded-full bg-emerald-500/40" />
+                                                <div className="w-1 h-1 rounded-full bg-success/40" />
                                                 {formatTime(firstSeen)}
                                             </span>
                                         ) : '—'}
@@ -89,7 +89,7 @@ export default function AttendanceHistoryTable({ records }: { records: Attendanc
                                     <td className="px-6 py-3 whitespace-nowrap">
                                         {lastSeen ? (
                                             <span className="inline-flex items-center gap-1.5 text-text-muted font-numbers text-xs" suppressHydrationWarning>
-                                                <div className="w-1 h-1 rounded-full bg-amber-500/40" />
+                                                <div className="w-1 h-1 rounded-full bg-warning/40" />
                                                 {formatTime(lastSeen)}
                                             </span>
                                         ) : '—'}

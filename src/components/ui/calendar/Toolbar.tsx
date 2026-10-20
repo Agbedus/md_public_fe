@@ -5,6 +5,7 @@ import { FiChevronLeft, FiChevronRight, FiPlus, FiSun } from "react-icons/fi";
 import type { CalendarView } from "@/types/calendar";
 import TimezoneClocks from "./TimezoneClocks";
 
+import { TabPill } from '@/components/ui/tab-pill';
 interface ToolbarProps {
   currentDate: Date;
   view: CalendarView;
@@ -30,24 +31,24 @@ export default function Toolbar({
     <div className="flex flex-col gap-6 mb-8">
       <div className="bg-card p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-card-border">
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-foreground/[0.05] rounded-xl border border-card-border p-1">
-              <button onClick={onPrev} className="p-2 rounded-lg text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] transition-all">
+          <div className="flex items-center bg-foreground/[0.05] rounded-full border border-card-border p-1">
+              <button onClick={onPrev} className="p-2 text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] transition-all rounded-full">
               <FiChevronLeft className="h-4 w-4" />
               </button>
-              <button onClick={onNext} className="p-2 rounded-lg text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] transition-all">
+              <button onClick={onNext} className="p-2 text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] transition-all rounded-full">
               <FiChevronRight className="h-4 w-4" />
               </button>
           </div>
           <button 
               onClick={onToday} 
-              className="px-4 py-2 rounded-xl bg-foreground/[0.05] border border-card-border text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] text-sm font-medium transition-all"
+              className="px-4 py-2 rounded-full bg-foreground/[0.05] border border-card-border text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] text-sm font-medium transition-all"
           >
               Today
           </button>
           {onAddEvent && (
               <button 
                   onClick={onAddEvent} 
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--pastel-indigo)]/10 border border-[var(--pastel-indigo)]/20 text-[var(--pastel-indigo)] hover:bg-[var(--pastel-indigo)]/20 text-sm font-bold transition-all ml-2"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--pastel-indigo)]/10 border border-[var(--pastel-indigo)]/20 text-[var(--pastel-indigo)] hover:bg-[var(--pastel-indigo)]/20 text-sm font-bold transition-all ml-2"
               >
                   <FiPlus className="h-4 w-4" />
                   <span>Event</span>
@@ -56,7 +57,7 @@ export default function Toolbar({
           {canRequestTimeOff && onRequestTimeOff && (
               <button 
                   onClick={onRequestTimeOff} 
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 text-sm font-bold transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-warning/10 border border-warning/20 text-warning-text hover:bg-warning/20 text-sm font-bold transition-all"
               >
                   <FiSun className="h-4 w-4" />
                   <span>Time Off</span>
@@ -69,17 +70,16 @@ export default function Toolbar({
         </div>
 
         {!hideViewSwitcher && (
-          <div className="flex items-center space-x-1 bg-foreground/[0.05] p-1 rounded-xl border border-card-border">
+          <div className="flex items-center space-x-1 bg-foreground/[0.05] p-1 rounded-full border border-card-border">
             {(['month', 'week', 'day'] as const).map((v) => (
                 <button
                     key={v}
                     onClick={() => onChangeView?.(v)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        view === v 
-                        ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" 
-                        : "text-(--text-muted) hover:text-foreground"
+                    className={`relative isolate px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                        view === v ? "text-on-ink" : "text-(--text-muted) hover:text-foreground"
                     }`}
                 >
+                    {view === v && <TabPill id="calendar-view" />}
                     {v.charAt(0).toUpperCase() + v.slice(1)}
                 </button>
             ))}
@@ -139,17 +139,17 @@ export default function Toolbar({
 
 function FilterToggle({ label, active, onClick, color }: { label: string, active: boolean, onClick: () => void, color: 'indigo' | 'emerald' | 'purple' | 'amber' }) {
     const activeColors = {
-        indigo: 'bg-indigo-100 dark:bg-indigo-900/40 border-indigo-400 dark:border-indigo-600 text-indigo-600 dark:text-indigo-300',
-        emerald: 'bg-emerald-100 dark:bg-emerald-900/40 border-emerald-400 dark:border-emerald-600 text-emerald-600 dark:text-emerald-300',
+        indigo: 'bg-accent/10 dark:bg-accent/40 border-accent dark:border-accent text-accent-text dark:text-accent-text',
+        emerald: 'bg-success/10 dark:bg-success/40 border-success dark:border-success text-success-text dark:text-success-text',
         purple: 'bg-purple-100 dark:bg-purple-900/40 border-purple-400 dark:border-purple-600 text-purple-600 dark:text-purple-300',
-        amber: 'bg-amber-100 dark:bg-amber-900/40 border-amber-400 dark:border-amber-600 text-amber-600 dark:text-amber-300'
+        amber: 'bg-warning/10 dark:bg-warning/40 border-warning dark:border-warning text-warning-text dark:text-warning-text'
     };
 
     return (
         <button
             onClick={onClick}
             className={`
-                px-4 py-2 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all duration-300
+                px-4 py-2 rounded-full border text-xs font-bold uppercase tracking-widest transition-all duration-300
                 ${active 
                     ? activeColors[color] 
                     : 'bg-foreground/[0.02] border-card-border text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.04]'

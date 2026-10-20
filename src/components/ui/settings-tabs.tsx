@@ -6,6 +6,7 @@ import SettingsForm from "@/components/ui/settings-form";
 import OrganizationSettingsForm from "@/components/ui/organization-settings-form";
 import type { OrganizationSettings } from "@/types/organization";
 
+import { TabPill } from '@/components/ui/tab-pill';
 interface SettingsTabsProps {
   user?: {
     id?: string | null;
@@ -42,17 +43,18 @@ export default function SettingsTabs({ user, phone, initialSmsEnabled, canManage
         <div
           role="tablist"
           aria-label="Settings"
-          className="inline-flex items-center gap-0.5 p-1 rounded-xl bg-foreground/[0.04] border border-card-border"
+          className="inline-flex items-center gap-0.5 rounded-full bg-foreground/[0.05] p-1"
         >
           <button
             type="button"
             role="tab"
             aria-selected={tab === "me"}
             onClick={() => setTab("me")}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === "me" ? "bg-card text-foreground shadow-sm" : "text-text-muted hover:text-foreground"
+            className={`relative isolate min-h-9 rounded-full px-4 text-sm font-medium transition-colors ${
+              tab === "me" ? "text-on-ink" : "text-text-muted hover:text-foreground"
             }`}
           >
+            {tab === "me" && <TabPill id="settings-tab" />}
             My settings
           </button>
           <button
@@ -60,10 +62,11 @@ export default function SettingsTabs({ user, phone, initialSmsEnabled, canManage
             role="tab"
             aria-selected={tab === "organization"}
             onClick={() => setTab("organization")}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === "organization" ? "bg-card text-foreground shadow-sm" : "text-text-muted hover:text-foreground"
+            className={`relative isolate min-h-9 rounded-full px-4 text-sm font-medium transition-colors ${
+              tab === "organization" ? "text-on-ink" : "text-text-muted hover:text-foreground"
             }`}
           >
+            {tab === "organization" && <TabPill id="settings-tab" />}
             Organization
           </button>
         </div>

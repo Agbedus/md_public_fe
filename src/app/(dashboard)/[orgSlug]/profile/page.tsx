@@ -21,6 +21,7 @@ import { presentOrgRole, orgRoleToneClasses, membershipStatusToneClasses } from 
 import type { OrgBrief } from '@/types/organization';
 import React from 'react';
 import { ShareButton } from '@/components/ui/sharing/share-button';
+import { formatStatus } from '@/lib/format-status';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -99,7 +100,7 @@ export default async function ProfilePage() {
             {organizations.length > 0 && (
               <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4">
                 <h4 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <FiUsers className="text-emerald-400" /> My Organizations
+                  <FiUsers className="text-success-text" /> My Organizations
                   <span className="text-[10px] font-bold text-text-muted ml-auto">{organizations.length}</span>
                 </h4>
                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -107,14 +108,14 @@ export default async function ProfilePage() {
                     const oRole = org.role ? presentOrgRole(org.role) : null;
                     const isCurrent = org.id === user.currentOrganizationId;
                     return (
-                      <div key={org.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isCurrent ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-foreground/[0.03] border-foreground/5'}`}>
+                      <div key={org.id} className={`flex items-center gap-3 p-3 rounded-xl border ${isCurrent ? 'bg-success/5 border-success/20' : 'bg-foreground/[0.03] border-foreground/5'}`}>
                         <div className="w-8 h-8 rounded-lg bg-foreground/[0.08] flex items-center justify-center text-xs font-black text-foreground flex-shrink-0">
                           {org.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-foreground truncate">{org.name}</p>
-                            {isCurrent && <span className="text-[8px] font-black text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-1 py-0.5 rounded">Active</span>}
+                            {isCurrent && <span className="text-[8px] font-black text-success-text uppercase tracking-wider bg-success/10 px-1 py-0.5 rounded">Active</span>}
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
                             {oRole && (
@@ -129,7 +130,7 @@ export default async function ProfilePage() {
                             )}
                           </div>
                         </div>
-                        {isCurrent && <FiCheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
+                        {isCurrent && <FiCheckCircle className="w-4 h-4 text-success-text flex-shrink-0" />}
                       </div>
                     );
                   })}
@@ -148,7 +149,7 @@ export default async function ProfilePage() {
             {/* Activity Heatmap Card */}
             <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4 overflow-hidden">
                 <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-[11px] font-medium text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded">Activity Engine</h4>
+                    <h4 className="text-[11px] font-medium text-success-text uppercase tracking-wider bg-success/10 px-2 py-0.5 rounded">Activity Engine</h4>
                     <span className="text-[11px] text-text-muted font-bold uppercase tracking-wider">History</span>
                 </div>
                 <ActivityHeatmap data={activityData} variant="compact" />
@@ -160,7 +161,7 @@ export default async function ProfilePage() {
             {/* Personalized Statistics */}
             <section className="hidden lg:block space-y-4">
                 <h3 className="text-lg lg:text-xl font-bold text-foreground px-2 flex items-center gap-2">
-                    <FiActivity className="text-emerald-400" /> Performance Overview
+                    <FiActivity className="text-success-text" /> Performance Overview
                 </h3>
                 <ProfileStats stats={{
                     totalTasks: stats.totalTasks,
@@ -174,7 +175,7 @@ export default async function ProfilePage() {
             {/* Analytics & Charts */}
             <section className="hidden lg:block space-y-4">
                 <h3 className="text-xl font-bold text-foreground px-2 flex items-center gap-2">
-                    <FiZap className="text-amber-400" /> Productivity Metrics
+                    <FiZap className="text-warning-text" /> Productivity Metrics
                 </h3>
                 <ProfileCharts 
                     productivityData={productivityData}
@@ -189,23 +190,23 @@ export default async function ProfilePage() {
                 <section className="space-y-3 lg:space-y-4">
                 <div className="flex justify-between items-center px-2">
                     <h3 className="text-base lg:text-lg font-bold text-foreground">Critical Focus</h3>
-                    <span className="text-[11px] lg:text-[11px] font-medium text-rose-400 uppercase tracking-wider bg-rose-500/10 px-2 py-0.5 rounded">High Priority</span>
+                    <span className="text-[11px] lg:text-[11px] font-medium text-danger-text uppercase tracking-wider bg-danger/10 px-2 py-0.5 rounded">High Priority</span>
                 </div>
                 <div className="glass p-4 lg:p-5 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-3">
                     {keyTasks.length > 0 ? (
                     keyTasks.map((task: any, i: number) => (
-                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-foreground/[0.03] border border-foreground/5 hover:bg-foreground/[0.08] transition-all group cursor-pointer border-l-4 border-l-rose-500/50">
-                        <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 transition-colors group-hover:bg-rose-500/20">
+                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-foreground/[0.03] border border-foreground/5 hover:bg-foreground/[0.08] transition-all group cursor-pointer border-l-4 border-l-danger/50">
+                        <div className="p-2 rounded-xl bg-danger/10 text-danger-text transition-colors group-hover:bg-danger/20">
                             <FiZap className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-rose-300 transition-colors">{task.title}</p>
+                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-danger-text transition-colors">{task.title}</p>
                             <div className="flex items-center gap-3 mt-1 text-[11px] text-text-muted">
                                 <span className="flex items-center gap-1">
                                     <FiClock className="w-3 h-3" /> {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
                                 </span>
                                 <span className="flex items-center gap-1">
-                                    <FiActivity className="w-3 h-3" /> {task.status}
+                                    <FiActivity className="w-3 h-3" /> {formatStatus(task.status)}
                                 </span>
                             </div>
                         </div>
@@ -222,17 +223,17 @@ export default async function ProfilePage() {
                 <section className="space-y-3 lg:space-y-4">
                 <div className="flex justify-between items-center px-2">
                     <h3 className="text-base lg:text-lg font-bold text-foreground">Knowledge</h3>
-                    <span className="text-[11px] lg:text-[11px] font-medium text-blue-400 uppercase tracking-wider bg-blue-500/10 px-2 py-0.5 rounded">Captures</span>
+                    <span className="text-[11px] lg:text-[11px] font-medium text-accent-text uppercase tracking-wider bg-accent/10 px-2 py-0.5 rounded">Captures</span>
                 </div>
                 <div className="glass p-4 lg:p-5 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-3">
                     {recentNotes.length > 0 ? (
                     recentNotes.map((note: any, i: number) => (
-                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-foreground/[0.03] border border-foreground/5 hover:bg-foreground/[0.08] transition-all group cursor-pointer border-l-4 border-l-blue-500/50">
+                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-foreground/[0.03] border border-foreground/5 hover:bg-foreground/[0.08] transition-all group cursor-pointer border-l-4 border-l-accent/50">
                         <div className={`p-2 rounded-xl bg-foreground/[0.03] ${note.color || 'text-text-muted'}`}>
                             <FiFileText className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-blue-300 transition-colors">{note.title}</p>
+                            <p className="text-sm font-semibold text-foreground truncate group-hover:text-accent-text transition-colors">{note.title}</p>
                             <p className="text-[11px] text-text-muted mt-1 uppercase tracking-wider font-medium">{note.type} • {new Date(note.updatedAt).toLocaleDateString()}</p>
                         </div>
                         </div>

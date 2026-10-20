@@ -59,20 +59,20 @@ export function EmailChipInput({ emails, onChange, placeholder = 'Enter email ad
   return (
     <div>
     <div
-      className={`flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-xl border bg-foreground/[0.02] focus-within:border-foreground/30 transition-colors cursor-text min-h-[42px] ${error ? 'border-rose-500/50' : 'border-card-border'}`}
+      className={`flex flex-wrap items-center gap-1.5 px-3 py-2 rounded-3xl border bg-foreground/[0.02] transition-colors cursor-text min-h-[42px] ${error ? 'border-danger/50' : 'border-card-border'}`}
       onClick={() => inputRef.current?.focus()}
     >
       <FiMail size={14} className="text-text-muted flex-shrink-0" />
       {emails.map((email, i) => (
         <span
           key={i}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/12 text-accent-text text-xs font-medium"
         >
           {email}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); removeEmail(i); }}
-            className="hover:text-indigo-300 transition-colors"
+            className="hover:text-accent-text transition-colors"
           >
             <FiX size={12} />
           </button>
@@ -95,7 +95,7 @@ export function EmailChipInput({ emails, onChange, placeholder = 'Enter email ad
         className="flex-1 min-w-[120px] bg-transparent text-sm text-foreground placeholder:text-text-muted outline-none border-none py-0.5"
       />
     </div>
-    {error && <p className="mt-1.5 text-xs text-rose-500">{error}</p>}
+    {error && <p className="mt-1.5 text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

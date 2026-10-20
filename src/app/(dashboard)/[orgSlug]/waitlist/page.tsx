@@ -11,24 +11,24 @@ interface WaitlistPageProps {
 }
 
 const roleColors: Record<string, string> = {
-    "C-Level Executive": 'bg-blue-600/10 text-blue-400 border-blue-600/20',
+    "C-Level Executive": 'bg-accent/10 text-accent-text border-accent/20',
     "VP / Director": 'bg-violet-600/10 text-violet-400 border-violet-600/20',
-    "Manager": 'bg-amber-600/10 text-amber-400 border-amber-600/20',
+    "Manager": 'bg-warning/10 text-warning-text border-warning/20',
     "Team Lead": 'bg-cyan-600/10 text-cyan-400 border-cyan-600/20',
-    "Individual Contributor": 'bg-emerald-600/10 text-emerald-400 border-emerald-600/20',
-    "Consultant": 'bg-rose-600/10 text-rose-400 border-rose-600/20',
-    "Founder / Owner": 'bg-orange-600/10 text-orange-400 border-orange-600/20',
+    "Individual Contributor": 'bg-success/10 text-success-text border-success/20',
+    "Consultant": 'bg-danger/10 text-danger-text border-danger/20',
+    "Founder / Owner": 'bg-priority-high/10 text-priority-high-text border-priority-high/20',
     "Other": 'bg-zinc-600/10 text-text-muted border-card-border',
 };
 
 const sourceColors: Record<string, string> = {
-    "LinkedIn": 'bg-sky-600/10 text-sky-400 border-sky-600/20',
+    "LinkedIn": 'bg-accent/10 text-accent-text border-accent/20',
     "Twitter / X": 'bg-zinc-600/10 text-text-secondary border-card-border',
-    "Google Search": 'bg-emerald-600/10 text-emerald-400 border-emerald-600/20',
+    "Google Search": 'bg-success/10 text-success-text border-success/20',
     "Friend / Referral": 'bg-purple-600/10 text-purple-400 border-purple-600/20',
-    "Conference / Event": 'bg-amber-600/10 text-amber-400 border-amber-600/20',
-    "Blog / Article": 'bg-rose-600/10 text-rose-400 border-rose-600/20',
-    "Podcast": 'bg-orange-600/10 text-orange-400 border-orange-600/20',
+    "Conference / Event": 'bg-warning/10 text-warning-text border-warning/20',
+    "Blog / Article": 'bg-danger/10 text-danger-text border-danger/20',
+    "Podcast": 'bg-priority-high/10 text-priority-high-text border-priority-high/20',
     "Other": 'bg-zinc-600/10 text-text-muted border-card-border',
 };
 
@@ -103,9 +103,9 @@ export default function WaitlistPage() {
             {/* Stats */}
             <div className="flex overflow-x-auto pb-2 scrollbar-hide lg:grid lg:grid-cols-3 gap-3 lg:gap-6 mb-6 lg:mb-12">
                 {[
-                    { label: 'Total Entries', value: stats.total, icon: FiUsers, color: 'text-indigo-400 bg-indigo-600/10 border-indigo-600/20', sparkColor: '#818cf8' },
-                    { label: 'Roles', value: stats.byRole, icon: FiUser, color: 'text-amber-400 bg-amber-600/10 border-amber-600/20', sparkColor: '#fbbf24' },
-                    { label: 'Sources', value: stats.bySource, icon: FiMail, color: 'text-emerald-400 bg-emerald-600/10 border-emerald-600/20', sparkColor: '#34d399' },
+                    { label: 'Total Entries', value: stats.total, icon: FiUsers, color: 'text-accent-text bg-accent/10 border-accent/20', sparkColor: '#818cf8' },
+                    { label: 'Roles', value: stats.byRole, icon: FiUser, color: 'text-warning-text bg-warning/10 border-warning/20', sparkColor: '#fbbf24' },
+                    { label: 'Sources', value: stats.bySource, icon: FiMail, color: 'text-success-text bg-success/10 border-success/20', sparkColor: '#34d399' },
                 ].map(({ label, value, icon: Icon, color, sparkColor }) => (
                     <motion.div
                         key={label}
@@ -128,19 +128,19 @@ export default function WaitlistPage() {
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6 lg:mb-10 overflow-x-auto pb-2 scrollbar-hide">
                 <div className="flex items-center gap-2 w-full">
                     <div className="relative flex-1 min-w-[140px] max-w-sm group">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-indigo-400 transition-colors w-3.5 h-3.5" />
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent-text transition-colors w-3.5 h-3.5" />
                         <input
                             type="text"
                             placeholder="Search by name, company, or email..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full h-9 lg:h-11 pl-8 pr-4 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] focus:border-card-border text-foreground placeholder:text-text-muted/50 transition-all text-xs lg:text-sm"
+                            className="w-full h-9 lg:h-11 pl-8 pr-4 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] text-foreground placeholder:text-text-muted/50 transition-all text-xs lg:text-sm"
                         />
                     </div>
 
                     <div className="relative group flex-shrink-0">
-                        <div className="h-9 lg:h-11 w-9 lg:w-44 bg-foreground/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
-                            <FiFilter className="text-text-muted group-hover:text-indigo-400 transition-colors w-3.5 h-3.5 lg:absolute lg:left-3.5 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
+                        <div className="h-9 lg:h-11 w-9 lg:w-44 bg-foreground/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
+                            <FiFilter className="text-text-muted group-hover:text-accent-text transition-colors w-3.5 h-3.5 lg:absolute lg:left-3.5 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
                             <select
                                 value={filterRole}
                                 onChange={e => setFilterRole(e.target.value)}
@@ -155,8 +155,8 @@ export default function WaitlistPage() {
                     </div>
 
                     <div className="relative group flex-shrink-0">
-                        <div className="h-9 lg:h-11 w-9 lg:w-48 bg-foreground/[0.03] border border-card-border rounded-xl flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
-                            <FiCalendar className="text-text-muted group-hover:text-indigo-400 transition-colors w-3.5 h-3.5 lg:absolute lg:left-3.5 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
+                        <div className="h-9 lg:h-11 w-9 lg:w-48 bg-foreground/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
+                            <FiCalendar className="text-text-muted group-hover:text-accent-text transition-colors w-3.5 h-3.5 lg:absolute lg:left-3.5 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
                             <select
                                 value={filterSource}
                                 onChange={e => setFilterSource(e.target.value)}
@@ -173,7 +173,7 @@ export default function WaitlistPage() {
             </div>
 
             {/* Table */}
-            <div className="glass rounded-2xl overflow-hidden flex flex-col border border-card-border bg-card/30 backdrop-blur-md">
+            <div className="rounded-[28px] overflow-hidden flex flex-col border border-card-border bg-card">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead>

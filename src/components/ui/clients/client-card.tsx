@@ -25,7 +25,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
             {isPending && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/40 backdrop-blur-[1px] rounded-2xl pointer-events-none">
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-card rounded-full border border-card-border animate-pulse text-[11px] font-bold text-foreground uppercase tracking-wider ">
-                        <div className="h-2 w-2 bg-emerald-400 rounded-full animate-ping"></div>
+                        <div className="h-2 w-2 bg-success rounded-full animate-ping"></div>
                         Saving...
                     </div>
                 </div>
@@ -57,7 +57,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                     <button
                         onClick={() => onDelete(client)}
                         disabled={isPending}
-                        className="p-2 rounded-xl bg-rose-500/5 hover:bg-rose-500/20 text-text-muted hover:text-rose-400 border border-card-border hover:border-rose-500/20 transition-all active:scale-95 disabled:opacity-50"
+                        className="p-2 rounded-xl bg-danger/5 hover:bg-danger/20 text-text-muted hover:text-danger-text border border-card-border hover:border-danger/20 transition-all active:scale-95 disabled:opacity-50"
                         title="Delete Client"
                     >
                         <FiTrash2 className="w-4 h-4" />
@@ -70,7 +70,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                 {/* Contact Person */}
                 {client.contactPersonName && (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-foreground/[0.02] border border-card-border transition-colors group/item">
-                        <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover/item:bg-indigo-500/20 transition-colors">
+                        <div className="p-2 rounded-lg bg-accent/10 text-accent-text group-hover/item:bg-accent/20 transition-colors">
                             <FiUser className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col">
@@ -83,7 +83,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                 {/* Email */}
                 {client.contactEmail && (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-foreground/[0.02] border border-card-border transition-colors group/item">
-                        <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover/item:bg-emerald-500/20 transition-colors">
+                        <div className="p-2 rounded-lg bg-success/10 text-success-text group-hover/item:bg-success/20 transition-colors">
                             <FiMail className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col min-w-0">
@@ -96,7 +96,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                 {/* Website */}
                 {client.websiteUrl && (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-foreground/[0.02] border border-card-border transition-colors group/item relative overflow-hidden">
-                        <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 group-hover/item:bg-amber-500/20 transition-colors">
+                        <div className="p-2 rounded-lg bg-warning/10 text-warning-text group-hover/item:bg-warning/20 transition-colors">
                             <FiGlobe className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col min-w-0">
@@ -105,7 +105,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                                 href={client.websiteUrl.startsWith('http') ? client.websiteUrl : `https://${client.websiteUrl}`} 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
-                                className="text-sm text-text-muted hover:text-indigo-400 transition-colors truncate flex items-center gap-1.5"
+                                className="text-sm text-text-muted hover:text-accent-text transition-colors truncate flex items-center gap-1.5"
                             >
                                 {client.websiteUrl.replace(/^https?:\/\//, '')}
                                 <FiExternalLink className="w-3 h-3 opacity-50" />

@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { FiCheckSquare, FiCheckCircle, FiClock, FiAlertCircle, FiCheck } from "react-icons/fi";
+import { FiCheckSquare, FiCheckCircle, FiClock, FiAlertCircle, FiCheck, FiActivity } from "react-icons/fi";
 import { Task } from "@/types/task";
 import { batchUpdateTaskStatus } from '@/app/(dashboard)/[orgSlug]/tasks/actions';
-import { Sparkline } from "@/components/ui/sparkline";
+import { StatTile } from "@/components/ui/stat-tile";
 import { format, subDays, isSameDay } from 'date-fns';
 import { toast } from '@/lib/toast';
 import { useConfirm } from '@/providers/confirmation-provider';
@@ -47,9 +47,9 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
   const handleMarkAllDone = async () => {
     if (activeTasks.length === 0) return;
     const confirmed = await confirm({
-      title: 'Batch Complete Tasks',
+      title: 'Complete all tasks',
       message: `Are you sure you want to mark all ${activeTasks.length} active tasks as completed? This will affect all current items in your workflow.`,
-      confirmText: 'Complete All',
+      confirmText: 'Complete all',
       type: 'warning'
     });
 
@@ -71,15 +71,16 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
     }
   };
 
-  const FiActivity = (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-  );
+  const weekly = (days: number[], verb = 'new') => {
+    const n = days.reduce((sum, d) => sum + d, 0);
+    return n > 0 ? `${n} ${verb} this week` : undefined;
+  };
 
   const stats = [
-    { label: 'Total tasks', value: totalTasks, icon: FiCheckSquare, color: 'text-[var(--pastel-blue)]', bg: 'bg-[var(--pastel-blue)]/10', trend: trends.total },
-    { label: 'Completed', value: completedTasks, icon: FiCheckCircle, color: 'text-[var(--pastel-emerald)]', bg: 'bg-[var(--pastel-emerald)]/10', sub: `${progressPercent}% progress`, trend: trends.completed },
-    { label: 'In progress', value: inProgress, icon: FiActivity, color: 'text-[var(--pastel-purple)]', bg: 'bg-[var(--pastel-purple)]/10', trend: trends.inProgress },
-    { label: 'High priority', value: highPriority, icon: FiAlertCircle, color: 'text-[var(--pastel-rose)]', bg: 'bg-[var(--pastel-rose)]/10', trend: trends.highPriority },
+    { label: 'Total tasks', value: totalTasks, icon: FiCheckSquare, tone: 'var(--accent)', hint: weekly(trends.total) },
+    { label: 'Completed', value: completedTasks, icon: FiCheckCircle, tone: 'var(--success)', hint: `${progressPercent}% progress` },
+    { label: 'In progress', value: inProgress, icon: FiActivity, tone: 'var(--status-qa)', hint: weekly(trends.inProgress, 'moved') },
+    { label: 'High priority', value: highPriority, icon: FiAlertCircle, tone: 'var(--priority-high)', hint: weekly(trends.highPriority) },
   ];
 
   return (
@@ -90,10 +91,10 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
           <button
             onClick={handleMarkAllDone}
             disabled={isUpdating}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-all disabled:opacity-50"
+            className="md-btn md-btn-primary md-btn-sm"
           >
             {isUpdating ? (
-              <div className="h-3 w-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+              <div className="h-3 w-3 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <FiCheck className="w-3 h-3" />
             )}
@@ -102,36 +103,9 @@ export function TaskSummarySection({ tasks }: TaskSummarySectionProps) {
         )}
       </div>
 
-      <div className="flex overflow-x-auto pb-2 scrollbar-hide lg:grid lg:grid-cols-4 gap-3 lg:gap-6">
-        {stats.map((stat, i) => (
-          <div key={i} className="bg-card p-3 lg:p-6 rounded-xl lg:rounded-2xl border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col justify-between group min-w-[120px] lg:min-w-0 flex-shrink-0">
-            <div className="flex items-center justify-between gap-4 mb-2 lg:mb-4">
-              <div className="flex items-center gap-2 lg:gap-4 overflow-hidden">
-                <div className={`p-1.5 lg:p-3 rounded-lg lg:rounded-xl ${stat.bg} ${stat.color} transition-colors group-hover:bg-foreground/[0.06] flex-shrink-0`}>
-                  <stat.icon className="text-sm lg:text-xl" />
-                </div>
-                <div className="min-w-0">
-                    <p className="text-xs text-text-muted font-medium truncate">{stat.label}</p>
-                    {stat.sub && (
-                        <p className="text-xs font-medium text-text-secondary mt-0.5 truncate">
-                            {stat.sub}
-                        </p>
-                    )}
-                </div>
-              </div>
-              <div className="h-6 w-12 lg:h-8 lg:w-16 opacity-40 group-hover:opacity-100 transition-all duration-300 flex-shrink-0">
-                <Sparkline 
-                  data={stat.trend} 
-                  color={stat.color.match(/\[(.*?)\]/)?.[1] || "#6366f1"}
-                  width={60}
-                  height={32}
-                />
-              </div>
-            </div>
-            <div className="text-left lg:text-right mt-auto">
-              <p className="text-xl lg:text-4xl font-medium font-numbers text-foreground leading-none tracking-tight">{stat.value}</p>
-            </div>
-          </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <StatTile key={stat.label} {...stat} />
         ))}
       </div>
     </div>

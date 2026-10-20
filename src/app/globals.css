@@ -79,7 +79,7 @@
   color-scheme: light;
 
   /* Page */
-  --background:       #f8faf9;   /* slate-50 — subtle off-white background */
+  --background:       #ffffff;   /* pure white, as on the landing page */
   --foreground:       #000000;   /* pure black — primary text */
   --text-secondary:   #0a0a0a;   /* near-black — secondary text */
   --text-muted:       #1a1a1a;   /* dark gray — muted text */
@@ -263,11 +263,9 @@ body {
   z-index: 1;
 }
 
-.bg-logo-gradient {
-  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
-}
+.bg-logo-gradient,
 .bg-logo-gradient-light {
-  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+  background: transparent;
 }
 
 .gradient-border-button {
@@ -280,10 +278,10 @@ body {
   content: "";
   position: absolute;
   inset: -2px;
-  background: linear-gradient(to right, #6366f1, #10b981);
+  background: var(--card-border);
   border-radius: inherit;
   z-index: -1;
-  opacity: 0.5;
+  opacity: 1;
   transition: opacity 0.3s ease;
 }
 .gradient-border-button:hover::before { opacity: 1; }
@@ -374,8 +372,8 @@ body {
     opacity 0.2s ease;
   will-change: transform;
 }
-.hover-scale:hover { transform: scale(1.07); }
-.hover-scale:active { transform: scale(0.95); }
+/* No hover zoom (it clipped inside scrolling rows); a quiet press only. */
+.hover-scale:active { transform: scale(0.97); }
 
 /* Cards & tiles — lift slightly toward the cursor. */
 .hover-lift {
@@ -518,7 +516,7 @@ body {
 .light {
   --ink: #111113;            --on-ink: #ffffff;
   --accent: #1a7dff;         --accent-text: #0058cc;         --on-accent: #ffffff;
-  --success: #10d48e;        --success-text: #047857;        --on-success: #0a0a0b;
+  --success: #10d48e;        --success-text: #10b981;        --on-success: #0a0a0b;
   --warning: #ffd60a;        --warning-text: #d4a700;        --on-warning: #0a0a0b;
   --danger: #ff8fa0;         --danger-text: #ff2d3d;         --on-danger: #0a0a0b;
   --priority-high: #ffb870;  --priority-high-text: #ff7a00;  --on-priority-high: #0a0a0b;
@@ -720,3 +718,186 @@ body {
   --color-green-900: color-mix(in oklab, var(--success-text) 55%, black);
   --color-green-950: color-mix(in oklab, var(--success-text) 40%, black);
 }
+
+/* ══ Shared controls ══════════════════════════════════════════════════
+   The landing page's button and field language, for every page.
+
+   Buttons are pills. The primary is ink; the secondary is an outlined
+   surface. A `.md-btn-chip` child turns the right edge into a concentric
+   round chip (same small inset on three sides), as on the landing page.
+   Sizes: md-btn-sm 40px, default 48px, md-btn-lg 56px.
+
+   These live in the components layer, so layout utilities on the element
+   (w-full, flex-1, mt-4 …) still apply. */
+@layer components {
+  .md-btn {
+    --btn-h: 48px;
+    --chip-inset: 5px;
+    position: relative;
+    display: inline-flex;
+    min-height: var(--btn-h);
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-inline: 22px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font: 600 15px/1 var(--font-dm-sans), sans-serif;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 160ms cubic-bezier(.23, 1, .32, 1), background-color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+  }
+  .md-btn:active:not(:disabled) { transform: scale(.97); transition-duration: 100ms; }
+  .md-btn:disabled, .md-btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+  .md-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .md-btn-sm { --btn-h: 40px; --chip-inset: 4px; padding-inline: 16px; font-size: 14px; }
+  .md-btn-lg { --btn-h: 56px; padding-inline: 28px; font-size: 16px; }
+
+  .md-btn-primary { background: var(--ink); color: var(--on-ink); }
+  .md-btn-primary:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 86%, var(--background)); }
+  .md-btn-secondary { border-color: var(--card-border); background: var(--card-bg); color: var(--foreground); }
+  .md-btn-secondary:hover:not(:disabled) { background: color-mix(in oklab, var(--foreground) 5%, var(--card-bg)); }
+  .md-btn-ghost { background: transparent; color: var(--foreground); }
+  .md-btn-ghost:hover:not(:disabled) { background: color-mix(in oklab, var(--foreground) 6%, transparent); }
+  .md-btn-danger { background: var(--danger); color: var(--on-danger); }
+  .md-btn-danger:hover:not(:disabled) { background: color-mix(in oklab, var(--danger) 86%, var(--foreground)); }
+
+  /* Concentric chip at the end of the pill. */
+  .md-btn:has(> .md-btn-chip) { gap: 14px; padding-right: var(--chip-inset); }
+  .md-btn-block { justify-content: space-between; padding-left: 24px; }
+  .md-btn-chip {
+    display: inline-grid;
+    width: calc(var(--btn-h) - var(--chip-inset) * 2 - 2px);
+    flex: 0 0 auto;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 16px;
+  }
+  .md-btn-chip svg { width: 1em; height: 1em; transition: transform 220ms cubic-bezier(.23, 1, .32, 1); }
+  .md-btn-primary .md-btn-chip { background: var(--on-ink); color: var(--ink); }
+  .md-btn-secondary .md-btn-chip,
+  .md-btn-ghost .md-btn-chip { background: var(--ink); color: var(--on-ink); }
+  @media (hover: hover) and (pointer: fine) {
+    .md-btn:hover:not(:disabled) .md-btn-chip svg { transform: translateX(2px); }
+  }
+
+  /* A field that is not a native input (e.g. a wrapper around an input). */
+  .md-field {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 10px;
+    padding-inline: 18px;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    background: var(--card-bg);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  
+}
+
+/* Every text field is round. Unlayered on purpose: it beats each field's own
+   `rounded-*` utility, so the whole app changes in one place. Single-line
+   inputs and selects are full pills; textareas get a soft 24px corner. */
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="hidden"], [type="submit"], [type="button"], [type="reset"], [type="image"]), select) {
+  border-radius: 999px;
+}
+:where(textarea) { border-radius: 24px; }
+
+/* Focus on a field shows no ring and no border change; the accent caret is
+   the only cue. Unlayered, so it also beats any `focus:ring-*` utility. */
+input, textarea, select, [contenteditable="true"] { caret-color: var(--accent); }
+:is(input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea):is(:focus, :focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-btn, .md-btn-chip svg { transition-duration: .01ms; }
+  .md-btn:active:not(:disabled) { transform: none; }
+}
+
+/* ══ Zen surfaces (dashboard) ═════════════════════════════════════════
+   The landing page's card language: flat, borderless, generously round.
+   Cards sit on a soft grey; tiles inside them sit on the page colour.
+   Unlayered so it overrides each element's own utilities in one place. */
+.md-zen { --zen-surface: #f5f6f8; }
+.dark .md-zen { --zen-surface: #161618; }
+.md-zen .bg-card { background-color: var(--zen-surface); }
+.md-zen .border-card-border { border-color: transparent; }
+.md-zen .rounded-2xl { border-radius: 28px; }
+.md-zen .rounded-xl { border-radius: 20px; }
+.md-zen .rounded-lg { border-radius: 14px; }
+.md-zen .bg-card [class*="bg-foreground/[0.03]"],
+.md-zen .bg-card [class*="bg-foreground/[0.04]"] { background-color: var(--background); }
+.md-zen .hover-lift:hover { transform: none; }
+.md-zen :is(button, a)[class*="rounded-xl"][class*="border"] { border-radius: 999px; border-color: var(--card-border); }
+
+/* Count badge: a circle for one digit, growing into a pill only as the
+   number widens (20px tall, 20px minimum width, round ends). */
+/* Pop-ups, popovers and tooltips: one solid surface, the card colour with
+   its hairline, in both themes. Nothing floating is translucent. */
+:root, .light, .dark {
+  --tooltip-bg: var(--card-bg);
+  --tooltip-border: var(--card-border);
+  --glass-bg: var(--card-bg);
+  --glass-border: var(--card-border);
+}
+
+/* Layered, so `hidden` and other utilities can still switch it off. */
+@layer components {
+  .md-count {
+    display: inline-grid;
+    height: 20px;
+    min-width: 20px;
+    place-items: center;
+    padding-inline: 6px;
+    border-radius: 999px;
+    font: 600 11px/1 var(--font-dm-sans), sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Trend charts: the current period in bright success green, the previous
+   period as a quiet, blue-tinted grey. */
+:root, .dark { --chart-current: var(--success); --chart-previous: #5b6880; }
+.light { --chart-current: var(--success); --chart-previous: #c5d0de; }
+.md-zen .bg-card:hover { scale: none; translate: none; }
+
+/* Calendar: the theme only. Rounder corners, every grid line kept. */
+.md-zen-soft .rounded-2xl { border-radius: 24px; }
+.md-zen-soft .rounded-xl { border-radius: 18px; }
+.md-zen-soft .rounded-lg { border-radius: 12px; }
+
+/* Task status colours: one hue per workflow stage, used for kanban lanes,
+   card status dots and status chips. Done and In progress reuse the
+   success and accent roles so the meanings stay consistent. */
+:root, .dark {
+  --status-todo: #8e99ab;
+  --status-in-progress: var(--accent);
+  --status-qa: #a78bfa;
+  --status-review: #f472b6;
+  --status-done: var(--success);
+}
+.light {
+  --status-todo: #94a3b8;
+  --status-qa: #8b5cf6;
+  --status-review: #ec4899;
+}
+
+/* Every single select (filters included) shows a down caret, with room for
+   it on the right. Unlayered so it applies regardless of the select's own
+   padding utilities. */
+:where(select:not([multiple])) {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 14px;
+}
+

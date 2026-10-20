@@ -50,9 +50,9 @@ export default function LoginForm() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-          className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3"
+          className="flex items-start gap-3 rounded-3xl bg-accent/10 px-4 py-3.5"
         >
-          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-text">
             <FiUsers className="h-4 w-4" />
           </span>
           <div className="min-w-0 text-left">
@@ -66,7 +66,7 @@ export default function LoginForm() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-          className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-300"
+          className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-success/15 text-sm text-success-text"
         >
           <FiCheckCircle className="h-4 w-4 shrink-0" />
           <span>Account verified! Please sign in.</span>
@@ -78,14 +78,14 @@ export default function LoginForm() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-          className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-700 dark:text-amber-300"
+          className="flex items-center gap-2.5 px-4 py-3 rounded-3xl bg-warning/15 text-sm text-warning-text"
         >
           <FiAlertCircle className="h-4 w-4 shrink-0" />
           <span>
             Email not verified.{' '}
             <Link
               href={`/verify-otp?email=${encodeURIComponent(state.email || email)}&callbackUrl=${encodeURIComponent(callbackUrl)}${organizationName ? `&organizationName=${encodeURIComponent(organizationName)}` : ''}`}
-              className="underline underline-offset-2 font-medium hover:text-amber-600 dark:hover:text-amber-200"
+              className="underline underline-offset-2 font-medium hover:text-warning-text dark:hover:text-warning-text"
             >
               Resend verification code
             </Link>
@@ -138,7 +138,7 @@ export default function LoginForm() {
           </button>
         </div>
         <div className="flex justify-end">
-          <Link href="/forgot-password" className="text-xs text-text-muted hover:text-emerald-500 transition-colors font-medium">
+          <Link href="/forgot-password" className="text-xs text-text-muted hover:text-accent-text transition-colors font-medium">
             Forgot password?
           </Link>
         </div>
@@ -148,12 +148,12 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="relative w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
+          className="md-btn md-btn-primary md-btn-block w-full"
         >
-          <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
+          <span className={isPending ? 'opacity-0' : ''}>
             {organizationName ? 'Sign in and join' : 'Sign in'}
-            <FiArrowRight className="h-4 w-4" />
           </span>
+          <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiArrowRight /></span>
           {isPending && (
             <span className="absolute inset-0 flex items-center justify-center gap-2">
               <FiLoader className="h-4 w-4 animate-spin" />

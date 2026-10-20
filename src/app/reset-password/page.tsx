@@ -29,20 +29,6 @@ const item = {
 export default function ResetPasswordPage() {
   return (
     <main className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background isolate">
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        <motion.div
-          className="absolute top-[-25%] left-[-20%] w-[70%] h-[70%] rounded-full bg-emerald-500/[0.06] blur-[200px]"
-          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute bottom-[-25%] right-[-20%] w-[70%] h-[70%] rounded-full bg-indigo-500/[0.06] blur-[200px]"
-          animate={{ x: [0, -30, 0], y: [0, 20, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </div>
-
-      <div className="absolute inset-0 opacity-[0.02] pointer-events-none -z-10 bg-[radial-gradient(ellipse_at_center,currentColor_0px,transparent_1px)] bg-[size:24px_24px] text-foreground" />
 
       <motion.div
         className="relative w-full max-w-sm"
@@ -52,7 +38,7 @@ export default function ResetPasswordPage() {
       >
         <motion.div variants={item as Variants} className="flex justify-center mb-10">
           <Link href="/" className="block group">
-            <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
+            <motion.div>
               <Image src="/logo.svg" alt="MyndDesk" width={44} height={44} className="w-11 h-11" priority />
             </motion.div>
           </Link>

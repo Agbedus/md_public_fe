@@ -10,7 +10,9 @@ import {
 } from 'react-icons/fi';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { Notification, useNotifications } from '@/components/ui/notifications/notification-provider';
+import { avatarStyle } from '@/lib/avatar-color';
 
+import { TabPill } from '@/components/ui/tab-pill';
 type InboxView = 'all' | 'attention' | 'unread';
 type Category = 'all' | 'attendance' | 'tasks' | 'projects' | 'notes' | 'team' | 'time_off' | 'events' | 'system';
 
@@ -61,18 +63,18 @@ function iconFor(notification: Notification) {
 }
 
 function iconStyleFor(notification: Notification): string {
-  if (notification.type === 'error') return 'bg-rose-500/10 text-rose-500';
-  if (notification.type === 'warning') return 'bg-amber-500/10 text-amber-500';
-  if (notification.type === 'success') return 'bg-emerald-500/10 text-emerald-500';
+  if (notification.type === 'error') return 'bg-danger/10 text-danger-text';
+  if (notification.type === 'warning') return 'bg-warning/10 text-warning-text';
+  if (notification.type === 'success') return 'bg-success/10 text-success-text';
 
   const category = categoryFor(notification);
-  if (category === 'attendance') return 'bg-blue-500/10 text-blue-500';
-  if (category === 'tasks') return 'bg-emerald-500/10 text-emerald-500';
+  if (category === 'attendance') return 'bg-accent/10 text-accent-text';
+  if (category === 'tasks') return 'bg-success/10 text-success-text';
   if (category === 'projects') return 'bg-purple-500/10 text-purple-500';
-  if (category === 'notes') return 'bg-amber-500/10 text-amber-500';
-  if (category === 'team') return 'bg-indigo-500/10 text-indigo-500';
-  if (category === 'time_off') return 'bg-rose-500/10 text-rose-500';
-  if (category === 'events') return 'bg-blue-500/10 text-blue-500';
+  if (category === 'notes') return 'bg-warning/10 text-warning-text';
+  if (category === 'team') return 'bg-accent/10 text-accent-text';
+  if (category === 'time_off') return 'bg-danger/10 text-danger-text';
+  if (category === 'events') return 'bg-accent/10 text-accent-text';
   return 'bg-foreground/[0.06] text-text-muted';
 }
 
@@ -149,7 +151,7 @@ export default function NotificationsPage() {
         </div>
         {unreadCount > 0 && (
           <button type="button" onClick={() => void markAllAsRead()} disabled={isMarkingAllRead} aria-busy={isMarkingAllRead} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-card-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-[transform,opacity,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] disabled:cursor-wait disabled:opacity-70">
-            {isMarkingAllRead ? <FiLoader className="h-4 w-4 animate-spin text-emerald-500" /> : <FiCheck className="h-4 w-4 text-emerald-500" />} {isMarkingAllRead ? 'Marking read…' : 'Mark all read'}
+            {isMarkingAllRead ? <FiLoader className="h-4 w-4 animate-spin text-success-text" /> : <FiCheck className="h-4 w-4 text-success-text" />} {isMarkingAllRead ? 'Marking read…' : 'Mark all read'}
           </button>
         )}
       </header>
@@ -157,9 +159,10 @@ export default function NotificationsPage() {
       <section className="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-card-border bg-card shadow-sm md:grid-cols-[minmax(300px,36%)_minmax(0,1fr)] xl:grid-cols-[380px_minmax(0,1fr)]">
         <div className={`${selected ? 'hidden md:flex' : 'flex'} min-h-0 min-w-0 flex-col border-card-border md:border-r`}>
           <div className="shrink-0 space-y-2 border-b border-card-border p-2.5">
-            <div className="flex rounded-lg bg-foreground/[0.04] p-1" aria-label="Notification views">
+            <div className="flex rounded-full bg-foreground/[0.05] p-1" aria-label="Notification views">
               {(['all', 'attention', 'unread'] as InboxView[]).map((view) => (
-                <button type="button" key={view} onClick={() => setActiveView(view)} className={`min-h-11 flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-colors md:min-h-9 ${activeView === view ? 'bg-card text-foreground shadow-sm' : 'text-text-muted hover:text-foreground'}`}>
+                <button type="button" key={view} onClick={() => setActiveView(view)} className={`relative isolate min-h-11 flex-1 rounded-full px-2 py-1.5 text-xs font-medium capitalize transition-colors md:min-h-9 ${activeView === view ? 'text-on-ink' : 'text-text-muted hover:text-foreground'}`}>
+                  {activeView === view && <TabPill id="notification-view" />}
                   {view}{view === 'unread' && unreadCount > 0 ? ` ${unreadCount}` : ''}
                 </button>
               ))}
@@ -169,7 +172,7 @@ export default function NotificationsPage() {
               <label className="relative min-w-0 flex-1">
                 <span className="sr-only">Search notifications</span>
                 <FiSearch className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
-                <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search notifications" className="h-11 w-full rounded-md border border-card-border bg-input-bg pl-8 pr-8 text-xs text-foreground outline-none placeholder:text-text-muted focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 md:h-9" />
+                <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search notifications" className="h-11 w-full rounded-md border border-card-border bg-input-bg pl-8 pr-8 text-xs text-foreground outline-none placeholder:text-text-muted md:h-9" />
                 {searchQuery && (
                   <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear notification search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-text-muted hover:bg-foreground/[0.05] hover:text-foreground md:h-7 md:w-7">
                     <FiX className="h-3.5 w-3.5" />
@@ -178,7 +181,7 @@ export default function NotificationsPage() {
               </label>
               <label>
                 <span className="sr-only">Filter by category</span>
-                <select value={category} onChange={(event) => setCategory(event.target.value as Category)} className="h-11 max-w-32 rounded-md border border-card-border bg-input-bg px-2.5 text-xs text-foreground outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 md:h-9">
+                <select value={category} onChange={(event) => setCategory(event.target.value as Category)} className="h-11 max-w-32 rounded-md border border-card-border bg-input-bg px-2.5 text-xs text-foreground outline-none md:h-9">
                   {categories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </select>
               </label>
@@ -202,7 +205,7 @@ export default function NotificationsPage() {
                           {!notification.is_read && <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-label="Unread" />}
                         </span>
                         <span className="mt-0.5 line-clamp-2 text-[11px] leading-4 text-text-muted">{notification.message}</span>
-                        <span className="mt-1.5 block text-[10px] text-text-muted">{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</span>
+                        <span className="mt-1.5 block text-[11px] text-text-muted">{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</span>
                       </span>
                     </button>
                   );
@@ -210,7 +213,7 @@ export default function NotificationsPage() {
               </section>
             )) : (
               <div className="flex min-h-80 flex-col items-center justify-center px-6 text-center">
-                <span className="grid h-14 w-14 place-items-center rounded-xl bg-emerald-500/10 text-emerald-500"><FiInbox className="h-6 w-6" /></span>
+                <span className="grid h-14 w-14 place-items-center rounded-xl bg-success/10 text-success-text"><FiInbox className="h-6 w-6" /></span>
                 <h2 className="mt-4 text-base font-semibold text-foreground">You’re all caught up</h2>
                 <p className="mt-1 max-w-xs text-sm text-text-muted">There are no notifications matching this view.</p>
               </div>
@@ -227,11 +230,11 @@ export default function NotificationsPage() {
               </div>
               <article className="flex flex-1 flex-col overflow-hidden p-5 sm:p-8">
                 <div className="max-w-2xl">
-                  <span className="text-xs font-semibold capitalize text-emerald-500">{categoryFor(selected).replace('_', ' ')}</span>
+                  <span className="text-xs font-semibold capitalize text-success-text">{categoryFor(selected).replace('_', ' ')}</span>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{selected.title}</h2>
                   <p className="mt-4 text-base leading-7 text-text-secondary">{selected.message}</p>
                   <div className="mt-6 flex items-center gap-3 rounded-xl border border-card-border bg-foreground/[0.02] p-4">
-                    <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500/10 text-sm font-semibold text-emerald-500">{(selectedSender?.fullName || selectedSender?.name || 'MyndDesk').charAt(0).toUpperCase()}</span>
+                    <span style={avatarStyle(selectedSender?.fullName || selectedSender?.name)} className="grid h-10 w-10 place-items-center rounded-full bg-success/10 text-sm font-semibold text-success-text">{(selectedSender?.fullName || selectedSender?.name || 'MyndDesk').charAt(0).toUpperCase()}</span>
                     <div>
                       <p className="text-sm font-medium text-foreground">{selectedSender?.fullName || selectedSender?.name || 'MyndDesk'}</p>
                       <p className="text-xs text-text-muted">{selectedSender?.email || 'Workspace update'}</p>
@@ -240,8 +243,8 @@ export default function NotificationsPage() {
                 </div>
                 {destinationFor(selected, params.orgSlug) && (
                   <div className="mt-auto pt-8">
-                    <button type="button" onClick={() => openResource(selected)} className="inline-flex min-h-11 items-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-on-ink transition-opacity hover:opacity-90 active:scale-[0.98]">
-                      View related item <FiChevronRight className="h-4 w-4" />
+                    <button type="button" onClick={() => openResource(selected)} className="md-btn md-btn-primary">
+                      View related item <span className="md-btn-chip"><FiChevronRight /></span>
                     </button>
                   </div>
                 )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useSWR, { useSWRConfig } from 'swr';
 import { fetchMyAttendanceLive } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
@@ -8,15 +8,28 @@ import type { AttendanceRecord } from '@/types/attendance';
 import { presenceStateLabels, presenceStateColors, attendanceStateLabels, attendanceStateColors } from '@/types/attendance';
 import { useLocation } from '@/providers/location-provider';
 import { getDistanceInMeters, formatDistance } from '@/lib/distance-utils';
-import { FiMapPin, FiClock, FiTarget, FiActivity, FiNavigation, FiZap, FiChevronDown, FiChevronUp, FiX, FiCheck, FiAlertTriangle, FiLoader } from 'react-icons/fi';
+import { FiMapPin, FiClock, FiTarget, FiActivity, FiNavigation, FiZap, FiChevronDown, FiX, FiCheck, FiAlertTriangle, FiLoader, FiLogOut } from 'react-icons/fi';
 import { useIsClient } from '@/hooks/use-is-client';
 import { useOrgSlug } from '@/hooks/use-org-slug';
 import { workspaceCacheKey } from '@/lib/workspace-cache';
 
-export default function AttendanceStatusCard({ record: initialRecord }: { record: AttendanceRecord | null }) {
+interface AttendanceStatusCardProps {
+    record: AttendanceRecord | null;
+    /** Starts open; the compact row is enough for most visits. */
+    defaultExpanded?: boolean;
+    className?: string;
+}
+
+export default function AttendanceStatusCard({ record: initialRecord, defaultExpanded = false, className = '' }: AttendanceStatusCardProps) {
     const mounted = useIsClient();
     const orgSlug = useOrgSlug();
-    const [showMetadata, setShowMetadata] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+    // Ticks so "time today" stays live while clocked in.
+    const [now, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        const id = window.setInterval(() => setNow(Date.now()), 30_000);
+        return () => window.clearInterval(id);
+    }, []);
 
     const { data: liveRecord } = useSWR(workspaceCacheKey('my-attendance-today', orgSlug), fetchMyAttendanceLive, {
         fallbackData: initialRecord,
@@ -126,310 +139,222 @@ export default function AttendanceStatusCard({ record: initialRecord }: { record
         return getDistanceInMeters(location.latitude, location.longitude, officeLocation.latitude, officeLocation.longitude);
     }, [location, officeLocation]);
 
+    const timeToday = (() => {
+        if (!mounted) return '0h 0m';
+        let totalSec = liveRecord?.total_seconds || initialRecord?.total_seconds || 0;
+        if (currentAttendance === 'CLOCKED_IN' && clockInTime) {
+            totalSec += Math.max(0, Math.floor((now - new Date(clockInTime).getTime()) / 1000));
+        }
+        return `${Math.floor(totalSec / 3600)}h ${Math.floor((totalSec % 3600) / 60)}m`;
+    })();
+
+    const isClockedIn = currentAttendance === 'CLOCKED_IN';
+    const busyLabel = clockInPhase === 'locating'
+        ? 'Finding your location…'
+        : clockInPhase === 'checking_server'
+            ? 'Checking with server…'
+            : null;
+    const autoCheck = !isClockedIn
+        && autoCheckStatus in autoCheckCopy
+        && !(autoCheckStatus === 'permission_required' && permissionState === 'denied')
+        ? autoCheckCopy[autoCheckStatus as keyof typeof autoCheckCopy]
+        : null;
+
+    const metrics = [
+        { label: 'Last update', icon: FiActivity, value: mounted && latestPulse ? latestPulse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--' },
+        { label: 'Distance', icon: FiNavigation, value: distance !== null ? formatDistance(distance) : '—' },
+        { label: 'Accuracy', icon: FiTarget, value: location?.accuracy ? `${Math.round(location.accuracy)}m` : '—' },
+    ];
+
+    const pill = 'inline-flex min-h-9 items-center gap-2 rounded-full px-3.5 text-xs font-medium transition-colors active:scale-[0.97]';
+
     return (
-        <div className="glass p-6 rounded-2xl border border-card-border flex flex-col gap-6 relative overflow-hidden">
-            {/* Background Gradient */}
-            <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[80px] opacity-20 ${pColors.bg}`} />
-            
-            {/* LAYER 1: Header (Icon + Labels + Controls) */}
-            <div className="flex items-center justify-between z-10">
-                <div className="flex items-center gap-4">
-                    {/* Pulsing Presence Icon */}
-                    <div className="relative">
-                        <div className={`w-12 h-12 rounded-2xl ${pColors.bg} flex items-center justify-center transition-colors border border-card-border`}>
-                            <FiMapPin className={`text-xl ${pColors.text}`} />
-                        </div>
-                        <div className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full ${pColors.dot} ring-4 ring-card`}>
-                            {currentAttendance === 'CLOCKED_IN' && (
-                                <div className={`absolute inset-0 rounded-full ${pColors.dot} animate-ping opacity-75`} />
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col gap-0.5">
-                        <h2 className="text-sm font-bold text-foreground leading-none tracking-tight">
-                            {presenceStateLabels[currentPresence]}
-                        </h2>
-                        <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest ${aColors.text} opacity-80 mt-1`}>
-                            {attendanceStateLabels[currentAttendance]}
+        <div className={`rounded-[28px] border border-card-border bg-background p-3 ${className}`}>
+            {/* Compact row: always visible */}
+            <div className="flex items-center gap-3">
+                <button
+                    type="button"
+                    onClick={() => setIsExpanded((open) => !open)}
+                    aria-expanded={isExpanded}
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-full p-1 pr-2 text-left transition-colors hover:bg-foreground/[0.04]"
+                >
+                    <span className="relative shrink-0">
+                        <span className={`grid h-11 w-11 place-items-center rounded-full ${pColors.bg}`}>
+                            <FiMapPin className={`h-[18px] w-[18px] ${pColors.text}`} />
                         </span>
-                    </div>
-                </div>
-
-                {/* Top Right Controls */}
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={refreshLocation}
-                        disabled={isLoading}
-                        title="Refresh your GPS location"
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
-                            isPolling || isLoading 
-                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 animate-pulse' 
-                                : 'text-text-muted hover:text-foreground bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.08]'
-                        }`}
-                    >
-                        <FiTarget className={`text-xs ${isLoading ? 'animate-pulse text-emerald-500' : ''}`} />
-                        Sync
-                    </button>
-                    {isSupported && (
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={toggleTracking}
-                                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${
-                                    isTracking 
-                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' 
-                                        : 'bg-foreground/[0.03] border-card-border text-text-muted hover:text-foreground'
-                                }`}
-                            >
-                                <FiZap className={`w-3 h-3 ${isTracking ? 'animate-pulse text-emerald-400' : ''}`} />
-                                <span className="hidden sm:inline">GPS</span>
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Location Permission Alert */}
-            {permissionState === 'denied' && (
-                <div className="z-10 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between gap-3 backdrop-blur-md">
-                    <div className="flex items-center gap-2.5">
-                        <FiAlertTriangle className="text-amber-400 shrink-0 w-4 h-4" />
-                        <span className="text-[11px] font-medium leading-tight">
-                            Location access is blocked. Allow location access in browser settings to check in.
+                        <span className={`absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full ${pColors.dot} ring-2 ring-background`}>
+                            {isClockedIn && <span className={`absolute inset-0 rounded-full ${pColors.dot} animate-ping opacity-60`} />}
                         </span>
-                    </div>
-                    <button
-                        onClick={() => requestPermission()}
-                        className="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-[9px] font-bold uppercase tracking-wider shrink-0 hover:bg-amber-500/30 transition-all active:scale-95"
-                    >
-                        Allow
-                    </button>
-                </div>
-            )}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[15px] font-semibold text-foreground">{presenceStateLabels[currentPresence]}</span>
+                        <span className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-text-muted">
+                            <span className={aColors.text}>{attendanceStateLabels[currentAttendance]}</span>
+                            <span aria-hidden="true">·</span>
+                            <span className="font-numbers" suppressHydrationWarning>{timeToday} today</span>
+                        </span>
+                    </span>
+                    <FiChevronDown className={`h-4 w-4 shrink-0 text-text-muted transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+                </button>
 
-            {currentAttendance !== 'CLOCKED_IN'
-                && autoCheckStatus in autoCheckCopy
-                && !(autoCheckStatus === 'permission_required' && permissionState === 'denied') && (
-                <div className={`z-10 rounded-xl border p-3.5 flex items-center justify-between gap-3 ${
-                    autoCheckStatus === 'waiting_for_signal'
-                        ? 'bg-amber-500/10 border-amber-500/30'
-                        : 'bg-emerald-500/10 border-emerald-500/30'
-                }`}>
-                    <div className="flex items-start gap-3 min-w-0">
-                        <FiActivity className={`w-4 h-4 mt-0.5 shrink-0 ${
-                            autoCheckStatus === 'waiting_for_signal'
-                                ? 'text-amber-400'
-                                : 'text-emerald-500'
-                        }`} />
-                        <div className="min-w-0">
-                            <p className="text-xs font-semibold text-foreground">
-                                {autoCheckCopy[autoCheckStatus as keyof typeof autoCheckCopy].title}
-                            </p>
-                            <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
-                                {autoCheckCopy[autoCheckStatus as keyof typeof autoCheckCopy].detail}
-                            </p>
-                        </div>
-                    </div>
-                    {autoCheckStatus === 'permission_required' && (
-                        <button
-                            type="button"
-                            onClick={() => requestPermission()}
-                            className="min-h-11 px-3 rounded-md bg-emerald-500 text-emerald-950 text-xs font-semibold hover:bg-emerald-400 active:bg-emerald-600 transition-colors shrink-0"
-                        >
-                            Enable GPS
-                        </button>
-                    )}
-                </div>
-            )}
-
-            {/* LAYER 2: Hero Action (Full-width button) */}
-            <div className="w-full z-10">
-                {currentAttendance !== 'CLOCKED_IN' ? (
+                {!isClockedIn ? (
                     <button
+                        type="button"
                         onClick={handleClockIn}
                         disabled={isLoading}
                         aria-busy={clockInPhase !== 'idle'}
-                        className="group relative w-full min-h-11 flex items-center justify-center gap-3 py-3.5 rounded-2xl bg-emerald-500 text-emerald-950 hover:bg-emerald-400 active:scale-[0.98] transition-[transform,opacity,background-color] duration-200 shadow-lg shadow-emerald-500/20 disabled:cursor-wait disabled:opacity-80"
+                        title={busyLabel ?? 'Clock in'}
+                        className="md-btn md-btn-primary md-btn-sm shrink-0 disabled:cursor-wait"
                     >
-                        {clockInPhase !== 'idle' ? (
-                            <FiLoader className="w-4 h-4 animate-spin" aria-hidden="true" />
-                        ) : (
-                            <FiClock className="w-4 h-4" aria-hidden="true" />
-                        )}
-                        <span className="text-sm font-bold uppercase tracking-wide leading-none">
-                            {clockInPhase === 'locating'
-                                ? 'Finding your location...'
-                                : clockInPhase === 'checking_server'
-                                    ? 'Checking with server...'
-                                    : 'Clock In'}
-                        </span>
+                        <span className="hidden sm:inline">{busyLabel ?? 'Clock in'}</span>
+                        <span className="md-btn-chip">{clockInPhase !== 'idle' ? <FiLoader className="animate-spin" /> : <FiClock />}</span>
                     </button>
                 ) : (
-                    <div className="relative h-[60px] w-full">
-                        <AnimatePresence mode="wait">
-                            {!showConfirm ? (
-                                <motion.button
-                                    key="clock-out-btn"
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    onClick={handleClockOut}
-                                    disabled={isLoading}
-                                    className="group w-full h-full flex items-center justify-center gap-3 rounded-2xl bg-foreground/[0.03] border border-card-border text-foreground hover:bg-foreground/[0.06] active:scale-[0.98] transition-all duration-300"
-                                >
-                                    <FiX className="w-4 h-4 group-hover:text-rose-400 transition-colors" />
-                                    <span className="text-sm font-bold uppercase tracking-wide leading-none">
-                                        {isLoading ? 'Syncing...' : 'Clock Out'}
-                                    </span>
-                                </motion.button>
-                            ) : (
-                                <motion.div
-                                    key="confirm-banner"
-                                    initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
-                                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                                    exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
-                                    className="w-full h-full flex items-center justify-between gap-4 px-5 rounded-2xl bg-rose-500/10 border border-rose-500/30 backdrop-blur-xl relative overflow-hidden group shadow-md shadow-rose-500/5"
-                                >
-                                    {/* Accent line */}
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500/50" />
-                                    
-                                    <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className="p-2 rounded-lg bg-rose-500/20">
-                                            <FiAlertTriangle className="text-rose-400 w-4 h-4 animate-pulse" />
-                                        </div>
-                                        <p className="text-[11px] font-bold text-rose-300/90 leading-tight uppercase tracking-wide truncate pr-2">
-                                            {confirmReason || "Manual override required"}
-                                        </p>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <button
-                                            onClick={handleConfirmClockOut}
-                                            disabled={isLoading}
-                                            className="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 active:scale-90 transition-all shadow-sm shadow-rose-500/10"
-                                            title="Confirm Override"
-                                        >
-                                            <FiCheck className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setShowConfirm(false);
-                                                setConfirmReason(null);
-                                            }}
-                                            className="w-10 h-10 rounded-xl bg-foreground/5 border border-card-border text-text-muted flex items-center justify-center hover:text-foreground hover:bg-foreground/10 active:scale-90 transition-all"
-                                            title="Cancel"
-                                        >
-                                            <FiX className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={handleClockOut}
+                        disabled={isLoading || showConfirm}
+                        className="md-btn md-btn-secondary md-btn-sm shrink-0"
+                    >
+                        <FiLogOut className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">{isLoading ? 'Syncing…' : 'Clock out'}</span>
+                    </button>
                 )}
             </div>
 
-            {/* LAYER 3: Metrics Strip */}
-            <div className="grid grid-cols-3 gap-1 bg-foreground/[0.01] rounded-2xl border border-card-border overflow-hidden z-10">
-                <div className="flex flex-col items-center justify-center py-4 bg-foreground/[0.02]">
-                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5 mb-1">
-                        <FiActivity className="text-emerald-500/60 w-2.5 h-2.5" />
-                        Last update
-                    </span>
-                    <p className="text-2xl font-numbers font-black text-foreground tracking-tighter" suppressHydrationWarning>
-                        {mounted && latestPulse ? latestPulse.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                    </p>
-                </div>
-                
-                <div className="flex flex-col items-center justify-center py-4 bg-foreground/[0.02] border-x border-card-border">
-                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5 mb-1">
-                        <FiNavigation className="text-sky-500/60 w-2.5 h-2.5" />
-                        Distance
-                    </span>
-                    <p className="text-2xl font-numbers font-black text-foreground tracking-tighter">
-                        {distance !== null ? formatDistance(distance) : '—'}
-                    </p>
-                </div>
+            {/* Clock-out override confirmation */}
+            <AnimatePresence initial={false}>
+                {showConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                        className="overflow-hidden"
+                    >
+                        <div className="mt-3 flex items-center gap-3 rounded-[22px] bg-danger/10 p-2 pl-4">
+                            <FiAlertTriangle className="h-4 w-4 shrink-0 text-danger-text" />
+                            <p className="min-w-0 flex-1 text-xs text-foreground">{confirmReason || 'Manual override required'}</p>
+                            <button
+                                type="button"
+                                onClick={handleConfirmClockOut}
+                                disabled={isLoading}
+                                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-danger text-on-danger transition-transform active:scale-95"
+                                title="Confirm override"
+                                aria-label="Confirm clock out"
+                            >
+                                <FiCheck className="h-4 w-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setShowConfirm(false); setConfirmReason(null); }}
+                                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground/[0.06] text-text-muted transition-colors hover:text-foreground active:scale-95"
+                                title="Cancel"
+                                aria-label="Cancel clock out"
+                            >
+                                <FiX className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                <div className="flex flex-col items-center justify-center py-4 bg-foreground/[0.02]">
-                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-widest flex items-center gap-1.5 mb-1">
-                        <FiTarget className="text-rose-500/60 w-2.5 h-2.5" />
-                        Accuracy
-                    </span>
-                    <p className="text-2xl font-numbers font-black text-foreground tracking-tighter">
-                        {location?.accuracy ? `${Math.round(location.accuracy)}m` : '—'}
-                    </p>
-                </div>
-            </div>
+            {/* Expanded details */}
+            <AnimatePresence initial={false}>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.24, ease: [0.23, 1, 0.32, 1] }}
+                        className="overflow-hidden"
+                    >
+                        <div className="space-y-3 px-1 pb-1 pt-3">
+                            {permissionState === 'denied' && (
+                                <div className="flex items-center gap-3 rounded-[22px] bg-warning/12 p-2 pl-4">
+                                    <FiAlertTriangle className="h-4 w-4 shrink-0 text-warning-text" />
+                                    <p className="min-w-0 flex-1 text-xs text-foreground">Location access is blocked. Allow it in your browser settings to check in.</p>
+                                    <button type="button" onClick={() => requestPermission()} className={`${pill} shrink-0 bg-warning text-on-warning`}>Allow</button>
+                                </div>
+                            )}
 
-            {/* LAYER 4: Technical Metadata Toggle */}
-            <div className="z-10">
-                <button
-                    onClick={() => setShowMetadata(!showMetadata)}
-                    className="w-full flex items-center justify-between text-[10px] font-bold text-text-muted uppercase tracking-widest hover:text-foreground transition-colors group px-1"
-                >
-                    <span className="flex items-center gap-2">
-                        <div className={`w-1 h-1 rounded-full ${isLoading || isPolling ? 'bg-emerald-500 animate-pulse' : 'bg-text-muted'}`} />
-                        More details
-                    </span>
-                    {showMetadata ? <FiChevronUp /> : <FiChevronDown />}
-                </button>
-                
-                <AnimatePresence>
-                    {showMetadata && (
-                        <motion.div 
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
-                        >
-                            <div className="pt-4 grid grid-cols-2 gap-y-4">
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Time today</span>
-                                    <span className="text-xs font-numbers text-foreground font-medium tracking-tight">
-                                        {mounted ? (
-                                            (() => {
-                                                const cumulativeSeconds = liveRecord?.total_seconds || initialRecord?.total_seconds || 0;
-                                                let totalSec = cumulativeSeconds;
-                                                
-                                                if (currentAttendance === 'CLOCKED_IN' && clockInTime) {
-                                                    const start = new Date(clockInTime);
-                                                    const now = new Date();
-                                                    const sessionSec = Math.max(0, Math.floor((now.getTime() - start.getTime()) / 1000));
-                                                    totalSec += sessionSec;
-                                                }
+                            {autoCheck && (
+                                <div className={`flex items-center gap-3 rounded-[22px] p-2 pl-4 ${autoCheckStatus === 'waiting_for_signal' ? 'bg-warning/12' : 'bg-success/12'}`}>
+                                    <FiActivity className={`h-4 w-4 shrink-0 ${autoCheckStatus === 'waiting_for_signal' ? 'text-warning-text' : 'text-success-text'}`} />
+                                    <div className="min-w-0 flex-1 py-1">
+                                        <p className="text-xs font-semibold text-foreground">{autoCheck.title}</p>
+                                        <p className="mt-0.5 text-[11px] leading-relaxed text-text-muted">{autoCheck.detail}</p>
+                                    </div>
+                                    {autoCheckStatus === 'permission_required' && (
+                                        <button type="button" onClick={() => requestPermission()} className={`${pill} shrink-0 bg-ink text-on-ink`}>Enable GPS</button>
+                                    )}
+                                </div>
+                            )}
 
-                                                const h = Math.floor(totalSec / 3600);
-                                                const m = Math.floor((totalSec % 3600) / 60);
-                                                return `${h}h ${m}m`;
-                                            })()
-                                        ) : '0h 0m'}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col gap-0.5 items-end">
-                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Clocked in at</span>
-                                    <span className="text-xs font-numbers text-foreground font-medium tracking-tight" suppressHydrationWarning>
-                                        {mounted && liveRecord?.first_seen_in_office_at ? new Date(liveRecord.first_seen_in_office_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Waiting...'}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Coordinates</span>
-                                    <span className="text-[10px] font-numbers text-text-secondary font-medium tracking-tight">
-                                        {location ? `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : 'Locating...'}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col gap-0.5 items-end">
-                                    <span className="text-[8px] font-bold text-text-muted uppercase tracking-tighter">Connection</span>
-                                    <span className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest flex items-center gap-1.5">
-                                        Encrypted
-                                        <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                                    </span>
-                                </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                {metrics.map(({ label, icon: Icon, value }) => (
+                                    <div key={label} className="rounded-[20px] bg-foreground/[0.04] px-3 py-2.5">
+                                        <span className="flex items-center gap-1.5 text-[11px] text-text-muted">
+                                            <Icon className="h-3 w-3" /> {label}
+                                        </span>
+                                        <p className="mt-1 font-numbers text-lg font-semibold leading-none text-foreground" suppressHydrationWarning>{value}</p>
+                                    </div>
+                                ))}
                             </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+
+                            <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 px-1 text-xs">
+                                <div>
+                                    <dt className="text-text-muted">Clocked in at</dt>
+                                    <dd className="font-numbers text-foreground" suppressHydrationWarning>
+                                        {mounted && liveRecord?.first_seen_in_office_at ? new Date(liveRecord.first_seen_in_office_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Waiting…'}
+                                    </dd>
+                                </div>
+                                <div className="text-right">
+                                    <dt className="text-text-muted">Clocked out at</dt>
+                                    <dd className="font-numbers text-foreground" suppressHydrationWarning>
+                                        {mounted && clockOutTime ? new Date(clockOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt className="text-text-muted">Coordinates</dt>
+                                    <dd className="font-numbers text-text-secondary">
+                                        {location ? `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}` : 'Locating…'}
+                                    </dd>
+                                </div>
+                                <div className="text-right">
+                                    <dt className="text-text-muted">Connection</dt>
+                                    <dd className="inline-flex items-center gap-1.5 text-success-text">
+                                        Encrypted <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                                    </dd>
+                                </div>
+                            </dl>
+
+                            <div className="flex flex-wrap items-center gap-2 border-t border-card-border pt-3">
+                                <button
+                                    type="button"
+                                    onClick={refreshLocation}
+                                    disabled={isLoading}
+                                    title="Refresh your GPS location"
+                                    className={`${pill} ${isPolling || isLoading ? 'bg-accent/12 text-accent-text' : 'bg-foreground/[0.05] text-text-secondary hover:text-foreground'}`}
+                                >
+                                    <FiTarget className={`h-3.5 w-3.5 ${isLoading ? 'animate-pulse' : ''}`} /> Sync location
+                                </button>
+                                {isSupported && (
+                                    <button
+                                        type="button"
+                                        onClick={toggleTracking}
+                                        aria-pressed={isTracking}
+                                        className={`${pill} ${isTracking ? 'bg-success/15 text-success-text' : 'bg-foreground/[0.05] text-text-secondary hover:text-foreground'}`}
+                                    >
+                                        <FiZap className={`h-3.5 w-3.5 ${isTracking ? 'animate-pulse' : ''}`} /> GPS {isTracking ? 'on' : 'off'}
+                                    </button>
+                                )}
+                                {permissionError && <span className="text-[11px] text-danger-text">{permissionError}</span>}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

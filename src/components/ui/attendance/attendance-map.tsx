@@ -5,22 +5,26 @@ import dynamic from 'next/dynamic';
 import { useLocation } from '@/providers/location-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { OfficeLocation } from '@/types/attendance';
+import type { MapIdentity } from './attendance-map-internals';
 
 // Dynamic import to prevent SSR issues with Leaflet
 const AttendanceMapInternals = dynamic(
   () => import('./attendance-map-internals').then((mod) => mod.AttendanceMapInternals),
   {
     ssr: false,
-    loading: () => <Skeleton className="h-full w-full rounded-2xl" />
+    loading: () => <Skeleton className="h-full w-full rounded-none" />
   }
 );
 
 interface AttendanceMapProps {
   officeLocations?: OfficeLocation[];
   cartoApiLink?: string;
+  onMapClick?: () => void;
+  user: MapIdentity;
+  organization: MapIdentity;
 }
 
-export function AttendanceMap({ officeLocations, cartoApiLink }: AttendanceMapProps) {
+export function AttendanceMap({ officeLocations, cartoApiLink, onMapClick, user, organization }: AttendanceMapProps) {
   const { location, officeLocation } = useLocation();
 
   const activeOffice = useMemo(() => {
@@ -49,8 +53,11 @@ export function AttendanceMap({ officeLocations, cartoApiLink }: AttendanceMapPr
         officeLocation={mapOffice}
         inOfficeRadius={activeOffice?.in_office_radius_meters || 0}
         tempOutRadius={activeOffice?.temporarily_out_radius_meters || 0}
-        userName="Active Session"
+        user={user}
+        organization={organization}
+        officeName={activeOffice?.name || organization.name}
         cartoApiLink={cartoApiLink}
+        onMapClick={onMapClick}
       />
     </div>
   );

@@ -73,18 +73,18 @@ export const orgRoleDescriptions: Record<OrgRole, string> = {
 };
 
 export const orgRoleToneClasses: Record<string, string> = {
-  rose:   "bg-rose-500/10 text-rose-400 border-rose-500/20",
-  amber:  "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  sky:    "bg-sky-500/10 text-sky-400 border-sky-500/20",
+  rose:   "bg-danger/10 text-danger-text border-danger/20",
+  amber:  "bg-warning/10 text-warning-text border-warning/20",
+  sky:    "bg-accent/10 text-accent-text border-accent/20",
   violet: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  emerald: "bg-success/10 text-success-text border-success/20",
   zinc:   "bg-zinc-700/50 text-zinc-400 border-white/5",
 };
 
 export const membershipStatusToneClasses: Record<string, string> = {
-  pending:   "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  active:    "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  suspended: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  pending:   "bg-warning/10 text-warning-text border-warning/20",
+  active:    "bg-success/10 text-success-text border-success/20",
+  suspended: "bg-danger/10 text-danger-text border-danger/20",
 };
 
 export function presentOrgRole(role: string | null | undefined): { label: string; tone: string } {

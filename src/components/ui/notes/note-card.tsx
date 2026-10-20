@@ -16,6 +16,7 @@ import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 import { NoteUpdatedTime } from './note-updated-time';
 
 import type { ActionResult } from '@/types/api';
+import { avatarStyle } from '@/lib/avatar-color';
 
 interface NoteCardProps {
     note: Note;
@@ -76,7 +77,7 @@ const TextHighlight: React.FC<{ text: string; highlight: string }> = ({ text, hi
         <>
             {parts.map((part, i) =>
                 part.toLowerCase() === highlight.toLowerCase() ? (
-                    <mark key={i} className="bg-yellow-300 text-black">
+                    <mark key={i} className="bg-warning text-black">
                         {part}
                     </mark>
                 ) : (
@@ -253,7 +254,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
 
     if (viewMode === 'grid') {
         return (
-            <div className={`bg-card rounded-[32px] p-6 flex flex-col h-full border border-card-border hover:border-foreground/10 transition-all duration-500 hover:scale-[1.01] ${isExpanded ? 'ring-2 ring-indigo-500/30' : ''}`}>
+            <div className={`bg-card rounded-[32px] p-6 flex flex-col h-full border border-card-border hover:border-foreground/10 transition-all duration-500 hover:scale-[1.01] ${isExpanded ? 'ring-2 ring-accent/30' : ''}`}>
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                         <div className="flex items-center gap-2 min-w-0">
@@ -294,19 +295,19 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                 <div className="mt-4">
                     <div className="flex flex-wrap gap-2 mb-3">
                         {noteTags.map((tag: string) => (
-                            <span key={tag} className="px-2.5 py-1 bg-foreground/[0.03] text-text-secondary text-[10px] font-bold uppercase tracking-wider rounded-lg border border-card-border">{tag}</span>
+                            <span key={tag} className="px-2.5 py-1 bg-foreground/[0.03] text-text-secondary text-[11px] font-bold capitalize rounded-lg border border-card-border">{tag}</span>
                         ))}
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1.5 px-2 py-1 bg-foreground/[0.03] rounded-lg border border-card-border">
                                 {note.is_pinned === 1 && (
-                                    <div className="text-blue-400" title="Pinned">
+                                    <div className="text-accent-text" title="Pinned">
                                         <FiMapPin size={12} className="fill-current" />
                                     </div>
                                 )}
                                 {note.is_favorite === 1 && (
-                                    <div className="text-yellow-400" title="Favorite">
+                                    <div className="text-warning-text" title="Favorite">
                                         <FiStar size={12} className="fill-current" />
                                     </div>
                                 )}
@@ -334,7 +335,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                         />
                                     ) : note.owner?.name || note.owner?.full_name ? (
                                         <div 
-                                            className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs font-bold border-2 border-background ring-2 ring-purple-500/20"
+                                            style={avatarStyle((note.owner.full_name || note.owner.name)!)} className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs font-bold border-2 border-background ring-2 ring-purple-500/20"
                                         >
                                             {(note.owner.full_name || note.owner.name)!.charAt(0).toUpperCase()}
                                         </div>
@@ -374,14 +375,14 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                             {note.owner.avatar_url || note.owner.image ? (
                                                 <Image src={note.owner.avatar_url || note.owner.image || ''} alt={note.owner.name || ''} fill className="object-cover" />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center text-[10px] font-black text-emerald-500 bg-emerald-500/10">
+                                                <div style={avatarStyle(note.owner.full_name || note.owner.name)} className="flex h-full w-full items-center justify-center text-[11px] font-semibold">
                                                     {(note.owner.full_name || note.owner.name || '?').charAt(0).toUpperCase()}
                                                 </div>
                                             )}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-[10px] font-black text-foreground truncate uppercase tracking-tight">{note.owner.full_name || note.owner.name}</p>
-                                            <p className="text-[9px] text-text-muted font-black uppercase tracking-widest">Owner</p>
+                                            <p className="text-[11px] font-semibold text-foreground truncate capitalize tracking-tight">{note.owner.full_name || note.owner.name}</p>
+                                            <p className="text-[11px] text-text-muted font-semibold">Owner</p>
                                         </div>
                                     </div>
                                 </div>
@@ -413,7 +414,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                         className="z-[9999] w-64 overflow-y-auto rounded-2xl border border-card-border bg-background p-3 shadow-2xl space-y-3"
                                     >
                                         <div>
-                                            <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Grant Access</p>
+                                            <p className="text-[11px] font-semibold text-text-muted mb-2 ml-1">Grant Access</p>
                                             <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
                                                 {availableUsers.length === 0 && <p className="px-2 py-3 text-xs text-text-muted">No workspace members available to share with.</p>}
                                                 {availableUsers.map(u => (
@@ -424,34 +425,34 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                                         aria-pressed={selectedUser === u.id}
                                                         disabled={isSharing}
                                                         className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border transition-all ${
-                                                            selectedUser === u.id 
-                                                            ? 'bg-foreground/[0.07] border-indigo-500/30 text-foreground font-bold' 
-                                                            : 'bg-transparent border-transparent hover:bg-foreground/[0.04] text-text-secondary hover:text-foreground'
-                                                        }`}
+ selectedUser === u.id 
+ ? 'bg-foreground/[0.07] border-accent/30 text-foreground font-bold' 
+ : 'bg-transparent border-transparent hover:bg-foreground/[0.04] text-text-secondary hover:text-foreground'
+ }`}
                                                     >
                                                         <div className="h-6 w-6 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
                                                             {u.image ? (
                                                                 <Image src={u.image} alt={u.name || ''} fill className="object-cover" />
                                                             ) : (
-                                                                <div className="flex h-full w-full items-center justify-center text-[8px] font-black text-emerald-500 bg-emerald-500/10">
+                                                                <div style={avatarStyle(u.name || u.email)} className="flex h-full w-full items-center justify-center text-[11px] font-semibold">
                                                                     {(u.name || u.email || '?').charAt(0).toUpperCase()}
                                                                 </div>
                                                             )}
                                                         </div>
                                                         <div className="min-w-0 flex-1">
-                                                            <p className="text-[10px] font-black truncate uppercase tracking-tight">{u.name || u.email?.split('@')[0]}</p>
-                                                            <p className="text-[8px] text-text-muted truncate uppercase tracking-widest">{u.email}</p>
+                                                            <p className="text-[11px] font-semibold truncate capitalize tracking-tight">{u.name || u.email?.split('@')[0]}</p>
+                                                            <p className="text-[11px] text-text-muted truncate capitalize">{u.email}</p>
                                                         </div>
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
-                                        {sharingError && <p role="alert" className="text-xs text-rose-500">{sharingError}</p>}
+                                        {sharingError && <p role="alert" className="text-xs text-danger-text">{sharingError}</p>}
                                         <button
                                             type="button"
                                             onClick={handleAddUser}
                                             disabled={!selectedUser || isSharing}
-                                            className="w-full bg-ink text-on-ink text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-ink/85 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10"
+                                            className="md-btn md-btn-primary md-btn-sm w-full"
                                         >
                                             {isSharing ? 'Sharing…' : 'Share note'}
                                         </button>
@@ -463,7 +464,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                     <button onClick={() => onEdit?.(note)} className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"><FiEdit2 size={16} /></button>
                                     <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(); fd.append('id', note.id.toString()); await onNoteDelete(fd); }} style={{ display: 'inline' }}>
                                         <input type="hidden" name="id" value={note.id} />
-                                        <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-rose-500 hover:bg-rose-500/10 transition-all"><FiTrash2 size={16} /></button>
+                                        <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-danger-text hover:bg-danger/10 transition-all"><FiTrash2 size={16} /></button>
                                     </form>
                                 </>
                             )}
@@ -483,12 +484,12 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         <div className="flex items-center gap-3">
                         <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-foreground/[0.03] rounded-md border border-card-border">
                             {note.is_pinned === 1 && (
-                                <div className="text-blue-500" title="Pinned">
+                                <div className="text-accent-text" title="Pinned">
                                     <FiMapPin size={10} className="fill-current" />
                                 </div>
                             )}
                             {note.is_favorite === 1 && (
-                                <div className="text-amber-500" title="Favorite">
+                                <div className="text-warning-text" title="Favorite">
                                     <FiStar size={10} className="fill-current" />
                                 </div>
                             )}
@@ -507,12 +508,12 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                             {note.owner?.avatar_url || note.owner?.image ? (
                                 <Image src={(note.owner.avatar_url || note.owner.image)!} alt={note.owner.full_name || note.owner.name || 'Owner'} width={28} height={28} className="rounded-full border border-card-border object-cover ring-2 ring-foreground/[0.03]" />
                             ) : note.owner?.name || note.owner?.full_name ? (
-                                <div className="w-7 h-7 rounded-full bg-foreground/[0.05] text-text-secondary flex items-center justify-center text-[10px] font-black border border-card-border">
+                                <div style={avatarStyle((note.owner.full_name || note.owner.name)!)} className="w-7 h-7 rounded-full bg-foreground/[0.05] text-text-secondary flex items-center justify-center text-[11px] font-semibold border border-card-border">
                                     {(note.owner.full_name || note.owner.name)!.charAt(0).toUpperCase()}
                                 </div>
                             ) : null}
                         </div>
-                        <span className="uppercase tracking-tight italic">
+                        <span className="tracking-tight italic">
                             <TextHighlight text={note.title} highlight={searchQuery} />
                         </span>
                         </div>
@@ -540,16 +541,16 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         </div>
                         </td>
                         <td className="px-6 py-5">
-                        <span className={`px-2.5 py-1 inline-flex text-[10px] font-black uppercase tracking-wider rounded-lg border ${priorityBgColorClass(note.priority)} ${priorityTextColorClass(note.priority)} border-current/20`}>
+                        <span className={`px-2.5 py-1 inline-flex text-[11px] font-semibold capitalize rounded-lg border ${priorityBgColorClass(note.priority)} ${priorityTextColorClass(note.priority)} border-current/20`}>
                         {formatPriority(note.priority)}
                         </span>
                         </td>
                         <td className="px-6 py-5">
                         <div className="flex flex-wrap gap-1.5">
                         {noteTags.map((tag: string) => (
-                        <span key={tag} className="px-2.5 py-0.5 bg-foreground/[0.03] text-text-muted text-[9px] font-black uppercase tracking-widest rounded-md border border-card-border">{tag}</span>
+                        <span key={tag} className="px-2.5 py-0.5 bg-foreground/[0.03] text-text-muted text-[11px] font-semibold capitalize rounded-md border border-card-border">{tag}</span>
                         ))}
-                        {noteTags.length === 0 && <span className="text-text-muted/30 italic text-[10px]">No Tags</span>}
+                        {noteTags.length === 0 && <span className="text-text-muted/30 italic text-[11px]">No Tags</span>}
                         </div>
                         </td>
                         <td className="px-6 py-5 text-right space-x-1">
@@ -578,7 +579,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                             className="z-[9999] w-64 overflow-y-auto rounded-2xl border border-card-border bg-background p-3 shadow-2xl space-y-3 text-left"
                         >
                             <div>
-                                <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-2 ml-1">Grant Access</p>
+                                <p className="text-[11px] font-semibold text-text-muted mb-2 ml-1">Grant Access</p>
                                 <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
                                     {availableUsers.length === 0 && <p className="px-2 py-3 text-xs text-text-muted">No workspace members available to share with.</p>}
                                     {availableUsers.map(u => (
@@ -589,34 +590,34 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                             aria-pressed={selectedUser === u.id}
                                             disabled={isSharing}
                                             className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border transition-all ${
-                                                selectedUser === u.id 
-                                                ? 'bg-foreground/[0.07] border-indigo-500/30 text-foreground font-bold' 
-                                                : 'bg-transparent border-transparent hover:bg-foreground/[0.04] text-text-secondary hover:text-foreground'
-                                            }`}
+ selectedUser === u.id 
+ ? 'bg-foreground/[0.07] border-accent/30 text-foreground font-bold' 
+ : 'bg-transparent border-transparent hover:bg-foreground/[0.04] text-text-secondary hover:text-foreground'
+ }`}
                                         >
                                             <div className="h-6 w-6 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
                                                 {u.image ? (
                                                     <Image src={u.image} alt={u.name || ''} fill className="object-cover" />
                                                 ) : (
-                                                    <div className="flex h-full w-full items-center justify-center text-[8px] font-black text-emerald-500 bg-emerald-500/10">
+                                                    <div style={avatarStyle(u.name || u.email)} className="flex h-full w-full items-center justify-center text-[11px] font-semibold">
                                                         {(u.name || u.email || '?').charAt(0).toUpperCase()}
                                                     </div>
                                                 )}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-[10px] font-black truncate uppercase tracking-tight">{u.name || u.email?.split('@')[0]}</p>
-                                                <p className="text-[8px] text-text-muted truncate uppercase tracking-widest">{u.email}</p>
+                                                <p className="text-[11px] font-semibold truncate capitalize tracking-tight">{u.name || u.email?.split('@')[0]}</p>
+                                                <p className="text-[11px] text-text-muted truncate capitalize">{u.email}</p>
                                             </div>
                                         </button>
                                     ))}
                                 </div>
                             </div>
-                            {sharingError && <p role="alert" className="text-xs text-rose-500">{sharingError}</p>}
+                            {sharingError && <p role="alert" className="text-xs text-danger-text">{sharingError}</p>}
                             <button
                                 type="button"
                                 onClick={handleAddUser}
                                 disabled={!selectedUser || isSharing}
-                                className="w-full bg-ink text-on-ink text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-ink/85 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10"
+                                className="md-btn md-btn-primary md-btn-sm w-full"
                             >
                                 {isSharing ? 'Sharing…' : 'Share note'}
                             </button>
@@ -628,7 +629,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                         <button type="button" onClick={() => onEdit?.(note)} className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"><FiEdit2 size={15} /></button>
                         <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(); fd.append('id', note.id.toString()); await onNoteDelete(fd); }} style={{ display: 'inline' }}>
                         <input type="hidden" name="id" value={note.id} />
-                        <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-rose-500 hover:bg-rose-500/10 transition-all"><FiTrash2 size={15} /></button>
+                        <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-danger-text hover:bg-danger/10 transition-all"><FiTrash2 size={15} /></button>
                         </form>
                         </>
                         )}
@@ -650,14 +651,14 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                 {note.owner.avatar_url || note.owner.image ? (
                                     <Image src={note.owner.avatar_url || note.owner.image || ''} alt={note.owner.name || ''} fill className="object-cover" />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-[10px] font-black text-emerald-500 bg-emerald-500/10">
+                                    <div style={avatarStyle(note.owner.full_name || note.owner.name)} className="flex h-full w-full items-center justify-center text-[11px] font-semibold">
                                         {(note.owner.full_name || note.owner.name || '?').charAt(0).toUpperCase()}
                                     </div>
                                 )}
                             </div>
                             <div className="min-w-0 text-left">
-                                <p className="text-[10px] font-black text-foreground truncate uppercase tracking-tight">{note.owner.full_name || note.owner.name}</p>
-                                <p className="text-[9px] text-text-muted font-black uppercase tracking-widest">Owner</p>
+                                <p className="text-[11px] font-semibold text-foreground truncate capitalize tracking-tight">{note.owner.full_name || note.owner.name}</p>
+                                <p className="text-[11px] text-text-muted font-semibold">Owner</p>
                             </div>
                         </div>
                         </div>

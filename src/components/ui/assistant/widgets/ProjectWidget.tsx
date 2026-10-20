@@ -12,14 +12,14 @@ export default function ProjectWidget({ project, taskCount }: ProjectWidgetProps
   let statusBg = "bg-zinc-400/10";
   
   if (project.status === "in_progress") {
-    statusColor = "text-blue-400";
-    statusBg = "bg-blue-400/10";
+    statusColor = "text-accent-text";
+    statusBg = "bg-accent/10";
   } else if (project.status === "completed") {
-    statusColor = "text-emerald-400";
-    statusBg = "bg-emerald-400/10";
+    statusColor = "text-success-text";
+    statusBg = "bg-success/10";
   } else if (project.status === "on_hold") {
-    statusColor = "text-orange-400";
-    statusBg = "bg-orange-400/10";
+    statusColor = "text-priority-high-text";
+    statusBg = "bg-priority-high/10";
   } else if (project.status === "planning") {
     statusColor = "text-purple-400";
     statusBg = "bg-purple-400/10";
@@ -50,7 +50,7 @@ export default function ProjectWidget({ project, taskCount }: ProjectWidgetProps
         
         <Link 
           href={`/projects/${project.id}/tasks`}
-          className="text-blue-400 hover:text-blue-300 text-sm font-medium whitespace-nowrap"
+          className="text-accent-text hover:text-accent-text text-sm font-medium whitespace-nowrap"
         >
           View →
         </Link>

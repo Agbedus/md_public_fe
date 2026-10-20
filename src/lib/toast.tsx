@@ -12,7 +12,7 @@ function tryPlaySound(type: string) {
 const toastFunction = (message: string, options?: ToastOptions) => {
     tryPlaySound('info');
     return hotToast(message, {
-        icon: <FiInfo size={22} className="text-blue-400" />,
+        icon: <FiInfo size={22} className="text-accent-text" />,
         ...options,
     });
 };
@@ -21,28 +21,28 @@ export const toast = Object.assign(toastFunction, {
     success: (message: string, options?: ToastOptions) => {
         tryPlaySound('success');
         return hotToast.success(message, {
-            icon: <FiCheckCircle size={22} className="text-emerald-400" />,
+            icon: <FiCheckCircle size={22} className="text-success-text" />,
             ...options,
         });
     },
     error: (message: string, options?: ToastOptions) => {
         tryPlaySound('error');
         return hotToast.error(message, {
-            icon: <FiXCircle size={22} className="text-rose-400" />,
+            icon: <FiXCircle size={22} className="text-danger-text" />,
             ...options,
         });
     },
     info: (message: string, options?: ToastOptions) => {
         tryPlaySound('info');
         return hotToast(message, {
-            icon: <FiInfo size={22} className="text-blue-400" />,
+            icon: <FiInfo size={22} className="text-accent-text" />,
             ...options,
         });
     },
     warning: (message: string, options?: ToastOptions) => {
         tryPlaySound('warning');
         return hotToast.error(message, {
-            icon: <FiAlertCircle size={22} className="text-amber-400" />,
+            icon: <FiAlertCircle size={22} className="text-warning-text" />,
             ...options,
         });
     },
@@ -56,7 +56,7 @@ export const toast = Object.assign(toastFunction, {
             <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-sm w-full bg-card shadow-xl rounded-2xl pointer-events-auto flex ring-1 ring-card-border overflow-hidden`}>
                 <div className="flex-1 w-0 p-4">
                     <div className="flex items-start">
-                        <div className="flex-shrink-0 pt-0.5 text-blue-400">
+                        <div className="flex-shrink-0 pt-0.5 text-accent-text">
                             <FiInfo size={20} />
                         </div>
                         <div className="ml-3 flex-1">
@@ -71,7 +71,7 @@ export const toast = Object.assign(toastFunction, {
                             onUndo();
                             hotToast.dismiss(t.id);
                         }}
-                        className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-bold text-blue-400 hover:text-blue-300 hover:bg-foreground/[0.05] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-sm font-bold text-accent-text hover:text-accent-text hover:bg-foreground/[0.05] focus:outline-none focus:ring-2 focus:ring-accent transition-all"
                     >
                         Undo
                     </button>

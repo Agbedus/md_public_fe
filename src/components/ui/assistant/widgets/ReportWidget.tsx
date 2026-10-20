@@ -22,30 +22,30 @@ export default function ReportWidget({ title, data }: ReportWidgetProps) {
     {
       label: "Tasks",
       stats: [
-        { label: "Total", value: data.tasks.total, color: "text-blue-400" },
+        { label: "Total", value: data.tasks.total, color: "text-accent-text" },
         { label: "Created This Month", value: data.tasks.created, color: "text-cyan-400" },
-        { label: "Completed", value: data.tasks.completed, color: "text-emerald-400" },
+        { label: "Completed", value: data.tasks.completed, color: "text-success-text" },
         { label: "Pending", value: data.tasks.pending, color: "text-text-muted" },
-        { label: "In Progress", value: data.tasks.byStatus.inProgress, color: "text-yellow-400" },
-        { label: "QA/Review", value: data.tasks.byStatus.qa + data.tasks.byStatus.review, color: "text-orange-400" },
+        { label: "In Progress", value: data.tasks.byStatus.inProgress, color: "text-warning-text" },
+        { label: "QA/Review", value: data.tasks.byStatus.qa + data.tasks.byStatus.review, color: "text-priority-high-text" },
       ],
     },
     {
       label: "Projects & Notes",
       stats: [
         { label: "Total Projects", value: data.projects.total, color: "text-pink-400" },
-        { label: "Active Projects", value: data.projects.active, color: "text-emerald-400" },
-        { label: "Completed Projects", value: data.projects.completed, color: "text-indigo-400" },
+        { label: "Active Projects", value: data.projects.active, color: "text-success-text" },
+        { label: "Completed Projects", value: data.projects.completed, color: "text-accent-text" },
         { label: "Total Notes", value: data.notes.total, color: "text-purple-400" },
         { label: "Notes This Month", value: data.notes.createdThisMonth, color: "text-violet-400" },
-        { label: "Events This Month", value: data.events.thisMonth, color: "text-rose-400" },
+        { label: "Events This Month", value: data.events.thisMonth, color: "text-danger-text" },
       ],
     },
   ];
 
   return (
     <div className="bg-card rounded-xl border border-card-border overflow-hidden my-3">
-      <div className="bg-gradient-to-r from-indigo-600/10 to-purple-600/10 p-4 border-b border-card-border">
+      <div className="bg-foreground/[0.03] p-4 border-b border-card-border">
         <h4 className="font-bold text-foreground text-lg">{title}</h4>
         <p className="text-xs text-text-muted font-medium mt-0.5">
           {data.period.start} – {data.period.end}

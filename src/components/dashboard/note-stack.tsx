@@ -109,7 +109,7 @@ export function NoteStack({ notes }: { notes: Note[] }) {
                         stiffness: 300, 
                         mass: 0.6,
                     }}
-                    className="absolute inset-0 p-5 rounded-3xl bg-card border border-card-border flex flex-col group/card cursor-pointer hover:border-emerald-500/20 transition-colors duration-300"
+                    className="absolute inset-0 p-5 rounded-3xl bg-card border border-card-border flex flex-col group/card cursor-pointer hover:border-success/20 transition-colors duration-300"
                 >
                     <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative z-10">
                         <div className="flex items-center justify-between mb-3 shrink-0">
@@ -139,7 +139,7 @@ export function NoteStack({ notes }: { notes: Note[] }) {
                     
                     <div className="mt-auto pt-3 border-t border-card-border/50 flex items-center justify-between shrink-0 relative z-10">
                         <div className="flex items-center gap-2">
-                            <div className="w-1 h-1 rounded-full bg-emerald-500/50" />
+                            <div className="w-1 h-1 rounded-full bg-success/50" />
                             <p className="text-[9px] text-(--text-muted) font-bold font-numbers uppercase tracking-widest" suppressHydrationWarning>
                                 {notes[currentIndex].updatedAt ? new Date(notes[currentIndex].updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'ARCHIVED'}
                             </p>
@@ -153,14 +153,14 @@ export function NoteStack({ notes }: { notes: Note[] }) {
         <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-50">
           <button 
             onClick={(e) => { e.stopPropagation(); prevNote(); }}
-            className="w-8 h-8 rounded-full bg-background border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 hover:border-emerald-400 transition-all active:scale-90"
+            className="w-8 h-8 rounded-full bg-background border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-success hover:text-on-success hover:border-success transition-all active:scale-90"
             title="Previous Note"
           >
             <FiChevronUp className="text-lg" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); nextNote(); }}
-            className="w-8 h-8 rounded-full bg-background border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 hover:border-emerald-400 transition-all active:scale-90"
+            className="w-8 h-8 rounded-full bg-background border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-success hover:text-on-success hover:border-success transition-all active:scale-90"
             title="Next Note"
           >
             <FiChevronDown className="text-lg" />

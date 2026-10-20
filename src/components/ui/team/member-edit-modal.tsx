@@ -9,7 +9,7 @@ import { toast } from '@/lib/toast';
 import { Portal } from '@/components/ui/portal';
 
 const inputClass =
-  'w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] focus:border-emerald-500/40 transition-all';
+  'w-full px-3 py-2 rounded-full bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all';
 const labelClass = 'block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5';
 
 interface MemberEditModalProps {
@@ -109,7 +109,7 @@ export function MemberEditModal({ member, isSelf, onClose, onSaved }: MemberEdit
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-foreground/[0.05] transition-all"
+              className="p-1.5 text-text-muted hover:text-foreground hover:bg-foreground/[0.05] transition-all rounded-full"
             >
               <FiX size={16} />
             </button>
@@ -139,7 +139,7 @@ export function MemberEditModal({ member, isSelf, onClose, onSaved }: MemberEdit
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="text-xs font-bold uppercase tracking-widest text-emerald-500 hover:text-emerald-400 transition-colors"
+                  className="text-xs font-bold uppercase tracking-widest text-success-text hover:text-success-text transition-colors"
                 >
                   Change photo
                 </button>
@@ -162,14 +162,14 @@ export function MemberEditModal({ member, isSelf, onClose, onSaved }: MemberEdit
             <div className="space-y-3 pt-1">
               <div>
                 <label className={labelClass}>Email</label>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-foreground/[0.02] border border-card-border text-sm text-text-muted">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-foreground/[0.02] border border-card-border text-sm text-text-muted">
                   <FiLock size={12} className="shrink-0" />
                   <span className="truncate">{member.user.email}</span>
                 </div>
               </div>
               <div>
                 <label className={labelClass}>Phone</label>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-foreground/[0.02] border border-card-border text-sm text-text-muted">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-foreground/[0.02] border border-card-border text-sm text-text-muted">
                   <FiLock size={12} className="shrink-0" />
                   <span className="truncate">{member.user.phone || 'Not set'}</span>
                 </div>
@@ -185,14 +185,14 @@ export function MemberEditModal({ member, isSelf, onClose, onSaved }: MemberEdit
           <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-card-border">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-sm font-medium text-text-muted hover:text-foreground border border-card-border hover:bg-foreground/[0.03] transition-all"
+              className="md-btn md-btn-secondary md-btn-sm"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={!isDirty || isSaving}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="md-btn md-btn-primary md-btn-sm"
             >
               {isSaving ? <FiLoader size={13} className="animate-spin" /> : <FiCheck size={13} />}
               {isSaving ? 'Saving...' : 'Save changes'}

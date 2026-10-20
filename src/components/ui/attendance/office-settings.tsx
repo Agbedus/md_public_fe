@@ -3,18 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import type { OfficeLocation } from '@/types/attendance';
 import { createOfficeLocation, updateOfficeLocation } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
-import { FiMapPin, FiPlus, FiCheck, FiMap, FiX } from 'react-icons/fi';
+import { FiMapPin, FiPlus, FiCheck, FiMap } from 'react-icons/fi';
 import { toast } from '@/lib/toast';
 import PolicyEditor from './policy-editor';
 import { OfficeLocationFields } from './office-location-fields';
+import type { MapIdentity } from './map-markers';
 import dynamic from 'next/dynamic';
 
+import { TabPill } from '@/components/ui/tab-pill';
 const MapComponent = dynamic(() => import('./office-map'), {
     ssr: false,
     loading: () => <div className="w-full h-full min-h-[400px] rounded-2xl bg-background/50 border border-card-border animate-pulse flex items-center justify-center p-8 text-center text-(--text-muted) text-sm">Loading visualizer...</div>
 });
 
-export default function OfficeSettings({ initialLocations }: { initialLocations: OfficeLocation[] }) {
+export default function OfficeSettings({ initialLocations, organization, cartoApiLink }: { initialLocations: OfficeLocation[]; organization?: MapIdentity; cartoApiLink?: string }) {
     const [locations, setLocations] = useState(initialLocations);
     const [selectedId, setSelectedId] = useState<number | 'new'>(
         locations.length > 0 ? locations[0].id : 'new'
@@ -121,31 +123,31 @@ export default function OfficeSettings({ initialLocations }: { initialLocations:
         setIsSaving(false);
     };
 
-    const inputClass = "w-full px-3 py-1.5 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all placeholder:text-text-muted/50";
-    const labelClass = "block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5";
+    const inputClass = "h-11 w-full rounded-full border border-card-border bg-input-bg px-4 text-sm text-foreground transition-colors placeholder:text-text-muted/50 font-numbers";
+    const labelClass = "mb-1.5 ml-3 block text-xs font-medium text-text-muted";
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Sidebar */}
-            <div className="glass p-3 rounded-2xl border border-card-border space-y-2 h-fit">
-                <div className="flex items-center gap-2 px-2 mb-2">
-                    <FiMap className="text-emerald-500 w-3.5 h-3.5" />
-                    <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Nodes</h3>
+            <div className="h-fit space-y-2 rounded-[28px] bg-card p-2">
+                <div className="mb-1 flex items-center gap-2 px-3 pt-2">
+                    <FiMap className="h-3.5 w-3.5 text-text-muted" />
+                    <h3 className="text-xs font-medium text-text-muted">Offices</h3>
                 </div>
-                
+
                 <div className="space-y-1">
                     {locations.map(loc => (
                         <button
                             key={loc.id}
                             onClick={() => handleSelect(loc.id)}
-                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all ${
-                                selectedId === loc.id 
-                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
-                                    : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.05] border border-transparent'
+                            className={`flex min-h-10 w-full items-center gap-2.5 rounded-full px-3.5 text-left transition-colors ${
+                                selectedId === loc.id
+                                    ? 'bg-accent/12 text-accent-text'
+                                    : 'text-text-secondary hover:bg-foreground/[0.05] hover:text-foreground'
                             }`}
                         >
                             <FiMapPin className="w-3.5 h-3.5 shrink-0" />
-                            <span className="text-xs font-bold truncate">{loc.name}</span>
+                            <span className="truncate text-sm">{loc.name}</span>
                         </button>
                     ))}
                 </div>
@@ -153,14 +155,14 @@ export default function OfficeSettings({ initialLocations }: { initialLocations:
                 <div className="pt-2 mt-2 border-t border-card-border">
                     <button
                         onClick={() => handleSelect('new')}
-                        className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${
+                        className={`flex min-h-10 w-full items-center justify-center gap-2 rounded-full px-3 text-sm transition-colors ${
                             selectedId === 'new'
-                                ? 'bg-foreground/[0.05] text-foreground border border-card-border'
-                                : 'text-text-muted hover:text-foreground bg-foreground/[0.02] border border-dashed border-card-border hover:border-foreground/20'
+                                ? 'bg-ink text-on-ink'
+                                : 'border border-dashed border-card-border text-text-muted hover:border-foreground/20 hover:text-foreground'
                         }`}
                     >
                         <FiPlus className="w-3.5 h-3.5" />
-                        New Node
+                        New office
                     </button>
                 </div>
             </div>
@@ -169,85 +171,91 @@ export default function OfficeSettings({ initialLocations }: { initialLocations:
             <div className="md:col-span-3 space-y-6">
                 {/* Tabs for Details vs Policy */}
                 {selectedId !== 'new' && (
-                    <div className="flex gap-1 p-1 rounded-xl bg-card border border-card-border w-fit backdrop-blur-md">
+                    <div className="flex w-fit gap-1 rounded-full bg-foreground/[0.05] p-1">
                         <button
                             onClick={() => setActiveRightTab('details')}
-                            className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                            className={`relative isolate min-h-9 rounded-full px-4 text-sm transition-colors ${
                                 activeRightTab === 'details'
-                                    ? 'bg-foreground/[0.08] text-foreground border border-card-border'
-                                    : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'
+                                    ? 'font-medium text-on-ink'
+                                    : 'text-text-secondary hover:text-foreground'
                             }`}
                         >
-                            Configuration
+                            {activeRightTab === 'details' && <TabPill id="office-tab" />}
+                            Details
                         </button>
                         <button
                             onClick={() => setActiveRightTab('policy')}
-                            className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                            className={`relative isolate min-h-9 rounded-full px-4 text-sm transition-colors ${
                                 activeRightTab === 'policy'
-                                    ? 'bg-foreground/[0.08] text-foreground border border-card-border'
-                                    : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'
+                                    ? 'font-medium text-on-ink'
+                                    : 'text-text-secondary hover:text-foreground'
                             }`}
                         >
+                            {activeRightTab === 'policy' && <TabPill id="office-tab" />}
                             Attendance policy
                         </button>
                     </div>
                 )}
 
                 {activeRightTab === 'details' && (
-                    <div className="glass p-6 rounded-[32px] border border-card-border space-y-6">
+                    <div className="space-y-5 rounded-[28px] bg-card p-5 sm:p-6">
                         <div className="flex items-center gap-3 border-b border-card-border pb-4">
-                            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                                <FiMapPin className="w-4 h-4 text-emerald-500" />
+                            <div className="grid h-10 w-10 place-items-center rounded-full bg-success/15 text-success-text">
+                                <FiMapPin className="h-4 w-4" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
-                                    {selectedId === 'new' ? 'Provision New Node' : 'Node Configuration'}
+                                <h3 className="text-base font-semibold text-foreground">
+                                    {selectedId === 'new' ? 'New office' : 'Office details'}
                                 </h3>
-                                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">
-                                    Define geographical boundaries and naming.
+                                <p className="mt-0.5 text-xs text-text-muted">
+                                    Name the office and set its boundaries.
                                 </p>
                             </div>
                         </div>
-                        
+
                         <form onSubmit={handleSaveOffice} className="space-y-4">
                             <OfficeLocationFields
                                 name={form.name}
+                                organization={organization}
+                                cartoApiLink={cartoApiLink}
+                                inOfficeRadius={Number(form.in_office_radius_meters) || 0}
+                                graceRadius={Number(form.temporarily_out_radius_meters) || 0}
                                 latitude={form.latitude}
                                 longitude={form.longitude}
                                 onChange={(location) => setForm((current) => ({ ...current, ...location }))}
                             />
 
-                            <div className="grid grid-cols-3 gap-4 p-4 bg-foreground/[0.02] rounded-2xl border border-card-border">
+                            <div className="grid grid-cols-1 gap-4 rounded-[24px] bg-foreground/[0.03] p-4 sm:grid-cols-3">
                                 <div>
-                                    <label className={labelClass}>In-Office (m)</label>
-                                    <input type="number" value={form.in_office_radius_meters} onChange={e => setForm(f => ({ ...f, in_office_radius_meters: e.target.value }))} className={`${inputClass} font-numbers`} required />
+                                    <label className={labelClass}>In office (m)</label>
+                                    <input type="number" value={form.in_office_radius_meters} onChange={e => setForm(f => ({ ...f, in_office_radius_meters: e.target.value }))} className={inputClass} required />
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Tem-Out (m)</label>
-                                    <input type="number" value={form.temporarily_out_radius_meters} onChange={e => setForm(f => ({ ...f, temporarily_out_radius_meters: e.target.value }))} className={`${inputClass} font-numbers`} required />
+                                    <label className={labelClass}>Temporarily out (m)</label>
+                                    <input type="number" value={form.temporarily_out_radius_meters} onChange={e => setForm(f => ({ ...f, temporarily_out_radius_meters: e.target.value }))} className={inputClass} required />
                                 </div>
                                 <div>
                                     <label className={labelClass}>Out (m)</label>
-                                    <input type="number" value={form.out_of_office_radius_meters} onChange={e => setForm(f => ({ ...f, out_of_office_radius_meters: e.target.value }))} className={`${inputClass} font-numbers`} required />
+                                    <input type="number" value={form.out_of_office_radius_meters} onChange={e => setForm(f => ({ ...f, out_of_office_radius_meters: e.target.value }))} className={inputClass} required />
                                 </div>
                             </div>
 
-                            <div className="pt-2 flex items-center gap-3">
+                            <div className="flex flex-row-reverse items-center gap-3 border-t border-card-border pt-4">
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                                    aria-busy={isSaving}
+                                    className="md-btn md-btn-primary disabled:cursor-wait"
                                 >
-                                    <FiCheck className="w-3.5 h-3.5" />
-                                    {isSaving ? 'Synchronizing...' : 'Save Changes'}
+                                    {isSaving ? 'Saving…' : 'Save changes'}
+                                    <span className="md-btn-chip">{isSaving ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : <FiCheck />}</span>
                                 </button>
                                 {selectedId === 'new' && locations.length > 0 && (
                                     <button
                                         type="button"
                                         onClick={() => handleSelect(locations[0].id)}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-text-muted hover:text-foreground hover:bg-foreground/[0.05] transition-all"
+                                        className="md-btn md-btn-secondary"
                                     >
-                                        <FiX className="w-3.5 h-3.5" />
                                         Cancel
                                     </button>
                                 )}

@@ -29,7 +29,7 @@ export default function ForgotPasswordForm() {
   const hasInvalidFormat = trimmedEmail.length > 0 && !EMAIL_FORMAT.test(trimmedEmail);
 
   const inputBase = 'block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)]';
-  const borderClass = hasInvalidFormat ? 'border-rose-500/40' : 'border-card-border';
+  const borderClass = hasInvalidFormat ? 'border-danger/40' : 'border-card-border';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +59,7 @@ export default function ForgotPasswordForm() {
         className="space-y-6 text-center"
       >
         <div className="flex justify-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success/10 text-success-text">
             <FiCheckCircle className="h-6 w-6" />
           </span>
         </div>
@@ -72,7 +72,7 @@ export default function ForgotPasswordForm() {
         </div>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-sm text-emerald-500 hover:text-emerald-400 font-medium transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-accent-text font-medium transition-colors"
         >
           <FiArrowLeft className="h-4 w-4" />
           Back to sign in
@@ -103,11 +103,11 @@ export default function ForgotPasswordForm() {
             required
           />
           <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
-            {hasInvalidFormat && <FiAlertCircle className="h-4 w-4 text-rose-500" />}
+            {hasInvalidFormat && <FiAlertCircle className="h-4 w-4 text-danger-text" />}
           </div>
         </div>
         {hasInvalidFormat && (
-          <p className="text-xs text-rose-500 ml-1">Enter a valid email address.</p>
+          <p className="text-xs text-danger-text ml-1">Enter a valid email address.</p>
         )}
       </motion.div>
 
@@ -115,12 +115,12 @@ export default function ForgotPasswordForm() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="relative w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
+          className="md-btn md-btn-primary md-btn-block w-full"
         >
-          <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
+          <span className={isPending ? 'opacity-0' : ''}>
             Send reset link
-            <FiArrowRight className="h-4 w-4" />
           </span>
+          <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiArrowRight /></span>
           {isPending && (
             <span className="absolute inset-0 flex items-center justify-center gap-2">
               <FiLoader className="h-4 w-4 animate-spin" />

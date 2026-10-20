@@ -74,6 +74,7 @@ const noteTypeIcons: Record<Note["type"], React.ElementType> = {
 
 import NotesLoading from "@/app/(dashboard)/[orgSlug]/notes/loading";
 
+import { TabPill } from '@/components/ui/tab-pill';
 type ShareableUser = {
   id: string;
   name: string | null;
@@ -345,7 +346,7 @@ export default function NotesPageClient({
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-[1600px] flex-col px-3 py-4 text-foreground sm:px-4 md:h-screen md:py-8">
+    <div className="md-zen mx-auto flex h-[calc(100dvh-8rem)] max-w-[1600px] flex-col px-3 py-4 text-foreground sm:px-4 md:h-screen md:py-8">
       {/* Non-scrolling Header */}
       <div>
         {/* Page Header */}
@@ -367,22 +368,22 @@ export default function NotesPageClient({
               placeholder="Search notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none focus:border-card-border text-foreground placeholder:text-text-muted/50 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none text-foreground placeholder:text-text-muted/50 transition-all"
             />
           </div>
 
           <div className="flex items-center gap-3 md:gap-4 ml-auto">
-            <div className="flex bg-foreground/[0.03] p-1 rounded-xl border border-card-border h-9 lg:h-11">
+            <div className="flex bg-foreground/[0.05] p-1 rounded-full h-9 lg:h-11">
               <button
                 onClick={() => setViewMode("grid")}
-                className="relative flex items-center justify-center h-full px-2 rounded-lg text-text-muted hover:text-foreground transition-colors duration-200"
+                className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
                 title="Grid view"
               >
                 {viewMode === "grid" && (
                   <motion.div
                     layoutId="toggle-active"
-                    transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                    className="absolute inset-0 bg-card rounded-lg border border-card-border"
+                    transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                    className="tab-pill-on absolute inset-0 rounded-full bg-ink"
                   />
                 )}
                 <span className="relative z-10">
@@ -391,14 +392,14 @@ export default function NotesPageClient({
               </button>
               <button
                 onClick={() => setViewMode("table")}
-                className="relative flex items-center justify-center h-full px-2 rounded-lg text-text-muted hover:text-foreground transition-colors duration-200"
+                className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
                 title="Table view"
               >
                 {viewMode === "table" && (
                   <motion.div
                     layoutId="toggle-active"
-                    transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                    className="absolute inset-0 bg-card rounded-lg border border-card-border"
+                    transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                    className="tab-pill-on absolute inset-0 rounded-full bg-ink"
                   />
                 )}
                 <span className="relative z-10">
@@ -411,7 +412,7 @@ export default function NotesPageClient({
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-2 p-1.5 h-9 lg:h-11 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-xs md:text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
             >
-              <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
+              <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
                 <FiPlus className="w-4 h-4" />
               </div>
               <span className="hidden sm:inline">Add new note</span>
@@ -420,14 +421,15 @@ export default function NotesPageClient({
           </div>
         </div>
 
-        <div className="flex overflow-x-auto scrollbar-hide gap-2 mb-6 md:mb-8 pb-2">
+        <div className="-mx-1 mb-6 flex gap-1.5 overflow-x-auto scrollbar-hide px-1 py-1 md:mb-8">
           <button
             onClick={() => setFilterType("all")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover-scale whitespace-nowrap flex-shrink-0 ${filterType === "all" ? "bg-foreground text-background" : "bg-foreground/[0.03] text-text-muted border border-card-border hover:bg-foreground/[0.06] hover:text-foreground"}`}
+            className={`relative isolate inline-flex min-h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-sm transition-colors active:scale-[0.97] ${filterType === "all" ? "text-on-ink" : "bg-foreground/[0.04] text-text-secondary hover:bg-foreground/[0.07] hover:text-foreground"}`}
           >
+            {filterType === "all" && <TabPill id="notes-filter" />}
             <FiFolder
               className={
-                filterType === "all" ? "text-background" : "text-text-muted"
+                filterType === "all" ? "text-on-ink" : "text-text-muted"
               }
             />
             <span>All notes</span>
@@ -438,11 +440,12 @@ export default function NotesPageClient({
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover-scale whitespace-nowrap flex-shrink-0 border ${filterType === type ? "bg-foreground text-background border-foreground" : "bg-foreground/[0.03] text-text-muted border-card-border hover:bg-foreground/[0.06] hover:text-foreground"}`}
+                className={`relative isolate inline-flex min-h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-sm transition-colors active:scale-[0.97] ${filterType === type ? "text-on-ink" : "bg-foreground/[0.04] text-text-secondary hover:bg-foreground/[0.07] hover:text-foreground"}`}
               >
+                {filterType === type && <TabPill id="notes-filter" />}
                 {Icon && (
                   <Icon
-                    className={filterType === type ? "text-background" : "text-text-muted"}
+                    className={filterType === type ? "text-on-ink" : "text-text-muted"}
                   />
                 )}
                 <span>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
@@ -452,7 +455,7 @@ export default function NotesPageClient({
         </div>
 
         {errorMsg && (
-          <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400 text-sm">
+          <div className="mb-4 rounded-xl border border-danger/20 bg-danger/10 p-4 text-danger-text text-sm">
             {errorMsg}
           </div>
         )}
@@ -513,31 +516,31 @@ export default function NotesPageClient({
                 <tr className="border-b border-card-border bg-foreground/[0.03]">
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider"
+                    className="px-6 py-4 text-left text-[11px] font-bold text-text-muted"
                   >
                     Title
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider"
+                    className="px-6 py-4 text-left text-[11px] font-bold text-text-muted"
                   >
                     Content
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider"
+                    className="px-6 py-4 text-left text-[11px] font-bold text-text-muted"
                   >
                     Priority
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-[11px] font-bold text-text-muted uppercase tracking-wider"
+                    className="px-6 py-4 text-left text-[11px] font-bold text-text-muted"
                   >
                     Type
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider"
+                    className="px-6 py-4 text-right text-[11px] font-bold text-text-muted"
                   >
                     Actions
                   </th>

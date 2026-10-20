@@ -193,7 +193,7 @@ export function CustomTimePicker({
     <div className={`relative ${className}`} ref={containerRef}>
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-1.5 text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all cursor-pointer flex items-center justify-between gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-foreground/[0.06]'}`}
+        className={`w-full bg-foreground/[0.03] border border-card-border rounded-full px-4 py-2 text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all cursor-pointer flex items-center justify-between gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-foreground/[0.06]'}`}
       >
         <div className="flex items-center gap-2 truncate flex-1">
           <FiClock className="text-text-muted w-3.5 h-3.5 shrink-0" />
@@ -224,14 +224,14 @@ export function CustomTimePicker({
                 <span className="text-4xl font-black font-numbers text-foreground tracking-tighter">
                   {hours.toString().padStart(2, '0')}
                 </span>
-                <span className="text-2xl font-black text-indigo-500">:</span>
+                <span className="text-2xl font-black text-accent-text">:</span>
                 <span className="text-4xl font-black font-numbers text-foreground tracking-tighter">
                   {minutes.toString().padStart(2, '0')}
                 </span>
               </div>
               <div className="flex gap-4 mt-2">
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${activeRing === 'hours' ? 'text-indigo-400' : 'text-text-muted'}`}>Hours</span>
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${activeRing === 'minutes' ? 'text-indigo-400' : 'text-text-muted'}`}>Minutes</span>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${activeRing === 'hours' ? 'text-accent-text' : 'text-text-muted'}`}>Hours</span>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${activeRing === 'minutes' ? 'text-accent-text' : 'text-text-muted'}`}>Minutes</span>
               </div>
             </div>
 
@@ -358,7 +358,7 @@ export function CustomTimePicker({
                  <button
                      type="button"
                      onClick={() => setIsOpen(false)}
-                     className="flex items-center justify-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-on-ink bg-ink hover:bg-ink/85 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                     className="md-btn md-btn-primary md-btn-sm"
                  >
                      <FiCheck className="w-3.5 h-3.5" />
                      Confirm

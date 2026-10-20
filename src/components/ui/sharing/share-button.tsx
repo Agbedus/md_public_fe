@@ -72,7 +72,7 @@ interface TileContentProps {
 
 const SHARE_TITLE = 'Discover MyndDesk';
 const SHARE_TEXT = 'Run attendance, projects, tasks, notes, and team operations from one intelligent workspace.';
-const TILE_CLASS = 'group flex min-h-20 w-full flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 text-center transition-all duration-200 hover:bg-foreground/[0.045] focus:outline-none focus:ring-2 focus:ring-emerald-500/30 active:scale-[0.97]';
+const TILE_CLASS = 'group flex min-h-20 w-full flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 text-center transition-all duration-200 hover:bg-foreground/[0.045] focus:outline-none focus:ring-2 focus:ring-accent/30 active:scale-[0.97]';
 
 function TileContent({ icon, label, iconClass }: TileContentProps) {
   return (
@@ -451,7 +451,7 @@ export function ShareButton({
                     type="button"
                     onClick={close}
                     aria-label="Close share panel"
-                    className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                    className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
                   >
                     <FiX className="h-5 w-5" />
                   </button>
@@ -460,7 +460,7 @@ export function ShareButton({
                 <div className="p-5 sm:p-6">
                   {isLoading && (
                     <div className="flex min-h-64 flex-col items-center justify-center gap-3 text-text-muted" aria-live="polite">
-                      <FiLoader className="h-5 w-5 animate-spin text-emerald-500" />
+                      <FiLoader className="h-5 w-5 animate-spin text-success-text" />
                       <p className="text-sm">Preparing your tracked share link…</p>
                     </div>
                   )}
@@ -468,7 +468,7 @@ export function ShareButton({
                   {error && !isLoading && (
                     <div className="flex min-h-64 flex-col items-center justify-center gap-4 text-center" role="alert">
                       <p className="max-w-sm text-sm text-text-secondary">{error}</p>
-                      <button type="button" onClick={() => void createShare()} className="min-h-11 rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-on-ink hover:bg-emerald-500/90">
+                      <button type="button" onClick={() => void createShare()} className="md-btn md-btn-primary">
                         Try again
                       </button>
                     </div>
@@ -480,28 +480,28 @@ export function ShareButton({
                       {!isQrVisible ? (
                       <motion.div key="share-options" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-3 gap-1 sm:grid-cols-4">
                         <FacebookShareButton url={urls.facebook} hashtag="#MyndDesk" onClick={() => record('platform_selected', 'facebook', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaFacebookF className="h-6 w-6" />} label="Facebook" iconClass="text-blue-500" />
+                          <TileContent icon={<FaFacebookF className="h-6 w-6" />} label="Facebook" iconClass="text-accent-text" />
                         </FacebookShareButton>
 
                         <button type="button" onClick={() => void handleInstagram()} className={TILE_CLASS}>
-                          <TileContent icon={<FaInstagram className="h-6 w-6" />} label="Instagram" iconClass="text-rose-500" />
+                          <TileContent icon={<FaInstagram className="h-6 w-6" />} label="Instagram" iconClass="text-danger-text" />
                         </button>
 
                         <LinkedinShareButton url={urls.linkedin} title={SHARE_TITLE} summary={SHARE_TEXT} source="MyndDesk" onClick={() => record('platform_selected', 'linkedin', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaLinkedinIn className="h-6 w-6" />} label="LinkedIn" iconClass="text-blue-500" />
+                          <TileContent icon={<FaLinkedinIn className="h-6 w-6" />} label="LinkedIn" iconClass="text-accent-text" />
                         </LinkedinShareButton>
 
                         <TelegramShareButton url={urls.telegram} title={SHARE_TEXT} onClick={() => record('platform_selected', 'telegram', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaTelegram className="h-6 w-6" />} label="Telegram" iconClass="text-sky-500" />
+                          <TileContent icon={<FaTelegram className="h-6 w-6" />} label="Telegram" iconClass="text-accent-text" />
                         </TelegramShareButton>
 
                         <WhatsappShareButton url={urls.whatsapp} title={SHARE_TEXT} separator=" " onClick={() => record('platform_selected', 'whatsapp', 'direct_platform')} className={TILE_CLASS} resetButtonStyle={false}>
-                          <TileContent icon={<FaWhatsapp className="h-6 w-6" />} label="WhatsApp" iconClass="text-emerald-500" />
+                          <TileContent icon={<FaWhatsapp className="h-6 w-6" />} label="WhatsApp" iconClass="text-success-text" />
                         </WhatsappShareButton>
 
                         <div onClick={() => record('platform_selected', 'email', 'email')}>
                           <EmailShareButton url={urls.email} subject={SHARE_TITLE} body={SHARE_TEXT} className={TILE_CLASS} resetButtonStyle={false}>
-                            <TileContent icon={<FiMail className="h-6 w-6" />} label="Email" iconClass="text-amber-500" />
+                            <TileContent icon={<FiMail className="h-6 w-6" />} label="Email" iconClass="text-warning-text" />
                           </EmailShareButton>
                         </div>
 
@@ -514,11 +514,11 @@ export function ShareButton({
                         </TwitterShareButton>
 
                         <button type="button" onClick={() => void handleNativeShare()} className={TILE_CLASS}>
-                          <TileContent icon={<FiSmartphone className="h-6 w-6" />} label="Your device" iconClass="text-indigo-500" />
+                          <TileContent icon={<FiSmartphone className="h-6 w-6" />} label="Your device" iconClass="text-accent-text" />
                         </button>
 
                         <button type="button" onClick={() => void handleCopy()} className={TILE_CLASS}>
-                          <TileContent icon={isCopied ? <FiCheck className="h-6 w-6" /> : <FiCopy className="h-6 w-6" />} label={isCopied ? 'Copied' : 'Copy link'} iconClass="text-emerald-500" />
+                          <TileContent icon={isCopied ? <FiCheck className="h-6 w-6" /> : <FiCopy className="h-6 w-6" />} label={isCopied ? 'Copied' : 'Copy link'} iconClass="text-success-text" />
                         </button>
 
                         <button type="button" onClick={showQrCode} className={`${TILE_CLASS} sm:col-span-2`}>
@@ -550,12 +550,12 @@ export function ShareButton({
                               <p className="mt-1 text-xs text-text-muted">The scan uses the same tracked MyndDesk invitation link.</p>
                             </div>
                             <div className="flex flex-wrap items-center justify-center gap-2">
-                              <button type="button" onClick={() => void downloadQrPng()} disabled={isPreparingQr} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-on-ink transition-colors hover:bg-emerald-500/90 disabled:cursor-wait disabled:opacity-60">
+                              <button type="button" onClick={() => void downloadQrPng()} disabled={isPreparingQr} className="md-btn md-btn-primary disabled:cursor-wait">
                                 {isPreparingQr ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiDownload className="h-4 w-4" />}
                                 Download PNG
                               </button>
                               <button type="button" onClick={() => void copyQrPng()} disabled={isPreparingQr} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-foreground ring-1 ring-inset ring-card-border transition-colors hover:bg-foreground/[0.05] disabled:cursor-wait disabled:opacity-60">
-                                {isQrCopied ? <FiCheck className="h-4 w-4 text-emerald-500" /> : <FiCopy className="h-4 w-4" />}
+                                {isQrCopied ? <FiCheck className="h-4 w-4 text-success-text" /> : <FiCopy className="h-4 w-4" />}
                                 {isQrCopied ? 'Copied' : 'Copy image'}
                               </button>
                             </div>

@@ -306,8 +306,8 @@ export async function getKeyTasks() {
         status: 'In Progress',
         priority: t.priority,
         dueDate: t.dueDate,
-        color: 'text-blue-400',
-        bg: 'bg-blue-400/10'
+        color: 'text-accent-text',
+        bg: 'bg-accent/10'
     }));
 }
 
@@ -327,8 +327,8 @@ export async function getRecentNotes() {
     
     return notes.map(n => {
         let color = 'text-zinc-400';
-        if (n.type === 'meeting') color = 'text-blue-400';
-        if (n.type === 'idea') color = 'text-yellow-400';
+        if (n.type === 'meeting') color = 'text-accent-text';
+        if (n.type === 'idea') color = 'text-warning-text';
         if (n.type === 'journal') color = 'text-pink-400';
         if (n.type === 'code') color = 'text-purple-400';
 

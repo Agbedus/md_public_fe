@@ -5,6 +5,7 @@ import type { AttendanceRecord, AttendanceState } from '@/types/attendance';
 import { attendanceStateLabels, attendanceStateColors } from '@/types/attendance';
 import { FiClock, FiEye, FiUser, FiBarChart2 } from 'react-icons/fi';
 import Image from 'next/image';
+import { avatarStyle } from '@/lib/avatar-color';
 
 function computeHours(start: string | null | undefined, end: string | null | undefined): number | null {
     if (!start || !end) return null;
@@ -33,24 +34,24 @@ export default function TeamAttendanceTable({ records }: { records: AttendanceRe
         <div className="bg-card rounded-2xl border border-card-border overflow-hidden flex flex-col mt-4">
             <div className="p-4 lg:px-6 py-4 border-b border-card-border bg-foreground/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <FiBarChart2 className="text-indigo-400 w-4 h-4" />
-                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">History</h3>
+                    <FiBarChart2 className="text-accent-text w-4 h-4" />
+                    <h3 className="text-sm font-semibold text-foreground">Team history</h3>
                 </div>
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest bg-foreground/[0.05] px-2 py-0.5 rounded-md border border-card-border">
-                    {records.length} Records
+                <span className="md-count bg-foreground/[0.06] text-text-muted">
+                    {records.length} records
                 </span>
             </div>
             <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm border-collapse">
                     <thead>
                          <tr className="border-b border-card-border bg-foreground/[0.02]">
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">User</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">In</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Out</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Seen (F/L)</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Hours</th>
-                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">User</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Date</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">In</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Out</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Seen (F/L)</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Hours</th>
+                            <th className="px-6 py-3 text-left text-[10px] font-bold text-text-muted">Status</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-card-border">
@@ -78,12 +79,12 @@ export default function TeamAttendanceTable({ records }: { records: AttendanceRe
                                                         className="w-full h-full object-cover" 
                                                     />
                                                 ) : (
-                                                    <div className="h-full w-full flex items-center justify-center text-[10px] font-bold text-text-muted bg-[var(--pastel-indigo)]/20">
+                                                    <div style={avatarStyle(r.userName)} className="h-full w-full flex items-center justify-center text-[10px] font-bold text-text-muted">
                                                         {r.userName?.[0]?.toUpperCase() || 'U'}
                                                     </div>
                                                 )}
                                             </div>
-                                            <span className="text-xs font-bold text-foreground group-hover:text-indigo-500 transition-colors">
+                                            <span className="text-xs font-bold text-foreground group-hover:text-accent-text transition-colors">
                                                 {r.userName || 'Unknown'}
                                             </span>
                                         </div>
@@ -104,13 +105,13 @@ export default function TeamAttendanceTable({ records }: { records: AttendanceRe
                                     <td className="px-6 py-3 whitespace-nowrap">
                                         <div className="flex items-center gap-2">
                                             {firstSeen ? (
-                                                <span className="inline-flex items-center gap-1 text-emerald-500 font-numbers text-[10px]" suppressHydrationWarning>
+                                                <span className="inline-flex items-center gap-1 text-success-text font-numbers text-[10px]" suppressHydrationWarning>
                                                     {formatTime(firstSeen)}
                                                 </span>
                                             ) : <span className="text-text-muted">—</span>}
                                             <span className="text-text-muted/30">/</span>
                                             {lastSeen ? (
-                                                <span className="inline-flex items-center gap-1 text-amber-500 font-numbers text-[10px]" suppressHydrationWarning>
+                                                <span className="inline-flex items-center gap-1 text-warning-text font-numbers text-[10px]" suppressHydrationWarning>
                                                     {formatTime(lastSeen)}
                                                 </span>
                                             ) : <span className="text-text-muted">—</span>}

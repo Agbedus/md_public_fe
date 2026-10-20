@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-leaflet';
+import React, { useEffect, useCallback, useMemo } from 'react';
+import { MapContainer, TileLayer, Circle, Polygon, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { FiPlus, FiMinus, FiNavigation, FiTarget, FiActivity, FiMapPin } from 'react-icons/fi';
 import { useTheme } from '@/providers/theme-provider';
 import { useLocation } from '@/providers/location-provider';
 import { formatDistance, getDistanceInMeters } from '@/lib/distance-utils';
 import { presenceStateLabels, presenceStateColors } from '@/types/attendance';
+import { pinIcon, ringPositions, getCartoTileUrl, MAP_STYLES, type MapIdentity } from './map-markers';
 
 // Besspoke Physical Compass Component
 const CompassDial = () => (
     <div className="relative w-8 h-8 rounded-full flex items-center justify-center transition-all group-hover:scale-110 duration-500">
         {/* Cardinal Lines */}
-        <div className="absolute top-0 w-0.5 h-2 bg-rose-500 rounded-full" style={{ filter: 'drop-shadow(0 0 4px rgba(244,63,94,0.8))' }} /> {/* North */}
+        <div className="absolute top-0 w-0.5 h-2 bg-danger rounded-full" style={{ filter: 'drop-shadow(0 0 4px rgba(244,63,94,0.8))' }} /> {/* North */}
         <div className="absolute bottom-0 w-0.5 h-1.5 bg-foreground/[0.2] rounded-full" /> {/* South */}
         <div className="absolute left-0 h-0.5 w-1.5 bg-foreground/[0.2] rounded-full" /> {/* West */}
         <div className="absolute right-0 h-0.5 w-1.5 bg-foreground/[0.2] rounded-full" /> {/* East */}
@@ -28,89 +28,71 @@ const CompassDial = () => (
     </div>
 );
 
-// Custom Office Marker Icon (Subtle Dot)
-const officeIconHtml = renderToStaticMarkup(
-    <div style={{ position: 'relative', width: '12px', height: '12px' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: '#10b981', borderRadius: '50%', border: '2px solid var(--card-bg, #18181b)', boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.2)' }} />
-    </div>
-);
-const officeIcon = new L.DivIcon({
-    html: officeIconHtml,
-    className: 'custom-leaflet-icon',
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
-    popupAnchor: [0, -6],
-});
-
-// Custom User Marker Icon (Subtle Dot with Pulse)
-const userIconHtml = renderToStaticMarkup(
-    <div style={{ position: 'relative', width: '12px', height: '12px' }} className="user-pulse-marker">
-        <div className="pulse-ring" style={{ position: 'absolute', top: '-6px', left: '-6px', width: '24px', height: '24px', backgroundColor: '#3b82f6', borderRadius: '50%', opacity: 0.3 }} />
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: '#3b82f6', borderRadius: '50%', border: '2px solid var(--card-bg, #18181b)' }} />
-    </div>
-);
-const userIcon = new L.DivIcon({
-    html: userIconHtml,
-    className: 'custom-leaflet-icon',
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
-    popupAnchor: [0, -6],
-});
+export type { MapIdentity };
 
 // Premium Map Action Controls
 function MapActionControls({ userLocation, officeLocation }: { userLocation: [number, number], officeLocation: [number, number] }) {
     const map = useMap();
+    // Keep control clicks from reaching the map's own click handler.
+    const controlsRef = React.useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (controlsRef.current) {
+            L.DomEvent.disableClickPropagation(controlsRef.current);
+            L.DomEvent.disableScrollPropagation(controlsRef.current);
+        }
+    }, []);
 
     const handleRecenter = useCallback(() => {
         const bounds = L.latLngBounds([userLocation, officeLocation]);
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+        // Leave room for the readouts (top), the controls (right) and the card (bottom).
+        map.fitBounds(bounds, { paddingTopLeft: [32, 72], paddingBottomRight: [80, 128], maxZoom: 19 });
     }, [map, userLocation, officeLocation]);
 
     const handleResetNorth = useCallback(() => {
         map.setView(userLocation, 17, { animate: true });
     }, [map, userLocation]);
 
-    const buttonClass = "w-12 h-12 flex items-center justify-center rounded-full bg-card backdrop-blur-2xl border border-card-border text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 active:scale-95 group";
+    const buttonClass = "w-10 h-10 flex items-center justify-center rounded-full bg-background border border-card-border text-(--text-muted) hover:text-foreground transition-colors duration-150 active:scale-95 group";
 
     return (
-        <div className="absolute top-1/2 -translate-y-1/2 right-6 z-[400] flex flex-col items-center gap-3">
+        <div ref={controlsRef} className="absolute right-3 top-3 z-[400] flex flex-col items-center gap-2 sm:right-4 sm:top-4">
             {/* Compass Instrument */}
-            <div className="p-1.5 rounded-full">
+            <div>
                 <button 
                     onClick={(e) => { e.preventDefault(); handleResetNorth(); }}
-                    title="Compass: Reset to User"
-                    className={`${buttonClass} hover:border-rose-500/30 hover:bg-rose-500/5`}
+                    title="Centre on me"
+                    className={buttonClass}
                 >
                     <CompassDial />
                 </button>
             </div>
 
             {/* Navigation Instrument */}
-            <div className="p-1.5 rounded-full">
+            <div>
                 <button 
                     onClick={(e) => { e.preventDefault(); handleRecenter(); }}
-                    title="Recenter: Fit Office & User"
-                    className={`${buttonClass} hover:text-emerald-400 hover:border-emerald-500/30 hover:bg-emerald-500/10`}
+                    title="Fit office and me"
+                    className={buttonClass}
                 >
-                    <FiNavigation size={22} className="rotate-45" />
+                    <FiNavigation size={17} className="rotate-45" />
                 </button>
             </div>
 
             {/* Zoom Group */}
-            <div className="flex flex-col gap-1.5 p-1.5 rounded-[32px] bg-card backdrop-blur-2xl border border-card-border">
+            <div className="flex flex-col overflow-hidden rounded-full border border-card-border bg-background">
                 <button 
                     onClick={(e) => { e.preventDefault(); map.zoomIn(); }}
-                    title="Zoom In"
-                    className={buttonClass}
+                    title="Zoom in"
+                    className={`${buttonClass} !border-0 !bg-transparent`}
                 >
-                    <FiPlus size={22} />
+                    <FiPlus size={17} />
                 </button>
                 <button 
                     onClick={(e) => { e.preventDefault(); map.zoomOut(); }}
-                    title="Zoom Out"
-                    className={buttonClass}
+                    title="Zoom out"
+                    className={`${buttonClass} !border-0 !bg-transparent`}
                 >
-                    <FiMinus size={22} />
+                    <FiMinus size={17} />
                 </button>
             </div>
         </div>
@@ -123,23 +105,34 @@ interface MapInternalsProps {
   officeLocation: [number, number];
   inOfficeRadius: number;
   tempOutRadius: number;
-  userName: string;
+  user: MapIdentity;
+  organization: MapIdentity;
+  officeName: string;
   cartoApiLink?: string;
+  /** Fired for clicks on the map itself, not on its controls. */
+  onMapClick?: () => void;
 }
 
-const CARTO_STYLE_PATH = /\/(rastertiles\/)?(?:voyager|positron|dark-matter|light_all|dark_all)\//;
 
-function getCartoTileUrl(cartoApiLink: string | undefined, isDarkMode: boolean) {
-    const style = isDarkMode ? 'dark_all' : 'light_all';
-    const fallback = `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`;
+/** Keeps Leaflet's size in step with its container as the page collapses it. */
+function ResizeSync() {
+    const map = useMap();
+    useEffect(() => {
+        const el = map.getContainer();
+        let frame = 0;
+        const observer = new ResizeObserver(() => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => map.invalidateSize({ animate: false }));
+        });
+        observer.observe(el);
+        return () => { cancelAnimationFrame(frame); observer.disconnect(); };
+    }, [map]);
+    return null;
+}
 
-    if (!cartoApiLink) return fallback;
-    if (!CARTO_STYLE_PATH.test(cartoApiLink)) return cartoApiLink;
-
-    return cartoApiLink.replace(
-        CARTO_STYLE_PATH,
-        (match, rasterPrefix: string | undefined) => `/${rasterPrefix || ''}${style}/`,
-    );
+function MapClicks({ onClick }: { onClick?: () => void }) {
+    useMapEvents({ click: () => onClick?.() });
+    return null;
 }
 
 // Component to handle map centering when coordinates change
@@ -159,13 +152,19 @@ export function AttendanceMapInternals({
     officeLocation,
     inOfficeRadius,
     tempOutRadius,
-    userName,
+    user,
+    organization,
+    officeName,
     cartoApiLink,
+    onMapClick,
 }: MapInternalsProps) {
     const { resolvedTheme } = useTheme();
     const { location, presenceState, isTracking } = useLocation();
 
     const tileUrl = getCartoTileUrl(cartoApiLink, resolvedTheme === 'dark');
+    const userIcon = useMemo(() => pinIcon(user, 'accent'), [user]);
+    const officeIcon = useMemo(() => pinIcon(organization, 'success', officeName), [organization, officeName]);
+    const graceBand = useMemo(() => ringPositions(officeLocation, inOfficeRadius, tempOutRadius), [officeLocation, inOfficeRadius, tempOutRadius]);
 
     const currentDistance = location ? getDistanceInMeters(
         location.latitude, 
@@ -176,53 +175,27 @@ export function AttendanceMapInternals({
 
     return (
         <div className="w-full h-full relative z-0" style={{ isolation: 'isolate' }}>
-            {/* Symmetrical Floating Map Details (Horizontal Micro-Instruments) */}
-            <div className="absolute bottom-6 left-6 right-6 z-[1000] pointer-events-none flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {/* Card 1: Attendance Status */}
-                <div className="bg-background/50 flex-[1.2] px-4 py-2.5 rounded-2xl border border-card-border backdrop-blur-3xl flex items-center justify-center gap-2.5 pointer-events-auto">
-                    <FiActivity className={`${presenceState ? presenceStateColors[presenceState].text : 'text-(--text-muted)'} text-xs`} />
-                    <div className={`w-1.5 h-1.5 rounded-full ${presenceState ? presenceStateColors[presenceState].dot : 'bg-(--text-muted)'} -[0_0_8px_currentColor]`} />
-                    <span className="text-[10px] font-black uppercase tracking-tight text-foreground whitespace-nowrap">
-                        {presenceState ? presenceStateLabels[presenceState] : 'Updating...'}
-                    </span>
-                </div>
-
-                {/* Card 2: GPS Tracking State */}
-                <div className="bg-background/50 flex-1 px-4 py-2.5 rounded-2xl border border-card-border backdrop-blur-3xl flex items-center justify-center gap-2.5 pointer-events-auto">
-                    <FiTarget className={`${isTracking ? 'text-emerald-400' : 'text-(--text-muted)'} text-xs`} />
-                    <div className={`w-1.5 h-1.5 rounded-full ${isTracking ? 'bg-emerald-500 animate-pulse -[0_0_8px_#10b981]' : 'bg-(--text-muted)'}`} />
-                    <span className={`text-[10px] font-black uppercase tracking-tight ${isTracking ? 'text-emerald-400' : 'text-(--text-muted)'} whitespace-nowrap`}>
-                        GPS {isTracking ? 'Active' : 'Off'}
-                    </span>
-                </div>
-
-                {/* Card 3: Distance from Center */}
-                <div className="bg-background/50 flex-1 px-4 py-2.5 rounded-2xl border border-card-border backdrop-blur-3xl flex items-center justify-center gap-2.5 pointer-events-auto">
-                    <FiNavigation className="text-sky-400 text-xs" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-sky-500/20" />
-                    <span className="text-[10px] font-numbers font-bold text-foreground whitespace-nowrap">
-                        {currentDistance !== null ? formatDistance(currentDistance) : '—'}
-                    </span>
-                </div>
-
-                {/* Card 4: GPS Accuracy */}
-                <div className="bg-background/50 flex-1 px-4 py-2.5 rounded-2xl border border-card-border backdrop-blur-3xl flex items-center justify-center gap-2.5 pointer-events-auto">
-                    <FiActivity className="text-rose-400/80 text-xs" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500/20" />
-                    <span className="text-[10px] font-numbers font-bold text-foreground whitespace-nowrap">
-                        {location?.accuracy ? `${Math.round(location.accuracy)}m` : '—'}
-                    </span>
-                </div>
+            {/* Live readouts, top-left */}
+            <div className="pointer-events-none absolute left-3 top-3 z-[1000] flex max-w-[calc(100%-5rem)] flex-wrap gap-1.5 sm:left-4 sm:top-4">
+                <span className="pointer-events-auto inline-flex h-8 items-center gap-2 rounded-full border border-card-border bg-background px-3 text-xs font-medium text-foreground">
+                    <span className={`h-2 w-2 rounded-full ${presenceState ? presenceStateColors[presenceState].dot : 'bg-text-muted'}`} />
+                    {presenceState ? presenceStateLabels[presenceState] : 'Updating…'}
+                </span>
+                <span className={`pointer-events-auto inline-flex h-8 items-center gap-2 rounded-full border border-card-border bg-background px-3 text-xs font-medium ${isTracking ? 'text-success-text' : 'text-text-muted'}`}>
+                    <FiTarget className="h-3.5 w-3.5" /> GPS {isTracking ? 'on' : 'off'}
+                </span>
+                <span className="pointer-events-auto hidden h-8 items-center gap-2 rounded-full border border-card-border bg-background px-3 font-numbers text-xs text-foreground sm:inline-flex">
+                    <FiNavigation className="h-3.5 w-3.5 text-text-muted" /> {currentDistance !== null ? formatDistance(currentDistance) : '—'}
+                </span>
+                <span className="pointer-events-auto hidden h-8 items-center gap-2 rounded-full border border-card-border bg-background px-3 font-numbers text-xs text-foreground sm:inline-flex">
+                    <FiActivity className="h-3.5 w-3.5 text-text-muted" /> ±{location?.accuracy ? `${Math.round(location.accuracy)}m` : '—'}
+                </span>
             </div>
             <style dangerouslySetInnerHTML={{__html: `
-                .custom-leaflet-icon { background: none; border: none; }
-                .leaflet-popup-content-wrapper { background: var(--card-bg); color: var(--foreground); border: 1px solid var(--border-subtle); border-radius: 12px; }
-                .leaflet-popup-tip { background: var(--card-bg); border: 1px solid var(--border-subtle); }
-                .leaflet-container { font-family: inherit; }
-                
+                ${MAP_STYLES}
                 @keyframes mapPulse {
-                    0% { transform: scale(0.5); opacity: 0.8; }
-                    100% { transform: scale(2.5); opacity: 0; }
+                    0% { transform: scale(0.9); opacity: 0.45; }
+                    100% { transform: scale(2); opacity: 0; }
                 }
                 .pulse-ring {
                     animation: mapPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -232,50 +205,41 @@ export function AttendanceMapInternals({
             <MapContainer 
                 center={center} 
                 zoom={17}
-                maxZoom={20}
+                maxZoom={22}
                 zoomControl={false}
                 scrollWheelZoom={false} 
                 style={{ height: '100%', width: '100%', backgroundColor: 'transparent' }}
                 attributionControl={false}
             >
                 <RecenterMap center={center} />
+                <MapClicks onClick={onMapClick} />
+                <ResizeSync />
                 <MapActionControls userLocation={center} officeLocation={officeLocation} />
-                <TileLayer url={tileUrl} />
+                <TileLayer url={tileUrl} maxZoom={22} maxNativeZoom={20} />
                 
-                {/* Temporarily Out Grace Radius (Orange) */}
-                <Circle 
-                    center={officeLocation} 
-                    radius={tempOutRadius} 
-                    pathOptions={{ 
-                        color: resolvedTheme === 'dark' ? '#f59e0b' : '#d97706', 
-                        fillColor: 'transparent', 
-                        weight: 2,
-                        dashArray: '8, 12',
-                        opacity: 0.4
-                    }} 
-                />
-
-                {/* Strict Office Radius (Green) */}
-                <Circle 
-                    center={officeLocation} 
-                    radius={inOfficeRadius} 
-                    pathOptions={{ 
-                        color: resolvedTheme === 'dark' ? '#10b981' : '#059669', 
-                        fillColor: resolvedTheme === 'dark' ? '#10b981' : '#059669', 
-                        fillOpacity: 0.1, 
-                        weight: 2,
-                    }} 
+                {/* Geofence, borderless: the yellow grace band wraps the green office
+                    zone without overlapping it. */}
+                {tempOutRadius > inOfficeRadius && (
+                    <Polygon positions={graceBand} pathOptions={{ className: 'md-geofence md-geofence--grace', stroke: false, fillOpacity: 0.14 }} interactive={false} />
+                )}
+                <Circle
+                    center={officeLocation}
+                    radius={inOfficeRadius}
+                    pathOptions={{ className: 'md-geofence md-geofence--office', stroke: false, fillOpacity: 0.2 }}
+                    interactive={false}
                 />
 
                 <Marker position={officeLocation} icon={officeIcon}>
                     <Popup>
-                        <span className="font-semibold text-xs tracking-wide text-emerald-400">Main Office</span>
+                        <span className="text-xs font-semibold text-foreground">{officeName}</span>
+                        <span className="block text-[11px] text-text-muted">{inOfficeRadius} m office zone · {tempOutRadius} m grace</span>
                     </Popup>
                 </Marker>
 
-                <Marker position={center} icon={userIcon}>
+                <Marker position={center} icon={userIcon} zIndexOffset={500}>
                     <Popup>
-                        <span className="font-semibold text-xs text-sky-400">{userName} (Active)</span>
+                        <span className="text-xs font-semibold text-foreground">{user.name}</span>
+                        <span className="block text-[11px] text-text-muted">{currentDistance !== null ? `${formatDistance(currentDistance)} from the office` : 'Locating…'}</span>
                     </Popup>
                 </Marker>
             </MapContainer>

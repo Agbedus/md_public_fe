@@ -74,7 +74,7 @@ function Tool({
       disabled={disabled}
       onMouseDown={(event) => event.preventDefault()}
       onClick={action}
-      className={`inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-sm transition-colors focus-visible:outline-2 focus-visible:outline-emerald-500 disabled:opacity-40 ${active ? "bg-foreground/[0.08] text-foreground" : "text-text-muted hover:bg-foreground/[0.04] hover:text-foreground"}`}
+      className={`inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40 ${active ? "bg-foreground/[0.08] text-foreground" : "text-text-muted hover:bg-foreground/[0.04] hover:text-foreground"}`}
     >
       {children}
     </button>
@@ -144,7 +144,7 @@ function ColorPalette({
           aria-label={color.name}
           aria-pressed={selectedColor === color.value}
           onClick={() => choose(color.value)}
-          className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-foreground/[0.05] focus-visible:outline-2 focus-visible:outline-emerald-500"
+          className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-foreground/[0.05] focus-visible:outline-2 focus-visible:outline-accent"
         >
           <span
             className="flex h-6 w-6 items-center justify-center rounded-full border border-card-border"

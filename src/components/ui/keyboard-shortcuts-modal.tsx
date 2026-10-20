@@ -50,7 +50,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShor
                     onClick={onClose}
                 />
                 <div 
-                    className="relative w-full max-w-md bg-background border border-card-border rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                    className="relative w-full max-w-md bg-background border border-card-border rounded-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
                     role="dialog"
                     aria-modal="true"
                 >
@@ -71,7 +71,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShor
                     </div>
 
                     <div className="p-5 space-y-4">
-                        <div className="flex items-start gap-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-400">
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-accent/10 border border-accent/20 text-accent-text dark:text-accent-text">
                             <IconInfo className="shrink-0 mt-0.5" />
                             <p className="text-[10px] font-black uppercase tracking-widest leading-relaxed">
                                 Shortcuts only work when you are not typing in a text field. Press <kbd className="px-1.5 py-0.5 mx-0.5 rounded-md bg-background border border-card-border font-mono text-[10px] text-foreground">Esc</kbd> to exit any text field.
@@ -93,7 +93,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShor
                     <div className="p-4 border-t border-card-border bg-foreground/[0.03] flex justify-end">
                         <button
                             onClick={onClose}
-                            className="px-5 py-2.5 bg-foreground text-background rounded-xl text-sm font-bold tracking-tight hover:opacity-90 transition-opacity active:scale-95"
+                            className="md-btn md-btn-primary"
                         >
                             Got it
                         </button>

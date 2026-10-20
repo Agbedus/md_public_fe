@@ -154,7 +154,7 @@ export function CustomDatePicker({
       {name && <input type="hidden" name={name} value={hiddenValue} />}
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-card-border bg-input-bg px-3 py-2 text-sm text-foreground transition-colors focus:outline-none ${disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-foreground/10 hover:bg-card'}`}
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-full border border-card-border bg-input-bg px-3 py-2 text-sm text-foreground transition-colors focus:outline-none ${disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-foreground/10 hover:bg-card'}`}
       >
         <div className="flex items-center gap-2 truncate flex-1">
           <FiCalendar className="text-text-muted w-4 h-4 shrink-0" />
@@ -188,7 +188,7 @@ export function CustomDatePicker({
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-1 hover:bg-foreground/[0.06] rounded-lg text-text-muted hover:text-foreground transition-colors"
+                className="p-1 hover:bg-foreground/[0.06] rounded-full text-text-muted hover:text-foreground transition-colors"
               >
                 <FiChevronLeft className="w-4 h-4" />
               </button>
@@ -198,7 +198,7 @@ export function CustomDatePicker({
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1 hover:bg-foreground/[0.06] rounded-lg text-text-muted hover:text-foreground transition-colors"
+                className="p-1 hover:bg-foreground/[0.06] rounded-full text-text-muted hover:text-foreground transition-colors"
               >
                 <FiChevronRight className="w-4 h-4" />
               </button>
@@ -231,14 +231,14 @@ export function CustomDatePicker({
                       className={`
                         h-8 w-full rounded-lg flex items-center justify-center text-xs transition-all relative
                         ${!isCurrentMonth ? 'text-text-muted' : 'text-text-secondary'}
-                        ${isSelected ? 'bg-indigo-600 text-white font-bold  -indigo-500/20' : 'hover:bg-foreground/[0.06] hover:text-foreground'}
-                        ${isTodayDate && !isSelected ? 'border border-indigo-500/30 text-indigo-400' : ''}
+                        ${isSelected ? 'bg-accent text-on-accent font-bold -indigo-500/20' : 'hover:bg-foreground/[0.06] hover:text-foreground'}
+                        ${isTodayDate && !isSelected ? 'border border-accent/30 text-accent-text' : ''}
                         disabled:opacity-20 disabled:cursor-not-allowed
                       `}
                     >
                       {format(day, 'd')}
                       {isTodayDate && !isSelected && (
-                         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-indigo-500 rounded-full"></div>
+                         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-accent rounded-full"></div>
                       )}
                     </button>
                   );
@@ -254,14 +254,14 @@ export function CustomDatePicker({
                   <span className="text-xs font-medium text-text-muted uppercase tracking-wider">Time</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="flex flex-1 items-center rounded-lg border border-card-border bg-input-bg px-2 py-1">
+                    <div className="flex flex-1 items-center rounded-full border border-card-border bg-input-bg px-2 py-1">
                         <input
                         type="number"
                         min={0}
                         max={23}
                         value={selectedHours.toString().padStart(2, '0')}
                         onChange={(e) => handleTimeChange('hours', parseInt(e.target.value) || 0)}
-                        className="w-full bg-transparent border-none text-center text-foreground text-sm focus:ring-0 p-0 appearance-none"
+                        className="w-full bg-transparent border-none text-center text-foreground text-sm p-0 appearance-none"
                         style={{ MozAppearance: 'textfield' }}
                         />
                          <span className="text-text-muted px-1">:</span>
@@ -271,7 +271,7 @@ export function CustomDatePicker({
                         max={59}
                         value={selectedMinutes.toString().padStart(2, '0')}
                         onChange={(e) => handleTimeChange('minutes', parseInt(e.target.value) || 0)}
-                        className="w-full bg-transparent border-none text-center text-foreground text-sm focus:ring-0 p-0 appearance-none"
+                        className="w-full bg-transparent border-none text-center text-foreground text-sm p-0 appearance-none"
                         style={{ MozAppearance: 'textfield' }}
                         />
                     </div>
@@ -294,7 +294,7 @@ export function CustomDatePicker({
                         // But typically "Today" button selects today.
                         handleDayClick(now);
                     }}
-                    className="text-xs text-indigo-400 hover:text-indigo-300 font-medium px-2 py-1 rounded hover:bg-indigo-500/10 transition-colors"
+                    className="text-xs text-accent-text hover:text-accent-text font-medium px-2 py-1 rounded hover:bg-accent/10 transition-colors"
                 >
                     Today
                 </button>

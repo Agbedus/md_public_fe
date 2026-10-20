@@ -157,7 +157,7 @@ export function OnboardingTour({ userKey, isInitiallyBlocked = false }: { userKe
       {/* Spotlight ring around the current target — no page-dimming overlay,
           this is meant to feel like a guided tooltip, not a blocking modal. */}
       <div
-        className="fixed z-[300] rounded-xl ring-2 ring-emerald-500/70 shadow-[0_0_0_4000px_rgba(0,0,0,0.35)] pointer-events-none transition-all duration-300"
+        className="fixed z-[300] rounded-xl ring-2 ring-success/70 pointer-events-none transition-all duration-300"
         style={{
           top: rect.top - 6,
           left: rect.left - 6,
@@ -185,7 +185,7 @@ export function OnboardingTour({ userKey, isInitiallyBlocked = false }: { userKe
           </button>
 
           <div className="flex items-center gap-2 mb-2 pr-6">
-            <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 shrink-0">
+            <div className="p-1.5 rounded-lg bg-success/10 border border-success/20 text-success-text shrink-0">
               <FiCompass size={13} />
             </div>
             <h3 className="text-sm font-bold text-foreground">{step.title}</h3>
@@ -208,7 +208,7 @@ export function OnboardingTour({ userKey, isInitiallyBlocked = false }: { userKe
               )}
               <button
                 onClick={() => (isLast ? finish('done') : setStepIndex((i) => i + 1))}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-on-ink bg-ink hover:bg-ink/85 transition-colors"
+                className="md-btn md-btn-primary md-btn-sm"
               >
                 {isLast ? 'Finish' : 'Next'}
                 {!isLast && <FiArrowRight size={12} />}

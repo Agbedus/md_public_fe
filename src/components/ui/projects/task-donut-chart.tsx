@@ -26,9 +26,9 @@ export function TaskDonutChart({
   
   // Dynamic color based on completion
   const getProgressColor = () => {
-    if (percentage < 33) return 'text-rose-400';
-    if (percentage < 66) return 'text-amber-400';
-    return 'text-emerald-400';
+    if (percentage < 33) return 'text-danger-text';
+    if (percentage < 66) return 'text-warning-text';
+    return 'text-success-text';
   };
   
   const progressColor = getProgressColor();
@@ -81,7 +81,7 @@ export function TaskDonutChart({
         />
       </svg>
       {/* Percentage in center */}
-      <span className={`absolute text-[10px] font-bold ${progressColor} tabular-nums`}>
+      <span className={`absolute text-[11px] font-bold ${progressColor} tabular-nums`}>
         {Math.round(percentage)}%
       </span>
     </div>

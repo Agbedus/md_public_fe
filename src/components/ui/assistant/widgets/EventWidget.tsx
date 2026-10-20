@@ -35,9 +35,9 @@ export default function EventWidget({ event }: EventWidgetProps) {
   };
 
   // Status color
-  let statusColor = "text-blue-400";
-  if (event.status === "confirmed") statusColor = "text-emerald-400";
-  if (event.status === "cancelled") statusColor = "text-red-400";
+  let statusColor = "text-accent-text";
+  if (event.status === "confirmed") statusColor = "text-success-text";
+  if (event.status === "cancelled") statusColor = "text-danger-text";
 
   return (
     <div className="bg-card p-4 rounded-xl border border-card-border hover:bg-foreground/[0.02] transition-all">
@@ -75,7 +75,7 @@ export default function EventWidget({ event }: EventWidgetProps) {
         
         <Link 
           href={`/calendar?id=${String(event.id)}`}
-          className="text-blue-400 hover:text-blue-300 text-sm font-medium whitespace-nowrap"
+          className="text-accent-text hover:text-accent-text text-sm font-medium whitespace-nowrap"
         >
           View →
         </Link>

@@ -54,7 +54,7 @@ export default async function Home({ searchParams, params }: { searchParams: Pro
   else if (hour >= 18) greeting = 'Good evening';
 
   return (
-    <div className="mx-auto max-w-[1600px] px-3 py-4 sm:px-4 md:py-8">
+    <div className="md-zen mx-auto max-w-[1600px] px-3 py-4 sm:px-4 md:py-8">
       <div className="mb-10">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">{greeting}, {firstName}</h1>
         <p className="text-text-muted text-sm lg:text-base">Here&apos;s what&apos;s happening across your organization today.</p>

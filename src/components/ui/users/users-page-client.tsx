@@ -13,6 +13,7 @@ import { optimisticListRevalidate } from '@/lib/optimistic-swr';
 import { toast } from '@/lib/toast';
 import type { TimeOffRequest } from '@/types/time-off';
 import { useConfirm } from '@/providers/confirmation-provider';
+import { avatarStyle } from '@/lib/avatar-color';
 
 interface UsersPageClientProps {
   initialUsers: User[];
@@ -166,7 +167,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
             placeholder="Search team members..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] focus:border-card-border text-foreground placeholder:text-text-muted/50 transition-all text-sm"
+            className="w-full h-11 pl-10 pr-4 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] text-foreground placeholder:text-text-muted/50 transition-all text-sm"
           />
         </div>
       </div>
@@ -206,7 +207,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                               className="rounded-full object-cover border border-card-border"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
+                            <div style={avatarStyle(user.fullName || user.email)} className="w-10 h-10 rounded-full bg-foreground/[0.06] flex items-center justify-center text-foreground font-bold text-sm">
                               {(user.fullName || user.email).charAt(0).toUpperCase()}
                             </div>
                           )
@@ -246,7 +247,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                                         type="checkbox" 
                                         checked={editForm.roles?.includes(role)}
                                         onChange={e => handleRoleChange(role, e.target.checked)}
-                                        className="rounded border-card-border bg-foreground/[0.03] text-indigo-500 focus:ring-indigo-500/20"
+                                        className="rounded border-card-border bg-foreground/[0.03] text-accent-text focus:ring-accent/20"
                                     />
                                     <span className="capitalize">{role.replace('_', ' ')}</span>
                                 </label>
@@ -287,15 +288,15 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                         if (approved === 0 && pending === 0) return <span className="text-xs text-text-muted">—</span>;
                         return (
                             <div className="flex items-center gap-2">
-                                <FiSun className="w-3 h-3 text-amber-400" />
+                                <FiSun className="w-3 h-3 text-warning-text" />
                                 <div className="flex gap-1.5">
                                     {approved > 0 && (
-                                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-numbers">
+                                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-success/10 text-success-text border border-success/20 font-numbers">
                                             {approved} approved
                                         </span>
                                     )}
                                     {pending > 0 && (
-                                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 font-numbers">
+                                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-warning/10 text-warning-text border border-warning/20 font-numbers">
                                             {pending} pending
                                         </span>
                                     )}
@@ -311,7 +312,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                       <Link
                         href={orgPath(`/users/${user.id}`)}
                         onClick={e => e.stopPropagation()}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 border border-indigo-500/20 text-[11px] font-medium uppercase tracking-wider transition-all"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent-text hover:text-accent-text border border-accent/20 text-[11px] font-medium uppercase tracking-wider transition-all"
                       >
                         <FiClock className="w-3 h-3" />
                         Timesheet
@@ -328,7 +329,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                             <>
                                 <button
                                     onClick={saveUser}
-                                    className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-emerald-500 hover:text-emerald-400 transition-colors"
+                                    className="p-1.5 rounded-lg hover:bg-success/10 text-success-text hover:text-success-text transition-colors"
                                     title="Save"
                                 >
                                     <FiCheck className="w-4 h-4" />
@@ -355,7 +356,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                                 {canDelete && (
                                 <button
                                     onClick={() => handleDelete(user)}
-                                    className="p-1.5 rounded-lg hover:bg-rose-500/10 text-text-muted hover:text-rose-400 transition-colors"
+                                    className="p-1.5 rounded-lg hover:bg-danger/10 text-text-muted hover:text-danger-text transition-colors"
                                     title="Delete"
                                 >
                                     <FiTrash2 className="w-4 h-4" />

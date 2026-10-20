@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Portal } from './portal';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 import { spring, springTap } from '@/lib/motion';
+import { avatarStyle } from '@/lib/avatar-color';
 
 interface UserLike {
     id?: string | number;
@@ -110,7 +111,7 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
                                     className="rounded-full object-cover text-transparent"
                                 />
                             ) : (
-                                <div className="flex h-full w-full items-center justify-center rounded-full bg-emerald-500/20 font-medium text-emerald-400">
+                                <div style={avatarStyle(name)} className="flex h-full w-full items-center justify-center rounded-full font-semibold">
                                     {initials}
                                 </div>
                             )}
@@ -135,7 +136,7 @@ export default function UserAvatarGroup({ users, limit = 3, size = 'md' }: UserA
                                 {hoveredUser.avatar_url || hoveredUser.avatarUrl || hoveredUser.image ? (
                                     <Image src={hoveredUser.avatar_url || hoveredUser.avatarUrl || hoveredUser.image || ''} alt={hoveredUser.name || ''} fill className="object-cover" />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-[11px] font-bold text-emerald-400 bg-emerald-500/10">
+                                    <div style={avatarStyle(hoveredUser.name || hoveredUser.fullName || hoveredUser.full_name)} className="flex h-full w-full items-center justify-center text-[11px] font-bold">
                                         {(hoveredUser.name || hoveredUser.fullName || hoveredUser.full_name || '?').charAt(0).toUpperCase()}
                                     </div>
                                 )}

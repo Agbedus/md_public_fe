@@ -231,7 +231,7 @@ export default function AssistantPage() {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-background">
       {/* ── Header — Fixed at the top ── */}
-      <div className="z-20 flex flex-shrink-0 items-center border-b border-card-border bg-background/80 px-3 py-3 backdrop-blur-md sm:px-4 md:px-6 md:py-4">
+      <div className="z-20 flex flex-shrink-0 items-center border-b border-card-border bg-background px-3 py-3 sm:px-4 md:px-6 md:py-4">
         <div className="flex items-center gap-3">
             <motion.div
               key={hasError ? 'error' : pipVariantIdx}
@@ -311,7 +311,7 @@ export default function AssistantPage() {
         </div>
 
         {/* ── Input bar (sticky at bottom) ── */}
-        <div className="sticky bottom-0 z-10 bg-gradient-to-t from-background via-background/95 to-transparent pt-5 md:pt-8">
+        <div className="sticky bottom-0 z-10 bg-background pt-5 md:pt-8">
             <div className="mx-auto w-full max-w-4xl px-3 sm:px-4">
                 <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onStop={handleStop} />
             </div>

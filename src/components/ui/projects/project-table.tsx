@@ -167,9 +167,9 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
   };
 
   const priorityColors = {
-    low: "text-text-muted",
-    medium: "text-amber-400",
-    high: "text-rose-400",
+    low: "text-success-text",
+    medium: "text-warning-text",
+    high: "text-danger-text",
   };
 
   const getTaskStats = (project: Project) => {
@@ -184,26 +184,26 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
   return (
     <div className="w-full space-y-4">
       {error && (
-        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-in fade-in slide-in-from-top-2">
+        <div className="p-3 rounded-xl bg-danger/10 border border-danger/20 text-danger-text text-sm animate-in fade-in slide-in-from-top-2">
           {error}
         </div>
       )}
-      <div className="glass rounded-2xl overflow-hidden flex flex-col border border-card-border bg-card/30 backdrop-blur-md">
+      <div className="rounded-[28px] overflow-hidden flex flex-col border border-card-border bg-card">
         <div className="overflow-x-auto">
       <table className="w-full text-left text-sm min-w-[1400px]">
         <thead className="bg-foreground/[0.03] border-b border-card-border">
           <tr>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky left-0 z-20 bg-card/90 backdrop-blur-md border-r border-card-border">Project</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider text-center whitespace-nowrap">Progress</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Key</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Status</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Priority</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Owner</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Client</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Timeline</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Budget</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">Time Logged</th>
-            <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted uppercase tracking-wider whitespace-nowrap sticky right-0 z-20 bg-card/90 backdrop-blur-md border-l border-card-border">Actions</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap sticky left-0 z-20 bg-card border-r border-card-border">Project</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted text-center whitespace-nowrap">Progress</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Key</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Status</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Priority</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Owner</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Client</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Timeline</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Budget</th>
+            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Time Logged</th>
+            <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted whitespace-nowrap sticky right-0 z-20 bg-card border-l border-card-border">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-foreground/5">
@@ -323,11 +323,11 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                 <button
                                   type="submit"
                                   disabled={isSubmitting}
-                                  className="p-1 rounded hover:bg-emerald-500/10 text-emerald-400 transition-colors disabled:opacity-50"
+                                  className="p-1 rounded hover:bg-success/10 text-success-text transition-colors disabled:opacity-50"
                                   title="Save"
                                 >
                                   {isSubmitting ? (
-                                    <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-3.5 h-3.5 border-2 border-success border-t-transparent rounded-full animate-spin" />
                                   ) : (
                                     <FiCheck className="w-4 h-4" />
                                   )}
@@ -335,7 +335,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                 <button
                                   type="button"
                                   onClick={cancelEditing}
-                                  className="p-1 rounded hover:bg-rose-500/10 text-rose-400 transition-colors"
+                                  className="p-1 rounded hover:bg-danger/10 text-danger-text transition-colors"
                                   title="Cancel"
                                 >
                                   <FiX className="w-4 h-4" />
@@ -358,10 +358,10 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                 className={`group hover:bg-foreground/[0.03] transition-colors items-center cursor-pointer ${expandedIds.includes(project.id) ? 'bg-foreground/[0.03]' : ''}`}
                 onClick={() => router.push(`/projects/${project.id}`)}
               >
-                <td className="px-6 py-3 sticky left-0 z-10 bg-card/90 backdrop-blur-md border-r border-card-border">
+                <td className="px-6 py-3 sticky left-0 z-10 bg-card border-r border-card-border">
                   <div className="flex items-center gap-3">
                     <div className={`w-1.5 h-1.5 rounded-full ${(statusColors[project.status] ?? statusColors.planning).split(' ')[1].replace('text-', 'bg-')}`} />
-                    <div className="font-bold text-foreground text-xs tracking-tight truncate group-hover:text-indigo-500 transition-colors uppercase">{project.name}</div>
+                    <div className="font-bold text-foreground text-xs tracking-tight truncate group-hover:text-accent-text transition-colors capitalize">{project.name}</div>
                   </div>
                 </td>
                 <td className="px-6 py-3 text-center">
@@ -369,22 +369,22 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">
                   {project.key && (
-                    <div className="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono text-text-muted bg-foreground/[0.03] border border-card-border uppercase tracking-wider inline-block">
+                    <div className="px-2 py-0.5 rounded-md text-[11px] font-bold font-mono text-text-muted bg-foreground/[0.03] border border-card-border capitalize inline-block">
                       {project.key}
                     </div>
                   )}
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider border whitespace-nowrap ${statusColors[project.status] ?? statusColors.planning}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium capitalize border whitespace-nowrap ${statusColors[project.status] ?? statusColors.planning}`}>
                     {statusMapping[project.status] ?? project.status ?? '—'}
                   </span>
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium uppercase tracking-wider border whitespace-nowrap ${
-                    project.priority === 'high' ? 'bg-[var(--pastel-rose)]/10 text-[var(--pastel-rose)] border-[var(--pastel-rose)]/20 shadow-[0_0_15px_rgba(244,63,94,0.1)]' :
-                    project.priority === 'medium' ? 'bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20' :
-                    'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
-                  }`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium capitalize border whitespace-nowrap ${
+ project.priority === 'high' ? 'bg-[var(--pastel-rose)]/10 text-[var(--pastel-rose)] border-[var(--pastel-rose)]/20' :
+ project.priority === 'medium' ? 'bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20' :
+ 'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
+ }`}>
                     {priorityMapping[project.priority]}
                   </span>
                 </td>
@@ -392,21 +392,21 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                   {owner ? (
                     <div className="flex items-center gap-2">
                       <UserAvatarGroup users={[owner]} size="sm" limit={1} />
-                      <span className="text-[10px] font-bold text-text-muted group-hover:text-foreground transition-colors uppercase tracking-tight">{owner.fullName}</span>
+                      <span className="text-[11px] font-bold text-text-muted group-hover:text-foreground transition-colors capitalize tracking-tight">{owner.fullName}</span>
                     </div>
                   ) : '-'}
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">
-                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-tight group-hover:text-foreground transition-colors">
+                  <span className="text-[11px] font-bold text-text-muted capitalize tracking-tight group-hover:text-foreground transition-colors">
                     {client ? client.companyName : <span className="text-text-muted/30 italic">No Client</span>}
                   </span>
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] font-bold text-foreground/80 uppercase tracking-tight">
+                    <span className="text-[11px] font-bold text-foreground/80 capitalize tracking-tight">
                       {project.startDate ? format(new Date(project.startDate), "MMM dd") : '-'}
                     </span>
-                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider opacity-50">
+                    <span className="text-[11px] font-bold text-text-muted capitalize opacity-50">
                       {project.endDate ? `UNTIL ${format(new Date(project.endDate), "MMM dd, yyyy")}` : '-'}
                     </span>
                   </div>
@@ -414,25 +414,25 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                 <td className="px-6 py-3 whitespace-nowrap">
                   {project.budget ? (
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-foreground tracking-tight uppercase">
+                      <span className="text-[11px] font-bold text-foreground tracking-tight">
                         ${project.budget.toLocaleString()}
                       </span>
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                      <span className="text-[11px] font-bold text-text-muted capitalize">
                         {project.currency}
                       </span>
                     </div>
-                  ) : <span className="text-text-muted/30 italic text-[10px]">-</span>}
+                  ) : <span className="text-text-muted/30 italic text-[11px]">-</span>}
                 </td>
                 {/* Time Logged */}
                 <td className="px-6 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1.5">
                     <FiClock className="w-3 h-3 text-text-muted flex-shrink-0" />
                     <span className="text-xs font-bold text-foreground tabular-nums">
-                      {totalHours > 0 ? `${totalHours.toFixed(1)}h` : <span className="text-text-muted/30 italic text-[10px]">-</span>}
+                      {totalHours > 0 ? `${totalHours.toFixed(1)}h` : <span className="text-text-muted/30 italic text-[11px]">-</span>}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-3 text-right sticky right-0 z-10 bg-card/90 backdrop-blur-md border-l border-card-border">
+                <td className="px-6 py-3 text-right sticky right-0 z-10 bg-card border-l border-card-border">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                     {canModifyProject(project) && (
                     <>
@@ -445,15 +445,15 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDelete(project); }}
-                      className="p-2 rounded-xl bg-red-500/5 hover:bg-red-500/10 text-text-muted hover:text-red-400 border border-card-border hover:border-red-500/20 transition-all"
+                      className="p-2 rounded-xl bg-danger/5 hover:bg-danger/10 text-text-muted hover:text-danger-text border border-card-border hover:border-danger/20 transition-all"
                       title="Delete"
                     >
                       <FiTrash2 className="w-3 h-3" />
                     </button>
                     </>
                     )}
-                    <div className="p-1.5 rounded-xl bg-foreground/[0.03] border border-card-border text-text-muted">
-                      <FiChevronRight className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedIds.includes(project.id) ? 'rotate-90 text-indigo-500' : ''}`} />
+                    <div className="p-1.5 bg-foreground/[0.03] border border-card-border text-text-muted rounded-full">
+                      <FiChevronRight className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedIds.includes(project.id) ? 'rotate-90 text-accent-text' : ''}`} />
                     </div>
                   </div>
                 </td>
@@ -461,12 +461,12 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
               {expandedIds.includes(project.id) && (
                 <tr className="bg-foreground/[0.02]">
                   <td colSpan={11} className="p-0 border-none">
-                    <div className="sticky left-0 p-6 pl-12 bg-card/50 backdrop-blur-sm border-y border-card-border w-full">
+                    <div className="sticky left-0 p-6 pl-12 bg-card border-y border-card-border w-full">
                       <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-xs font-bold text-text-muted uppercase tracking-wider">Tasks ({project.tasks?.length || 0})</h4>
+                        <h4 className="text-xs font-bold text-text-muted">Tasks ({project.tasks?.length || 0})</h4>
                         <button 
                           onClick={() => setAddingTaskId(addingTaskId === project.id ? null : project.id)}
-                          className="flex items-center gap-1 text-[11px] font-bold text-text-muted hover:text-foreground transition-all px-2 py-1 rounded bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border uppercase tracking-wider"
+                          className="flex items-center gap-1 text-[11px] font-bold text-text-muted hover:text-foreground transition-all px-2 py-1 rounded bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border"
                         >
                           <FiPlus className="w-3 h-3" />
                           <span>Add Task</span>
@@ -474,7 +474,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                       </div>
 
                       {addingTaskId === project.id && (
-                        <div className="mb-4 p-4 rounded-xl bg-foreground/[0.03] border border-indigo-500/20 animate-in fade-in slide-in-from-top-2">
+                        <div className="mb-4 p-4 rounded-xl bg-foreground/[0.03] border border-accent/20 animate-in fade-in slide-in-from-top-2">
                            <form onSubmit={async (e) => {
                              // ... rest same ...
                            }}
@@ -524,10 +524,10 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                  <button 
                                    type="submit" 
                                    disabled={isSubmitting}
-                                   className="px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all font-medium text-sm flex items-center gap-2 border border-emerald-500/20 disabled:opacity-50"
+                                   className="md-btn md-btn-primary md-btn-sm"
                                  >
                                    {isSubmitting ? (
-                                     <div className="h-3.5 w-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+                                     <div className="h-3.5 w-3.5 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
                                    ) : (
                                      <FiCheck className="w-4 h-4" />
                                    )}
@@ -545,7 +545,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                       {project.tasks && project.tasks.length > 0 ? (
                         <div className="overflow-x-auto rounded-xl border border-card-border bg-background/50">
                             <table className="w-full text-left text-sm min-w-[1000px]">
-                                <thead className="bg-foreground/[0.03] text-text-muted font-bold text-[11px] uppercase tracking-wider">
+                                <thead className="bg-foreground/[0.03] text-text-muted font-bold text-[11px]">
                                     <tr>
                                         <th className="px-4 py-2">Name</th>
                                         <th className="px-4 py-2">Description</th>
@@ -689,11 +689,11 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                             <button
                                type="submit"
                                disabled={isSubmitting}
-                               className="p-1 rounded hover:bg-emerald-500/10 text-emerald-400 transition-colors disabled:opacity-50"
+                               className="p-1 rounded hover:bg-success/10 text-success-text transition-colors disabled:opacity-50"
                                title="Save"
                              >
                                {isSubmitting ? (
-                                 <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                 <div className="w-3.5 h-3.5 border-2 border-success border-t-transparent rounded-full animate-spin" />
                                ) : (
                                  <FiCheck className="w-4 h-4" />
                                )}
@@ -701,7 +701,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                             <button
                               type="button"
                               onClick={() => setIsAdding(false)}
-                              className="p-1 rounded hover:bg-rose-500/10 text-rose-400 transition-colors"
+                              className="p-1 rounded hover:bg-danger/10 text-danger-text transition-colors"
                               title="Cancel"
                             >
                               <FiX className="w-4 h-4" />
@@ -722,10 +722,10 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                   onClick={() => setIsAdding(true)}
                   className="flex items-center gap-2 p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-foreground/10 text-sm text-text-muted hover:text-foreground transition-all duration-200 group w-fit"
                 >
-                  <div className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border">
+                  <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border rounded-full">
                     <FiPlus className="w-4 h-4" />
                   </div>
-                  <span className="pr-2 font-bold uppercase tracking-wider text-[11px]">New project</span>
+                  <span className="pr-2 font-bold text-[11px]">New project</span>
                 </button>
               </td>
             </tr>

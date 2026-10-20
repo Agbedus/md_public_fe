@@ -20,6 +20,7 @@ import { toast } from '@/lib/toast';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
 import { Portal } from '@/components/ui/portal';
 import { OrganizationAvatar } from './organization-avatar';
+import { avatarStyle } from '@/lib/avatar-color';
 
 interface TopNavProps {
   user?: {
@@ -105,8 +106,8 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
     }
   }, [announcementUnreadCount]);
 
-  const statusColor = attendanceState === 'CLOCKED_IN' ? 'bg-emerald-500' : 
-                      attendanceState === 'CLOCKED_OUT' ? 'bg-blue-500' : 'bg-zinc-500';
+  const statusColor = attendanceState === 'CLOCKED_IN' ? 'bg-success' : 
+                      attendanceState === 'CLOCKED_OUT' ? 'bg-accent' : 'bg-zinc-500';
 
   const handleSwitchOrg = async (orgId: string) => {
     if (orgId === currentOrgId) return;
@@ -151,11 +152,11 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
       {(switching || isNavigating) && (
         <WorkspaceLoadingSkeleton isOverlay />
       )}
-      <nav className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-card-border bg-background px-3 md:h-20 md:px-5 xl:px-8">
+      <nav className="sticky top-0 z-40 flex h-16 items-center justify-between bg-background px-3 md:h-20 md:px-5 xl:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-6">
           {/* Mobile Logo */}
           <Link href={orgSlug ? `/${orgSlug}/dashboard` : (user ? "/dashboard" : "/")} className="flex min-h-11 shrink-0 items-center gap-2 md:hidden">
-             <div className="rounded-lg border border-card-border bg-card p-1.5">
+             <div className="rounded-full bg-foreground/[0.04] p-1.5">
                <Image 
                  src="/logo.svg" 
                  alt="MyndDesk" 
@@ -164,7 +165,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                  className="w-6 h-6 object-contain"
                />
              </div>
-             <span className="hidden text-lg font-bold tracking-tight text-foreground min-[440px]:inline">Mynd<span className="text-emerald-500">Desk</span></span>
+             <span className="hidden text-lg font-bold tracking-tight text-foreground min-[440px]:inline">Mynd<span className="text-accent">Desk</span></span>
           </Link>
 
           <div className="relative group hidden md:block w-full max-w-md" data-tour="search">
@@ -174,9 +175,9 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               placeholder="Search anything..."
               onClick={() => setIsCommandOpen(true)}
               readOnly
-              className="bg-background/50 border border-card-border rounded-xl pl-10 pr-16 py-2.5 text-sm focus:outline-none focus:bg-foreground/[0.06] focus:border-foreground/10 w-full transition-all duration-300 placeholder:text-text-muted font-bold cursor-pointer hidden md:block hover:border-foreground/15 hover:bg-foreground/[0.03] focus:scale-[1.01]"
+              className="bg-foreground/[0.04] border border-transparent rounded-full pl-10 pr-16 py-2.5 text-sm focus:outline-none focus:bg-foreground/[0.06] w-full transition-all duration-300 placeholder:text-text-muted font-bold cursor-pointer hidden md:block hover:border-foreground/15 hover:bg-foreground/[0.03] focus:scale-[1.01]"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded border border-card-border bg-background/50 text-[11px] font-bold text-text-muted pointer-events-none font-numbers">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 rounded-full border border-card-border bg-card text-[11px] font-bold text-text-muted pointer-events-none font-numbers">
               <span className="text-[12px]">⌘</span>
               <span>K</span>
             </div>
@@ -189,12 +190,12 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
             <button
               onClick={() => setIsOrgSwitcherOpen(!isOrgSwitcherOpen)}
               disabled={switching !== null}
-              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-card-border bg-card p-2 text-xs font-bold tracking-tight text-foreground transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08] md:gap-2 md:p-2.5"
+              className="flex min-h-11 items-center gap-1.5 rounded-full bg-foreground/[0.04] p-2 text-xs font-bold tracking-tight text-foreground transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08] md:gap-2 md:p-2.5"
             >
               <OrganizationAvatar name={currentOrg.name} logoUrl={currentOrg.logo_url} />
               <span className="hidden max-w-[92px] truncate sm:inline md:max-w-[120px]">{currentOrg.name}</span>
               {orgRoleDisplay && (
-                <span className={`hidden px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider xl:inline ${orgRoleToneClasses[orgRoleDisplay.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5'}`}>
+                <span className={`hidden px-1.5 py-0.5 rounded text-[11px] font-semibold xl:inline ${orgRoleToneClasses[orgRoleDisplay.tone] || 'bg-foreground/[0.06] text-text-muted border-foreground/5'}`}>
                   {orgRoleDisplay.label}
                 </span>
               )}
@@ -212,10 +213,10 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                   transition={{ duration: 0.15 }}
                   style={orgSwitcherMenuStyle}
                   data-side={orgSwitcherMenuSide}
-                  className={`z-[9999] w-[min(18rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-card-border bg-card shadow-lg md:w-64 ${orgSwitcherMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
+                  className={`z-[9999] w-[min(16rem,calc(100vw-1.5rem))] overflow-y-auto rounded-3xl border border-card-border bg-card md:w-64 ${orgSwitcherMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
                 >
                   <div className="px-3 py-2 border-b border-card-border">
-                    <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Switch Organization</p>
+                    <p className="text-[11px] font-semibold text-text-muted">Switch Organization</p>
                   </div>
                   <div className="max-h-[240px] overflow-y-auto py-1">
                     {organizations.map((org) => {
@@ -224,29 +225,29 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                         <button
                           key={org.id}
                           onClick={() => handleSwitchOrg(org.id)}
-                          className={`flex min-h-11 items-center w-full gap-3 px-3 py-2.5 text-sm transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] ${
-                            org.id === currentOrgId ? 'text-foreground font-bold' : 'text-text-secondary'
-                          }`}
+                          className={`flex min-h-10 items-center w-full gap-2.5 px-3 py-2 text-sm transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] ${
+ org.id === currentOrgId ? 'text-foreground font-bold' : 'text-text-secondary'
+ }`}
                         >
                           <OrganizationAvatar name={org.name} logoUrl={org.logo_url} size={24} />
                           <div className="flex-1 min-w-0 text-left">
                             <p className="truncate text-xs">{org.name}</p>
                             {orgRole && (
-                              <p className={`text-[9px] font-black uppercase tracking-wider mt-0.5 ${orgRoleToneClasses[orgRole.tone] || 'text-text-muted'}`}>
+                              <p className={`text-[11px] font-semibold mt-0.5 ${orgRoleToneClasses[orgRole.tone] || 'text-text-muted'}`}>
                                 {orgRole.label}
                               </p>
                             )}
                           </div>
                           {org.id === currentOrgId && (
-                            <FiCheck size={14} className="text-emerald-500 flex-shrink-0" />
+                            <FiCheck size={14} className="text-accent-text flex-shrink-0" />
                           )}
                         </button>
                       );
                     })}
                   </div>
                   <div className="border-t border-card-border p-1.5">
-                    <button onClick={() => { setIsOrgSwitcherOpen(false); router.push('/create-workspace'); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-text-secondary transition hover:bg-foreground/[0.05] hover:text-foreground">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-500"><FiPlus size={14} /></span>
+                    <button onClick={() => { setIsOrgSwitcherOpen(false); router.push('/create-workspace'); }} className="flex w-full items-center gap-2 rounded-full px-2.5 py-2 text-xs font-semibold text-text-secondary transition hover:bg-foreground/[0.05] hover:text-foreground">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/12 text-accent-text"><FiPlus size={14} /></span>
                       Create workspace
                     </button>
                   </div>
@@ -264,7 +265,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               onMouseEnter={() => setIsNotifHovered(true)}
               onMouseLeave={() => setIsNotifHovered(false)}
-              className="group relative flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-card-border bg-card p-2 text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:bg-foreground/[0.08] md:p-2.5"
+              className="group relative flex min-h-11 min-w-11 items-center justify-center rounded-full bg-foreground/[0.04] p-2 text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:bg-foreground/[0.08] md:p-2.5"
             >
               <FiBell className={`text-xl group-hover:text-[var(--pastel-yellow)] transition-colors ${isNotificationsOpen ? 'text-[var(--pastel-yellow)]' : ''}`} />
               {unreadCount > 0 && (
@@ -273,7 +274,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                     layout
                     initial={false}
                     animate={{ 
-                      width: (!notifMinimized || isNotifHovered) ? (unreadCount > 9 ? 24 : 20) : 12,
+                      width: (!notifMinimized || isNotifHovered) ? (unreadCount > 99 ? 32 : unreadCount > 9 ? 26 : 20) : 12,
                       height: (!notifMinimized || isNotifHovered) ? 20 : 12,
                     }}
                     transition={{ 
@@ -290,9 +291,9 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                           initial={{ opacity: 0, scale: 0.5 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.5 }}
-                          className="text-[10px] font-black font-numbers leading-none flex items-center justify-center"
+                          className="text-[11px] font-semibold font-numbers leading-none flex items-center justify-center"
                         >
-                          {unreadCount}
+                          {unreadCount > 99 ? '99+' : unreadCount}
                         </motion.span>
                       ) : (
                         <motion.span 
@@ -315,16 +316,16 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                 ref={notificationMenuRef}
                 style={notificationMenuStyle}
                 data-side={notificationMenuSide}
-                className={`z-[9999] w-80 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border border-card-border bg-background py-2 shadow-lg animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${notificationMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
+                className={`z-[9999] w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-3xl border border-card-border bg-background py-2 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${notificationMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
               >
-                <div className="px-4 py-3 border-b border-card-border flex justify-between items-center bg-background/50">
-                  <p className="text-sm font-black text-foreground uppercase tracking-tight">Notifications</p>
+                <div className="px-3.5 py-2.5 border-b border-card-border flex justify-between items-center">
+                  <p className="text-sm font-semibold text-foreground tracking-tight">Notifications</p>
                   {unreadCount > 0 && (
-                    <span className="text-[10px] text-text-muted bg-foreground/[0.05] px-2 py-0.5 rounded-full font-black uppercase tracking-wider border border-card-border">{unreadCount} New</span>
+                    <span className="text-[11px] text-text-muted bg-foreground/[0.05] px-2 py-0.5 rounded-full font-semibold border border-card-border">{unreadCount} New</span>
                   )}
                 </div>
                 
-                <div className="max-h-[300px] overflow-y-auto bg-background/30">
+                <div className="max-h-[300px] overflow-y-auto">
                   {notifications.length > 0 ? (
                     (() => {
                       const unread = notifications.filter(n => !n.is_read);
@@ -336,25 +337,25 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                         <div 
                           key={notification.id} 
                           onClick={() => !notification.is_read && markAsRead(notification.id)}
-                          className={`px-4 py-3 hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-colors cursor-pointer border-b border-card-border last:border-0 ${!notification.is_read ? 'bg-foreground/[0.02]' : ''}`}
+                          className={`px-3.5 py-2.5 hover:bg-foreground/[0.05] transition-colors cursor-pointer border-b border-card-border last:border-0 ${!notification.is_read ? 'bg-foreground/[0.02]' : ''}`}
                         >
                           <div className="flex gap-3">
-                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${
-                              notification.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                              notification.type === 'error' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                              notification.type === 'warning' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                              'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                            }`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${
+ notification.type === 'success' ? 'bg-success/10 text-success-text border-success/20' :
+ notification.type === 'error' ? 'bg-danger/10 text-danger-text border-danger/20' :
+ notification.type === 'warning' ? 'bg-warning/10 text-warning-text border-warning/20' :
+ 'bg-accent/10 text-accent-text border-accent/20'
+ }`}>
                               {notification.type === 'success' ? <FiCheck size={14} /> :
                                notification.type === 'error' ? <FiX size={14} /> :
                                notification.type === 'warning' ? <FiAlertCircle size={14} /> :
                                <FiBell size={14} />}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm line-clamp-2 ${!notification.is_read ? 'text-foreground font-black uppercase tracking-tight' : 'text-text-secondary font-bold'}`}>
+                              <p className={`text-sm line-clamp-2 ${!notification.is_read ? 'text-foreground font-semibold tracking-tight' : 'text-text-secondary font-bold'}`}>
                                 {notification.message}
                               </p>
-                              <p className="text-[11px] text-text-muted mt-1 font-black font-numbers uppercase tracking-widest opacity-70">
+                              <p className="text-[11px] text-text-muted mt-1 font-semibold font-numbers opacity-70">
                                 {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                               </p>
                             </div>
@@ -368,19 +369,19 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                   ) : (
                     <div className="px-4 py-12 text-center">
                       <FiBell className="mx-auto text-text-muted mb-3 opacity-20" size={32} />
-                      <p className="text-xs text-text-muted font-black uppercase tracking-widest">No notifications yet</p>
+                      <p className="text-xs text-text-muted font-semibold">No notifications yet</p>
                     </div>
                   )}
                 </div>
 
                 {notifications.length > 0 && (
-                  <div className="p-2 border-t border-card-border flex gap-2 bg-background/50">
+                  <div className="p-2 border-t border-card-border flex gap-2">
                     {unreadCount > 0 && (
                       <button 
                         onClick={() => markAllAsRead()}
                         disabled={isMarkingAllRead}
                         aria-busy={isMarkingAllRead}
-                        className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-transparent py-2 text-[10px] font-black uppercase tracking-widest text-text-muted transition-[transform,opacity,background-color] duration-150 hover:border-card-border hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+                        className="flex min-h-9 flex-1 items-center justify-center gap-2 rounded-full border border-transparent py-2 text-[11px] font-semibold text-text-muted transition-[transform,opacity,background-color] duration-150 hover:border-card-border hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
                       >
                         {isMarkingAllRead && <FiLoader className="h-3.5 w-3.5 animate-spin" />}
                         {isMarkingAllRead ? 'Marking read…' : 'Mark all as read'}
@@ -389,7 +390,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                     <Link 
                       href={orgSlug ? `/${orgSlug}/notifications` : "/notifications"}
                       onClick={() => setIsNotificationsOpen(false)}
-                      className="flex-1 py-2.5 text-[11px] font-black uppercase tracking-[0.15em] text-center text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] rounded-xl transition-all border border-card-border flex items-center justify-center gap-2 group"
+                      className="flex-1 py-2 text-[11px] font-semibold text-center text-text-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/[0.06] rounded-full transition-all border border-card-border flex items-center justify-center gap-2 group"
                     >
                       View all
                     </Link>
@@ -405,7 +406,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               onClick={() => setIsAnnouncementsOpen(!isAnnouncementsOpen)}
               onMouseEnter={() => setIsAnnHovered(true)}
               onMouseLeave={() => setIsAnnHovered(false)}
-              className="group relative flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-card-border bg-card p-2 text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:bg-foreground/[0.08] md:p-2.5"
+              className="group relative flex min-h-11 min-w-11 items-center justify-center rounded-full bg-foreground/[0.04] p-2 text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:bg-foreground/[0.08] md:p-2.5"
               title="Announcements"
             >
               <FiMessageSquare className={`text-xl group-hover:text-[var(--pastel-yellow)] transition-colors ${isAnnouncementsOpen ? 'text-[var(--pastel-yellow)]' : 'text-text-muted'}`} />
@@ -423,7 +424,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                       stiffness: 500, 
                       damping: 30,
                     }}
-                    className="bg-amber-500 text-zinc-950 rounded-full ring-2 ring-background flex items-center justify-center overflow-hidden"
+                    className="bg-warning text-zinc-950 rounded-full ring-2 ring-background flex items-center justify-center overflow-hidden"
                   >
                     <AnimatePresence mode="wait">
                       {(!announcementMinimized || isAnnHovered) ? (
@@ -432,7 +433,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                           initial={{ opacity: 0, scale: 0.5 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.5 }}
-                          className="text-[10px] font-black font-numbers leading-none flex items-center justify-center"
+                          className="text-[11px] font-semibold font-numbers leading-none flex items-center justify-center"
                         >
                           {announcementUnreadCount}
                         </motion.span>
@@ -457,7 +458,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
           </div>
 
           <div className="hidden gap-2 xl:flex">
-            <button className="p-2.5 text-text-muted hover:text-foreground transition-colors bg-background/50 border border-card-border rounded-xl hover:bg-blue-50 dark:hover:bg-white/[0.06] hover-scale active:scale-[0.93]" title="Help & Support">
+            <button className="p-2.5 text-text-muted hover:text-foreground transition-colors bg-foreground/[0.04] rounded-full hover:bg-foreground/[0.07] dark:hover:bg-white/[0.06] hover-scale active:scale-[0.93]" title="Help & Support">
               <FiHelpCircle className="text-xl" />
             </button>
           </div>
@@ -468,7 +469,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
             <div className="relative" ref={dropdownRef}>
               <button 
                   onClick={() => setIsOpen(!isOpen)}
-                  className="group flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-3 rounded-xl p-1 transition-colors hover:bg-foreground/[0.05] focus:outline-none active:bg-foreground/[0.08]"
+                  className="group flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-3 rounded-full p-1 transition-colors hover:bg-foreground/[0.05] focus:outline-none active:bg-foreground/[0.08]"
               >
                   <div className="relative">
                   {user.image ? (
@@ -477,10 +478,10 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                           alt="Avatar"
                           width={36}
                           height={36}
-                          className="rounded-lg object-cover border-2 border-background group-hover:border-[var(--pastel-purple)]/50 transition-all duration-300 group-hover:scale-105"
+                          className="rounded-full object-cover border-2 border-background transition-all duration-300 group-hover:scale-105"
                       />
                   ) : (
-                      <div className="w-9 h-9 rounded-lg bg-background/50 flex items-center justify-center text-foreground font-bold border border-card-border group-hover:border-foreground/10 transition-all duration-300 group-hover:scale-105">
+                      <div style={avatarStyle(user.name)} className="w-9 h-9 rounded-full bg-foreground/[0.05] flex items-center justify-center text-foreground font-bold border border-card-border group-hover:border-foreground/10 transition-all duration-300 group-hover:scale-105">
                           {user.name?.charAt(0) || user.email?.charAt(0)}
                       </div>
                   )}
@@ -495,16 +496,16 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                     ref={userMenuRef}
                     style={userMenuStyle}
                     data-side={userMenuSide}
-                    className={`z-[9999] w-56 overflow-y-auto rounded-xl border border-card-border bg-background py-2 shadow-lg animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${userMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
+                    className={`z-[9999] w-52 overflow-y-auto rounded-3xl border border-card-border bg-background py-2 animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none ${userMenuSide === 'top' ? 'origin-bottom-right' : 'origin-top-right'}`}
                   >
-                  <div className="px-4 py-3 border-b border-card-border mb-2 bg-background/50">
-                      <p className="text-base font-black text-foreground truncate uppercase tracking-tight">{user.name || 'User'}</p>
-                      <p className="text-[10px] text-text-muted font-normal truncate lowercase">{user.email}</p>
+                  <div className="px-3.5 py-2.5 border-b border-card-border mb-1">
+                      <p className="text-base font-semibold text-foreground truncate tracking-tight">{user.name || 'User'}</p>
+                      <p className="text-[11px] text-text-muted font-normal truncate lowercase">{user.email}</p>
                   </div>
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/dashboard` : "/dashboard"} 
-                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 active:bg-foreground/[0.04] group"
+                      className="flex items-center px-3.5 py-2 text-sm text-foreground font-normal hover:bg-foreground/[0.05] transition-all duration-300 active:bg-foreground/[0.04] group"
                       onClick={() => setIsOpen(false)}
                   >
                       <FiHome className="mr-3 text-[var(--pastel-amber)] icon-nudge" />
@@ -513,7 +514,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                   
                   <Link 
                       href={orgSlug ? `/${orgSlug}/profile` : "/profile"} 
-                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 active:bg-foreground/[0.04] group"
+                      className="flex items-center px-3.5 py-2 text-sm text-foreground font-normal hover:bg-foreground/[0.05] transition-all duration-300 active:bg-foreground/[0.04] group"
                       onClick={() => setIsOpen(false)}
                   >
                       <FiUser className="mr-3 text-[var(--pastel-blue)] icon-nudge" />
@@ -522,7 +523,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/notifications` : "/notifications"} 
-                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 active:bg-foreground/[0.04] group"
+                      className="flex items-center px-3.5 py-2 text-sm text-foreground font-normal hover:bg-foreground/[0.05] transition-all duration-300 active:bg-foreground/[0.04] group"
                       onClick={() => setIsOpen(false)}
                   >
                       <FiBell className="mr-3 text-[var(--pastel-rose)] icon-nudge" />
@@ -531,7 +532,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
 
                   <Link 
                       href={orgSlug ? `/${orgSlug}/settings` : "/settings"} 
-                      className="flex items-center px-4 py-2.5 text-sm text-foreground font-normal hover:bg-blue-50 dark:hover:bg-white/[0.06] transition-all duration-300 active:bg-foreground/[0.04] group"
+                      className="flex items-center px-3.5 py-2 text-sm text-foreground font-normal hover:bg-foreground/[0.05] transition-all duration-300 active:bg-foreground/[0.04] group"
                       onClick={() => setIsOpen(false)}
                   >
                       <FiSettings className="mr-3 text-[var(--pastel-teal)] icon-nudge" />
@@ -543,7 +544,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                   <form action="/logout" method="get">
                       <button
                           type="submit"
-                          className="flex w-full items-center px-4 py-2.5 text-sm text-rose-500 font-normal hover:bg-rose-500/10 transition-colors group active:scale-[0.98]"
+                          className="flex w-full items-center px-3.5 py-2 text-sm text-danger-text font-normal hover:bg-danger/10 transition-colors group active:scale-[0.98]"
                       >
                           <FiLogOut className="mr-3 icon-nudge" />
                           Sign Out

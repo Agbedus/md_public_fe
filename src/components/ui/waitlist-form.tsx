@@ -118,14 +118,14 @@ export default function WaitlistForm() {
                             placeholder="Your full name"
                             value={data.name}
                             onChange={e => update("name", e.target.value)}
-                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:border-indigo-500/50 focus:bg-foreground/[0.04] text-xs transition-all"
+                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.04] text-xs transition-all"
                         />
                         <input
                             type="text"
                             placeholder="Company name"
                             value={data.company}
                             onChange={e => update("company", e.target.value)}
-                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:border-indigo-500/50 focus:bg-foreground/[0.04] text-xs transition-all"
+                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.04] text-xs transition-all"
                         />
                     </motion.div>
                 );
@@ -139,7 +139,7 @@ export default function WaitlistForm() {
                                 onClick={() => update("role", role)}
                                 className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
                                     data.role === role
-                                        ? "bg-indigo-500/20 border border-indigo-500/50 text-indigo-300"
+                                        ? "bg-accent/20 border border-accent/50 text-accent-text"
                                         : "bg-foreground/[0.02] border border-foreground/10 text-text-muted hover:bg-foreground/[0.06] hover:text-foreground"
                                 }`}
                             >
@@ -159,7 +159,7 @@ export default function WaitlistForm() {
                                 onClick={() => update("source", source)}
                                 className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
                                     data.source === source
-                                        ? "bg-indigo-500/20 border border-indigo-500/50 text-indigo-300"
+                                        ? "bg-accent/20 border border-accent/50 text-accent-text"
                                         : "bg-foreground/[0.02] border border-foreground/10 text-text-muted hover:bg-foreground/[0.06] hover:text-foreground"
                                 }`}
                             >
@@ -177,7 +177,7 @@ export default function WaitlistForm() {
                             placeholder="Phone number"
                             value={data.phone}
                             onChange={e => update("phone", e.target.value)}
-                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:border-indigo-500/50 focus:bg-foreground/[0.04] text-xs transition-all"
+                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.04] text-xs transition-all"
                         />
                     </motion.div>
                 );
@@ -189,7 +189,7 @@ export default function WaitlistForm() {
                             placeholder="Email address for updates"
                             value={data.email}
                             onChange={e => update("email", e.target.value)}
-                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:border-indigo-500/50 focus:bg-foreground/[0.04] text-xs transition-all"
+                            className="w-full px-6 py-4 rounded-full bg-foreground/[0.02] border border-foreground/10 text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.04] text-xs transition-all"
                         />
                     </motion.div>
                 );
@@ -216,9 +216,9 @@ export default function WaitlistForm() {
                             key={i}
                             className={`h-1.5 rounded-full transition-all duration-300 ${
                                 i === step
-                                    ? "w-6 bg-indigo-500"
+                                    ? "w-6 bg-accent"
                                     : i < step
-                                        ? "w-1.5 bg-indigo-500/40"
+                                        ? "w-1.5 bg-accent/40"
                                         : "w-1.5 bg-foreground/10"
                             }`}
                         />
@@ -243,15 +243,15 @@ export default function WaitlistForm() {
                             type="button"
                             onClick={nextStep}
                             disabled={!canProceed()}
-                            className="px-6 py-3 rounded-full bg-foreground text-background text-xs font-bold hover:bg-foreground/90 transition-all active:scale-[0.96] flex items-center gap-2 font-sora uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="md-btn md-btn-primary md-btn-sm font-sora"
                         >
-                            Next <FiArrowRight />
+                            Next <span className="md-btn-chip"><FiArrowRight /></span>
                         </button>
                     ) : (
                         <button
                             type="submit"
                             disabled={!canProceed() || isSubmitting}
-                            className="px-6 py-3 rounded-full bg-indigo-500 text-white text-xs font-bold hover:bg-indigo-400 transition-all active:scale-[0.96] flex items-center gap-2 font-sora uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="md-btn md-btn-primary md-btn-sm font-sora"
                         >
                             {isSubmitting ? "Submitting\u2026" : "Join Waitlist"}
                         </button>

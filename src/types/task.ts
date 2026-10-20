@@ -54,9 +54,9 @@ export function parseTaskFormData(formData: FormData): Partial<Task> {
 
 
 export const statusMapping: { [key in TaskStatus]: string } = {
-    TODO: "To Do",
-    IN_PROGRESS: "In Progress",
-    QA: "Quality Assurance",
+    TODO: "To do",
+    IN_PROGRESS: "In progress",
+    QA: "QA",
     REVIEW: "Review",
     DONE: "Done",
 };

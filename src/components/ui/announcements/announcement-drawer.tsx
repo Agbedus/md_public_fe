@@ -64,11 +64,11 @@ export const AnnouncementDrawer = () => {
 
   const getTypeStyles = (type: string) => {
     switch (type) {
-      case 'success': return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-      case 'warning': return 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20';
-      case 'error': return 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20';
+      case 'success': return 'text-success-text dark:text-success-text bg-success/10 border-success/20';
+      case 'warning': return 'text-warning-text dark:text-warning-text bg-warning/10 border-warning/20';
+      case 'error': return 'text-danger-text dark:text-danger-text bg-danger/10 border-danger/20';
       case 'critical': return 'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20';
-      default: return 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20';
+      default: return 'text-accent-text dark:text-accent-text bg-accent/10 border-accent/20';
     }
   };
 
@@ -102,10 +102,10 @@ export const AnnouncementDrawer = () => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-background border-l border-card-border z-[70]  flex flex-col"
+            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-background border-l border-card-border z-[70] flex flex-col"
           >
             {/* Header */}
-            <div className="p-6 border-b border-card-border flex justify-between items-center bg-background/80 backdrop-blur-md">
+            <div className="p-6 border-b border-card-border flex justify-between items-center bg-background">
               <div>
                 <h2 className="text-xl font-bold text-foreground flex items-center gap-3 tracking-tight">
                   <HiSpeakerphone className="text-[var(--pastel-yellow)]" />
@@ -115,7 +115,7 @@ export const AnnouncementDrawer = () => {
               </div>
               <button 
                 onClick={() => setIsDrawerOpen(false)}
-                className="p-2.5 hover:bg-foreground/5 rounded-xl text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border"
+                className="p-2.5 hover:bg-foreground/5 text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border rounded-full"
               >
                 <FiX size={18} />
               </button>
@@ -155,7 +155,7 @@ export const AnnouncementDrawer = () => {
                               e.stopPropagation();
                               void handleDelete(announcement.id, announcement.title);
                             }}
-                            className="absolute top-5 right-5 p-2 text-text-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-rose-500/20"
+                            className="absolute top-5 right-5 p-2 text-text-muted hover:text-danger-text hover:bg-danger/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-danger/20"
                             title="Delete Announcement"
                           >
                             <FiTrash2 size={14} />
@@ -168,7 +168,7 @@ export const AnnouncementDrawer = () => {
                       </p>
 
                       <div className="pt-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-[10px] text-text-muted font-black uppercase tracking-widest">
+                        <div className="flex items-center gap-2 text-[11px] text-text-muted font-semibold">
                           <FiClock size={12} className="text-text-muted" />
                           <span>
                             {(() => {
@@ -182,7 +182,7 @@ export const AnnouncementDrawer = () => {
                           </span>
                         </div>
 
-                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-black uppercase tracking-[0.15em] ${getTypeStyles(announcement.type || 'info')}`}>
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${getTypeStyles(announcement.type || 'info')}`}>
                            {getTypeIcon(announcement.type || 'info')}
                            <span>{announcement.type || 'info'}</span>
                         </div>
@@ -193,14 +193,14 @@ export const AnnouncementDrawer = () => {
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-center py-32">
                   <FiMessageSquare size={48} className="mb-6 text-text-muted opacity-20" />
-                  <p className="text-xs font-bold text-text-muted uppercase tracking-[0.2em]">No announcements</p>
-                  <p className="text-[11px] text-text-muted mt-2 font-medium uppercase tracking-widest">Check back later for system updates</p>
+                  <p className="text-xs font-bold text-text-muted">No announcements</p>
+                  <p className="text-[11px] text-text-muted mt-2 font-medium">Check back later for system updates</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="p-5 border-t border-card-border bg-background/80 backdrop-blur-md flex items-center justify-between">
+            <div className="p-5 border-t border-card-border bg-background flex items-center justify-between">
               {/* Minimal Add Button (Style from task table) */}
               {canPublish && (
               <button
@@ -208,20 +208,20 @@ export const AnnouncementDrawer = () => {
                 className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-[var(--pastel-yellow)]/30 text-xs text-text-muted hover:text-foreground transition-all duration-300 group"
                 title="Post New Announcement"
               >
-                <div className="p-1.5 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border">
+                <div className="p-1.5 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border rounded-full">
                   <FiPlus className="w-3.5 h-3.5 text-[var(--pastel-yellow)]" />
                 </div>
-                <span className="font-black uppercase tracking-[0.2em] text-[9px]">New announcement</span>
+                <span className="font-semibold text-[11px]">New announcement</span>
               </button>
               )}
 
               {/* Info Tooltip */}
               <div className="relative group">
-                <button className="p-3 text-text-secondary hover:text-foreground transition-colors bg-foreground/[0.03] rounded-2xl border border-card-border hover:bg-foreground/[0.06] hover:border-card-border">
+                <button className="p-3 text-text-secondary hover:text-foreground transition-colors bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:border-card-border rounded-full">
                   <FiInfo size={18} />
                 </button>
                 <div className="absolute bottom-full right-0 mb-4 w-72 p-5 bg-background border border-card-border rounded-3xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-[80]">
-                  <p className="text-[10px] text-text-secondary font-black uppercase tracking-widest leading-relaxed">
+                  <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">
                     Stay updated with the latest platform news. All broadcasts are strictly for internal system purposes.
                   </p>
                   <div className="absolute bottom-[-6px] right-5 w-3 h-3 bg-background border-r border-b border-card-border rotate-45" />

@@ -51,10 +51,10 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
   const getLevelColor = (level: number) => {
     switch (level) {
       case 0: return 'bg-background/50 border border-card-border hover:bg-background/80';
-      case 1: return 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30';
-      case 2: return 'bg-emerald-500/40 text-emerald-300 hover:bg-emerald-500/50';
-      case 3: return 'bg-emerald-500/70 text-emerald-100 hover:bg-emerald-500/80';
-      case 4: return 'bg-emerald-400 text-zinc-900 hover:bg-emerald-300';
+      case 1: return 'bg-success/20 text-success-text hover:bg-success/30';
+      case 2: return 'bg-success/40 text-success-text hover:bg-success/50';
+      case 3: return 'bg-success/70 text-success-text hover:bg-success/80';
+      case 4: return 'bg-success text-zinc-900 hover:bg-success';
       default: return 'bg-background/50 border border-card-border';
     }
   };
@@ -94,7 +94,7 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
             onClick={() => setPeriod(p)}
             className={`flex-1 text-[11px] font-bold py-1 px-2 rounded-md transition-all ${
               period === p 
-              ? 'bg-emerald-500/20 text-emerald-400 ' 
+              ? 'bg-success/20 text-success-text ' 
               : 'text-(--text-muted) hover:text-foreground'
             }`}
           >
@@ -158,14 +158,14 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
           <span>Less</span>
           <div className="flex gap-1">
             <div className="w-2.5 h-2.5 rounded-[1px] bg-background/50 border border-card-border"></div>
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-emerald-500/20"></div>
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-emerald-500/40"></div>
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-emerald-500/70"></div>
-            <div className="w-2.5 h-2.5 rounded-[1px] bg-emerald-400"></div>
+            <div className="w-2.5 h-2.5 rounded-[1px] bg-success/20"></div>
+            <div className="w-2.5 h-2.5 rounded-[1px] bg-success/40"></div>
+            <div className="w-2.5 h-2.5 rounded-[1px] bg-success/70"></div>
+            <div className="w-2.5 h-2.5 rounded-[1px] bg-success"></div>
           </div>
           <span>More</span>
         </div>
-        <div className="flex items-center gap-1.5 text-emerald-400/70">
+        <div className="flex items-center gap-1.5 text-success-text/70">
            <FiCheckSquare className="w-3 h-3" />
            <span>Activity Grid</span>
         </div>
@@ -178,7 +178,7 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, variant = 'comp
         >
           <div className="bg-card border border-card-border px-3 py-1.5 rounded-lg whitespace-nowrap backdrop-blur-md shadow-xl">
               <p className="text-[11px] font-bold text-foreground">{format(new Date(hoveredDay.day.date), 'MMMM d, yyyy')}</p>
-              <p className="text-[11px] text-emerald-400 mt-0.5">{getFunMessage(hoveredDay.day.count)}</p>
+              <p className="text-[11px] text-success-text mt-0.5">{getFunMessage(hoveredDay.day.count)}</p>
           </div>
           <div className="w-2 h-2 bg-card border-r border-b border-card-border rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2"></div>
         </div>,

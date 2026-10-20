@@ -217,7 +217,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
                     title="Stop"
                 >
                     <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                        <FiSquare className="w-4 h-4 text-rose-500 fill-current" />
+                        <FiSquare className="w-4 h-4 text-danger-text fill-current" />
                     </span>
                 </button>
             ) : (

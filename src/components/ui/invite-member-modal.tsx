@@ -196,13 +196,13 @@ export function InviteMemberModal({
                 onClick={handleClose}
                 disabled={phase === 'sending' || isPending}
                 aria-label="Close invitation dialog"
-                className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground disabled:cursor-wait disabled:opacity-40"
+                className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground disabled:cursor-wait disabled:opacity-40"
               >
                 <FiX className="h-5 w-5" />
               </button>
 
               <div className="shrink-0 border-b border-card-border px-6 pb-5 pt-6 pr-20 sm:px-8 sm:pt-8">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success-text">
                   {phase === 'compose' ? (
                     <FiUsers className="h-5 w-5" />
                   ) : phase === 'sending' ? (
@@ -215,7 +215,7 @@ export function InviteMemberModal({
                   ) : allSucceeded ? (
                     <FiCheckCircle className="h-5 w-5" />
                   ) : (
-                    <FiAlertCircle className="h-5 w-5 text-amber-500" />
+                    <FiAlertCircle className="h-5 w-5 text-warning-text" />
                   )}
                 </div>
                 <h2 id="invite-modal-title" className="text-xl font-semibold leading-tight text-foreground">{title}</h2>
@@ -243,7 +243,7 @@ export function InviteMemberModal({
                             <select
                               value={role}
                               onChange={(event) => setRole(event.target.value)}
-                              className="h-11 w-full rounded-md border border-card-border bg-input-bg px-3 text-sm text-foreground outline-none transition focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20"
+                              className="h-11 w-full rounded-full border border-card-border bg-input-bg px-3 text-sm text-foreground outline-none transition "
                             >
                               <option value="member">Member</option>
                               <option value="manager">Manager</option>
@@ -263,7 +263,7 @@ export function InviteMemberModal({
                             onChange={(event) => setPersonalMessage(event.target.value.slice(0, 500))}
                             rows={3}
                             placeholder="Add a short welcome message…"
-                            className="w-full resize-none rounded-md border border-card-border bg-input-bg px-3 py-2.5 text-sm text-foreground outline-none transition placeholder:text-text-muted focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20"
+                            className="w-full resize-none rounded-md border border-card-border bg-input-bg px-3 py-2.5 text-sm text-foreground outline-none transition placeholder:text-text-muted "
                           />
                         </div>
                       </div>
@@ -272,7 +272,7 @@ export function InviteMemberModal({
                         type="button"
                         onClick={handleSend}
                         disabled={emails.length === 0}
-                        className="mt-5 flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-on-ink transition hover:bg-emerald-500/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="md-btn md-btn-primary mt-5 w-full shrink-0"
                       >
                         <FiSend className="h-4 w-4" />
                         Send {emails.length || ''} invitation{emails.length === 1 ? '' : 's'}
@@ -291,19 +291,19 @@ export function InviteMemberModal({
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
-                                className={`flex min-h-14 items-center gap-3 rounded-xl border px-3.5 py-3 ${
+                                className={`flex min-h-14 items-center gap-3 rounded-full border px-4 py-3 ${
                                   delivery.status === 'success'
-                                    ? 'border-emerald-500/20 bg-emerald-500/10'
+                                    ? 'border-success/20 bg-success/10'
                                     : delivery.status === 'failed'
-                                      ? 'border-rose-500/20 bg-rose-500/10'
+                                      ? 'border-danger/20 bg-danger/10'
                                       : 'border-card-border bg-foreground/[0.025]'
                                 }`}
                               >
                                 <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
                                   delivery.status === 'success'
-                                    ? 'bg-emerald-500/15 text-emerald-500'
+                                    ? 'bg-success/15 text-success-text'
                                     : delivery.status === 'failed'
-                                      ? 'bg-rose-500/15 text-rose-500'
+                                      ? 'bg-danger/15 text-danger-text'
                                       : 'bg-foreground/[0.05] text-text-muted'
                                 }`}>
                                   {delivery.status === 'success' ? (
@@ -318,7 +318,7 @@ export function InviteMemberModal({
                                 </span>
                                 <span className="min-w-0 flex-1">
                                   <span className="block truncate text-sm font-medium text-foreground">{delivery.email}</span>
-                                  <span className={`mt-0.5 block truncate text-xs ${delivery.status === 'failed' ? 'text-rose-500' : 'text-text-muted'}`}>
+                                  <span className={`mt-0.5 block truncate text-xs ${delivery.status === 'failed' ? 'text-danger-text' : 'text-text-muted'}`}>
                                     {delivery.status === 'success'
                                       ? 'Invitation sent'
                                       : delivery.status === 'failed'
@@ -340,7 +340,7 @@ export function InviteMemberModal({
                             <button
                               type="button"
                               onClick={() => resetComposer(failedDeliveries.map((item) => item.email))}
-                              className="min-h-11 flex-1 rounded-md border border-card-border px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-foreground/[0.05] active:scale-[0.98]"
+                              className="min-h-11 flex-1 rounded-full border border-card-border px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-foreground/[0.05] active:scale-[0.98]"
                             >
                               Retry failed
                             </button>
@@ -348,7 +348,7 @@ export function InviteMemberModal({
                           <button
                             type="button"
                             onClick={handleClose}
-                            className="min-h-11 flex-1 rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-on-ink transition hover:bg-emerald-500/90 active:scale-[0.98]"
+                            className="md-btn md-btn-primary flex-1"
                           >
                             Done
                           </button>

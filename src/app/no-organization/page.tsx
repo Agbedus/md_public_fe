@@ -29,8 +29,8 @@ export default async function NoOrganizationPage() {
           <p className="text-text-muted leading-relaxed">
             You are not a member of a workspace yet. Accept an invitation or create a workspace of your own.
           </p>
-          <Link href="/create-workspace" className="inline-flex h-11 items-center justify-center rounded-xl bg-ink px-6 text-sm font-semibold text-on-ink hover:bg-ink/85">Create a workspace</Link>
-          <Link href="/logout" className="inline-flex h-11 items-center justify-center rounded-xl bg-foreground px-6 text-sm font-medium text-background transition-opacity hover:opacity-90">Sign Out</Link>
+          <Link href="/create-workspace" className="md-btn md-btn-primary">Create a workspace</Link>
+          <Link href="/logout" className="md-btn md-btn-secondary">Sign Out</Link>
         </div>
       </div>
     );

@@ -1,3 +1,4 @@
+import { StatTile } from '@/components/ui/stat-tile';
 import React from "react";
 import Image from "next/image";
 import {
@@ -35,7 +36,6 @@ import {
   presenceStateLabels, 
   attendanceStateLabels 
 } from "@/types/attendance";
-import { Sparkline } from "@/components/ui/sparkline";
 import {
   FiMoreHorizontal,
   FiZap,
@@ -59,29 +59,8 @@ import {
   FiShield,
   FiRadio,
 } from "react-icons/fi";
-
-const AvatarGroup = ({ users, total }: { users: any[], total: number }) => {
-    return (
-        <div className="flex -space-x-2 overflow-hidden">
-            {users.map((user, i) => (
-                <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-foreground/[0.03] border border-card-border overflow-hidden relative">
-                    {user.image ? (
-                        <Image src={user.image} alt={user.name} fill className="object-cover" />
-                    ) : (
-                        <div className="h-full w-full flex items-center justify-center text-[11px] font-bold text-foreground bg-emerald-500/20">
-                            {user.name?.[0]?.toUpperCase()}
-                        </div>
-                    )}
-                </div>
-            ))}
-            {total > users.length && (
-                <div className="flex items-center justify-center h-8 w-8 rounded-full ring-2 ring-background bg-foreground/[0.03] border border-card-border text-[11px] font-bold text-foreground">
-                    +{total - users.length}
-                </div>
-            )}
-        </div>
-    );
-};
+import { avatarStyle } from '@/lib/avatar-color';
+import { formatStatus } from '@/lib/format-status';
 
 export async function SummaryStatsSection() {
     const stats = await getSummaryStats();
@@ -91,53 +70,22 @@ export async function SummaryStatsSection() {
     // counts. Cards with no history behind them (attendance is a live
     // snapshot) get neither rather than a borrowed series.
     const sum = (days: number[]) => days.reduce((total, n) => total + n, 0);
-    const statCards: {
-        label: string; value: number; icon: typeof FiUsers; color: string; bg: string;
-        users?: typeof stats.users; trend?: number[]; weekly?: number;
-    }[] = [
-        { label: 'Total users', value: stats.totalUsers, icon: FiUsers, color: 'text-[var(--pastel-blue)]', bg: 'bg-[var(--pastel-blue)]/10', users: stats.users },
-        { label: 'Total tasks', value: stats.totalTasks, icon: FiCheckSquare, color: 'text-[var(--pastel-purple)]', bg: 'bg-[var(--pastel-purple)]/10', trend: stats.trends.tasks, weekly: sum(stats.trends.tasks) },
-        { label: 'Completed', value: stats.completedTasks, icon: FiCheckCircle, color: 'text-[var(--pastel-emerald)]', bg: 'bg-[var(--pastel-emerald)]/10', trend: stats.trends.completions, weekly: sum(stats.trends.completions) },
-        { label: 'Team active', value: stats.attendance.teamActiveCount, icon: FiActivity, color: 'text-[var(--pastel-teal)]', bg: 'bg-[var(--pastel-teal)]/10' },
-        { label: 'Upcoming', value: stats.upcomingEvents, icon: FiCalendar, color: 'text-[var(--pastel-rose)]', bg: 'bg-[var(--pastel-rose)]/10', trend: stats.trends.upcoming },
+    const weekly = (days: number[]) => {
+        const n = sum(days);
+        return n > 0 ? `+${n} this week` : undefined;
+    };
+    const statCards = [
+        { label: 'Total users', value: stats.totalUsers, icon: FiUsers, tone: 'var(--accent)' },
+        { label: 'Total tasks', value: stats.totalTasks, icon: FiCheckSquare, tone: 'var(--status-qa)', hint: weekly(stats.trends.tasks) },
+        { label: 'Completed', value: stats.completedTasks, icon: FiCheckCircle, tone: 'var(--success)', hint: weekly(stats.trends.completions) },
+        { label: 'Team active', value: stats.attendance.teamActiveCount, icon: FiActivity, tone: 'var(--status-review)' },
+        { label: 'Upcoming', value: stats.upcomingEvents, icon: FiCalendar, tone: 'var(--warning)' },
     ];
 
     return (
-        <div className="col-span-1 lg:col-span-12 grid grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-6 mb-6 lg:mb-10">
+        <div className="col-span-1 lg:col-span-12 grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6 lg:mb-10">
             {statCards.map((stat, i) => (
-                <div 
-                    key={i} 
-                    className={`bg-card p-3 lg:p-6 rounded-2xl border border-card-border hover:border-foreground/10 transition-all duration-300 flex flex-col justify-between h-24 lg:h-40 group hover-lift ${i === 0 ? 'col-span-2 lg:col-span-1' : 'col-span-1'}`}
-                >
-                    <div className="flex justify-between items-start">
-                        <div className={`p-1.5 lg:p-3 rounded-xl ${stat.bg} ${stat.color} transition-colors group-hover:bg-foreground/[0.06]`}>
-                            <stat.icon className="text-sm lg:text-xl" />
-                        </div>
-                        {stat.users ? (
-                            <AvatarGroup users={stat.users} total={stat.value} />
-                        ) : stat.trend && (
-                            <div className="h-8 w-20 opacity-60 group-hover:opacity-100 transition-opacity">
-                                <Sparkline 
-                                    data={stat.trend} 
-                                    color={stat.color.match(/\[(.*?)\]/)?.[1] || "#6366f1"}
-                                    width={80}
-                                    height={32}
-                                />
-                            </div>
-                        )}
-                    </div>
-                    <div className="mt-2 lg:mt-4">
-                        <p className="text-xs text-(--text-muted) font-medium mb-0.5 lg:mb-1">{stat.label}</p>
-                        <div className="flex items-baseline justify-between">
-                            <p className="text-xl lg:text-3xl font-bold font-numbers text-foreground leading-none">{stat.value}</p>
-                            {stat.weekly ? (
-                                <div className={`text-[11px] lg:text-[11px] font-bold font-numbers ${stat.color} bg-foreground/[0.03] px-1.5 py-0.5 rounded-full whitespace-nowrap`}>
-                                   +{stat.weekly} this week
-                                </div>
-                            ) : null}
-                        </div>
-                    </div>
-                </div>
+                <StatTile key={stat.label} {...stat} className={i === 0 ? 'col-span-2 lg:col-span-1' : ''} />
             ))}
         </div>
     );
@@ -162,7 +110,7 @@ export async function UserStatSection() {
                     <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">People</h2>
                     <p className="text-xs text-(--text-muted) font-medium mt-0.5">Summary</p>
                 </div>
-                <div className="p-2 rounded-xl bg-[var(--pastel-purple)]/10">
+                <div className="p-2 bg-[var(--pastel-purple)]/10 rounded-full">
                     <FiCpu className="text-sm text-[var(--pastel-purple)]" />
                 </div>
             </div>
@@ -171,11 +119,11 @@ export async function UserStatSection() {
                 <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 rounded-2xl bg-foreground/[0.03] border border-card-border">
                         <p className="text-xs text-(--text-muted) font-medium mb-1">Total notes</p>
-                        <p className="text-2xl font-black font-numbers text-foreground">{stats.totalNotes}</p>
+                        <p className="text-2xl font-semibold font-numbers text-foreground">{stats.totalNotes}</p>
                     </div>
                     <div className="p-3 rounded-2xl bg-foreground/[0.03] border border-card-border">
                         <p className="text-xs text-(--text-muted) font-medium mb-1">Total tasks</p>
-                        <p className="text-2xl font-black font-numbers text-foreground">{stats.totalTasks}</p>
+                        <p className="text-2xl font-semibold font-numbers text-foreground">{stats.totalTasks}</p>
                     </div>
                 </div>
 
@@ -188,7 +136,7 @@ export async function UserStatSection() {
                     </div>
                     <div className="h-1.5 bg-background rounded-full overflow-hidden border border-card-border">
                         <div 
-                            className="h-full bg-emerald-500 rounded-full" 
+                            className="h-full bg-success rounded-full" 
                             style={{ width: `${stats.totalTasks > 0 ? (stats.completedTasks / stats.totalTasks) * 100 : 0}%` }}
                         />
                     </div>
@@ -199,7 +147,7 @@ export async function UserStatSection() {
                         <FiTarget className="text-[var(--pastel-blue)]" />
                         <span className="text-xs text-foreground font-medium">Active projects</span>
                     </div>
-                    <span className="text-sm font-black font-numbers text-foreground">{stats.totalProjects}</span>
+                    <span className="text-sm font-semibold font-numbers text-foreground">{stats.totalProjects}</span>
                 </div>
             </div>
         </div>
@@ -343,19 +291,19 @@ export async function KeyTasksSection() {
               key={i}
               className="flex items-start gap-2.5 p-2.5 rounded-xl bg-foreground/[0.03] border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-all cursor-pointer group hover-lift"
             >
-              <div className="shrink-0 w-2 h-2 mt-1.5 rounded-full bg-blue-400"></div>
+              <div className="shrink-0 w-2 h-2 mt-1.5 rounded-full bg-accent"></div>
               <div className="flex-1 min-w-0">
                 <span className="text-sm text-(--text-muted) font-bold group-hover:text-foreground transition-colors block truncate">
                   {task.title}
                 </span>
                 <div className="flex items-center justify-between gap-2 mt-1.5">
-                  <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] font-bold uppercase tracking-tight">
+                  <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] font-bold capitalize">
                     <FiActivity className="text-[11px]" />
-                    {task.status}
+                    {formatStatus(task.status)}
                   </span>
                   <div className="flex items-center gap-1.5">
                     {task.priority && (
-                      <span className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight ${task.priority === 'high' ? 'bg-rose-500/10 text-[var(--pastel-rose)]' : task.priority === 'medium' ? 'bg-amber-500/10 text-[var(--pastel-amber)]' : 'bg-foreground/[0.03] text-(--text-muted)'}`}>
+                      <span className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md font-bold capitalize tracking-tight ${task.priority === 'high' ? 'bg-danger/10 text-[var(--pastel-rose)]' : task.priority === 'medium' ? 'bg-warning/10 text-[var(--pastel-amber)]' : 'bg-success/15 text-success-text'}`}>
                         <FiZap className="text-[11px]" />
                         {task.priority}
                       </span>
@@ -377,7 +325,7 @@ export async function KeyTasksSection() {
           </p>
         )}
       </div>
-      <button className="w-full mt-6 py-2.5 rounded-xl border border-card-border text-(--text-muted) text-xs font-bold uppercase tracking-tight hover:bg-foreground/[0.06] hover:text-foreground transition-all hover-scale">
+      <button className="w-full mt-6 py-2.5 rounded-xl border border-card-border text-(--text-muted) text-xs font-bold capitalize tracking-tight hover:bg-foreground/[0.06] hover:text-foreground transition-all hover-scale">
         View All Tasks
       </button>
     </div>
@@ -395,7 +343,7 @@ export async function PrioritiesSection() {
         </h2>
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-foreground/[0.03] border border-card-border">
           <FiCpu className="text-[11px] text-[var(--pastel-indigo)]" />
-          <span className="text-[11px] font-bold text-[var(--pastel-indigo)] uppercase tracking-tight">
+          <span className="text-[11px] font-bold text-[var(--pastel-indigo)] capitalize tracking-tight">
             AI
           </span>
         </div>
@@ -428,8 +376,8 @@ export async function PrioritiesSection() {
           })
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-          <FiCheckCircle className="text-2xl mb-2 text-emerald-500" />
-            <p className="text-sm text-(--text-muted) font-bold uppercase tracking-tight">All caught up!</p>
+          <FiCheckCircle className="text-2xl mb-2 text-success-text" />
+            <p className="text-sm text-(--text-muted) font-bold capitalize tracking-tight">All caught up!</p>
           </div>
         )}
       </div>
@@ -449,7 +397,7 @@ export async function RecentNotesSection() {
         <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">
           Recent Notes
         </h2>
-        <button className="p-2 rounded-lg bg-foreground/[0.03] text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] border border-card-border transition-all hover-scale">
+        <button className="p-2 bg-foreground/[0.03] text-(--text-muted) hover:text-foreground hover:bg-foreground/[0.06] border border-card-border transition-all hover-scale rounded-full">
           <FiPlus />
         </button>
       </div>
@@ -484,10 +432,10 @@ export function FocusModeSection() {
       <h2 className="text-lg lg:text-xl font-bold text-foreground mb-2 relative z-10">
         Focus Mode
       </h2>
-      <p className="text-sm text-(--text-muted) font-bold uppercase tracking-tight mb-6 relative z-10">
+      <p className="text-sm text-(--text-muted) font-bold capitalize tracking-tight mb-6 relative z-10">
         Block distractions and concentrate.
       </p>
-      <button className="relative z-10 px-6 py-2.5 rounded-xl bg-foreground/[0.04] border border-card-border text-foreground font-bold uppercase tracking-tight hover:bg-foreground/[0.06] transition-all duration-200 active:scale-95">
+      <button className="relative z-10 px-6 py-2.5 rounded-xl bg-foreground/[0.04] border border-card-border text-foreground font-bold capitalize tracking-tight hover:bg-foreground/[0.06] transition-all duration-200 active:scale-95">
         Start Session
       </button>
     </div>
@@ -507,7 +455,7 @@ export async function UnitLoadSection() {
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Resource Saturation</h2>
           <p className="text-xs text-(--text-muted) font-medium mt-0.5">Unit load distribution</p>
         </div>
-        <div className="p-2 rounded-xl bg-[var(--pastel-blue)]/10">
+        <div className="p-2 bg-[var(--pastel-blue)]/10 rounded-full">
           <FiUsers className="text-sm text-[var(--pastel-blue)]" />
         </div>
       </div>
@@ -519,7 +467,7 @@ export async function UnitLoadSection() {
                 {user.avatar ? (
                   <Image src={user.avatar} alt={user.name} fill className="object-cover" />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center text-[10px] font-bold text-foreground bg-[var(--pastel-purple)]/20">
+                  <div style={avatarStyle(user.name)} className="h-full w-full flex items-center justify-center text-[11px] font-bold">
                     {user.name?.[0]?.toUpperCase()}
                   </div>
                 )}
@@ -548,7 +496,7 @@ export async function UnitLoadSection() {
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
             <FiUsers className="text-2xl mb-2 text-(--text-muted)" />
-            <p className="text-sm text-(--text-muted) font-bold uppercase tracking-tight">No active assignments</p>
+            <p className="text-sm text-(--text-muted) font-bold capitalize tracking-tight">No active assignments</p>
           </div>
         )}
       </div>
@@ -573,7 +521,7 @@ export async function PriorityMatrixSection() {
           <p className="text-xs text-(--text-muted) font-medium mt-0.5">Priority</p>
         </div>
         {data.hasCritical && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-danger/10 border border-danger/20">
             <FiAlertTriangle className="text-[11px] text-[var(--pastel-rose)]" />
             <span className="text-[11px] font-bold font-numbers text-[var(--pastel-rose)]">{data.criticalCount} CRITICAL</span>
           </div>
@@ -634,9 +582,9 @@ export async function TemporalBurnRateSection() {
   const actualPct = Math.min(data.burnRatio, 150);
 
   const statusConfig = {
-    over: { label: 'Over Budget', color: 'text-[var(--pastel-rose)]', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
-    on_track: { label: 'On Track', color: 'text-[var(--pastel-emerald)]', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    under: { label: 'Under Estimate', color: 'text-[var(--pastel-blue)]', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    over: { label: 'Over Budget', color: 'text-[var(--pastel-rose)]', bg: 'bg-danger/10', border: 'border-danger/20' },
+    on_track: { label: 'On Track', color: 'text-[var(--pastel-emerald)]', bg: 'bg-success/10', border: 'border-success/20' },
+    under: { label: 'Under Estimate', color: 'text-[var(--pastel-blue)]', bg: 'bg-accent/10', border: 'border-accent/20' },
   };
   const sc = statusConfig[data.status as keyof typeof statusConfig];
 
@@ -649,7 +597,7 @@ export async function TemporalBurnRateSection() {
         </div>
         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${sc.bg} border ${sc.border}`}>
           <FiTarget className={`text-[11px] ${sc.color}`} />
-          <span className={`text-[11px] font-bold ${sc.color} uppercase tracking-tight`}>{sc.label}</span>
+          <span className={`text-[11px] font-bold ${sc.color} capitalize tracking-tight`}>{sc.label}</span>
         </div>
       </div>
       <div className="flex-1 flex flex-col justify-center space-y-8">
@@ -706,7 +654,7 @@ export async function CriticalBottlenecksSection() {
           <h2 className="text-lg lg:text-xl font-bold text-foreground tracking-tight">Delayed Maneuvers</h2>
           <p className="text-xs text-(--text-muted) font-medium mt-0.5">Critical bottlenecks</p>
         </div>
-        <div className="p-2 rounded-xl bg-rose-500/10">
+        <div className="p-2 bg-danger/10 rounded-full">
           <FiShield className="text-sm text-[var(--pastel-rose)]" />
         </div>
       </div>
@@ -718,23 +666,23 @@ export async function CriticalBottlenecksSection() {
                 <h3 className="text-sm text-(--text-muted) font-bold group-hover:text-foreground transition-colors truncate flex-1">
                   {task.title}
                 </h3>
-                <span className="shrink-0 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-rose-500/15 text-[var(--pastel-rose)] font-bold border border-rose-500/20 font-numbers">
+                <span className="shrink-0 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-danger/15 text-[var(--pastel-rose)] font-bold border border-danger/20 font-numbers">
                   <FiClock className="text-[11px]" />
                   {task.daysOverdue}d overdue
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-tight ${
-                  task.priority === 'high' ? 'bg-rose-500/10 text-[var(--pastel-rose)]'
-                  : task.priority === 'medium' ? 'bg-amber-500/10 text-[var(--pastel-amber)]'
-                  : 'bg-foreground/[0.03] text-(--text-muted)'
-                }`}>
+                <span className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md font-bold capitalize tracking-tight ${
+ task.priority === 'high' ? 'bg-danger/10 text-[var(--pastel-rose)]'
+ : task.priority === 'medium' ? 'bg-warning/10 text-[var(--pastel-amber)]'
+ : 'bg-success/15 text-success-text'
+ }`}>
                   <FiZap className="text-[11px]" />
                   {task.priority}
                 </span>
-                <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] font-bold uppercase tracking-tight">
+                <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] font-bold capitalize">
                   <FiActivity className="text-[11px]" />
-                  {task.status.replace('_', ' ')}
+                  {formatStatus(task.status)}
                 </span>
                 {task.projectName && (
                   <span className="text-[11px] text-(--text-muted) font-bold truncate">
@@ -746,8 +694,8 @@ export async function CriticalBottlenecksSection() {
           ))
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-            <FiCheckCircle className="text-2xl mb-2 text-emerald-500" />
-            <p className="text-sm text-(--text-muted) font-bold uppercase tracking-tight">No overdue tasks!</p>
+            <FiCheckCircle className="text-2xl mb-2 text-success-text" />
+            <p className="text-sm text-(--text-muted) font-bold capitalize tracking-tight">No overdue tasks!</p>
           </div>
         )}
       </div>

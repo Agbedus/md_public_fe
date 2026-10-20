@@ -193,7 +193,7 @@ export default function TimezoneClocks() {
           crossfade). Without that, two stacked block-level divs would
           briefly double the row's height mid-slide; with it, the row's
           box never changes size regardless of what's animating inside. */}
-      <div className="h-16 bg-card border border-card-border rounded-xl flex items-center shadow-sm">
+      <div className="h-16 bg-card border border-card-border rounded-full flex items-center shadow-sm">
         <button
           onClick={goPrev}
           disabled={!hasMultiple}
@@ -214,7 +214,7 @@ export default function TimezoneClocks() {
               exit="exit"
               className="absolute inset-0 flex items-center gap-3 px-3"
             >
-              <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+              <div className="w-9 h-9 bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text dark:text-accent-text shrink-0 rounded-full">
                 <FiClock className="h-4 w-4" />
               </div>
               <div className="text-left min-w-0">
@@ -244,7 +244,7 @@ export default function TimezoneClocks() {
         ref={pickerAnchorRef}
         onClick={() => setIsPickerOpen((v) => !v)}
         aria-label="Add or remove clocks"
-        className="h-16 w-16 shrink-0 bg-card border border-card-border rounded-xl flex items-center justify-center text-text-muted hover:text-foreground hover:bg-foreground/[0.05] shadow-sm transition-all"
+        className="h-16 w-16 shrink-0 bg-card border border-card-border flex items-center justify-center text-text-muted hover:text-foreground hover:bg-foreground/[0.05] shadow-sm transition-all rounded-full"
       >
         {isPickerOpen ? <FiChevronUp className="h-4 w-4" /> : <FiChevronDown className="h-4 w-4" />}
       </button>
@@ -281,7 +281,7 @@ export default function TimezoneClocks() {
                     }`}
                   >
                     <span>{opt.label}</span>
-                    {isSaved && <FiCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
+                    {isSaved && <FiCheck className="h-3.5 w-3.5 text-success-text shrink-0" />}
                   </button>
                 );
               })}
@@ -289,7 +289,7 @@ export default function TimezoneClocks() {
             {hasMultiple && (
               <button
                 onClick={removeCurrent}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-xs font-medium text-rose-500 hover:bg-rose-500/10 border-t border-card-border transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-xs font-medium text-danger-text hover:bg-danger/10 border-t border-card-border transition-colors"
               >
                 <FiTrash2 className="h-3.5 w-3.5" />
                 Remove {cityLabel(current.tz)}

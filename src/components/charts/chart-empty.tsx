@@ -29,7 +29,7 @@ export function ChartEmpty({
       {actionLabel && actionHref && (
         <Link
           href={path(actionHref)}
-          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300"
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-accent-text transition-colors "
         >
           {actionLabel}
           <FiArrowRight aria-hidden className="text-xs" />

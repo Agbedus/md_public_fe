@@ -51,13 +51,13 @@ export function SmsFeatureBanner({ userKey }: { userKey?: string | null }) {
           <div className="bg-card border border-card-border rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shrink-0">
-                  <FiMessageSquare className="text-emerald-400 text-lg" />
+                <div className="p-2.5 rounded-xl bg-success/10 border border-success/20 shrink-0">
+                  <FiMessageSquare className="text-success-text text-lg" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-base font-semibold text-foreground tracking-tight">SMS notifications</h3>
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500 text-[9px] font-black uppercase tracking-widest">New</span>
+                    <span className="px-1.5 py-0.5 rounded bg-success/15 text-success-text text-[9px] font-black uppercase tracking-widest">New</span>
                   </div>
                   <p className="text-xs text-text-muted">Now available for your account</p>
                 </div>
@@ -80,13 +80,13 @@ export function SmsFeatureBanner({ userKey }: { userKey?: string | null }) {
               <a
                 href={orgPath("/settings")}
                 onClick={dismiss}
-                className="flex-1 bg-foreground text-background px-5 py-2.5 rounded-2xl text-xs font-bold hover:bg-foreground/90 transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="md-btn md-btn-primary md-btn-sm flex-1"
               >
                 Open Settings
               </a>
               <button
                 onClick={dismiss}
-                className="px-5 py-2.5 rounded-2xl text-xs font-bold text-text-muted hover:bg-foreground/[0.05] transition-all border border-transparent hover:border-card-border"
+                className="md-btn md-btn-secondary md-btn-sm"
               >
                 Not now
               </button>

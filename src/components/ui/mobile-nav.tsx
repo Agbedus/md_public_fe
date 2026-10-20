@@ -38,14 +38,14 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
 
     // Secondary menu items (same as sidebar)
     const secondaryItems = [
-        { href: orgPath('/attendance'), icon: FiMapPin, label: 'Attendance', color: 'text-[var(--pastel-blue)]' },
-        { href: orgPath('/projects'), icon: FiBriefcase, label: 'Projects', color: 'text-[var(--pastel-rose)]' },
-        { href: orgPath('/team'), icon: FiUsers, label: 'Team', color: 'text-[var(--pastel-teal)]' },
-        { href: orgPath('/clients'), icon: FiUserCheck, label: 'Clients', color: 'text-[var(--pastel-purple)]' },
-        { href: orgPath('/notes'), icon: FiFileText, label: 'Notes', color: 'text-[var(--pastel-amber)]' },
-        { href: orgPath('/focus'), icon: FiClock, label: 'Focus mode', color: 'text-[var(--pastel-rose)]' },
-        { href: orgPath('/wiki'), icon: FiBookOpen, label: 'Wiki', color: 'text-[var(--pastel-emerald)]' },
-        { href: orgPath('/settings'), icon: FiSettings, label: 'Settings', color: 'text-[var(--pastel-indigo)]' },
+        { href: orgPath('/attendance'), icon: FiMapPin, label: 'Attendance', color: 'text-text-muted' },
+        { href: orgPath('/projects'), icon: FiBriefcase, label: 'Projects', color: 'text-text-muted' },
+        { href: orgPath('/team'), icon: FiUsers, label: 'Team', color: 'text-text-muted' },
+        { href: orgPath('/clients'), icon: FiUserCheck, label: 'Clients', color: 'text-text-muted' },
+        { href: orgPath('/notes'), icon: FiFileText, label: 'Notes', color: 'text-text-muted' },
+        { href: orgPath('/focus'), icon: FiClock, label: 'Focus mode', color: 'text-text-muted' },
+        { href: orgPath('/wiki'), icon: FiBookOpen, label: 'Wiki', color: 'text-text-muted' },
+        { href: orgPath('/settings'), icon: FiSettings, label: 'Settings', color: 'text-text-muted' },
     ];
 
     return (
@@ -62,9 +62,9 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                                 href={item.href}
                                 prefetch={true}
                                 onClick={() => setIsMenuOpen(false)}
-                                className="group flex min-h-14 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
+                                className="group flex min-h-14 items-center gap-3 rounded-full px-3 py-2.5 text-left transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
                             >
-                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground/[0.04]">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground/[0.04]">
                                     <item.icon className={`text-lg ${item.color}`} />
                                 </span>
                                 <span className="min-w-0 truncate text-sm font-medium text-text-secondary transition-colors group-hover:text-foreground">{item.label}</span>
@@ -76,7 +76,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                                 setIsMenuOpen(false);
                                 window.location.assign('/logout');
                             }}
-                            className="group col-span-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-t border-card-border px-3 py-2.5 text-left text-rose-500 transition-colors hover:bg-rose-500/10"
+                            className="group col-span-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-t border-card-border px-3 py-2.5 text-left text-danger-text transition-colors hover:bg-danger/10"
                         >
                             <FiLogOut className="text-lg" />
                             <span className="text-sm font-medium">Sign out</span>
@@ -98,12 +98,12 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                                 key={index}
                                 onClick={item.onClick}
                                 whileTap={{ scale: 0.88, transition: springTap }}
-                                className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl ${isActive ? 'text-foreground' : 'text-text-muted active:text-foreground'}`}
+                                className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-full ${isActive ? 'text-foreground' : 'text-text-muted active:text-foreground'}`}
                             >
                                 <motion.div
                                     animate={{ scale: isActive ? 1.1 : 1, rotate: isMenuIcon && isActive ? 90 : 0 }}
                                     transition={spring}
-                                    className={`relative rounded-lg p-1.5 ${isActive ? 'bg-emerald-500/10 text-emerald-500' : ''}`}
+                                    className={`relative rounded-full p-1.5 ${isActive ? 'bg-accent/12 text-accent-text' : ''}`}
                                 >
                                      <Icon size={20} />
                                      {isActive && (
@@ -123,14 +123,14 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                             <Link
                                 href={item.href || '#'}
                                 prefetch={true}
-                                className={`flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl ${
-                                    isActive ? 'text-foreground' : 'text-text-muted'
-                                }`}
+                                className={`flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full ${
+ isActive ? 'text-foreground' : 'text-text-muted'
+ }`}
                             >
                                 <motion.div
                                     animate={{ scale: isActive ? 1.1 : 1 }}
                                     transition={spring}
-                                    className={`relative rounded-lg p-1.5 ${isActive ? 'bg-emerald-500/10 text-emerald-500' : ''}`}
+                                    className={`relative rounded-full p-1.5 ${isActive ? 'bg-accent/12 text-accent-text' : ''}`}
                                 >
                                     <Icon size={20} />
                                     {isActive && (

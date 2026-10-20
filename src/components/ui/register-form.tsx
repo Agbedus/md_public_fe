@@ -168,7 +168,7 @@ function SearchableCountrySelect({
                 type="button"
                 onClick={() => { onChange(country.code); setIsOpen(false); setSearch(''); }}
                 className={`w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors ${
-                  country.code === value ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-foreground hover:bg-foreground/[0.03]'
+                  country.code === value ? 'bg-accent/10 text-accent-text' : 'text-foreground hover:bg-foreground/[0.03]'
                 }`}
               >
                 <span className="text-base leading-none">{getFlagEmoji(country.code)}</span>
@@ -200,7 +200,7 @@ function PhoneInput({
   placeholder?: string;
 }) {
   return (
-    <div className="flex rounded-xl border border-card-border overflow-hidden bg-foreground/[0.03] focus-within:bg-foreground/[0.06] transition-all">
+    <div className="flex rounded-full border border-card-border overflow-hidden bg-foreground/[0.03] focus-within:bg-foreground/[0.06] transition-all">
       <div className="shrink-0 border-r border-card-border">
         <SearchableCountrySelect
           value={code}
@@ -461,7 +461,7 @@ export default function RegisterForm({
 
   function inputClass(error?: string) {
     return `block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground placeholder:text-text-muted/40 focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] ${
-      error ? 'border-rose-500/50' : 'border-card-border'
+      error ? 'border-danger/50' : 'border-card-border'
     }`;
   }
 
@@ -492,7 +492,7 @@ export default function RegisterForm({
                   step > s.num
                     ? 'bg-ink text-on-ink'
                     : step === s.num
-                      ? 'bg-emerald-500/10 text-emerald-500 border-2 border-emerald-500/30'
+                      ? 'bg-success/10 text-success-text border-2 border-success/30'
                       : 'bg-foreground/[0.03] text-text-muted border border-card-border'
                 }`}>
                   {step > s.num ? <FiCheck className="h-4 w-4" /> : s.num}
@@ -505,7 +505,7 @@ export default function RegisterForm({
               </motion.div>
               {i < STEPS.length - 1 && (
                 <div className={`w-12 sm:w-16 h-px mx-2 transition-colors duration-300 ${
-                  step > s.num ? 'bg-emerald-500/50' : 'bg-card-border'
+                  step > s.num ? 'bg-success/50' : 'bg-card-border'
                 }`} />
               )}
             </div>
@@ -542,7 +542,7 @@ export default function RegisterForm({
                         autoComplete="name"
                       />
                     </div>
-                    {errors.fullName && <p className="text-xs text-rose-500 mt-1">{errors.fullName}</p>}
+                    {errors.fullName && <p className="text-xs text-danger-text mt-1">{errors.fullName}</p>}
                   </div>
 
                   <div className="space-y-1.5">
@@ -561,7 +561,7 @@ export default function RegisterForm({
                         autoComplete="email"
                       />
                     </div>
-                    {errors.email && <p className="text-xs text-rose-500 mt-1">{errors.email}</p>}
+                    {errors.email && <p className="text-xs text-danger-text mt-1">{errors.email}</p>}
                     {initialInvitationToken && !errors.email && <p className="text-xs text-text-muted">This invitation is reserved for this email address.</p>}
                   </div>
 
@@ -588,7 +588,7 @@ export default function RegisterForm({
                         {showPassword ? <FiEyeOff className="h-4 w-4" /> : <FiEye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {errors.password && <p className="text-xs text-rose-500 mt-1">{errors.password}</p>}
+                    {errors.password && <p className="text-xs text-danger-text mt-1">{errors.password}</p>}
                   </div>
                 </div>
               </div>
@@ -607,11 +607,11 @@ export default function RegisterForm({
 
                   <div className="space-y-1.5">
                     <p className="text-xs text-text-muted ml-0.5">Send my verification code by</p>
-                    <div className="flex rounded-xl border border-card-border bg-foreground/[0.03] p-1">
+                    <div className="flex rounded-full border border-card-border bg-foreground/[0.03] p-1">
                       <button
                         type="button"
                         onClick={() => setOtpChannel('email')}
-                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
                           effectiveOtpChannel === 'email' ? 'bg-card text-foreground shadow-sm border border-card-border' : 'text-text-muted hover:text-foreground'
                         }`}
                       >
@@ -623,7 +623,7 @@ export default function RegisterForm({
                         onClick={() => phone.trim() && setOtpChannel('sms')}
                         disabled={!phone.trim()}
                         title={!phone.trim() ? 'Add a phone number to receive your code by SMS' : undefined}
-                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                        className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                           effectiveOtpChannel === 'sms' ? 'bg-card text-foreground shadow-sm border border-card-border' : 'text-text-muted hover:text-foreground'
                         }`}
                       >
@@ -665,11 +665,11 @@ export default function RegisterForm({
               className="space-y-4"
             >
               <div className="space-y-1.5">
-                <div className="relative flex bg-foreground/[0.03] rounded-xl p-1 border border-card-border">
+                <div className="relative flex bg-foreground/[0.03] rounded-full p-1 border border-card-border">
                   <div className="absolute inset-0 flex">
                     <motion.div
                       layoutId="org-toggle"
-                      className="absolute top-1 bottom-1 rounded-lg bg-card border border-card-border shadow-sm"
+                      className="absolute top-1 bottom-1 rounded-full bg-card border border-card-border shadow-sm"
                       initial={false}
                       animate={{
                         left: orgAction === 'create' ? '0.25rem' : '50%',
@@ -682,8 +682,8 @@ export default function RegisterForm({
                     type="button"
                     onClick={() => setOrgAction('create')}
                     disabled={!!initialInvitationToken}
-                    className={`relative z-10 flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      orgAction === 'create' ? 'text-emerald-600 dark:text-emerald-400' : 'text-text-muted hover:text-foreground'
+                    className={`relative z-10 flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-full text-sm font-medium transition-colors ${
+                      orgAction === 'create' ? 'text-accent-text' : 'text-text-muted hover:text-foreground'
                     } ${initialInvitationToken ? 'cursor-not-allowed opacity-40' : ''}`}
                   >
                     <FiBriefcase className="h-4 w-4" />
@@ -692,8 +692,8 @@ export default function RegisterForm({
                   <button
                     type="button"
                     onClick={() => setOrgAction('join')}
-                    className={`relative z-10 flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      orgAction === 'join' ? 'text-emerald-600 dark:text-emerald-400' : 'text-text-muted hover:text-foreground'
+                    className={`relative z-10 flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-full text-sm font-medium transition-colors ${
+                      orgAction === 'join' ? 'text-accent-text' : 'text-text-muted hover:text-foreground'
                     }`}
                   >
                     <FiLink className="h-4 w-4" />
@@ -737,7 +737,7 @@ export default function RegisterForm({
                             placeholder="Organization name"
                           />
                         </div>
-                        {errors.orgName && <p className="text-xs text-rose-500 mt-1">{errors.orgName}</p>}
+                        {errors.orgName && <p className="text-xs text-danger-text mt-1">{errors.orgName}</p>}
                       </div>
 
                       <div className="space-y-1.5">
@@ -878,22 +878,22 @@ export default function RegisterForm({
                             <FiLoader className="h-4 w-4 text-text-muted animate-spin" />
                           )}
                           {inviteStatus === 'valid' && (
-                            <FiCheck className="h-4 w-4 text-emerald-500" />
+                            <FiCheck className="h-4 w-4 text-success-text" />
                           )}
                           {inviteStatus === 'invalid' && (
-                            <FiXCircle className="h-4 w-4 text-rose-500" />
+                            <FiXCircle className="h-4 w-4 text-danger-text" />
                           )}
                         </div>
                       </div>
                       {errors.inviteCode ? (
-                        <p className="text-xs text-rose-500 mt-1">{errors.inviteCode}</p>
+                        <p className="text-xs text-danger-text mt-1">{errors.inviteCode}</p>
                       ) : inviteStatus === 'valid' ? (
-                        <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1.5">
+                        <p className="text-xs text-success-text mt-1 flex items-center gap-1.5">
                           <FiCheck className="h-3 w-3 shrink-0" />
                           Organization verified{inviteOrgName ? `: ${inviteOrgName}` : ''}
                         </p>
                       ) : inviteStatus === 'invalid' ? (
-                        <p className="text-xs text-rose-500 mt-1 flex items-center gap-1.5">
+                        <p className="text-xs text-danger-text mt-1 flex items-center gap-1.5">
                           <FiXCircle className="h-3 w-3 shrink-0" />
                           No organization found with this code
                         </p>
@@ -1005,7 +1005,7 @@ export default function RegisterForm({
                 <label
                   htmlFor="agreedToTerms"
                   className={`flex items-start gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all ${
-                    errors.agreedToTerms ? 'border-rose-500/50 bg-rose-500/5' : 'border-card-border bg-foreground/[0.03] hover:bg-foreground/[0.05]'
+                    errors.agreedToTerms ? 'border-danger/50 bg-danger/5' : 'border-card-border bg-foreground/[0.03] hover:bg-foreground/[0.05]'
                   }`}
                 >
                   <input
@@ -1016,21 +1016,21 @@ export default function RegisterForm({
                       setAgreedToTerms(e.target.checked);
                       if (e.target.checked) setErrors((prev) => { const next = { ...prev }; delete next.agreedToTerms; return next; });
                     }}
-                    className="mt-0.5 rounded-md border-card-border bg-background text-emerald-500 focus:ring-emerald-500/30 focus:ring-offset-0 h-4 w-4 shrink-0 transition-all"
+                    className="mt-0.5 rounded-md border-card-border bg-background text-success-text focus:ring-accent/30 focus:ring-offset-0 h-4 w-4 shrink-0 transition-all"
                   />
                   <span className="text-xs text-text-muted leading-relaxed select-none">
                     I agree to the{' '}
-                    <Link href="/terms" onClick={(e) => e.stopPropagation()} className="text-emerald-500 hover:text-emerald-400 underline underline-offset-2 transition-colors">
+                    <Link href="/terms" onClick={(e) => e.stopPropagation()} className="text-success-text hover:text-success-text underline underline-offset-2 transition-colors">
                       Terms of Service
                     </Link>{' '}
                     and{' '}
-                    <Link href="/privacy" onClick={(e) => e.stopPropagation()} className="text-emerald-500 hover:text-emerald-400 underline underline-offset-2 transition-colors">
+                    <Link href="/privacy" onClick={(e) => e.stopPropagation()} className="text-success-text hover:text-success-text underline underline-offset-2 transition-colors">
                       Privacy Policy
                     </Link>
                   </span>
                 </label>
                 {errors.agreedToTerms && (
-                  <p className="text-rose-500 text-xs mt-1.5 ml-1">{errors.agreedToTerms}</p>
+                  <p className="text-danger-text text-xs mt-1.5 ml-1">{errors.agreedToTerms}</p>
                 )}
               </motion.div>
             </motion.div>
@@ -1054,7 +1054,7 @@ export default function RegisterForm({
                 type="button"
                 onClick={handleBack}
                 disabled={isPending}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-card-border bg-card text-sm font-medium text-foreground hover:bg-foreground/[0.03] transition-all active:scale-[0.97] disabled:opacity-50"
+                className="md-btn md-btn-secondary w-full"
               >
                 <FiArrowLeft className="h-4 w-4" />
                 Back
@@ -1074,12 +1074,9 @@ export default function RegisterForm({
             <button
               type="button"
               onClick={handleContinue}
-              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20 ${
-                step === 1 ? '' : ''
-              }`}
+              className={`md-btn md-btn-primary md-btn-block w-full ${ step === 1 ? '' : '' }`}
             >
-              Continue
-              <FiArrowRight className="h-4 w-4" />
+              Continue <span className="md-btn-chip"><FiArrowRight /></span>
             </button>
           </motion.div>
         ) : (
@@ -1093,12 +1090,12 @@ export default function RegisterForm({
             <button
               type="submit"
               disabled={isPending || (step === 3 && !agreedToTerms)}
-              className="relative w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
+              className="md-btn md-btn-primary md-btn-block w-full"
             >
-              <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
+              <span className={isPending ? 'opacity-0' : ''}>
                 Create account
-                <FiArrowRight className="h-4 w-4" />
               </span>
+              <span className={`md-btn-chip ${isPending ? 'opacity-0' : ''}`}><FiArrowRight /></span>
               {isPending && (
                 <span className="absolute inset-0 flex items-center justify-center gap-2">
                   <FiLoader className="h-4 w-4 animate-spin" />
@@ -1112,7 +1109,7 @@ export default function RegisterForm({
 
       <motion.p variants={formItem as Variants} className="text-center text-sm text-text-muted">
         Already have an account?{' '}
-        <Link href="/login" className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors">
+        <Link href="/login" className="text-accent-text font-medium transition-colors">
           Sign in
         </Link>
       </motion.p>

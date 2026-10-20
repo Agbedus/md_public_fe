@@ -169,7 +169,7 @@ export function AttendanceStack({ stats }: { stats: AttendanceStats }) {
                 </div>
                 <div className="flex items-center gap-1">
                    {slides.map((_, i) => (
-                     <div key={i} className={`w-1 h-1 rounded-full transition-all ${i === currentIndex ? 'bg-emerald-500 w-3' : 'bg-card-border'}`} />
+                     <div key={i} className={`w-1 h-1 rounded-full transition-all ${i === currentIndex ? 'bg-success w-3' : 'bg-card-border'}`} />
                    ))}
                 </div>
               </div>
@@ -183,13 +183,13 @@ export function AttendanceStack({ stats }: { stats: AttendanceStats }) {
         <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-50 opacity-0 group-hover/stack:opacity-100 transition-opacity">
           <button 
             onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-            className="w-8 h-8 rounded-full bg-background border border-card-border text-foreground flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition-all active:scale-90"
+            className="w-8 h-8 rounded-full bg-background border border-card-border text-foreground flex items-center justify-center hover:bg-success hover:text-on-success transition-all active:scale-90"
           >
             <FiChevronUp className="text-lg" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-            className="w-8 h-8 rounded-full bg-background border border-card-border text-foreground flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition-all active:scale-90"
+            className="w-8 h-8 rounded-full bg-background border border-card-border text-foreground flex items-center justify-center hover:bg-success hover:text-on-success transition-all active:scale-90"
           >
             <FiChevronDown className="text-lg" />
           </button>

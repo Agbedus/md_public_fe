@@ -688,9 +688,9 @@ async function executeTool(name: string, args: any) {
         data: {
           title: "Your Overview",
           stats: [
-            { label: "Total Tasks", value: tasks.length, color: "text-blue-400" },
-            { label: "Completed", value: completedTasks, color: "text-emerald-400" },
-            { label: "In Progress", value: inProgressTasks, color: "text-yellow-400" },
+            { label: "Total Tasks", value: tasks.length, color: "text-accent-text" },
+            { label: "Completed", value: completedTasks, color: "text-success-text" },
+            { label: "In Progress", value: inProgressTasks, color: "text-warning-text" },
             { label: "Pending", value: pendingTasks, color: "text-zinc-400" },
             { label: "Total Notes", value: notes.length, color: "text-purple-400" },
             { label: "Projects", value: projects.length, color: "text-pink-400" },

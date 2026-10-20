@@ -31,7 +31,7 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
   };
 
   const priorityColors = {
-    low: "text-text-muted",
+    low: "text-success-text",
     medium: "text-[var(--pastel-amber)]",
     high: "text-[var(--pastel-rose)]",
   };
@@ -86,23 +86,23 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
               }
             }}
             disabled={isDeleting}
-            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-text-muted hover:text-rose-400 transition-colors disabled:opacity-50 border border-transparent hover:border-rose-500/20 hover-scale"
+            className="p-1.5 rounded-lg hover:bg-danger/10 text-text-muted hover:text-danger-text transition-colors disabled:opacity-50 border border-transparent hover:border-danger/20 hover-scale"
             title="Delete project"
           >
-            {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-rose-400"></div> : <FiTrash2 className="w-3.5 h-3.5" />}
+            {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-danger"></div> : <FiTrash2 className="w-3.5 h-3.5" />}
           </button>
           </>
           )}
           <Link
             href={`/projects/${project.id}`}
-            className="p-1.5 rounded-lg hover:bg-indigo-500/10 text-text-muted hover:text-indigo-400 transition-colors border border-transparent hover:border-indigo-500/20 hover-scale"
+            className="p-1.5 hover:bg-accent/10 text-text-muted hover:text-accent-text transition-colors border border-transparent hover:border-accent/20 hover-scale rounded-full"
             title="Project Dashboard"
           >
             <FiPieChart className="w-3.5 h-3.5" />
           </Link>
           <Link
             href={`/projects/${project.id}/tasks`}
-            className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-text-muted hover:text-emerald-400 transition-colors border border-transparent hover:border-emerald-500/20 hover-scale"
+            className="p-1.5 hover:bg-success/10 text-text-muted hover:text-accent-text transition-colors border border-transparent hover:border-success/20 hover-scale rounded-full"
             title="View project tasks"
           >
             <FiCheckSquare className="w-3.5 h-3.5" />
@@ -148,7 +148,7 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
           {project.budget && project.budget > 0 && (
             <div className="mt-1.5 h-1 bg-background rounded-full overflow-hidden border border-card-border">
               <div 
-                className="h-full bg-indigo-500 rounded-full transition-all"
+                className="h-full bg-accent rounded-full transition-all"
                 style={{ width: `${Math.min(((project.spent || 0) / project.budget) * 100, 100)}%` }}
               />
             </div>
@@ -185,7 +185,7 @@ export function ProjectCard({ project, users, onEdit, onDelete, canModify = true
           </div>
         </div>
         
-        <div className="text-text-muted/50 font-bold uppercase tracking-widest text-[10px]">
+        <div className="text-text-muted/50 font-bold capitalize text-[11px]">
             {project.updatedAt && `Updated ${format(new Date(project.updatedAt), "MMM d")}`}
         </div>
       </div>

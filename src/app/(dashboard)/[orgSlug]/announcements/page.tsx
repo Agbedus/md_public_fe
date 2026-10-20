@@ -63,11 +63,11 @@ export default function AnnouncementsPage() {
 
     const getTypeStyles = (type: string) => {
         switch (type) {
-            case 'success': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-            case 'warning': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-            case 'error': return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+            case 'success': return 'text-success-text bg-success/10 border-success/20';
+            case 'warning': return 'text-warning-text bg-warning/10 border-warning/20';
+            case 'error': return 'text-danger-text bg-danger/10 border-danger/20';
             case 'critical': return 'text-purple-400 bg-purple-500/10 border-purple-500/20';
-            default: return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+            default: return 'text-accent-text bg-accent/10 border-accent/20';
         }
     };
 
@@ -98,7 +98,7 @@ export default function AnnouncementsPage() {
                 {canPublish && (
                     <button
                         onClick={() => setIsAdminFormOpen(true)}
-                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[var(--pastel-yellow)]/10 border border-[var(--pastel-yellow)]/20 text-[var(--pastel-yellow)] hover:bg-[var(--pastel-yellow)]/20 transition-all duration-300 font-bold uppercase tracking-widest text-xs group"
+                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-[var(--pastel-yellow)]/10 border border-[var(--pastel-yellow)]/20 text-[var(--pastel-yellow)] hover:bg-[var(--pastel-yellow)]/20 transition-all duration-300 font-bold text-xs group"
                     >
                         <FiPlus className="text-lg group-hover:rotate-90 transition-transform" />
                         New announcement
@@ -115,7 +115,7 @@ export default function AnnouncementsPage() {
                         placeholder="Search announcements..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-foreground/[0.03] border border-foreground/5 rounded-2xl focus:outline-none focus:bg-foreground/[0.06] focus:border-[var(--pastel-yellow)]/30 text-foreground placeholder:text-text-muted transition-all font-medium"
+                        className="w-full pl-12 pr-4 py-3.5 bg-foreground/[0.03] border border-foreground/5 rounded-2xl focus:outline-none focus:bg-foreground/[0.06] text-foreground placeholder:text-text-muted transition-all font-medium"
                     />
                 </div>
                 
@@ -124,11 +124,11 @@ export default function AnnouncementsPage() {
                         <button
                             key={type}
                             onClick={() => setFilterType(type)}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
-                                filterType === type 
-                                    ? 'bg-foreground/[0.08] text-foreground border border-foreground/10 ' 
-                                    : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'
-                            }`}
+                            className={`px-4 py-2 rounded-xl text-[11px] font-bold transition-all ${
+ filterType === type 
+ ? 'bg-foreground/[0.08] text-foreground border border-foreground/10 ' 
+ : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'
+ }`}
                         >
                             {type}
                         </button>
@@ -146,10 +146,10 @@ export default function AnnouncementsPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-card p-6 rounded-[2rem] border border-card-border hover:border-foreground/10 transition-all duration-500 group relative flex flex-col h-full "
+                            className="bg-card p-6 rounded-[2rem] border border-card-border hover:border-foreground/10 transition-all duration-500 group relative flex flex-col h-full"
                         >
                             <div className="flex justify-between items-start mb-6">
-                                <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-bold uppercase tracking-[0.2em] ${getTypeStyles(announcement.type || 'info')}`}>
+                                <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[11px] font-bold ${getTypeStyles(announcement.type || 'info')}`}>
                                     {getTypeIcon(announcement.type || 'info')}
                                     {announcement.type || 'info'}
                                 </div>
@@ -157,7 +157,7 @@ export default function AnnouncementsPage() {
                                 {canRemove(announcement.creator_id) && (
                                     <button 
                                         onClick={() => void handleDelete(announcement.id, announcement.title)}
-                                        className="p-2 text-text-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                        className="p-2 text-text-muted hover:text-danger-text hover:bg-danger/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                     >
                                         <FiTrash2 size={16} />
                                     </button>
@@ -180,10 +180,10 @@ export default function AnnouncementsPage() {
                                         size={24} 
                                     />
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-foreground uppercase tracking-wider">
+                                        <span className="text-[11px] font-bold text-foreground">
                                             {announcement.creator?.name || 'System'}
                                         </span>
-                                        <span className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-0.5">
+                                        <span className="text-[11px] text-text-muted font-bold mt-0.5">
                                             {formatDistanceToNow(new Date(announcement.created_at), { addSuffix: true })}
                                         </span>
                                     </div>
@@ -200,7 +200,7 @@ export default function AnnouncementsPage() {
                 {filteredAnnouncements.length === 0 && (
                     <div className="col-span-full py-32 text-center">
                         <FiMessageSquare size={64} className="mx-auto text-zinc-800 mb-6" />
-                        <h3 className="text-xl font-bold text-text-muted uppercase tracking-widest">No matching announcements</h3>
+                        <h3 className="text-xl font-bold text-text-muted">No matching announcements</h3>
                         <p className="text-text-muted mt-2 font-medium">Try adjusting your filters or check back later.</p>
                     </div>
                 )}

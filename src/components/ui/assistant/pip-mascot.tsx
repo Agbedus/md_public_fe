@@ -92,7 +92,7 @@ export default function PipMascot({ variant = 'classic', status = 'idle', size =
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
-            className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20"
+            className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-danger-text bg-danger/10 px-2 py-0.5 rounded-full border border-danger/20"
           >
             {errorMessage}
           </motion.div>

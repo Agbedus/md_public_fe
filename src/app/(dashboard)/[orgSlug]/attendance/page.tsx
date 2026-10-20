@@ -10,6 +10,10 @@ import {
 import { getUsersSafe } from '@/app/(dashboard)/[orgSlug]/users/actions';
 import AttendancePageClient from '@/components/ui/attendance/attendance-page-client';
 import { canReadAll, isOrgAdmin, isPlatformAdmin } from '@/lib/org-permissions';
+import { cookies } from 'next/headers';
+import { getOrganizations } from '@/lib/org-actions';
+import { getFreshAvatarUrl } from '@/lib/server-auth';
+import type { OrgBrief } from '@/types/organization';
 
 export default async function AttendancePage() {
     const session = await auth();
@@ -31,11 +35,21 @@ export default async function AttendancePage() {
     // one. Gating it on org admin only produced 403s.
     const canReadRawRecords = isPlatformAdmin(session.user.roles);
 
-    const [myToday, myHistory, users] = await Promise.all([
+    const cookieStore = await cookies();
+    const currentOrgId = cookieStore.get('current_organization_id')?.value || session.user.currentOrganizationId;
+
+    const [myToday, myHistory, users, organizations, avatarUrl] = await Promise.all([
         getMyAttendanceToday(),
         getMyAttendanceHistory(),
         getUsersSafe(),
+        getOrganizations().catch(() => [] as OrgBrief[]),
+        getFreshAvatarUrl(),
     ]);
+
+    // Faces for the map markers: you, and the organization at the office.
+    const currentOrg = organizations.find((org) => org.id === currentOrgId);
+    const me = { name: session.user.name || session.user.email || 'You', imageUrl: avatarUrl ?? session.user.image ?? null };
+    const organization = { name: currentOrg?.name || 'Office', imageUrl: currentOrg?.logo_url ?? null };
 
     // Conditionally fetch manager/admin data. Team *history* is a MANAGER-tier
     // read (matching get_current_org_manager on /attendance/{user_id}/history),
@@ -60,6 +74,8 @@ export default async function AttendancePage() {
                 canReadRawRecords={canReadRawRecords}
                 currentUserId={session.user.id}
                 cartoApiLink={cartoApiLink}
+                me={me}
+                organization={organization}
             />
         </div>
     );

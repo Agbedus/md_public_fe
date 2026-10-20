@@ -29,34 +29,6 @@ const item = {
 export default function LoginPage() {
   return (
     <main className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background isolate">
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        <motion.div
-          className="absolute top-[-25%] left-[-20%] w-[70%] h-[70%] rounded-full bg-emerald-500/[0.06] blur-[200px]"
-          animate={{
-            x: [0, 30, 0],
-            y: [0, -20, 0],
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute bottom-[-25%] right-[-20%] w-[70%] h-[70%] rounded-full bg-indigo-500/[0.06] blur-[200px]"
-          animate={{
-            x: [0, -30, 0],
-            y: [0, 20, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[40%] h-[40%] rounded-full bg-emerald-500/[0.03] blur-[150px]"
-          animate={{
-            scale: [1, 1.08, 1],
-            opacity: [0.4, 0.8, 0.4],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </div>
-
-      <div className="absolute inset-0 opacity-[0.02] pointer-events-none -z-10 bg-[radial-gradient(ellipse_at_center,currentColor_0px,transparent_1px)] bg-[size:24px_24px] text-foreground" />
 
       <motion.div
         className="relative w-full max-w-sm"
@@ -67,8 +39,6 @@ export default function LoginPage() {
         <motion.div variants={item as Variants} className="flex justify-center mb-10">
           <Link href="/" className="block group">
             <motion.div
-              animate={{ y: [0, -3, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             >
               <Image src="/logo.svg" alt="MyndDesk" width={44} height={44} className="w-11 h-11" priority />
             </motion.div>
@@ -88,7 +58,7 @@ export default function LoginPage() {
 
         <motion.div variants={item as Variants} className="text-center text-sm text-text-muted mt-8">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors">
+          <Link href="/register" className="text-accent-text font-medium transition-colors">
             Create one
           </Link>
         </motion.div>

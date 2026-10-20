@@ -65,12 +65,12 @@ export default function SearchPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search tasks and notes..."
-          className="w-full h-11 pl-10 pr-24 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] focus:border-card-border text-foreground placeholder:text-text-muted/50 transition-all text-sm"
+          className="w-full h-11 pl-10 pr-24 bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] text-foreground placeholder:text-text-muted/50 transition-all text-sm"
         />
         <button
           type="submit"
           disabled={isPending || !query.trim()}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-4 rounded-lg bg-ink text-on-ink text-xs font-semibold hover:bg-emerald-500/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          className="md-btn md-btn-primary md-btn-sm absolute right-1.5 top-1/2 -translate-y-1/2"
         >
           {isPending ? '...' : 'Search'}
         </button>

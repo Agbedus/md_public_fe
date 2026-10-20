@@ -53,7 +53,7 @@ export function WorkloadChart({ data }: { data: any[] }) {
           itemStyle={{ color: 'var(--foreground)', fontSize: '12px' }}
           cursor={{ fill: 'var(--chart-grid)' }}
         />
-        <Bar dataKey="tasks" radius={[6, 6, 0, 0]}>
+        <Bar dataKey="tasks" radius={[10, 10, 10, 10]} maxBarSize={44}>
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}

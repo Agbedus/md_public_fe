@@ -1,5 +1,7 @@
 'use client';
 
+import { StatTile } from '@/components/ui/stat-tile';
+import type { IconType } from 'react-icons';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Project, statusMapping, priorityMapping } from '@/types/project';
 import { Task } from '@/types/task';
@@ -24,7 +26,9 @@ import { updateNote, deleteNote } from '@/app/(dashboard)/[orgSlug]/notes/action
 import { updateOptimisticTask, updateOptimisticNote } from '@/lib/optimistic-utils';
 import { toast } from '@/lib/toast';
 import { useConfirm } from '@/providers/confirmation-provider';
+import { formatStatus } from '@/lib/format-status';
 
+import { TabPill } from '@/components/ui/tab-pill';
 interface ProjectDashboardClientProps {
     project: Project;
     tasks: Task[];
@@ -149,21 +153,21 @@ export default function ProjectDashboardClient({
                         <FiArrowLeft className="w-5 h-5" />
                     </Link>
                     <div className="flex min-w-0 flex-col">
-                        <div className="flex items-center gap-2 text-[11px] font-medium text-text-muted uppercase tracking-wider">
+                        <div className="flex items-center gap-2 text-[11px] font-medium text-text-muted">
                             <span>Project</span>
                             <FiChevronRight className="w-3 h-3" />
                             <span className="text-text-muted opacity-80">{project.key}</span>
                         </div>
-                        <h1 className="truncate text-sm font-medium uppercase leading-none tracking-tight text-foreground sm:text-lg">{project.name}</h1>
+                        <h1 className="truncate text-sm font-medium capitalize leading-none tracking-tight text-foreground sm:text-lg">{project.name}</h1>
                     </div>
                 </div>
 
                 <div className="ml-2 flex items-center gap-2 md:gap-3">
                     <div className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border border-card-border bg-foreground/[0.03] px-2 md:px-3">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="hidden text-[11px] font-medium uppercase tracking-wider text-foreground sm:inline">Active</span>
+                        <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                        <span className="hidden text-[11px] font-medium text-foreground sm:inline">Active</span>
                     </div>
-                    <button onClick={() => setActiveView('settings')} aria-label="Project settings" className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border border-card-border bg-foreground/[0.03] px-3 text-[11px] font-medium uppercase tracking-wider text-text-muted transition-all hover:bg-foreground/[0.06] hover:text-foreground md:px-4">
+                    <button onClick={() => setActiveView('settings')} aria-label="Project settings" className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl border border-card-border bg-foreground/[0.03] px-3 text-[11px] font-medium text-text-muted transition-all hover:bg-foreground/[0.06] hover:text-foreground md:px-4">
                         <FiSettings className="w-4 h-4" />
                         <span className="hidden md:inline">Settings</span>
                     </button>
@@ -182,8 +186,9 @@ export default function ProjectDashboardClient({
                     <button
                         key={view}
                         onClick={() => setActiveView(view)}
-                        className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-medium transition-colors ${activeView === view ? 'bg-foreground/[0.07] text-foreground' : 'text-text-muted hover:bg-foreground/[0.03] hover:text-foreground'}`}
+                        className={`relative isolate flex min-h-10 shrink-0 items-center gap-2 rounded-full px-3.5 text-sm transition-colors ${activeView === view ? 'font-medium text-on-ink' : 'text-text-muted hover:bg-foreground/[0.04] hover:text-foreground'}`}
                     >
+                        {activeView === view && <TabPill id="project-view" />}
                         <Icon className="h-4 w-4" />
                         {label}
                     </button>
@@ -194,7 +199,7 @@ export default function ProjectDashboardClient({
                 {/* Secondary Sidebar Nav */}
                 <div className="w-64 border-r border-card-border bg-foreground/[0.02] p-5 flex flex-col gap-6 hidden lg:flex">
                     <div className="space-y-1">
-                        <p className="px-4 text-[11px] font-bold text-text-muted/60 uppercase tracking-wider mb-3">Navigation</p>
+                        <p className="px-4 text-[11px] font-bold text-text-muted/60 mb-3">Navigation</p>
                         <NavButton active={activeView === 'overview'} onClick={() => setActiveView('overview')} icon={FiPieChart} label="Overview" />
                         <NavButton active={activeView === 'tasks'} onClick={() => setActiveView('tasks')} icon={FiLayout} label="Task Force" />
                         <NavButton active={activeView === 'notes'} onClick={() => setActiveView('notes')} icon={FiFileText} label="Intelligence" />
@@ -202,30 +207,30 @@ export default function ProjectDashboardClient({
                     </div>
 
                     <div className="space-y-1">
-                        <p className="px-4 text-[11px] font-bold text-text-muted/60 uppercase tracking-wider mb-3">Status</p>
+                        <p className="px-4 text-[11px] font-bold text-text-muted/60 mb-3">Status</p>
                         <div className="px-4 py-3 rounded-2xl bg-foreground/[0.03] border border-card-border space-y-3 shadow-sm">
                             <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-bold text-text-muted uppercase tracking-tight">Project health</span>
-                                <span className={`text-[11px] font-medium uppercase tracking-wider ${
-                                    taskProgress > 75 ? 'text-emerald-500' : taskProgress > 40 ? 'text-indigo-500' : 'text-amber-500'
-                                }`}>
+                                <span className="text-[11px] font-bold text-text-muted tracking-tight">Project health</span>
+                                <span className={`text-[11px] font-medium capitalize ${
+ taskProgress > 75 ? 'text-success-text' : taskProgress > 40 ? 'text-accent-text' : 'text-warning-text'
+ }`}>
                                     {taskProgress > 75 ? 'Optimal' : taskProgress > 40 ? 'Stable' : 'In Review'}
                                 </span>
                             </div>
                             <div className="w-full h-1 bg-foreground/[0.06] rounded-full overflow-hidden">
                                 <div 
                                     className={`h-full transition-all duration-1000 ${
-                                        taskProgress > 75 ? 'bg-emerald-500' : 
-                                        taskProgress > 40 ? 'bg-indigo-500' : 'bg-amber-500'
-                                    }`} 
+ taskProgress > 75 ? 'bg-success' : 
+ taskProgress > 40 ? 'bg-accent' : 'bg-warning'
+ }`} 
                                     style={{ width: `${taskProgress}%` }} 
                                 />
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-bold text-text-muted uppercase tracking-tight">Resources</span>
-                                <span className={`text-[11px] font-medium uppercase tracking-wider ${
-                                    budgetProgress < 80 ? 'text-emerald-500' : 'text-rose-500'
-                                }`}>
+                                <span className="text-[11px] font-bold text-text-muted tracking-tight">Resources</span>
+                                <span className={`text-[11px] font-medium capitalize ${
+ budgetProgress < 80 ? 'text-success-text' : 'text-danger-text'
+ }`}>
                                     {budgetProgress < 80 ? 'Efficient' : 'Critical'}
                                 </span>
                             </div>
@@ -234,16 +239,16 @@ export default function ProjectDashboardClient({
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.03),transparent_40%)]">
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
                     <div className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4 md:space-y-8 md:px-6 md:py-8">
                         {activeView === 'overview' && (
                             <>
                                 {/* Impact Stats Grid */}
-                                <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                                     <StatCard icon={FiCheckSquare} color="indigo" label="Tasks completed" value={`${completedTasks}/${tasks.length}`} subValue={`${Math.round(taskProgress)}% done`} />
                                     <StatCard icon={FiDollarSign} color="emerald" label="Budget spent" value={`$${(project.spent || 0).toLocaleString()}`} subValue={`of $${(project.budget || 0).toLocaleString()} budget`} />
                                     <StatCard icon={FiClock} color="amber" label="Due date" value={project.endDate ? format(new Date(project.endDate), 'MMM dd') : 'N/A'} subValue="Target completion" />
-                                    <StatCard icon={FiTrendingUp} color="rose" label="Hours Logged" value={totalHoursLogged > 0 ? `${totalHoursLogged.toFixed(1)}h` : '0h'} subValue="Across All Tasks" />
+                                    <StatCard icon={FiTrendingUp} color="rose" label="Hours logged" value={totalHoursLogged > 0 ? `${totalHoursLogged.toFixed(1)}h` : '0h'} subValue="Across all tasks" />
                                 </div>
 
                                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -252,15 +257,15 @@ export default function ProjectDashboardClient({
                                         {/* Row 1: Milestones & Risk */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="rounded-2xl p-6 border border-card-border bg-card flex flex-col gap-6">
-                                                <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
-                                                    <FiActivity className="text-indigo-500" />
+                                                <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
+                                                    <FiActivity className="text-accent-text" />
                                                     Strategic Milestones
                                                 </h3>
                                                 <div className="flex items-center gap-6">
                                                     <div className="relative w-20 h-20 flex-shrink-0">
                                                         <svg className="w-full h-full transform -rotate-90">
                                                             <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-foreground/5" />
-                                                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={226} strokeDashoffset={226 - (taskProgress / 100) * 226} className="text-indigo-500 transition-all duration-1000" strokeLinecap="round" />
+                                                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={226} strokeDashoffset={226 - (taskProgress / 100) * 226} className="text-accent-text transition-all duration-1000" strokeLinecap="round" />
                                                         </svg>
                                                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                                                             <span className="text-sm font-medium text-foreground leading-none">{Math.round(taskProgress)}%</span>
@@ -268,7 +273,7 @@ export default function ProjectDashboardClient({
                                                     </div>
                                                     <div className="flex-1 space-y-4">
                                                         <div>
-                                                            <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-2">Overview</p>
+                                                            <p className="text-[11px] font-medium text-text-muted mb-2">Overview</p>
                                                             <p className="text-xs text-text-secondary line-clamp-2 italic leading-relaxed">
                                                                 {project.description || "Operational intelligence for this theater of operations remains classified. Update mission briefing in settings."}
                                                             </p>
@@ -282,8 +287,8 @@ export default function ProjectDashboardClient({
                                             </div>
 
                                             <div className="rounded-2xl p-6 border border-card-border bg-card flex flex-col gap-6">
-                                                <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
-                                                    <FiActivity className="text-amber-500" />
+                                                <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
+                                                    <FiActivity className="text-warning-text" />
                                                     System Telemetry
                                                 </h3>
                                                 <div className="space-y-4">
@@ -297,11 +302,11 @@ export default function ProjectDashboardClient({
                                         {/* Row 2: Active Operations (Full Width of Column) */}
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
-                                                    <FiLayout className="text-emerald-500" />
+                                                <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
+                                                    <FiLayout className="text-success-text" />
                                                     Active Operations
                                                 </h3>
-                                                <button onClick={() => setActiveView('tasks')} className="text-[11px] font-medium text-text-muted hover:text-foreground uppercase tracking-wider transition-colors flex items-center gap-2">
+                                                <button onClick={() => setActiveView('tasks')} className="text-[11px] font-medium text-text-muted hover:text-foreground transition-colors flex items-center gap-2">
                                                     View All <FiChevronRight />
                                                 </button>
                                             </div>
@@ -311,9 +316,9 @@ export default function ProjectDashboardClient({
                                                     <table className="w-full text-left">
                                                         <thead>
                                                             <tr className="border-b border-card-border bg-foreground/[0.02]">
-                                                                <th className="px-6 py-3 text-[11px] font-medium text-text-muted uppercase tracking-wider">Name</th>
-                                                                <th className="px-6 py-3 text-[11px] font-medium text-text-muted uppercase tracking-wider">Assignee</th>
-                                                                <th className="px-6 py-3 text-[11px] font-medium text-text-muted uppercase tracking-wider">Status</th>
+                                                                <th className="px-6 py-3 text-[11px] font-medium text-text-muted">Name</th>
+                                                                <th className="px-6 py-3 text-[11px] font-medium text-text-muted">Assignee</th>
+                                                                <th className="px-6 py-3 text-[11px] font-medium text-text-muted">Status</th>
                                                             </tr>
                                                         </thead>
                                                          <tbody className="divide-y divide-card-border">
@@ -326,24 +331,24 @@ export default function ProjectDashboardClient({
                                                             ) : tasks.slice(0, 5).map(task => (
                                                                  <tr key={task.id} className="hover:bg-foreground/[0.03] transition-colors">
                                                                      <td className="px-6 py-3">
-                                                                         <p className="text-xs font-bold text-foreground uppercase tracking-tight truncate max-w-[250px]">{task.name}</p>
+                                                                         <p className="text-xs font-bold text-foreground capitalize tracking-tight truncate max-w-[250px]">{task.name}</p>
                                                                      </td>
                                                                      <td className="px-6 py-3">
                                                                          {task.assignees && task.assignees.length > 0 ? (
                                                                              <UserAvatarGroup users={task.assignees.map(a => a.user)} size="sm" limit={2} />
                                                                          ) : (
-                                                                             <span className="text-[11px] font-bold text-text-muted/40 uppercase tracking-wider">Unassigned</span>
+                                                                             <span className="text-[11px] font-bold text-text-muted/40">Unassigned</span>
                                                                          )}
                                                                      </td>
                                                                      <td className="px-6 py-3">
-                                                                         <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium uppercase tracking-wider border ${
-                                                                             task.status === 'DONE' 
-                                                                                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
-                                                                                 : task.status === 'IN_PROGRESS'
-                                                                                 ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20'
-                                                                                 : 'bg-foreground/[0.05] text-text-muted border-card-border'
-                                                                         }`}>
-                                                                             {task.status.replace('_', ' ')}
+                                                                         <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium capitalize border ${
+ task.status === 'DONE' 
+ ? 'bg-success/10 text-success-text dark:text-success-text border-success/20' 
+ : task.status === 'IN_PROGRESS'
+ ? 'bg-accent/10 text-accent-text dark:text-accent-text border-accent/20'
+ : 'bg-foreground/[0.05] text-text-muted border-card-border'
+ }`}>
+                                                                             {formatStatus(task.status)}
                                                                          </span>
                                                                      </td>
                                                                  </tr>
@@ -357,8 +362,8 @@ export default function ProjectDashboardClient({
                                         {/* Row 3: Project Intelligence */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="rounded-2xl p-6 border border-card-border bg-card flex flex-col gap-4">
-                                                <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
-                                                    <FiActivity className="text-rose-500" />
+                                                <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
+                                                    <FiActivity className="text-danger-text" />
                                                     Recent activity
                                                 </h3>
                                                 <div className="space-y-4">
@@ -369,29 +374,29 @@ export default function ProjectDashboardClient({
                                                 </div>
                                             </div>
                                             <div className="rounded-2xl p-6 border border-card-border bg-card flex flex-col gap-4">
-                                                <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
-                                                    <FiDollarSign className="text-emerald-500" />
+                                                <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
+                                                    <FiDollarSign className="text-success-text" />
                                                     Financial Telemetry
                                                 </h3>
                                                 <div className="space-y-4">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Budget</span>
-                                                        <span className="text-[11px] font-medium text-foreground uppercase tracking-wider">${(project.budget || 0).toLocaleString()}</span>
+                                                        <span className="text-[11px] font-bold text-text-muted">Budget</span>
+                                                        <span className="text-[11px] font-medium text-foreground">${(project.budget || 0).toLocaleString()}</span>
                                                     </div>
                                                     <div className="w-full h-8 bg-foreground/[0.03] rounded-xl border border-card-border relative overflow-hidden flex">
-                                                        <div className="h-full bg-emerald-500/40" style={{ width: `${Math.min(budgetProgress, 100)}%` }} />
+                                                        <div className="h-full bg-success/40" style={{ width: `${Math.min(budgetProgress, 100)}%` }} />
                                                         <div className="absolute inset-0 flex items-center justify-center">
-                                                            <span className="text-[11px] font-medium text-foreground uppercase tracking-wider">{Math.round(budgetProgress)}% used</span>
+                                                            <span className="text-[11px] font-medium text-foreground capitalize">{Math.round(budgetProgress)}% used</span>
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="p-3 rounded-xl bg-foreground/[0.03] border border-card-border">
-                                                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Spent</p>
+                                                            <p className="text-[11px] font-bold text-text-muted mb-1">Spent</p>
                                                             <p className="text-xs font-medium text-foreground">${(project.spent || 0).toLocaleString()}</p>
                                                         </div>
                                                         <div className="p-3 rounded-xl bg-foreground/[0.03] border border-card-border">
-                                                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Remaining</p>
-                                                            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">${((project.budget || 0) - (project.spent || 0)).toLocaleString()}</p>
+                                                            <p className="text-[11px] font-bold text-text-muted mb-1">Remaining</p>
+                                                            <p className="text-xs font-medium text-success-text dark:text-success-text">${((project.budget || 0) - (project.spent || 0)).toLocaleString()}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -403,23 +408,23 @@ export default function ProjectDashboardClient({
                                     <div className="space-y-6">
                                         {/* Client */}
                                         <div className="rounded-2xl p-6 border border-card-border bg-card space-y-4">
-                                            <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
-                                                <FiUsers className="text-indigo-500" />
+                                            <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
+                                                <FiUsers className="text-accent-text" />
                                                 Client
                                             </h3>
                                             <div className="p-4 rounded-xl bg-foreground/[0.03] border border-card-border space-y-3">
                                                 <div>
-                                                    <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mb-1">Client</p>
-                                                    <p className="text-sm font-medium text-foreground uppercase tracking-tight">{client ? client.companyName : 'Internal Asset'}</p>
+                                                    <p className="text-[11px] font-medium text-text-muted mb-1">Client</p>
+                                                    <p className="text-sm font-medium text-foreground capitalize tracking-tight">{client ? client.companyName : 'Internal Asset'}</p>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <p className="text-[11px] font-medium text-text-muted/60 uppercase tracking-wider mb-1">Client</p>
-                                                        <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wider">{client?.companyName || 'No client'}</p>
+                                                        <p className="text-[11px] font-medium text-text-muted/60 mb-1">Client</p>
+                                                        <p className="text-[11px] font-medium text-text-secondary capitalize">{client?.companyName || 'No client'}</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-[11px] font-medium text-text-muted/60 uppercase tracking-wider mb-1">Contact</p>
-                                                        <p className="text-[11px] font-medium text-text-secondary uppercase tracking-wider">{client?.contactPersonName || 'Unassigned'}</p>
+                                                        <p className="text-[11px] font-medium text-text-muted/60 mb-1">Contact</p>
+                                                        <p className="text-[11px] font-medium text-text-secondary capitalize">{client?.contactPersonName || 'Unassigned'}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -427,15 +432,15 @@ export default function ProjectDashboardClient({
 
                                         {/* Team */}
                                         <div className="rounded-2xl p-6 border border-card-border bg-card space-y-6">
-                                            <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
-                                                <FiUsers className="text-rose-500" />
+                                            <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
+                                                <FiUsers className="text-danger-text" />
                                                 Team
                                             </h3>
                                             <div className="flex flex-wrap gap-2.5">
                                                 {users.slice(0, 12).map((u, i) => (
                                                     <div key={i} className="group/avatar relative hover:scale-110 transition-all duration-300">
                                                         <UserAvatarGroup users={[u]} size="md" limit={1} />
-                                                        <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-background" />
+                                                        <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-success border-2 border-background" />
                                                     </div>
                                                 ))}
                                                 <button className="w-10 h-10 rounded-full border border-card-border border-dashed flex items-center justify-center text-text-muted hover:text-foreground hover:border-foreground hover:bg-foreground/[0.03] transition-all">
@@ -443,28 +448,28 @@ export default function ProjectDashboardClient({
                                                 </button>
                                             </div>
                                             <div className="pt-2 border-t border-card-border">
-                                                <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider text-center">Authorized Personnel: {users.length}</p>
+                                                <p className="text-[11px] font-bold text-text-muted text-center">Authorized Personnel: {users.length}</p>
                                             </div>
                                         </div>
 
                                         {/* System Logs */}
                                         <div className="rounded-2xl p-6 border border-card-border bg-card space-y-4">
-                                            <h3 className="text-[11px] font-medium text-foreground uppercase tracking-wider flex items-center gap-3">
+                                            <h3 className="text-[11px] font-medium text-foreground flex items-center gap-3">
                                                 <FiActivity className="text-text-muted" />
                                                 System Logs
                                             </h3>
                                             <div className="space-y-3">
-                                                <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider">
+                                                <div className="flex items-center justify-between text-[11px] font-medium">
                                                     <span className="text-text-muted">Start date</span>
                                                     <span className="text-text-secondary">{project.createdAt ? format(new Date(project.createdAt), 'MMM dd, yyyy') : '-'}</span>
                                                 </div>
-                                                <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider">
+                                                <div className="flex items-center justify-between text-[11px] font-medium">
                                                     <span className="text-text-muted">Timeline</span>
                                                     <span className="text-text-secondary">{project.startDate ? format(new Date(project.startDate), 'MMM dd') : 'TBD'} - {project.endDate ? format(new Date(project.endDate), 'MMM dd') : 'TBD'}</span>
                                                 </div>
-                                                <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider">
+                                                <div className="flex items-center justify-between text-[11px] font-medium">
                                                     <span className="text-text-muted">Last updated</span>
-                                                    <span className="text-emerald-500 dark:text-emerald-400">Encrypted</span>
+                                                    <span className="text-success-text dark:text-success-text">Encrypted</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -477,15 +482,15 @@ export default function ProjectDashboardClient({
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <div>
-                                        <h2 className="text-2xl font-medium text-foreground uppercase tracking-tight leading-none">Operation Center</h2>
-                                        <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mt-2">{tasks.length} tasks in this project</p>
+                                        <h2 className="text-2xl font-medium text-foreground tracking-tight leading-none">Operation Center</h2>
+                                        <p className="text-[11px] font-medium text-text-muted capitalize mt-2">{tasks.length} tasks in this project</p>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="flex bg-foreground/[0.03] p-1 rounded-2xl border border-card-border">
-                                            <button className="h-10 px-6 rounded-xl bg-card text-foreground border border-card-border text-[11px] font-medium uppercase tracking-wider transition-all">Table</button>
-                                            <button className="h-10 px-6 rounded-xl text-text-muted hover:text-foreground text-[11px] font-medium uppercase tracking-wider transition-all">Kanban</button>
+                                            <button className="h-10 px-6 rounded-xl bg-card text-foreground border border-card-border text-[11px] font-medium transition-all">Table</button>
+                                            <button className="h-10 px-6 rounded-xl text-text-muted hover:text-foreground text-[11px] font-medium transition-all">Kanban</button>
                                         </div>
-                                        <button className="flex items-center gap-2 h-12 px-8 rounded-2xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-foreground text-[11px] font-medium uppercase tracking-wider transition-all">
+                                        <button className="flex items-center gap-2 h-12 px-8 rounded-2xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-foreground text-[11px] font-medium transition-all">
                                             <FiPlus className="w-4 h-4" />
                                             <span>Initialize</span>
                                         </button>
@@ -521,10 +526,10 @@ export default function ProjectDashboardClient({
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                     <div>
-                                        <h2 className="text-2xl font-medium text-foreground uppercase tracking-tight leading-none">Notes</h2>
-                                        <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider mt-2">Notes and documents for this project</p>
+                                        <h2 className="text-2xl font-medium text-foreground tracking-tight leading-none">Notes</h2>
+                                        <p className="text-[11px] font-medium text-text-muted mt-2">Notes and documents for this project</p>
                                     </div>
-                                    <button className="flex items-center gap-2 h-12 px-8 rounded-2xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-foreground text-[11px] font-medium uppercase tracking-wider transition-all">
+                                    <button className="flex items-center gap-2 h-12 px-8 rounded-2xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-foreground text-[11px] font-medium transition-all">
                                         <FiPlus className="w-4 h-4" />
                                         <span>New note</span>
                                     </button>
@@ -544,7 +549,7 @@ export default function ProjectDashboardClient({
                                     {notes.length === 0 && (
                                         <div className="col-span-full py-32 flex flex-col items-center gap-6 text-text-muted border border-card-border border-dashed rounded-2xl">
                                             <FiFileText className="w-16 h-16 opacity-10" />
-                                            <p className="text-xs font-medium uppercase tracking-wider">No notes yet</p>
+                                            <p className="text-xs font-medium">No notes yet</p>
                                         </div>
                                     )}
                                 </div>
@@ -559,8 +564,8 @@ export default function ProjectDashboardClient({
 
 function MilestoneItem({ label, status, date }: { label: string, status: 'completed' | 'active' | 'pending', date: string }) {
     const statusColors = {
-        completed: 'bg-emerald-500',
-        active: 'bg-indigo-500 animate-pulse',
+        completed: 'bg-success',
+        active: 'bg-accent animate-pulse',
         pending: 'bg-foreground/10'
     };
 
@@ -568,26 +573,26 @@ function MilestoneItem({ label, status, date }: { label: string, status: 'comple
         <div className="flex flex-col gap-2 group">
             <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${statusColors[status]}`} />
-                <span className={`text-[11px] font-medium uppercase tracking-wider ${status === 'pending' ? 'text-text-muted/40' : 'text-text-muted'}`}>{date}</span>
+                <span className={`text-[11px] font-medium capitalize ${status === 'pending' ? 'text-text-muted/40' : 'text-text-muted'}`}>{date}</span>
             </div>
-            <p className={`text-sm font-medium uppercase tracking-tight transition-colors ${status === 'pending' ? 'text-text-muted/60' : 'text-foreground group-hover:text-indigo-500'}`}>{label}</p>
+            <p className={`text-sm font-medium capitalize tracking-tight transition-colors ${status === 'pending' ? 'text-text-muted/60' : 'text-foreground group-hover:text-accent-text'}`}>{label}</p>
         </div>
     );
 }
 
 function TelemetryItem({ label, value, color, percentage }: { label: string, value: string, color: 'indigo' | 'emerald' | 'amber' | 'rose', percentage: number }) {
     const colors = {
-        indigo: 'bg-indigo-500',
-        emerald: 'bg-emerald-500',
-        amber: 'bg-amber-500',
-        rose: 'bg-rose-500',
+        indigo: 'bg-accent',
+        emerald: 'bg-success',
+        amber: 'bg-warning',
+        rose: 'bg-danger',
     };
 
     return (
         <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">{label}</span>
-                <span className={`text-[11px] font-medium uppercase tracking-wider ${percentage < 30 ? 'text-emerald-500' : percentage > 70 ? 'text-amber-500' : 'text-indigo-500'}`}>{value}</span>
+                <span className="text-[11px] font-medium text-text-muted capitalize">{label}</span>
+                <span className={`text-[11px] font-medium capitalize ${percentage < 30 ? 'text-success-text' : percentage > 70 ? 'text-warning-text' : 'text-accent-text'}`}>{value}</span>
             </div>
             <div className="w-full h-1 bg-foreground/[0.06] rounded-full overflow-hidden">
                 <div 
@@ -603,15 +608,15 @@ function NavButton({ active, onClick, icon: Icon, label }: { active: boolean, on
     return (
         <button 
             onClick={onClick}
-            className={`w-full flex items-center gap-4 px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${
-                active 
-                    ? 'bg-card text-foreground border border-card-border' 
-                    : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03] border border-transparent blur-[0.3px] hover:blur-none'
-            }`}
+            className={`w-full flex items-center gap-4 px-4 py-2.5 rounded-xl text-[11px] font-bold capitalize transition-all ${
+ active 
+ ? 'bg-card text-foreground border border-card-border' 
+ : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03] border border-transparent blur-[0.3px] hover:blur-none'
+ }`}
         >
-            <Icon className={`w-4 h-4 ${active ? 'text-indigo-500' : 'text-text-muted'}`} />
+            <Icon className={`w-4 h-4 ${active ? 'text-accent-text' : 'text-text-muted'}`} />
             <span>{label}</span>
-            {active && <div className="ml-auto w-1 h-1 rounded-full bg-indigo-500" />}
+            {active && <div className="ml-auto w-1 h-1 rounded-full bg-accent" />}
         </button>
     );
 }
@@ -621,39 +626,16 @@ function ActivityItem({ user, action, target, time }: { user: User, action: stri
         <div className="flex items-center gap-3 group">
             <UserAvatarGroup users={[user]} size="sm" limit={1} />
             <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-medium text-foreground uppercase tracking-tight truncate">
-                    <span className="text-text-muted font-bold">{(user.fullName || 'User').split(' ')[0]}</span> {action} <span className="text-indigo-500">{target}</span>
+                <p className="text-[11px] font-medium text-foreground capitalize tracking-tight truncate">
+                    <span className="text-text-muted font-bold">{(user.fullName || 'User').split(' ')[0]}</span> {action} <span className="text-accent-text">{target}</span>
                 </p>
-                <p className="text-[11px] font-bold text-text-muted/40 uppercase tracking-wider mt-0.5">{time}</p>
+                <p className="text-[11px] font-bold text-text-muted/40 capitalize mt-0.5">{time}</p>
             </div>
         </div>
     );
 }
 
-function StatCard({ icon: Icon, color, label, value, subValue }: { icon: any, color: 'indigo' | 'emerald' | 'amber' | 'rose', label: string, value: string, subValue: string }) {
-    const colors = {
-        indigo: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20 shadow-indigo-500/10',
-        emerald: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10',
-        amber: 'text-amber-500 bg-amber-500/10 border-amber-500/20 shadow-amber-500/10',
-        rose: 'text-rose-500 bg-rose-500/10 border-rose-500/20 shadow-rose-500/10',
-    };
-
-    return (
-        <div className="rounded-2xl p-5 border border-card-border bg-card relative overflow-hidden group hover:scale-[1.02] transition-all duration-500">
-            <div className={`absolute -top-10 -right-10 w-32 h-32 blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity ${colors[color].split(' ')[1]}`} />
-            
-            <div className="flex flex-col gap-4 relative z-10">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-500 ${colors[color]}`}>
-                    <Icon className="w-4 h-4" />
-                </div>
-                <div>
-                    <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">{label}</p>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-xl font-medium text-foreground uppercase tracking-tight">{value}</span>
-                        <span className="text-[11px] font-bold text-text-muted/60 uppercase tracking-wider">{subValue}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+function StatCard({ icon, color, label, value, subValue }: { icon: IconType, color: 'indigo' | 'emerald' | 'amber' | 'rose', label: string, value: string, subValue: string }) {
+    const tones = { indigo: 'var(--accent)', emerald: 'var(--success)', amber: 'var(--warning)', rose: 'var(--status-qa)' };
+    return <StatTile icon={icon} label={label} value={value} hint={subValue} tone={tones[color]} />;
 }

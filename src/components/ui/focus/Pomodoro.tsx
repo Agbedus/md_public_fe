@@ -326,7 +326,7 @@ export default function Pomodoro() {
             <div className="pt-5 border-t border-card-border flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-text-muted">Changes apply instantly and save automatically.</p>
               <div className="flex items-center gap-3">
-                <button onClick={cancelSettings} className="px-5 py-2 rounded-xl text-sm font-medium text-text-secondary bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all">
+                <button onClick={cancelSettings} className="md-btn md-btn-secondary md-btn-sm">
                   Cancel
                 </button>
                 <button
@@ -395,7 +395,7 @@ export default function Pomodoro() {
                   onClick={startPause}
                   className={`flex items-center justify-center gap-3 px-10 py-4 rounded-full text-base font-bold tracking-wide transition-all active:scale-95 ${
                     isRunning
-                      ? 'bg-rose-500 hover:bg-rose-600 text-white'
+                      ? 'bg-danger hover:bg-danger text-on-danger'
                       : 'bg-foreground text-background hover:bg-foreground/90'
                   }`}
                 >

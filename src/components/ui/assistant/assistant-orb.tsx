@@ -297,14 +297,14 @@ export default function AssistantOrb() {
 
   const bubbleVariantClasses =
     connectivityVariant === 'offline'
-      ? 'bg-red-500 border-red-500 text-white'
+      ? 'bg-danger border-danger text-on-danger'
       : connectivityVariant === 'recovery'
         ? 'bg-ink border-ink text-on-ink'
-        : 'bg-background/95 border-card-border text-foreground hover:border-indigo-500/30';
+        : 'bg-background/95 border-card-border text-foreground hover:border-accent/30';
   const bubbleTailBorder =
-    offline ? 'border-l-red-500' : recovered ? 'border-l-emerald-500' : 'border-l-card-border';
+    offline ? 'border-l-danger' : recovered ? 'border-l-success' : 'border-l-card-border';
   const bubbleTailBg =
-    offline ? 'border-l-red-500' : recovered ? 'border-l-emerald-500' : 'border-l-background';
+    offline ? 'border-l-danger' : recovered ? 'border-l-success' : 'border-l-background';
 
   if (isOnAssistantPage) return null;
 
@@ -342,7 +342,7 @@ export default function AssistantOrb() {
               <div className="relative flex items-center justify-between px-5 py-4 border-b border-card-border shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="relative shrink-0">
-                    <div className="absolute inset-0 bg-indigo-500/20 blur-lg rounded-full scale-125" />
+                    <div className="absolute inset-0 bg-accent/20 blur-lg rounded-full scale-125" />
                     <motion.div
                       key={pipVariantIdx}
                       initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
@@ -402,8 +402,7 @@ export default function AssistantOrb() {
 
               {/* Input */}
               <div className="px-4 pb-4 pt-3 border-t border-card-border shrink-0">
-                <div className="relative rounded-2xl bg-foreground/[0.045] border border-card-border focus-within:border-foreground/20 transition-colors overflow-hidden">
-                  <div className="absolute inset-0 pointer-events-none z-0 shimmer-sweep" />
+                <div className="relative rounded-3xl bg-foreground/[0.045] border border-card-border  transition-colors overflow-hidden">
                   <div className="flex items-end gap-2 px-4 py-3.5 relative z-10">
                     <textarea
                       ref={inputRef}
@@ -423,7 +422,7 @@ export default function AssistantOrb() {
                         title="Stop generating"
                       >
                         <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                          <FiSquare className="w-4 h-4 text-rose-500 fill-current" />
+                          <FiSquare className="w-4 h-4 text-danger-text fill-current" />
                         </span>
                       </button>
                     ) : (
@@ -511,7 +510,7 @@ export default function AssistantOrb() {
                     aria-label="Open AI Assistant"
                   >
                     {hasMessages && (
-                      <span className="absolute top-1 right-1 w-3 h-3 rounded-full bg-indigo-500 border-2 border-background z-10" />
+                      <span className="absolute top-1 right-1 w-3 h-3 rounded-full bg-accent border-2 border-background z-10" />
                     )}
                     <motion.div
                       key={pipVariantIdx}
@@ -531,15 +530,6 @@ export default function AssistantOrb() {
       <style jsx>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        @keyframes shimmer-sweep {
-          0% { transform: translateX(-100%); }
-          25% { transform: translateX(100%); }
-          100% { transform: translateX(100%); }
-        }
-        .shimmer-sweep {
-          background: linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.08) 50%, transparent 100%);
-          animation: shimmer-sweep 6s ease-in-out infinite;
-        }
       `}</style>
     </div>
 
@@ -554,11 +544,11 @@ export default function AssistantOrb() {
             aria-label="Open AI Assistant"
           >
             {messages.length > 0 && (
-              <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-background z-10" />
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-accent border-2 border-background z-10" />
             )}
             {(offline || recovered) && (
               <span
-                className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full border-2 border-background flex items-center justify-center z-10 ${offline ? 'bg-red-500 text-on-ink' : 'bg-ink text-on-ink'}`}
+                className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full border-2 border-background flex items-center justify-center z-10 ${offline ? 'bg-danger text-on-ink' : 'bg-ink text-on-ink'}`}
               >
                 {offline ? <FiWifiOff className="w-3 h-3" /> : <FiWifi className="w-3 h-3" />}
               </span>
@@ -567,7 +557,7 @@ export default function AssistantOrb() {
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                className={`absolute -inset-1 rounded-full blur-md ${offline ? 'bg-red-500/25' : 'bg-emerald-500/25'}`}
+                className={`absolute -inset-1 rounded-full blur-md ${offline ? 'bg-danger/25' : 'bg-success/25'}`}
               />
             )}
             <PipMascot
@@ -675,7 +665,7 @@ export default function AssistantOrb() {
                       aria-label="Stop generating"
                     >
                       <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                        <FiSquare className="w-3 h-3 text-rose-500 fill-current" />
+                        <FiSquare className="w-3 h-3 text-danger-text fill-current" />
                       </span>
                       <span className="hidden sm:inline pr-0.5">Stop</span>
                     </button>

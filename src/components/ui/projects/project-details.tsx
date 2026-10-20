@@ -74,67 +74,67 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                     <div className="absolute right-0 top-0 flex items-center gap-2 p-4 sm:p-6 md:p-8">
                         <Link 
                             href={`/projects/${project.id}`}
-                            className="flex items-center gap-2 h-10 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[10px] font-black text-text-muted hover:text-foreground uppercase tracking-widest transition-all"
+                            className="flex items-center gap-2 h-10 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[11px] font-semibold text-text-muted hover:text-foreground transition-all"
                         >
                             <FiMaximize2 className="w-3.5 h-3.5" />
                             <span className="hidden sm:inline">Overview</span>
                         </Link>
-                        <button onClick={onClose} className="p-2.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-card-border">
+                        <button onClick={onClose} className="p-2.5 bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-card-border rounded-full">
                             <FiX className="w-5 h-5" />
                         </button>
                     </div>
 
                     <div className="mb-6 flex items-center gap-3 pr-24 sm:pr-36">
-                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
-                            project.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20' :
-                            project.status === 'in_progress' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
-                            'bg-foreground/[0.03] text-text-muted border-card-border'
-                        }`}>
+                        <span className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold capitalize border ${
+ project.status === 'completed' ? 'bg-success/10 text-success-text dark:text-success-text border-success/20' :
+ project.status === 'in_progress' ? 'bg-accent/10 text-accent-text dark:text-accent-text border-accent/20' :
+ 'bg-foreground/[0.03] text-text-muted border-card-border'
+ }`}>
                             {statusMapping[project.status]}
                         </span>
-                        <div className="px-2.5 py-1 rounded-lg text-[10px] font-black font-numbers text-text-muted bg-foreground/[0.03] border border-card-border uppercase tracking-widest leading-none">
+                        <div className="px-2.5 py-1 rounded-lg text-[11px] font-semibold font-numbers text-text-muted bg-foreground/[0.03] border border-card-border capitalize leading-none">
                             {project.key}
                         </div>
                     </div>
 
-                    <h2 className="mb-6 text-2xl font-black uppercase italic leading-none text-foreground sm:text-3xl md:mb-8 md:text-4xl">
+                    <h2 className="mb-6 text-2xl font-semibold capitalize italic leading-none text-foreground sm:text-3xl md:mb-8 md:text-4xl">
                         {project.name}
                     </h2>
 
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
                         <div className="flex flex-col gap-1.5">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Client</span>
-                            <span className="text-xs font-bold text-foreground uppercase tracking-tight truncate">
+                            <span className="text-[11px] font-semibold text-text-muted">Client</span>
+                            <span className="text-xs font-bold text-foreground capitalize tracking-tight truncate">
                                 {client ? client.companyName : 'Internal Asset'}
                             </span>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Project lead</span>
+                            <span className="text-[11px] font-semibold text-text-muted">Project lead</span>
                             <div className="flex items-center gap-2">
                                 {owner ? (
                                     <>
                                         <UserAvatarGroup users={[owner]} size="sm" limit={1} />
-                                        <span className="text-xs font-bold text-foreground uppercase tracking-tight truncate">{owner.fullName}</span>
+                                        <span className="text-xs font-bold text-foreground capitalize tracking-tight truncate">{owner.fullName}</span>
                                     </>
                                 ) : <span className="text-xs font-bold text-text-muted italic">Unassigned</span>}
                             </div>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Budget</span>
+                            <span className="text-[11px] font-semibold text-text-muted">Budget</span>
                             <div className="flex flex-col">
-                                <span className="text-xs font-bold text-foreground uppercase tracking-tight">${spent.toLocaleString()} / ${totalBudget.toLocaleString()}</span>
+                                <span className="text-xs font-bold text-foreground tracking-tight">${spent.toLocaleString()} / ${totalBudget.toLocaleString()}</span>
                                 <div className="w-full h-1 bg-foreground/[0.05] rounded-full mt-2 overflow-hidden">
                                     <div 
-                                        className="h-full bg-gradient-to-r from-emerald-500 to-indigo-500"
+                                        className="h-full bg-accent"
                                         style={{ width: `${Math.min(budgetProgress, 100)}%` }}
                                     />
                                 </div>
                             </div>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Timeline</span>
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-foreground uppercase tracking-tight">
-                                <FiCalendar className="w-3.5 h-3.5 text-indigo-500" />
+                            <span className="text-[11px] font-semibold text-text-muted">Timeline</span>
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-foreground tracking-tight">
+                                <FiCalendar className="w-3.5 h-3.5 text-accent-text" />
                                 <span>{project.endDate ? format(new Date(project.endDate), 'MMM dd, yyyy') : 'TBD'}</span>
                             </div>
                         </div>
@@ -145,13 +145,13 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                 <div className="flex border-b border-card-border bg-background px-2 sm:px-4 md:px-8">
                     <button 
                         onClick={() => setActiveTab('tasks')}
-                        className={`min-h-11 flex-1 border-b-2 px-3 py-4 text-[10px] font-black uppercase tracking-[0.14em] transition-all sm:flex-none sm:px-6 sm:py-6 sm:tracking-[0.2em] ${activeTab === 'tasks' ? 'border-indigo-500 text-foreground' : 'border-transparent text-text-muted hover:text-foreground'}`}
+                        className={`min-h-11 flex-1 border-b-2 px-3 py-4 text-[11px] font-semibold transition-all sm:flex-none sm:px-6 sm:py-6 sm:tracking-[0.2em] ${activeTab === 'tasks' ? 'border-accent text-foreground' : 'border-transparent text-text-muted hover:text-foreground'}`}
                     >
                         Roadmap ({projectTasks.length})
                     </button>
                     <button 
                         onClick={() => setActiveTab('notes')}
-                        className={`min-h-11 flex-1 border-b-2 px-3 py-4 text-[10px] font-black uppercase tracking-[0.14em] transition-all sm:flex-none sm:px-6 sm:py-6 sm:tracking-[0.2em] ${activeTab === 'notes' ? 'border-indigo-500 text-foreground' : 'border-transparent text-text-muted hover:text-foreground'}`}
+                        className={`min-h-11 flex-1 border-b-2 px-3 py-4 text-[11px] font-semibold capitalize transition-all sm:flex-none sm:px-6 sm:py-6 sm:tracking-[0.2em] ${activeTab === 'notes' ? 'border-accent text-foreground' : 'border-transparent text-text-muted hover:text-foreground'}`}
                     >
                         Intelligence ({projectNotes.length})
                     </button>
@@ -162,8 +162,8 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                     {activeTab === 'tasks' ? (
                         <div className="space-y-6">
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Tasks</h3>
-                                <button className="flex items-center gap-2 h-9 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-foreground transition-all">
+                                <h3 className="text-[11px] font-semibold text-text-muted">Tasks</h3>
+                                <button className="flex items-center gap-2 h-9 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[11px] font-semibold text-text-muted hover:text-foreground transition-all">
                                     <FiPlus className="w-3.5 h-3.5" />
                                     <span>New task</span>
                                 </button>
@@ -190,15 +190,15 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                             ) : (
                                 <div className="py-20 flex flex-col items-center gap-4 text-text-muted/30">
                                     <FiCheckSquare className="w-12 h-12" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">No tasks yet</span>
+                                    <span className="text-[11px] font-semibold">No tasks yet</span>
                                 </div>
                             )}
                         </div>
                     ) : (
                         <div className="space-y-8">
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Notes</h3>
-                                <button className="flex items-center gap-2 h-9 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-foreground transition-all">
+                                <h3 className="text-[11px] font-semibold text-text-muted">Notes</h3>
+                                <button className="flex items-center gap-2 h-9 px-4 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-[11px] font-semibold text-text-muted hover:text-foreground transition-all">
                                     <FiPlus className="w-3.5 h-3.5" />
                                     <span>New note</span>
                                 </button>
@@ -221,7 +221,7 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                             ) : (
                                 <div className="py-20 flex flex-col items-center gap-4 text-text-muted/30">
                                     <FiFileText className="w-12 h-12" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">No notes yet</span>
+                                    <span className="text-[11px] font-semibold">No notes yet</span>
                                 </div>
                             )}
                         </div>
@@ -232,25 +232,25 @@ export function ProjectDetails({ project, users, clients, notes, projects, onClo
                 <div className="border-t border-card-border bg-foreground/[0.02] p-4 sm:p-6 md:p-8">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex flex-col gap-2">
-                            <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Progress</span>
+                            <span className="text-[11px] font-semibold text-text-muted">Progress</span>
                             <div className="flex items-center gap-4">
                                 <div className="h-1.5 w-36 overflow-hidden rounded-full bg-foreground/[0.05] sm:w-48">
                                     <div 
-                                        className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+                                        className="h-full bg-accent"
                                         style={{ width: `${taskProgress}%` }}
                                     />
                                 </div>
-                                <span className="text-xs font-black text-foreground tracking-widest uppercase">{Math.round(taskProgress)}%</span>
+                                <span className="text-xs font-semibold text-foreground capitalize">{Math.round(taskProgress)}%</span>
                             </div>
                         </div>
                         <div className="flex items-center justify-between gap-4 sm:gap-8">
                             <div className="flex flex-col items-end gap-1">
-                                <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Created</span>
-                                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">{project.createdAt ? format(new Date(project.createdAt), 'MMM dd, yyyy') : '-'}</span>
+                                <span className="text-[11px] font-semibold text-text-muted">Created</span>
+                                <span className="text-[11px] font-bold text-text-secondary capitalize tracking-tight">{project.createdAt ? format(new Date(project.createdAt), 'MMM dd, yyyy') : '-'}</span>
                             </div>
                             <div className="flex flex-col items-end gap-1">
-                                <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Last updated</span>
-                                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-tight">{project.updatedAt ? format(new Date(project.updatedAt), 'MMM dd, yyyy') : '-'}</span>
+                                <span className="text-[11px] font-semibold text-text-muted">Last updated</span>
+                                <span className="text-[11px] font-bold text-text-secondary capitalize tracking-tight">{project.updatedAt ? format(new Date(project.updatedAt), 'MMM dd, yyyy') : '-'}</span>
                             </div>
                         </div>
                     </div>

@@ -1,274 +1,220 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { Task } from "@/types/task";
-import { statusMapping, priorityMapping } from "@/types/task";
+import { statusMapping } from "@/types/task";
 import { User } from "@/types/user";
 import { Project } from "@/types/project";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  FiCalendar,
-  FiChevronRight,
-  FiChevronLeft,
-  FiClock,
-  FiPlay,
-  FiCheckCircle,
-  FiTrash2,
-  FiSquare,
-  FiPause
-} from "react-icons/fi";
+import { motion, useReducedMotion } from "framer-motion";
+import { FiCalendar, FiChevronRight, FiChevronLeft, FiClock, FiPlay, FiTrash2 } from "react-icons/fi";
 import UserAvatarGroup from "@/components/ui/user-avatar-group";
 import { useTaskTimer } from "@/providers/task-timer-provider";
 import { canUserWorkOnTask, canDeleteTask } from "@/lib/task-auth";
+
+type Status = keyof typeof statusMapping;
+
+/** One colour per workflow stage (tokens in globals.css). */
+export const STATUS_COLOR: Record<Status, string> = {
+  TODO: "var(--status-todo)",
+  IN_PROGRESS: "var(--status-in-progress)",
+  QA: "var(--status-qa)",
+  REVIEW: "var(--status-review)",
+  DONE: "var(--status-done)",
+};
+
+const PRIORITY_TONE: Record<Task["priority"], { fill: string; text: string }> = {
+  high: { fill: "var(--priority-high)", text: "var(--priority-high-text)" },
+  medium: { fill: "var(--warning)", text: "var(--warning-text)" },
+  low: { fill: "var(--success)", text: "var(--success-text)" },
+};
+
+/** The workflow neighbours of a task, honouring its QA / review flags. */
+function neighbours(task: Task): { prev?: Status; next?: Status } {
+  switch (task.status) {
+    case "TODO": return { next: "IN_PROGRESS" };
+    case "IN_PROGRESS": return { prev: "TODO", next: task.qa_required ? "QA" : task.review_required ? "REVIEW" : "DONE" };
+    case "QA": return { prev: "IN_PROGRESS", next: task.review_required ? "REVIEW" : "DONE" };
+    case "REVIEW": return { prev: task.qa_required ? "QA" : "IN_PROGRESS", next: "DONE" };
+    case "DONE": return { prev: task.review_required ? "REVIEW" : task.qa_required ? "QA" : "IN_PROGRESS" };
+    default: return {};
+  }
+}
+
+interface BodyProps {
+  task: Task;
+  users: User[];
+  projects: Project[];
+  justMoved?: boolean;
+  actions?: React.ReactNode;
+  footerActions?: React.ReactNode;
+}
+
+/** The card's content, shared by the live card and the drag overlay. */
+export function KanbanCardBody({ task, users, projects, justMoved = false, actions, footerActions }: BodyProps) {
+  const reduceMotion = useReducedMotion();
+  // Read once per mount: overdue only needs day precision.
+  const [now] = useState(() => Date.now());
+  const project = projects.find((p) => p.id === task.projectId);
+  const color = STATUS_COLOR[task.status as Status] ?? STATUS_COLOR.TODO;
+  const priority = PRIORITY_TONE[task.priority] ?? PRIORITY_TONE.low;
+  const due = task.dueDate ? new Date(task.dueDate) : null;
+  const overdue = due !== null && task.status !== "DONE" && due.getTime() < now - 86_400_000;
+
+  return (
+    <div className="rounded-[22px] bg-background p-4">
+      <div className="mb-2 flex items-center gap-2">
+        {/* The status dot pops whenever the card lands in a new lane. */}
+        <motion.span
+          key={task.status}
+          initial={reduceMotion ? false : { scale: justMoved ? 0.4 : 1 }}
+          animate={{ scale: justMoved && !reduceMotion ? [0.4, 1.5, 1] : 1 }}
+          transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+          className="h-2 w-2 shrink-0 rounded-full"
+          style={{ backgroundColor: color, boxShadow: justMoved ? `0 0 0 4px color-mix(in oklab, ${color} 25%, transparent)` : undefined }}
+          aria-hidden="true"
+        />
+        <span className="text-xs text-text-muted">{statusMapping[task.status as Status]}</span>
+        <div className="ml-auto flex items-center gap-0.5">{actions}</div>
+      </div>
+
+      <h4 className={`text-[15px] font-semibold leading-snug text-foreground ${task.status === "DONE" ? "line-through opacity-50" : ""}`}>
+        {task.name}
+      </h4>
+      {task.description && (
+        <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-text-muted">{task.description}</p>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium capitalize"
+          style={{ backgroundColor: `color-mix(in oklab, ${priority.fill} 16%, transparent)`, color: priority.text }}
+        >
+          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: priority.fill }} />
+          {task.priority}
+        </span>
+        {project && (
+          <span className="inline-flex max-w-[150px] items-center truncate rounded-full bg-foreground/[0.05] px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+            {project.name}
+          </span>
+        )}
+        {task.qa_required && <span className="rounded-full bg-foreground/[0.05] px-2.5 py-1 text-[11px] font-medium text-text-secondary">QA</span>}
+        {task.review_required && <span className="rounded-full bg-foreground/[0.05] px-2.5 py-1 text-[11px] font-medium text-text-secondary">Review</span>}
+        {task.depends_on_id && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-medium text-warning-text">
+            <FiClock className="h-3 w-3" /> Blocked by #{task.depends_on_id}
+          </span>
+        )}
+      </div>
+
+      {(due || (task.assigneeIds?.length ?? 0) > 0 || footerActions) && (
+        <div className="mt-3 flex items-center justify-between gap-2">
+          {due ? (
+            <span className={`inline-flex items-center gap-1.5 text-xs ${overdue ? "text-danger-text" : "text-text-muted"}`}>
+              <FiCalendar className="h-3.5 w-3.5" />
+              {due.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+            </span>
+          ) : <span />}
+          <div className="flex items-center gap-1.5">
+            {footerActions}
+            {task.assigneeIds && task.assigneeIds.length > 0 && (
+              <div className="origin-right scale-90">
+                <UserAvatarGroup users={users.filter((u) => task.assigneeIds?.includes(u.id))} size="md" limit={3} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface KanbanCardProps {
   task: Task;
   users: User[];
   user?: User;
   projects: Project[];
-  columns: Array<keyof typeof statusMapping>;
+  columns: Status[];
   onMove: (task: Task, status: Task["status"]) => Promise<{ success: boolean; error?: string } | undefined>;
   onDelete: (task: Task) => Promise<void>;
   canManage?: boolean;
+  isSelected?: boolean;
+  justMoved?: boolean;
+  onSelect?: (id: string) => void;
 }
 
-export default function KanbanCard({ task, users, user: currentUser, projects, columns, onMove, onDelete, canManage }: KanbanCardProps) {
+const iconButton = "grid h-7 w-7 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground";
+
+export default function KanbanCard({ task, users, user: currentUser, projects, onMove, onDelete, canManage, isSelected = false, justMoved = false, onSelect }: KanbanCardProps) {
   const { startTimer, activeTask } = useTaskTimer();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(task.id) });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    willChange: "transform",
-  } as React.CSSProperties;
+  const { prev, next } = neighbours(task);
+  const isTiming = activeTask?.id === task.id;
+  const reveal = isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100";
 
-  const getStatusStyles = (status: Task["status"]) => {
-    switch(status) {
-      case 'DONE': 
-        return {
-          stripe: 'bg-[var(--pastel-emerald)]',
-          tint: 'bg-[var(--pastel-emerald)]/[0.03]',
-          ring: 'group-hover:ring-[var(--pastel-emerald)]/20',
-          gradient: 'from-[var(--pastel-emerald)]/10 to-transparent'
-        };
-      case 'IN_PROGRESS': 
-        return {
-          stripe: 'bg-[var(--pastel-blue)]',
-          tint: 'bg-[var(--pastel-blue)]/[0.03]',
-          ring: 'group-hover:ring-[var(--pastel-blue)]/20',
-          gradient: 'from-[var(--pastel-blue)]/10 to-transparent'
-        };
-      case 'QA':
-        return {
-          stripe: 'bg-purple-500',
-          tint: 'bg-purple-500/[0.03]',
-          ring: 'group-hover:ring-purple-500/20',
-          gradient: 'from-purple-500/10 to-transparent'
-        };
-      case 'REVIEW':
-        return {
-          stripe: 'bg-blue-500',
-          tint: 'bg-blue-500/[0.03]',
-          ring: 'group-hover:ring-blue-500/20',
-          gradient: 'from-blue-500/10 to-transparent'
-        };
-      default: 
-        return {
-          stripe: 'bg-zinc-500',
-          tint: 'bg-foreground/[0.02]',
-          ring: 'group-hover:ring-foreground/20',
-          gradient: 'from-white/5 to-transparent'
-        };
-    }
-  };
+  const actions = (
+    <>
+      {canUserWorkOnTask(currentUser, task) && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); startTimer(task); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={`${iconButton} ${isTiming ? "bg-accent/15 !text-accent-text opacity-100" : reveal}`}
+          aria-label="Start focus timer"
+        >
+          <FiPlay className={`h-3.5 w-3.5 ${isTiming ? "fill-current" : ""}`} />
+        </button>
+      )}
+      {(canManage || canDeleteTask(currentUser, task)) && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); void onDelete(task); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={`${iconButton} hover:!bg-danger/10 hover:!text-danger-text ${reveal}`}
+          aria-label={`Delete ${task.name}`}
+        >
+          <FiTrash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </>
+  );
 
-  const styles = getStatusStyles(task.status);
-  const project = projects.find(p => p.id === task.projectId);
+  const footerActions = (
+    <div className={`flex items-center transition-opacity ${reveal}`}>
+      {prev && (
+        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); void onMove(task, prev); }} className={iconButton} title={`Move to ${statusMapping[prev]}`} aria-label={`Move to ${statusMapping[prev]}`}>
+          <FiChevronLeft className="h-4 w-4" />
+        </button>
+      )}
+      {next && (
+        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); void onMove(task, next); }} className={iconButton} title={`Move to ${statusMapping[next]}`} aria-label={`Move to ${statusMapping[next]}`}>
+          <FiChevronRight className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  );
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={`group relative overflow-hidden rounded-xl border border-card-border bg-card ${styles.tint} transition-colors duration-200 cursor-grab active:cursor-grabbing ${
-        isDragging ? 'opacity-40 ring-2 ring-emerald-500/50 z-50' : `hover:border-foreground/15 ${styles.ring}`
-      }`}
+      data-task-id={String(task.id)}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
       {...listeners}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
+      aria-roledescription="Task card. Option or Alt plus left or right arrow moves it between lanes."
+      onClick={() => onSelect?.(String(task.id))}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect?.(String(task.id)); }
+      }}
+      className={`group relative cursor-pointer touch-manipulation rounded-[22px] outline-none transition-[box-shadow,opacity] duration-200 active:cursor-grabbing ${
+        isDragging ? "opacity-35" : ""
+      } ${isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-foreground/10 focus-visible:ring-2 focus-visible:ring-accent/60"}`}
     >
-      {/* Dynamic Background Gradient */}
-      <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${styles.gradient} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
-
-      {/* Visual Status Stripe */}
-      <div className={`absolute top-0 left-0 w-1 h-full ${styles.stripe} opacity-60 group-hover:opacity-100 transition-opacity`} />
-
-      <div className="p-5 pl-6">
-        <div className="flex items-start justify-between gap-3 mb-2.5">
-          <div className="flex-1 min-w-0">
-            <h4 className={`text-lg font-bold tracking-tight leading-tight text-foreground/90 group-hover:text-foreground transition-colors ${task.status === 'DONE' ? 'line-through opacity-40' : ''}`}>
-              {task.name}
-            </h4>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            {canUserWorkOnTask(currentUser, task) && (
-              <button
-                onClick={(e) => { e.stopPropagation(); startTimer(task); }}
-                className={`transition-all duration-300 p-1.5 rounded-xl ${
-                  activeTask?.id === task.id 
-                    ? 'bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/30' 
-                    : 'opacity-0 group-hover:opacity-100 text-text-muted hover:text-indigo-400 hover:bg-indigo-500/10'
-                }`}
-                aria-label="Start Focus"
-              >
-                <FiPlay className={`h-3.5 w-3.5 ${activeTask?.id === task.id ? 'fill-current' : ''}`} />
-              </button>
-            )}
-            {(canManage || canDeleteTask(currentUser, task)) && (
-            <button
-              onClick={(e) => { e.stopPropagation(); void onDelete(task); }}
-              className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-1.5 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-xl"
-              aria-label={`Delete ${task.name}`}
-            >
-              <FiTrash2 className="h-3.5 w-3.5" />
-            </button>
-            )}
-          </div>
-        </div>
-
-        {task.description && (
-          <p className="text-[14px] leading-relaxed text-text-muted line-clamp-2 mb-5 group-hover:text-text-secondary transition-colors">
-            {task.description}
-          </p>
-        )}
-
-        <div className="flex flex-wrap gap-2.5 mb-5">
-          {project && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-[var(--pastel-indigo)]/10 text-[var(--pastel-indigo)] border border-[var(--pastel-indigo)]/20 ">
-              {project.name}
-            </span>
-          )}
-          <span
-            className={`px-2.5 py-1 inline-flex text-[11px] font-bold rounded-lg border uppercase tracking-wider  ${
-              task.priority === 'high'
-                ? 'bg-[var(--pastel-rose)]/10 text-[var(--pastel-rose)] border-[var(--pastel-rose)]/20 pulse-soft'
-                : task.priority === 'medium'
-                ? 'bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20'
-                : 'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
-            }`}
-          >
-            {task.priority}
-          </span>
-          {task.qa_required && (
-            <span className="px-2.5 py-1 inline-flex text-[11px] font-bold rounded-lg border uppercase tracking-wider bg-purple-500/10 text-purple-400 border-purple-500/20">QA</span>
-          )}
-          {task.review_required && (
-            <span className="px-2.5 py-1 inline-flex text-[11px] font-bold rounded-lg border uppercase tracking-wider bg-blue-500/10 text-blue-400 border-blue-500/20">REVIEW</span>
-          )}
-          {task.depends_on_id && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-amber-500/20 bg-amber-500/10 text-amber-400 text-[11px] font-medium uppercase tracking-wider">
-              <FiClock className="w-3 h-3" />
-              <span>Blocker: #{task.depends_on_id}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between pt-4 border-t border-foreground/5">
-          <div className="flex items-center gap-3">
-            {task.dueDate && (
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-text-muted bg-foreground/[0.03] px-2.5 py-1.5 rounded-xl border border-foreground/5 group-hover:bg-foreground/[0.06] transition-colors">
-                <FiCalendar className="w-3.5 h-3.5" />
-                <span>{new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {task.assigneeIds && task.assigneeIds.length > 0 && (
-              <div className="scale-90 origin-right">
-                <UserAvatarGroup 
-                  users={users.filter(u => task.assigneeIds?.includes(u.id))} 
-                  size="md" 
-                  limit={users.length} 
-                />
-              </div>
-            )}
-            
-            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 ml-1">
-              {task.status === 'TODO' && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); void onMove(task, 'IN_PROGRESS'); }}
-                  className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
-                  title="Move to In Progress"
-                >
-                  <FiChevronRight className="h-4 w-4" />
-                </button>
-              )}
-              {task.status === 'IN_PROGRESS' && (
-                <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); void onMove(task, 'TODO'); }}
-                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
-                    title="Move to To Do"
-                  >
-                    <FiChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); void onMove(task, task.qa_required ? 'QA' : task.review_required ? 'REVIEW' : 'DONE'); }}
-                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
-                    title={`Move to ${task.qa_required ? 'QA' : task.review_required ? 'Review' : 'Done'}`}
-                  >
-                    <FiChevronRight className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-              {task.status === 'QA' && (
-                <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); void onMove(task, 'IN_PROGRESS'); }}
-                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
-                    title="Move to In Progress"
-                  >
-                    <FiChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); void onMove(task, task.review_required ? 'REVIEW' : 'DONE'); }}
-                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
-                    title={`Move to ${task.review_required ? 'Review' : 'Done'}`}
-                  >
-                    <FiChevronRight className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-              {task.status === 'REVIEW' && (
-                <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); void onMove(task, task.qa_required ? 'QA' : 'IN_PROGRESS'); }}
-                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
-                    title={`Move to ${task.qa_required ? 'QA' : 'In Progress'}`}
-                  >
-                    <FiChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); void onMove(task, 'DONE'); }}
-                    className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
-                    title="Move to Done"
-                  >
-                    <FiChevronRight className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-              {task.status === 'DONE' && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); void onMove(task, task.review_required ? 'REVIEW' : task.qa_required ? 'QA' : 'IN_PROGRESS'); }}
-                  className="p-1.5 rounded-xl hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-all border border-foreground/5 active:scale-90"
-                  title={`Move to ${task.review_required ? 'Review' : task.qa_required ? 'QA' : 'In Progress'}`}
-                >
-                  <FiChevronLeft className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <KanbanCardBody task={task} users={users} projects={projects} justMoved={justMoved} actions={actions} footerActions={footerActions} />
     </div>
   );
 }

@@ -9,7 +9,7 @@ export default async function CalendarPage() {
   ]);
 
   return (
-    <div className="mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 pb-6 sm:px-4 md:min-h-screen md:py-8 md:pb-32">
+    <div className="md-zen-soft mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 pb-6 sm:px-4 md:min-h-screen md:py-8 md:pb-32">
       <Calendar
         initialEvents={data.events}
         initialTasks={data.tasks}

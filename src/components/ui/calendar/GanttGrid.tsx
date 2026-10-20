@@ -26,7 +26,9 @@ import type { CalendarEvent } from "@/types/calendar";
 import { Tooltip } from "@/components/ui/Tooltip";
 import Image from "next/image";
 import { FiCalendar, FiMaximize2, FiMinimize2, FiLayers, FiSun, FiClock, FiCoffee, FiMapPin } from "react-icons/fi";
+import { avatarStyle } from '@/lib/avatar-color';
 
+import { TabPill } from '@/components/ui/tab-pill';
 interface GanttGridProps {
   date: Date;
   events: CalendarEvent[];
@@ -37,16 +39,16 @@ interface GanttGridProps {
 type ZoomLevel = 'days' | 'weeks' | 'months';
 
 const COLOR_PALETTE = [
-  { bg: 'bg-indigo-50 dark:bg-indigo-950/60', border: 'border-indigo-500', text: 'text-indigo-600 dark:text-indigo-300' },
-  { bg: 'bg-emerald-50 dark:bg-emerald-950/60', border: 'border-emerald-500', text: 'text-emerald-600 dark:text-emerald-300' },
-  { bg: 'bg-rose-50 dark:bg-rose-950/60', border: 'border-rose-500', text: 'text-rose-600 dark:text-rose-300' },
-  { bg: 'bg-yellow-50 dark:bg-yellow-950/60', border: 'border-yellow-500', text: 'text-yellow-600 dark:text-yellow-300' },
-  { bg: 'bg-sky-50 dark:bg-sky-950/60', border: 'border-sky-500', text: 'text-sky-600 dark:text-sky-300' },
+  { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
+  { bg: 'bg-success/10 dark:bg-success/60', border: 'border-success', text: 'text-success-text dark:text-success-text' },
+  { bg: 'bg-danger/10 dark:bg-danger/60', border: 'border-danger', text: 'text-danger-text dark:text-danger-text' },
+  { bg: 'bg-warning/10 dark:bg-warning/60', border: 'border-warning', text: 'text-warning-text dark:text-warning-text' },
+  { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
   { bg: 'bg-purple-50 dark:bg-purple-950/60', border: 'border-purple-500', text: 'text-purple-600 dark:text-purple-300' },
   { bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/60', border: 'border-fuchsia-500', text: 'text-fuchsia-600 dark:text-fuchsia-300' },
   { bg: 'bg-teal-50 dark:bg-teal-950/60', border: 'border-teal-500', text: 'text-teal-600 dark:text-teal-300' },
-  { bg: 'bg-orange-50 dark:bg-orange-950/60', border: 'border-orange-500', text: 'text-orange-600 dark:text-orange-300' },
-  { bg: 'bg-blue-50 dark:bg-blue-950/60', border: 'border-blue-500', text: 'text-blue-600 dark:text-blue-300' },
+  { bg: 'bg-priority-high/10 dark:bg-priority-high/60', border: 'border-priority-high', text: 'text-priority-high-text dark:text-priority-high-text' },
+  { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
   { bg: 'bg-lime-50 dark:bg-lime-950/60', border: 'border-lime-500', text: 'text-lime-600 dark:text-lime-300' },
   { bg: 'bg-pink-50 dark:bg-pink-950/60', border: 'border-pink-500', text: 'text-pink-600 dark:text-pink-300' },
 ];
@@ -123,23 +125,26 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden relative">
       {/* Zoom Controls Overlay */}
-      <div className="absolute bottom-6 right-6 z-[60] flex items-center gap-1 p-1 bg-background/80 backdrop-blur-md border border-card-border rounded-2xl shadow-xl">
+      <div className="absolute bottom-6 right-6 z-[60] flex items-center gap-1 p-1 bg-background border border-card-border rounded-full">
         <button 
           onClick={() => setZoomLevel('days')}
-          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${zoomLevel === 'days' ? 'bg-foreground/[0.08] text-foreground' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.05]'}`}
+          className={`relative isolate px-4 py-2 rounded-full text-xs font-medium transition-colors ${zoomLevel === 'days' ? 'text-on-ink' : 'text-text-muted hover:text-foreground'}`}
         >
+          {zoomLevel === 'days' && <TabPill id="gantt-zoom" />}
           Days
         </button>
         <button 
           onClick={() => setZoomLevel('weeks')}
-          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${zoomLevel === 'weeks' ? 'bg-foreground/[0.08] text-foreground' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.05]'}`}
+          className={`relative isolate px-4 py-2 rounded-full text-xs font-medium transition-colors ${zoomLevel === 'weeks' ? 'text-on-ink' : 'text-text-muted hover:text-foreground'}`}
         >
+          {zoomLevel === 'weeks' && <TabPill id="gantt-zoom" />}
           Weeks
         </button>
         <button 
           onClick={() => setZoomLevel('months')}
-          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${zoomLevel === 'months' ? 'bg-foreground/[0.08] text-foreground' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.05]'}`}
+          className={`relative isolate px-4 py-2 rounded-full text-xs font-medium transition-colors ${zoomLevel === 'months' ? 'text-on-ink' : 'text-text-muted hover:text-foreground'}`}
         >
+          {zoomLevel === 'months' && <TabPill id="gantt-zoom" />}
           Months
         </button>
       </div>
@@ -151,10 +156,10 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
         <div className="min-w-max">
           
           {/* Header */}
-          <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-card-border">
+          <div className="sticky top-0 z-40 bg-background border-b border-card-border">
             {/* Top Level Header (Months or Quarters) */}
             <div className="flex border-b border-card-border">
-                <div className="w-64 flex-shrink-0 sticky left-0 z-50 bg-background/80 backdrop-blur-md border-r border-card-border" />
+                <div className="w-64 flex-shrink-0 sticky left-0 z-50 bg-background border-r border-card-border" />
                 <div className="flex">
                     {zoomLevel === 'months' ? (
                         eachQuarterOfInterval({ start: viewStart, end: viewEnd }).map(q => {
@@ -163,7 +168,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                             const daysInQ = differenceInDays(qEnd, qStart) + 1;
                             return (
                                 <div key={q.toISOString()} style={{ width: `${daysInQ * dayWidth}px` }} className="flex-shrink-0 border-r border-card-border p-2 text-center">
-                                    <span className="text-[10px] font-black text-indigo-400/80 uppercase tracking-[0.2em]">{format(q, "QQQ yyyy")}</span>
+                                    <span className="text-[10px] font-black text-accent-text/80 uppercase tracking-[0.2em]">{format(q, "QQQ yyyy")}</span>
                                 </div>
                             );
                         })
@@ -174,7 +179,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                             const daysInMonth = differenceInDays(mEnd, mStart) + 1;
                             return (
                                 <div key={m.toISOString()} style={{ width: `${daysInMonth * dayWidth}px` }} className="flex-shrink-0 border-r border-card-border p-2 text-center">
-                                    <span className="text-[10px] font-black text-indigo-400/80 uppercase tracking-[0.2em]">{format(m, "MMMM yyyy")}</span>
+                                    <span className="text-[10px] font-black text-accent-text/80 uppercase tracking-[0.2em]">{format(m, "MMMM yyyy")}</span>
                                 </div>
                             );
                         })
@@ -184,24 +189,24 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
 
             {/* Sub Level Header (Days or Weeks or Months) */}
             <div className="flex">
-                <div className="w-64 flex-shrink-0 sticky left-0 z-50 bg-background/80 backdrop-blur-md border-r border-card-border p-4 text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
+                <div className="w-64 flex-shrink-0 sticky left-0 z-50 bg-background border-r border-card-border p-4 text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center gap-2">
                     <FiLayers className="w-3.5 h-3.5" />
                     {activeFilter === 'projects' ? 'Active Missions' : 'Personnel'}
                 </div>
                 <div className="flex">
                       {zoomLevel === 'days' && days.map((d) => (
-                        <div key={d.toISOString()} className={`flex-shrink-0 w-12 border-r border-card-border p-2 text-center transition-colors ${isSameDay(d, new Date()) ? 'bg-indigo-500/5' : 'hover:bg-blue-50 dark:hover:bg-white/[0.06]'}`}>
+                        <div key={d.toISOString()} className={`flex-shrink-0 w-12 border-r border-card-border p-2 text-center transition-colors ${isSameDay(d, new Date()) ? 'bg-accent/5' : 'hover:bg-accent/10 dark:hover:bg-white/[0.06]'}`}>
                             <div className="text-[9px] font-black text-text-muted uppercase leading-none mb-1">{format(d, "EEE")}</div>
-                            <div className={`text-xs font-black leading-none tracking-tight ${isSameDay(d, new Date()) ? 'text-indigo-600 dark:text-indigo-400' : 'text-text-secondary'}`}>{format(d, "d")}</div>
+                            <div className={`text-xs font-black leading-none tracking-tight ${isSameDay(d, new Date()) ? 'text-accent-text dark:text-accent-text' : 'text-text-secondary'}`}>{format(d, "d")}</div>
                         </div>
                     ))}
                     {zoomLevel === 'weeks' && weeks.map((w) => {
                         const wStart = startOfWeek(w, { weekStartsOn: 1 });
                         const isCurrentWeek = isWithinInterval(new Date(), { start: wStart, end: endOfWeek(wStart, { weekStartsOn: 1 }) });
                         return (
-                            <div key={w.toISOString()} style={{ width: `${7 * dayWidth}px` }} className={`flex-shrink-0 border-r border-card-border p-2 text-center transition-colors ${isCurrentWeek ? 'bg-indigo-500/5' : 'hover:bg-blue-50 dark:hover:bg-white/[0.06]'}`}>
+                            <div key={w.toISOString()} style={{ width: `${7 * dayWidth}px` }} className={`flex-shrink-0 border-r border-card-border p-2 text-center transition-colors ${isCurrentWeek ? 'bg-accent/5' : 'hover:bg-accent/10 dark:hover:bg-white/[0.06]'}`}>
                                 <div className="text-[9px] font-black text-text-muted uppercase leading-none mb-1">W{format(w, "w")}</div>
-                                <div className={`text-[10px] font-black leading-none tracking-tight ${isCurrentWeek ? 'text-indigo-600 dark:text-indigo-400' : 'text-text-muted'}`}>{format(w, "MMM d")}</div>
+                                <div className={`text-[10px] font-black leading-none tracking-tight ${isCurrentWeek ? 'text-accent-text dark:text-accent-text' : 'text-text-muted'}`}>{format(w, "MMM d")}</div>
                             </div>
                         );
                     })}
@@ -210,7 +215,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                         const daysInM = differenceInDays(endOfMonth(m), mStart) + 1;
                         const isCurrentMonth = isSameDay(startOfMonth(new Date()), mStart);
                         return (
-                            <div key={m.toISOString()} style={{ width: `${daysInM * dayWidth}px` }} className={`flex-shrink-0 border-r border-card-border p-2 text-center transition-colors ${isCurrentMonth ? 'bg-indigo-500/5' : 'hover:bg-blue-50 dark:hover:bg-white/[0.06]'}`}>
+                            <div key={m.toISOString()} style={{ width: `${daysInM * dayWidth}px` }} className={`flex-shrink-0 border-r border-card-border p-2 text-center transition-colors ${isCurrentMonth ? 'bg-accent/5' : 'hover:bg-accent/10 dark:hover:bg-white/[0.06]'}`}>
                                 <div className="text-[10px] font-black leading-none text-text-muted uppercase tracking-wider">{format(m, "MMM")}</div>
                             </div>
                         );
@@ -223,18 +228,18 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
           <div className="flex relative">
             
             {/* Left Labels Column */}
-            <div className="w-64 flex-shrink-0 sticky left-0 z-30 bg-background/80 backdrop-blur-md border-r border-card-border">
+            <div className="w-64 flex-shrink-0 sticky left-0 z-30 bg-background border-r border-card-border">
               {rows.map((row: any, idx: number) => {
                 const rowLabel = activeFilter === 'projects' ? row.title.replace('[PROJ] ', '') : row.user?.fullName || row.user?.email || 'User';
                 const user = activeFilter === 'projects' ? (row.user || null) : row.user;
                 return (
                   <div key={idx} style={{ height: `${rowHeight}px` }} className="p-4 flex items-center gap-3 border-b border-card-border hover:bg-foreground/[0.04] transition-colors group">
                       {user && (
-                        <div className="h-9 w-9 rounded-xl bg-foreground/[0.03] relative overflow-hidden ring-1 ring-card-border flex-shrink-0 ">
+                        <div className="h-9 w-9 rounded-full bg-foreground/[0.07] relative overflow-hidden flex-shrink-0 ">
                           {(user as any).avatar_url || (user as any).avatarUrl || (user as any).image ? (
                             <Image src={(user as any).avatar_url || (user as any).avatarUrl || (user as any).image} alt={rowLabel} fill className="object-cover transition-transform group-hover:scale-110" />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-[10px] font-black bg-indigo-500/5 text-indigo-600 dark:text-indigo-400">
+                            <div style={avatarStyle(rowLabel)} className="flex h-full w-full items-center justify-center text-[10px] font-black">
                               {rowLabel.charAt(0).toUpperCase()}
                             </div>
                           )}
@@ -253,7 +258,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                 {/* Background Grid Lines */}
                 <div className="absolute inset-0 flex pointer-events-none">
                     {zoomLevel === 'days' && days.map(d => (
-                        <div key={d.toISOString()} className={`flex-shrink-0 w-12 border-r border-card-border/30 h-full ${isSameDay(d, new Date()) ? 'bg-indigo-500/[0.01]' : ''}`} />
+                        <div key={d.toISOString()} className={`flex-shrink-0 w-12 border-r border-card-border/30 h-full ${isSameDay(d, new Date()) ? 'bg-accent/[0.01]' : ''}`} />
                     ))}
                     {zoomLevel === 'weeks' && weeks.map(w => (
                         <div key={w.toISOString()} style={{ width: `${7 * dayWidth}px` }} className="flex-shrink-0 border-r border-card-border/30 h-full" />
@@ -335,7 +340,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                                       top: `${(rowIdx * rowHeight) + 4}px`,
                                       height: `${rowHeight - 8}px`
                                   }}
-                                  className={`absolute rounded-xl border-y border-x flex items-center px-4 z-10 cursor-pointer hover:brightness-105 dark:hover:brightness-125 hover:z-20 active:scale-[0.99] transition-all overflow-hidden backdrop-blur-md ${barColor.bg} ${barColor.border} shadow-sm`}
+                                  className={`absolute rounded-full border-y border-x flex items-center px-4 z-10 cursor-pointer hover:brightness-105 dark:hover:brightness-125 hover:z-20 active:scale-[0.99] transition-all overflow-hidden backdrop-blur-md ${barColor.bg} ${barColor.border} shadow-sm`}
                                 >
                                   <div className="flex items-center gap-2 w-full overflow-hidden">
                                     {eventUser && barWidth > 60 ? (
@@ -343,7 +348,7 @@ export default function GanttGrid({ date, events, activeFilter, onEventClick }: 
                                             {((eventUser as any).avatar_url || (eventUser as any).avatarUrl || (eventUser as any).image) ? (
                                                 <Image src={(eventUser as any).avatar_url || (eventUser as any).avatarUrl || (eventUser as any).image} alt={cleanTitle} fill className="object-cover" />
                                             ) : (
-                                                <div className="flex h-full w-full items-center justify-center text-[9px] font-black text-foreground/70">
+                                                <div style={avatarStyle(cleanTitle)} className="flex h-full w-full items-center justify-center text-[9px] font-black">
                                                     {cleanTitle.charAt(0).toUpperCase()}
                                                 </div>
                                             )}

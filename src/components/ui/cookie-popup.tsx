@@ -73,8 +73,8 @@ export const CookiePopup = () => {
                     <div className="bg-card border border-card-border rounded-3xl p-6 shadow-2xl flex flex-col gap-6">
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                                    <FiShield className="text-indigo-400 text-lg" />
+                                <div className="p-2.5 rounded-xl bg-accent/10 border border-accent/20">
+                                    <FiShield className="text-accent-text text-lg" />
                                 </div>
                                 <div>
                                     <h3 className="text-base font-semibold text-foreground tracking-tight">Cookies</h3>
@@ -96,7 +96,7 @@ export const CookiePopup = () => {
                                     We use cookies to keep you signed in and to understand how the product is used. Choose &quot;Accept all&quot; to allow them, or keep only what the app needs to run. 
                                     <button 
                                         onClick={() => setShowSettings(true)}
-                                        className="text-indigo-500 dark:text-indigo-400 hover:underline ml-1 font-black"
+                                        className="text-accent-text dark:text-accent-text hover:underline ml-1 font-black"
                                     >
                                         Customise
                                     </button>
@@ -105,7 +105,7 @@ export const CookiePopup = () => {
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={handleAcceptAll}
-                                        className="flex-1 bg-foreground text-background px-6 py-3 rounded-2xl text-xs font-bold hover:bg-foreground/90 transition-all flex items-center justify-center gap-2 active:scale-95"
+                                        className="md-btn md-btn-primary md-btn-sm flex-1"
                                     >
                                         <FiCheck className="text-lg" /> Accept all
                                     </button>
@@ -129,7 +129,7 @@ export const CookiePopup = () => {
                                             </div>
                                             <p className="text-[10px] text-text-muted leading-relaxed">Necessary for authentication, security, and platform stability.</p>
                                         </div>
-                                        <div className="w-10 h-6 rounded-full bg-indigo-500/50 flex items-center px-1 opacity-50 cursor-not-allowed">
+                                        <div className="w-10 h-6 rounded-full bg-accent/50 flex items-center px-1 opacity-50 cursor-not-allowed">
                                             <div className="w-4 h-4 rounded-full bg-white ml-auto" />
                                         </div>
                                     </div>
@@ -160,7 +160,7 @@ export const CookiePopup = () => {
                                             <span className="text-xs font-bold text-foreground uppercase tracking-wide">Personalization</span>
                                             <p className="text-[10px] text-text-secondary font-bold leading-relaxed">Remembers your layout and assistant preferences.</p>
                                         </div>
-                                        <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${prefs.personalization ? 'bg-indigo-500' : 'bg-card-border'}`}>
+                                        <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${prefs.personalization ? 'bg-accent' : 'bg-card-border'}`}>
                                             <motion.div 
                                                 animate={{ x: prefs.personalization ? 16 : 0 }}
                                                 className="w-4 h-4 rounded-full bg-white shadow-sm" 
@@ -172,13 +172,13 @@ export const CookiePopup = () => {
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={handleSaveSettings}
-                                        className="flex-1 bg-foreground text-background px-6 py-3 rounded-2xl text-xs font-bold hover:bg-foreground/90 transition-all active:scale-95"
+                                        className="md-btn md-btn-primary md-btn-sm flex-1"
                                     >
                                         Save Preferences
                                     </button>
                                     <button
                                         onClick={() => setShowSettings(false)}
-                                        className="px-4 py-3 rounded-2xl text-xs font-bold text-text-muted hover:text-foreground transition-all"
+                                        className="md-btn md-btn-secondary md-btn-sm"
                                     >
                                         Back
                                     </button>
@@ -187,8 +187,8 @@ export const CookiePopup = () => {
                         )}
 
                         <div className="pt-2 border-t border-card-border flex items-center justify-between">
-                            <Link href="/privacy" className="text-[10px] font-bold text-text-muted hover:text-indigo-400 uppercase tracking-widest transition-colors">Privacy Policy</Link>
-                            <Link href="/terms" className="text-[10px] font-bold text-text-muted hover:text-emerald-400 uppercase tracking-widest transition-colors">Terms of Use</Link>
+                            <Link href="/privacy" className="text-[10px] font-bold text-text-muted hover:text-accent-text uppercase tracking-widest transition-colors">Privacy Policy</Link>
+                            <Link href="/terms" className="text-[10px] font-bold text-text-muted hover:text-accent-text uppercase tracking-widest transition-colors">Terms of Use</Link>
                         </div>
                     </div>
                 </motion.div>

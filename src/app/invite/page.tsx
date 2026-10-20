@@ -193,19 +193,6 @@ function InvitationContent() {
 
   return (
     <main className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background isolate">
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        <motion.div
-          className="absolute top-[-25%] right-[-20%] w-[70%] h-[70%] rounded-full bg-indigo-500/[0.06] blur-[200px]"
-          animate={{ x: [0, -30, 0], y: [0, -20, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute bottom-[-25%] left-[-20%] w-[70%] h-[70%] rounded-full bg-emerald-500/[0.06] blur-[200px]"
-          animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </div>
-
       <motion.div
         className="relative w-full max-w-md"
         variants={container as Variants}
@@ -220,7 +207,7 @@ function InvitationContent() {
 
         {!error && (loading || !authChecked || shouldRouteToLogin || shouldAutoAccept) ? (
           <motion.div variants={item as Variants} className="flex flex-col items-center gap-4 py-12">
-            <FiLoader className="w-8 h-8 text-indigo-400 animate-spin" />
+            <FiLoader className="w-8 h-8 text-accent-text animate-spin" />
             <p className="text-sm text-text-muted">
               {shouldRouteToLogin
                 ? `Preparing sign in for ${orgInfo?.name || 'your new workspace'}…`
@@ -231,8 +218,8 @@ function InvitationContent() {
           </motion.div>
         ) : error ? (
           <motion.div variants={item as Variants} className="text-center space-y-6 py-8">
-            <div className="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center mx-auto">
-              <FiAlertCircle className="w-8 h-8 text-rose-400" />
+            <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mx-auto">
+              <FiAlertCircle className="w-8 h-8 text-danger-text" />
             </div>
             <div className="space-y-2">
               <h1 className="text-xl font-semibold text-foreground">We couldn’t open your invitation</h1>
@@ -240,9 +227,9 @@ function InvitationContent() {
             </div>
             <div className="space-y-3 pt-2">
               {needsSignIn ? (
-                <Link href={switchAccountHref} className="block min-h-11 w-full rounded-xl bg-ink px-4 py-3 text-center text-sm font-semibold text-on-ink hover:bg-ink/85">Sign in again and join</Link>
+                <Link href={switchAccountHref} className="md-btn md-btn-primary w-full">Sign in again and join</Link>
               ) : hasInvitation ? (
-                <button type="button" onClick={() => window.location.reload()} className="block min-h-11 w-full rounded-xl bg-ink px-4 py-3 text-center text-sm font-semibold text-on-ink hover:bg-ink/85">Try again</button>
+                <button type="button" onClick={() => window.location.reload()} className="md-btn md-btn-primary w-full">Try again</button>
               ) : null}
               <Link
                 href="/"
@@ -254,8 +241,8 @@ function InvitationContent() {
           </motion.div>
         ) : orgInfo ? (
           <motion.div variants={item as Variants} className="text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
-              <FiCheckCircle className="w-8 h-8 text-emerald-400" />
+            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto">
+              <FiCheckCircle className="w-8 h-8 text-success-text" />
             </div>
 
             <div className="space-y-2">
@@ -291,38 +278,38 @@ function InvitationContent() {
               )}
               {code && <div className="px-4 py-3 flex items-center gap-3">
                 <FiLink className="w-4 h-4 text-text-muted flex-shrink-0" />
-                <span className="text-sm font-mono tracking-wider text-indigo-400">{code}</span>
+                <span className="text-sm font-mono tracking-wider text-accent-text">{code}</span>
               </div>}
             </div>
 
             <div className="space-y-3 pt-2">
               {isLoggedIn && !isCorrectAccount ? (
                 <div className="space-y-3">
-                  <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left text-sm text-amber-700 dark:text-amber-300">
+                  <div className="flex items-start gap-2.5 rounded-xl border border-warning/20 bg-warning/10 px-4 py-3 text-left text-sm text-warning-text dark:text-warning-text">
                     <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>This invitation belongs to <strong>{invitedEmail}</strong>. You’re currently signed in as {sessionEmail}.</span>
                   </div>
-                  <Link href={switchAccountHref} className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-on-ink transition hover:bg-ink/85">
-                    Sign in as {invitedEmail}<FiArrowRight className="h-4 w-4" />
+                  <Link href={switchAccountHref} className="md-btn md-btn-primary md-btn-block w-full">
+                    Sign in as {invitedEmail} <span className="md-btn-chip"><FiArrowRight /></span>
                   </Link>
                 </div>
               ) : token ? (
                 <Link
                   href={`/register?invite=${encodeURIComponent(code || '')}&org=${encodeURIComponent(orgId || '')}&token=${encodeURIComponent(token)}&email=${encodeURIComponent(invitedEmail)}`}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-on-ink transition hover:bg-ink/85"
+                  className="md-btn md-btn-primary md-btn-block w-full"
                 >
-                  Create account and join<FiArrowRight className="h-4 w-4" />
+                  Create account and join <span className="md-btn-chip"><FiArrowRight /></span>
                 </Link>
               ) : (
                 <div className="space-y-2">
-                  <Link href={loginHref} className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-on-ink transition hover:bg-ink/85">Sign in to join<FiArrowRight className="h-4 w-4" /></Link>
+                  <Link href={loginHref} className="md-btn md-btn-primary md-btn-block w-full">Sign in to join <span className="md-btn-chip"><FiArrowRight /></span></Link>
                   <Link href={`/register?invite=${encodeURIComponent(code || '')}`} className="block w-full rounded-xl px-4 py-2 text-center text-sm font-medium text-text-muted transition hover:bg-foreground/[0.05] hover:text-foreground">Create a new account</Link>
                 </div>
               )}
               {!isLoggedIn && token && !preview?.account_exists && (
                 <p className="text-xs text-text-muted">
                   Already have an account?{' '}
-                  <Link href={loginHref} className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors">
+                  <Link href={loginHref} className="text-accent-text font-medium transition-colors">
                     Sign in
                   </Link>
                 </p>

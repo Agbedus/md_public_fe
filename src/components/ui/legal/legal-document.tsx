@@ -55,15 +55,7 @@ export function LegalDocument({
       };
 
   return (
-    <div className="min-h-screen bg-[#090a0c] text-white selection:bg-emerald-500/30 overflow-x-hidden">
-      <div
-        className="absolute top-0 inset-x-0 h-[80rem] pointer-events-none -z-10"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 30% 0%, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.01) 50%, transparent 60%), radial-gradient(circle at 70% 10%, rgba(99, 102, 241, 0.04) 0%, transparent 50%)',
-        }}
-      />
-      <div className="absolute top-0 inset-x-0 h-[64rem] opacity-[0.02] pointer-events-none -z-10 bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+    <div className="min-h-screen bg-[#090a0c] text-white selection:bg-success/30 overflow-x-hidden">
 
       {/* Navigation */}
       <nav className="fixed top-0 inset-x-0 z-50 px-6 pt-6">
@@ -108,9 +100,9 @@ export function LegalDocument({
           {/* TL;DR */}
           <motion.div
             {...revealOnScroll}
-            className="rounded-3xl border border-emerald-500/15 bg-emerald-500/[0.04] p-8 flex flex-col sm:flex-row gap-5"
+            className="rounded-3xl border border-success/15 bg-success/[0.04] p-8 flex flex-col sm:flex-row gap-5"
           >
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success-text shrink-0">
               {highlight.icon}
             </div>
             <div className="space-y-1.5">
@@ -127,7 +119,7 @@ export function LegalDocument({
                 <li key={s.id}>
                   <a
                     href={`#${s.id}`}
-                    className="flex items-center gap-2 text-sm text-zinc-400 hover:text-emerald-300 transition-colors py-1 font-dm-sans"
+                    className="flex items-center gap-2 text-sm text-zinc-400 hover:text-accent-text transition-colors py-1 font-dm-sans"
                   >
                     <span className="text-zinc-600 font-sora text-xs w-5 shrink-0">{s.index}</span>
                     {s.title}
@@ -148,7 +140,7 @@ export function LegalDocument({
                       <span className="text-zinc-500 shrink-0">{s.icon}</span>
                       <h2 className="text-2xl font-bold text-white font-sora tracking-tight">{s.title}</h2>
                     </div>
-                    <div className="space-y-4 text-sm text-zinc-400 leading-relaxed font-dm-sans [&_strong]:text-zinc-200 [&_strong]:font-semibold [&_a]:text-emerald-400 [&_a]:hover:underline">
+                    <div className="space-y-4 text-sm text-zinc-400 leading-relaxed font-dm-sans [&_strong]:text-zinc-200 [&_strong]:font-semibold [&_a]:text-success-text [&_a]:hover:underline">
                       {s.children}
                     </div>
                   </div>
@@ -163,7 +155,7 @@ export function LegalDocument({
             <p className="text-zinc-400 max-w-xl mx-auto leading-relaxed font-dm-sans text-sm">{closing.body}</p>
             <Link
               href={`mailto:${closing.email}`}
-              className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-semibold font-sora transition-colors"
+              className="inline-flex items-center gap-2 text-accent-text font-semibold font-sora transition-colors"
             >
               {closing.email} <FiExternalLink className="text-sm" />
             </Link>
@@ -171,7 +163,7 @@ export function LegalDocument({
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/[0.06] text-xs text-zinc-600 font-sora">
             <span>© 2026 MyndDesk. All rights reserved.</span>
-            <Link href={siblingHref} className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-emerald-300 transition-colors">
+            <Link href={siblingHref} className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-accent-text transition-colors">
               {siblingLabel} <FiArrowRight className="text-xs" />
             </Link>
           </div>

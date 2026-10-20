@@ -13,6 +13,8 @@ import { ActivityHeatmap } from '@/components/ui/client-charts';
 import type { TimeOffRequest } from '@/types/time-off';
 import { approveTimeOffRequest, rejectTimeOffRequest } from '@/app/(dashboard)/[orgSlug]/time-off/actions';
 import { toast } from '@/lib/toast';
+import { avatarStyle } from '@/lib/avatar-color';
+import { formatStatus } from '@/lib/format-status';
 
 interface TimeLog {
     id: number;
@@ -55,9 +57,9 @@ function getLogDuration(log: TimeLog): number {
 }
 
 const statusColors: Record<string, string> = {
-    pending: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    approved: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    rejected: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    pending: 'bg-warning/10 text-warning-text border-warning/20',
+    approved: 'bg-success/10 text-success-text border-success/20',
+    rejected: 'bg-danger/10 text-danger-text border-danger/20',
 };
 
 const typeLabels: Record<string, string> = {
@@ -103,10 +105,10 @@ export default function UserDetailClient({
     const maxHours = Math.max(...taskHours.map(t => t.hours), 1);
 
     const roleColors: Record<string, string> = {
-        super_admin: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+        super_admin: 'bg-danger/10 text-danger-text border-danger/20',
         manager: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-        staff: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-        client: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+        staff: 'bg-accent/10 text-accent-text border-accent/20',
+        client: 'bg-success/10 text-success-text border-success/20',
         user: 'bg-foreground/[0.06] text-text-muted border-foreground/5',
     };
 
@@ -153,9 +155,9 @@ export default function UserDetailClient({
                 </Link>
                 <div className="flex items-center gap-4 flex-1">
                     {user.avatarUrl ? (
-                        <Image src={user.avatarUrl} alt={user.fullName || 'User'} width={56} height={56} className="rounded-2xl object-cover border border-foreground/5" />
+                        <Image src={user.avatarUrl} alt={user.fullName || 'User'} width={56} height={56} className="rounded-full object-cover border border-foreground/5" />
                     ) : (
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-medium text-xl">
+                        <div style={avatarStyle(user.fullName || user.email)} className="w-14 h-14 rounded-full bg-foreground/[0.06] flex items-center justify-center text-foreground font-medium text-xl">
                             {(user.fullName || user.email).charAt(0).toUpperCase()}
                         </div>
                     )}
@@ -176,7 +178,7 @@ export default function UserDetailClient({
             {/* Activity Heatmap */}
             <div className="glass p-6 rounded-3xl border border-foreground/5 bg-foreground/[0.03] space-y-4 overflow-hidden">
                 <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-[11px] font-medium text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded">Activity Engine</h4>
+                    <h4 className="text-[11px] font-medium text-success-text uppercase tracking-wider bg-success/10 px-2 py-0.5 rounded">Activity Engine</h4>
                     <span className="text-[11px] text-text-muted font-bold uppercase tracking-wider">Historical Performance</span>
                 </div>
                 <ActivityHeatmap data={activityData} variant="full" />
@@ -191,10 +193,10 @@ export default function UserDetailClient({
                     { icon: FiUser, color: 'rose', label: 'Completion Rate', value: `${completionRate}%` },
                 ].map(({ icon: Icon, color, label, value }) => {
                     const c: Record<string, string> = {
-                        indigo: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
-                        emerald: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-                        amber: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-                        rose: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+                        indigo: 'text-accent-text bg-accent/10 border-accent/20',
+                        emerald: 'text-success-text bg-success/10 border-success/20',
+                        amber: 'text-warning-text bg-warning/10 border-warning/20',
+                        rose: 'text-danger-text bg-danger/10 border-danger/20',
                     };
                     return (
                         <motion.div
@@ -217,7 +219,7 @@ export default function UserDetailClient({
                 {/* Hours Per Task Chart */}
                 <div className="xl:col-span-1 glass rounded-2xl p-6 border border-foreground/5 bg-foreground/[0.03] space-y-4">
                     <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
-                        <FiActivity className="text-indigo-400 w-4 h-4" />
+                        <FiActivity className="text-accent-text w-4 h-4" />
                         Hours Per Task
                     </h2>
                     {taskHours.length === 0 ? (
@@ -235,7 +237,7 @@ export default function UserDetailClient({
                                             initial={{ width: 0 }}
                                             animate={{ width: `${(hours / maxHours) * 100}%` }}
                                             transition={{ duration: 0.8, ease: 'circOut' }}
-                                            className="h-full bg-indigo-500 rounded-full"
+                                            className="h-full bg-accent rounded-full"
                                         />
                                     </div>
                                 </div>
@@ -248,7 +250,7 @@ export default function UserDetailClient({
                 <div className="xl:col-span-2 glass rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
                     <div className="px-6 py-4 border-b border-foreground/5">
                         <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
-                            <FiCalendar className="text-emerald-400 w-4 h-4" />
+                            <FiCalendar className="text-success-text w-4 h-4" />
                             Timesheet ({timeLogs.length} sessions)
                         </h2>
                     </div>
@@ -284,8 +286,8 @@ export default function UserDetailClient({
                                             </td>
                                             <td className="px-6 py-3 text-xs">
                                                 {isActive ? (
-                                                    <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                    <span className="flex items-center gap-1.5 text-success-text font-medium">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                                                         Active
                                                     </span>
                                                 ) : (
@@ -297,7 +299,7 @@ export default function UserDetailClient({
                                             <td className="px-6 py-3 text-right">
                                                 <span className="font-medium text-foreground text-xs tabular-nums">
                                                     {isActive ? (
-                                                        <span className="text-emerald-400">—</span>
+                                                        <span className="text-success-text">—</span>
                                                     ) : formatDuration(duration)}
                                                 </span>
                                             </td>
@@ -323,7 +325,7 @@ export default function UserDetailClient({
                 <div className="glass rounded-2xl border border-foreground/5 bg-foreground/[0.03] overflow-hidden">
                     <div className="px-6 py-4 border-b border-foreground/5">
                         <h2 className="text-[11px] font-medium text-text-muted uppercase tracking-wider flex items-center gap-2">
-                            <FiSun className="text-amber-400 w-4 h-4" />
+                            <FiSun className="text-warning-text w-4 h-4" />
                             Time Off Requests ({localTimeOff.length})
                         </h2>
                     </div>
@@ -360,8 +362,8 @@ export default function UserDetailClient({
                                                 {req.justification || '—'}
                                             </td>
                                             <td className="px-6 py-3">
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusColors[req.status]}`}>
-                                                    {req.status}
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColors[req.status]}`}>
+                                                    {formatStatus(req.status)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-3 text-xs text-text-muted tabular-nums">
@@ -374,11 +376,11 @@ export default function UserDetailClient({
                                                             <button
                                                                 onClick={() => handleApprove(req.id)}
                                                                 disabled={actionLoading === req.id}
-                                                                className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all disabled:opacity-50"
+                                                                className="p-1.5 rounded-lg bg-success/10 hover:bg-success/20 text-success-text border border-success/20 transition-all disabled:opacity-50"
                                                                 title="Approve"
                                                             >
                                                                 {actionLoading === req.id ? (
-                                                                    <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                                                    <div className="w-3.5 h-3.5 border-2 border-success border-t-transparent rounded-full animate-spin" />
                                                                 ) : (
                                                                     <FiCheck className="w-3.5 h-3.5" />
                                                                 )}
@@ -386,7 +388,7 @@ export default function UserDetailClient({
                                                             <button
                                                                 onClick={() => handleReject(req.id)}
                                                                 disabled={actionLoading === req.id}
-                                                                className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all disabled:opacity-50"
+                                                                className="p-1.5 rounded-lg bg-danger/10 hover:bg-danger/20 text-danger-text border border-danger/20 transition-all disabled:opacity-50"
                                                                 title="Reject"
                                                             >
                                                                 <FiX className="w-3.5 h-3.5" />

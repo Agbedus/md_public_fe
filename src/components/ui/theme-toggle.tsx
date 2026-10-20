@@ -29,9 +29,9 @@ export function ThemeToggle({
 
   const getLabel = () => {
     switch (currentTheme) {
-      case 'light': return 'Light Mode';
-      case 'dark': return 'Dark Mode';
-      default: return 'System Mode';
+      case 'light': return 'Light mode';
+      case 'dark': return 'Dark mode';
+      default: return 'System mode';
     }
   };
 
@@ -41,7 +41,7 @@ export function ThemeToggle({
         onClick={toggleTheme}
         whileHover={{ scale: 1.07, transition: spring }}
         whileTap={{ scale: 0.88, rotate: -12, transition: springTap }}
-        className="relative p-2 rounded-xl bg-background/50 border border-card-border hover:bg-foreground/[0.06] hover:border-foreground/10 transition-colors duration-300 group overflow-hidden"
+        className="relative grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.05] hover:bg-foreground/[0.09] transition-colors duration-200 group overflow-hidden"
         title={`Switch theme (currently ${getLabel()})`}
       >
         <AnimatePresence mode="wait">
@@ -50,8 +50,8 @@ export function ThemeToggle({
             initial={{ y: 20, opacity: 0, rotate: -45 }}
             animate={{ y: 0, opacity: 1, rotate: 0 }}
             exit={{ y: -20, opacity: 0, rotate: 45 }}
-            transition={{ duration: 0.2, ease: "backOut" }}
-            className="text-lg flex items-center justify-center h-5 w-5"
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="text-[15px] flex items-center justify-center h-4 w-4"
           >
             {getIcon()}
           </motion.div>
@@ -66,7 +66,7 @@ export function ThemeToggle({
       whileHover={{ transition: spring }}
       whileTap={{ scale: 0.97, transition: springTap }}
       className={`
-        flex items-center gap-3 py-2 px-6 rounded-lg transition-colors duration-200
+        flex items-center gap-3 py-2 px-6 rounded-full transition-colors duration-200
         hover:bg-foreground/[0.03] text-(--text-muted) hover:text-foreground group relative
         ${collapsed ? 'justify-center px-0' : 'justify-start'}
       `}
@@ -76,7 +76,7 @@ export function ThemeToggle({
         {getIcon()}
       </div>
       {!collapsed && (
-        <span className="text-sm font-bold uppercase tracking-tight whitespace-nowrap">
+        <span className="text-sm font-medium whitespace-nowrap">
           {getLabel()}
         </span>
       )}
@@ -88,3 +88,4 @@ export function ThemeToggle({
     </motion.button>
   );
 }
+

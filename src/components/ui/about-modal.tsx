@@ -31,7 +31,7 @@ export function AboutModal({ isOpen, onClose, version }: AboutModalProps) {
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="relative w-full max-w-xl bg-background border border-card-border rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden"
+                            className="relative w-full max-w-xl bg-background border border-card-border rounded-[3rem] overflow-hidden"
                         >
                             <button
                                 onClick={onClose}
@@ -43,7 +43,6 @@ export function AboutModal({ isOpen, onClose, version }: AboutModalProps) {
                             <div className="p-10 lg:p-12 text-center space-y-10">
                                 <div className="space-y-6">
                                     <div className="mx-auto flex items-center justify-center relative group">
-                                        <div className="absolute inset-0 bg-indigo-500/10 rounded-[2rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <Image
                                             src="/mynd_desk_logo_light.png"
                                             alt="MyndDesk"
@@ -62,8 +61,8 @@ export function AboutModal({ isOpen, onClose, version }: AboutModalProps) {
                                     <div>
                                         <div className="flex items-center justify-center gap-2 mt-4 font-numbers">
                                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">Core Version</span>
-                                            <span className="px-3 py-0.5 rounded-full bg-indigo-500 text-white text-[10px] font-black uppercase tracking-wider shadow-sm">{version}</span>
-                                            <span className="px-3 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20 text-[10px] font-black uppercase tracking-wider">Operational</span>
+                                            <span className="px-3 py-0.5 rounded-full bg-accent text-on-accent text-[10px] font-black uppercase tracking-wider shadow-sm">{version}</span>
+                                            <span className="px-3 py-0.5 rounded-full bg-warning/10 text-warning-text dark:text-warning-text border border-warning/20 text-[10px] font-black uppercase tracking-wider">Operational</span>
                                         </div>
                                     </div>
                                 </div>
@@ -74,19 +73,19 @@ export function AboutModal({ isOpen, onClose, version }: AboutModalProps) {
 
                                 <div className="grid grid-cols-3 gap-6 pt-2">
                                     <div className="flex flex-col items-center gap-3">
-                                        <div className="w-14 h-14 rounded-2xl bg-foreground/[0.03] border border-card-border flex items-center justify-center text-indigo-400 group hover:bg-indigo-500/10 transition-colors">
+                                        <div className="w-14 h-14 rounded-2xl bg-foreground/[0.03] border border-card-border flex items-center justify-center text-accent-text group hover:bg-accent/10 transition-colors">
                                             <FiCpu className="w-6 h-6" />
                                         </div>
                                         <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Intelligent</span>
                                     </div>
                                     <div className="flex flex-col items-center gap-3">
-                                        <div className="w-14 h-14 rounded-2xl bg-foreground/[0.03] border border-card-border flex items-center justify-center text-emerald-400 group hover:bg-emerald-500/10 transition-colors">
+                                        <div className="w-14 h-14 rounded-2xl bg-foreground/[0.03] border border-card-border flex items-center justify-center text-success-text group hover:bg-success/10 transition-colors">
                                             <FiShield className="w-6 h-6" />
                                         </div>
                                         <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Secure</span>
                                     </div>
                                     <div className="flex flex-col items-center gap-3">
-                                        <div className="w-14 h-14 rounded-2xl bg-foreground/[0.03] border border-card-border flex items-center justify-center text-amber-400 group hover:bg-amber-500/10 transition-colors">
+                                        <div className="w-14 h-14 rounded-2xl bg-foreground/[0.03] border border-card-border flex items-center justify-center text-warning-text group hover:bg-warning/10 transition-colors">
                                             <FiHeart className="w-6 h-6" />
                                         </div>
                                         <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Bespoke</span>

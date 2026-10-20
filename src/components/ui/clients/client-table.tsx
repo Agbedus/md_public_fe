@@ -5,6 +5,7 @@ import { Client } from '@/types/client';
 import { FiEdit2, FiTrash2, FiMail, FiGlobe, FiUser, FiCalendar } from 'react-icons/fi';
 import { EmptyState } from '@/components/ui/empty-state';
 import { format } from 'date-fns';
+import { avatarStyle } from '@/lib/avatar-color';
 
 interface ClientTableProps {
   clients: Client[];
@@ -41,7 +42,7 @@ export default function ClientTable({ clients, onEdit, onDelete, canModifyClient
               <tr key={client.id} className="hover:bg-foreground/[0.02] transition-colors group">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold">
+                    <div style={avatarStyle(client.companyName)} className="w-8 h-8 rounded-full bg-foreground/[0.07] flex items-center justify-center text-foreground font-bold">
                       {client.companyName[0].toUpperCase()}
                     </div>
                     <span className="text-sm font-bold text-foreground uppercase tracking-tight">{client.companyName}</span>
@@ -61,7 +62,7 @@ export default function ClientTable({ clients, onEdit, onDelete, canModifyClient
                 </td>
                 <td className="px-6 py-4 text-sm text-text-muted hidden lg:table-cell">
                    {client.websiteUrl ? (
-                      <a href={client.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-indigo-400 transition-colors">
+                      <a href={client.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-accent-text transition-colors">
                         <FiGlobe className="text-text-muted/50" />
                         {client.websiteUrl.replace(/^https?:\/\//, '')}
                       </a>
@@ -86,7 +87,7 @@ export default function ClientTable({ clients, onEdit, onDelete, canModifyClient
                     </button>
                     <button
                       onClick={() => onDelete(client)}
-                      className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 border border-card-border hover:border-rose-500/20 transition-all"
+                      className="p-1.5 rounded-lg bg-danger/10 hover:bg-danger/20 text-danger-text hover:text-danger-text border border-card-border hover:border-danger/20 transition-all"
                       title="Delete"
                     >
                       <FiTrash2 size={14} />

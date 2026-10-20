@@ -74,7 +74,7 @@ export function CustomNumberInput({
   };
 
   return (
-    <div className={`flex items-center bg-foreground/[0.03] border border-foreground/5 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/50 transition-all ${className} ${disabled ? 'opacity-50' : ''}`}>
+    <div className={`flex items-center bg-foreground/[0.03] border border-foreground/5 rounded-full overflow-hidden   transition-all ${className} ${disabled ? 'opacity-50' : ''}`}>
       {name && <input type="hidden" name={name} value={value} form={form} />}
       <button
         type="button"
@@ -96,7 +96,7 @@ export function CustomNumberInput({
         step={step}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full bg-transparent border-none text-center text-foreground text-sm focus:ring-0 px-2 py-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        className="w-full bg-transparent border-none text-center text-foreground text-sm px-2 py-2 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
       
       <button

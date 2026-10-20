@@ -21,6 +21,8 @@ import { useConfirm } from "@/providers/confirmation-provider";
 import Image from "next/image";
 import { trackAction } from '@/lib/recent-actions';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { avatarStyle } from '@/lib/avatar-color';
+import { formatStatus } from '@/lib/format-status';
 
 interface TaskCardProps {
     task: Task;
@@ -258,7 +260,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                      {task.owner.avatarUrl ? (
                         <Image src={task.owner.avatarUrl} alt={task.owner.fullName || ''} width={20} height={20} className="w-5 h-5 rounded-full" />
                     ) : (
-                        <div className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground shadow-sm">
+                        <div style={avatarStyle(task.owner.fullName || task.owner.email)} className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground shadow-sm">
                             {(task.owner.fullName || task.owner.email || '?')[0].toUpperCase()}
                         </div>
                     )}
@@ -314,7 +316,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                         />
                         <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-[var(--pastel-purple)] opacity-0 peer-checked:opacity-100 transition-opacity" />
                     </div>
-                    <span className="text-[11px] font-bold text-text-muted group-hover:text-[var(--pastel-purple)] transition-colors uppercase tracking-wider">QA</span>
+                    <span className="text-[11px] font-bold text-text-muted group-hover:text-[var(--pastel-purple)] transition-colors">QA</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer group">
                     <div className="relative flex items-center">
@@ -326,7 +328,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                         />
                         <FiCheck className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-[var(--pastel-indigo)] opacity-0 peer-checked:opacity-100 transition-opacity" />
                     </div>
-                    <span className="text-[11px] font-bold text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors uppercase tracking-wider">Review</span>
+                    <span className="text-[11px] font-bold text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors">Review</span>
                 </label>
             </div>
           </td>
@@ -345,10 +347,10 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                     type="button"
                     onClick={handleSubmitClick}
                     disabled={isUpdating}
-                    className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-colors disabled:opacity-50 min-w-[30px] flex items-center justify-center hover-scale"
+                    className="p-1.5 bg-success/20 text-success-text rounded-lg hover:bg-success/30 transition-colors disabled:opacity-50 min-w-[30px] flex items-center justify-center hover-scale"
                 >
                     {isUpdating ? (
-                      <div className="h-3.5 w-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="h-3.5 w-3.5 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
                     ) : (
                       <FiCheck className="w-4 h-4" />
                     )}
@@ -356,7 +358,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                 <button
                 type="button"
                 onClick={onCancel}
-                className="p-1.5 bg-foreground/[0.03] text-text-muted rounded-lg hover:bg-foreground/[0.06] hover:text-foreground transition-colors hover-scale"
+                className="p-1.5 bg-foreground/[0.03] text-text-muted hover:bg-foreground/[0.06] hover:text-foreground transition-colors hover-scale rounded-full"
                 >
                 <FiX className="w-3 h-3" />
                 </button>
@@ -400,13 +402,13 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
         </td>
         <td className="px-6 py-4 text-xs whitespace-nowrap hidden sm:table-cell">
           <span
-            className={`px-3 py-1 inline-flex text-[11px] font-bold rounded-lg border uppercase tracking-wider whitespace-nowrap ${
-              task.priority === 'high'
-                ? 'bg-[var(--pastel-rose)]/10 text-[var(--pastel-rose)] border-[var(--pastel-rose)]/20 pulse-soft'
-                : task.priority === 'medium'
-                ? 'bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20'
-                : 'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
-            }`}
+            className={`px-3 py-1 inline-flex text-[11px] font-bold rounded-lg border capitalize whitespace-nowrap ${
+ task.priority === 'high'
+ ? 'bg-[var(--pastel-rose)]/10 text-[var(--pastel-rose)] border-[var(--pastel-rose)]/20 pulse-soft'
+ : task.priority === 'medium'
+ ? 'bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20'
+ : 'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
+ }`}
           >
             {task.priority}
           </span>
@@ -427,7 +429,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                      {task.owner.avatarUrl ? (
                         <Image src={task.owner.avatarUrl} alt={task.owner.fullName || ''} width={20} height={20} className="w-5 h-5 rounded-full" />
                     ) : (
-                        <div className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground">
+                        <div style={avatarStyle(task.owner.fullName || task.owner.email)} className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground">
                             {(task.owner.fullName || task.owner.email || '?')[0].toUpperCase()}
                         </div>
                     )}
@@ -437,7 +439,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
         </td>
         <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap hidden md:table-cell">
             {task.projectId ? (
-                <span className="text-[var(--pastel-indigo)] font-bold uppercase tracking-tight text-[11px] bg-[var(--pastel-indigo)]/5 px-2 py-0.5 rounded-md border border-[var(--pastel-indigo)]/10 whitespace-nowrap">
+                <span className="text-[var(--pastel-indigo)] font-bold capitalize tracking-tight text-[11px] bg-[var(--pastel-indigo)]/5 px-2 py-0.5 rounded-md border border-[var(--pastel-indigo)]/10 whitespace-nowrap">
                     {projects.find(p => p.id === task.projectId)?.name}
                 </span>
             ) : (
@@ -446,27 +448,27 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
         </td>
         <td className="px-6 py-4 text-xs whitespace-nowrap">
           <span
-            className={`px-3 py-1 inline-flex text-[11px] font-bold rounded-lg border uppercase tracking-wider whitespace-nowrap ${
-              task.status === 'DONE'
-                ? 'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
-                : task.status === 'IN_PROGRESS'
-                ? 'bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] border-[var(--pastel-blue)]/20'
-                : task.status === 'QA'
-                ? 'bg-[var(--pastel-purple)]/10 text-[var(--pastel-purple)] border-[var(--pastel-purple)]/20'
-                : task.status === 'REVIEW'
-                ? 'bg-[var(--pastel-indigo)]/10 text-[var(--pastel-indigo)] border-[var(--pastel-indigo)]/20'
-                : 'bg-foreground/[0.03] text-text-muted border-card-border'
-            }`}
+            className={`px-3 py-1 inline-flex text-[11px] font-bold rounded-lg border capitalize whitespace-nowrap ${
+ task.status === 'DONE'
+ ? 'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
+ : task.status === 'IN_PROGRESS'
+ ? 'bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] border-[var(--pastel-blue)]/20'
+ : task.status === 'QA'
+ ? 'bg-[var(--pastel-purple)]/10 text-[var(--pastel-purple)] border-[var(--pastel-purple)]/20'
+ : task.status === 'REVIEW'
+ ? 'bg-[var(--pastel-indigo)]/10 text-[var(--pastel-indigo)] border-[var(--pastel-indigo)]/20'
+ : 'bg-foreground/[0.03] text-text-muted border-card-border'
+ }`}
           >
-            {task.status.replace(/_/g, ' ')}
+            {formatStatus(task.status)}
           </span>
         </td>
         {/* Time Logged */}
         <td className="px-6 py-4 text-xs whitespace-nowrap">
           {hasActiveTimer ? (
             <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Active</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+              <span className="text-[11px] font-medium text-success-text dark:text-success-text">Active</span>
               {totalHours > 0 && (
                 <span className="text-[11px] text-text-muted ml-1">+{totalHours.toFixed(1)}h</span>
               )}
@@ -483,17 +485,17 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
 <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap">
             <div className="flex items-center gap-2">
                 {task.qa_required && (
-                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--pastel-purple)]/10 text-[var(--pastel-purple)] border border-[var(--pastel-purple)]/20 uppercase tracking-wider whitespace-nowrap">QA</span>
+                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--pastel-purple)]/10 text-[var(--pastel-purple)] border border-[var(--pastel-purple)]/20 whitespace-nowrap">QA</span>
                 )}
                 {task.review_required && (
-                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--pastel-indigo)]/10 text-[var(--pastel-indigo)] border border-[var(--pastel-indigo)]/20 uppercase tracking-wider whitespace-nowrap">Review</span>
+                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-[var(--pastel-indigo)]/10 text-[var(--pastel-indigo)] border border-[var(--pastel-indigo)]/20 whitespace-nowrap">Review</span>
                 )}
                 {!task.qa_required && !task.review_required && <span className="text-text-muted/50">-</span>}
             </div>
         </td>
         <td className="px-6 py-4 text-xs text-text-muted whitespace-nowrap">
             {task.depends_on_id ? (
-                <div className="flex items-center gap-2 text-[11px] font-bold text-amber-400 cursor-help" title={`Requires Task ID: ${task.depends_on_id}`}>
+                <div className="flex items-center gap-2 text-[11px] font-bold text-warning-text cursor-help" title={`Requires Task ID: ${task.depends_on_id}`}>
                     <FiClock className="w-3 h-3" />
                     <span>Req #{task.depends_on_id}</span>
                 </div>
@@ -505,7 +507,7 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
               <button
                 type="button"
                 onClick={() => startTimer(task)}
-                className={`p-1.5 rounded-lg transition-colors hover-scale ${activeTask?.id === task.id ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06] border border-transparent hover:border-card-border'}`}
+                className={`p-1.5 rounded-lg transition-colors hover-scale ${activeTask?.id === task.id ? 'bg-accent/10 text-accent-text dark:text-accent-text border border-accent/20' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06] border border-transparent hover:border-card-border'}`}
                 title="Work on Mission"
               >
                 <FiPlay className={`w-3.5 h-3.5 ${activeTask?.id === task.id ? 'fill-current' : ''}`} />
@@ -553,10 +555,10 @@ const TaskCard = React.forwardRef<HTMLTableRowElement, TaskCardProps>(({
                         setIsDeleting(false);
                     }
                 }}
-                className="p-1.5 text-text-muted hover:text-rose-500 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/20 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed hover-scale"
+                className="p-1.5 text-text-muted hover:text-danger-text hover:bg-danger/10 rounded-lg border border-transparent hover:border-danger/20 transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed hover-scale"
                 title={task.id < 0 ? "Saving..." : "Delete"}
             >
-                {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-rose-500"></div> : <FiTrash2 className="w-3.5 h-3.5" />}
+                {isDeleting ? <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-danger"></div> : <FiTrash2 className="w-3.5 h-3.5" />}
             </button>
             )}
           </div>

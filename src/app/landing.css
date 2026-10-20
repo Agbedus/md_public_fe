@@ -20,6 +20,9 @@
   --landing-control: rgb(255 255 255 / 4%);
   --landing-control-hover: rgb(255 255 255 / 9%);
   --landing-ease: cubic-bezier(.23, 1, .32, 1);
+  /* Quiet brand blue: mostly grey, a hint of accent. */
+  --landing-blue-ink: var(--accent);
+  --landing-accent-tint: color-mix(in oklab, var(--accent) 10%, transparent);
   background: var(--landing-bg);
   color: var(--landing-fg);
   font-family: var(--font-dm-sans), sans-serif;
@@ -226,13 +229,13 @@ html.light .landing-page .landing-button--quiet { background: #fff; }
 .landing-hero-intro { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .landing-display {
   max-width: 1080px;
-  font-size: clamp(3.2rem, 7vw, 7.4rem);
+  font-size: clamp(2.6rem, 5.4vw, 5.6rem);
   font-weight: 650;
   line-height: .98;
   letter-spacing: -.07em !important;
 }
 .landing-display span { display: block; }
-.landing-display-accent { color: var(--landing-highlight); }
+.landing-display-accent,
 .landing-section-accent { color: var(--landing-highlight); }
 .landing-hero-lede {
   max-width: 34rem;
@@ -350,11 +353,11 @@ html.light .landing-page .landing-button--quiet { background: #fff; }
   flex: 0 0 48px;
   place-items: center;
   border-radius: 50%;
-  background: var(--landing-bg);
-  color: var(--landing-fg);
+  background: var(--landing-accent-tint);
+  color: var(--landing-blue-ink);
   font-size: 20px;
 }
-.landing-feature-list-icon { color: var(--landing-fg); }
+.landing-feature-list-icon { color: var(--landing-blue-ink); }
 .landing-feature-card h3 {
   margin-top: 2px;
   max-width: 420px;
@@ -510,7 +513,7 @@ html.light .landing-page .landing-mobile-menu [class*="text-zinc"] { color: var(
   .landing-feature-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .landing-display { font-size: clamp(2.9rem, 12.5vw, 4.4rem); }
+  .landing-display { font-size: clamp(2.5rem, 11vw, 3.6rem); }
   .landing-hero-actions { width: 100%; flex-direction: column; }
   .landing-hero-actions .landing-button { width: 100%; }
   .landing-hero-actions .has-icon { justify-content: space-between; padding-left: 24px; }
@@ -539,3 +542,18 @@ html.light .landing-page .landing-mobile-menu [class*="text-zinc"] { color: var(
   .landing-button { transition-duration: .01ms !important; }
 }
 @media (prefers-reduced-transparency: reduce) { .landing-nav-shell { -webkit-backdrop-filter: none; backdrop-filter: none; } }
+
+/* Accent touches: the brand blue marks icons, ticks and the active answer,
+   while buttons stay ink. Status colours stay on the attendance orbit. */
+.landing-page .landing-card [class*="bg-white/"]:has(> svg),
+.landing-page .landing-card [class*="bg-indigo-400/"]:has(> svg) {
+  border-color: transparent;
+  background: var(--landing-accent-tint);
+  color: var(--landing-blue-ink);
+}
+.landing-page #pricing li svg,
+.landing-page section:last-of-type .flex-wrap svg { color: var(--landing-blue-ink); }
+.landing-page #pricing li > span:has(> svg) { background: var(--landing-accent-tint); }
+.landing-faq-item.is-active { box-shadow: inset 3px 0 0 var(--accent); }
+.landing-divider-list,
+.landing-feature-list { border-top-color: var(--accent); }

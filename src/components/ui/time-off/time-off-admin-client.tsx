@@ -1,10 +1,11 @@
 'use client';
 
+import { StatTile } from '@/components/ui/stat-tile';
 import React, { useState, useMemo, useTransition, Fragment } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiSearch, FiCheck, FiX, FiSun, FiFilter, FiCalendar, FiTrash2, FiPlus, FiLoader } from 'react-icons/fi';
+import { FiSearch, FiCheck, FiClock, FiX, FiSun, FiFilter, FiCalendar, FiTrash2, FiPlus, FiLoader } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from '@/lib/toast';
@@ -16,6 +17,8 @@ import { approveTimeOffRequest, rejectTimeOffRequest, deleteTimeOffRequest } fro
 import { useConfirm } from '@/providers/confirmation-provider';
 import TimeOffDetailModal from './time-off-detail-modal';
 import TimeOffModal from '@/components/ui/calendar/TimeOffModal';
+import { avatarStyle } from '@/lib/avatar-color';
+import { formatStatus } from '@/lib/format-status';
 
 interface TimeOffAdminClientProps {
     initialRequests: TimeOffRequest[];
@@ -23,15 +26,15 @@ interface TimeOffAdminClientProps {
 }
 
 const statusColors: Record<string, string> = {
-    pending: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    approved: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    rejected: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    pending: 'bg-warning/10 text-warning-text border-warning/20',
+    approved: 'bg-success/10 text-success-text border-success/20',
+    rejected: 'bg-danger/10 text-danger-text border-danger/20',
 };
 
 const typeColors: Record<string, string> = {
-    leave: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    leave: 'bg-accent/10 text-accent-text border-accent/20',
     off: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-    sick: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    sick: 'bg-danger/10 text-danger-text border-danger/20',
     other: 'bg-zinc-500/10 text-text-muted border-card-border',
 };
 
@@ -175,7 +178,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                 </div>
                 <button
                     onClick={() => setRequestModalOpen(true)}
-                    className="flex min-h-11 items-center gap-2 self-start rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm font-bold text-amber-600 transition-all hover:bg-amber-500/20 dark:text-amber-400 md:self-auto"
+                    className="flex min-h-11 items-center gap-2 self-start rounded-xl border border-warning/20 bg-warning/10 px-4 py-2 text-sm font-bold text-warning-text transition-all hover:bg-warning/20 dark:text-warning-text md:self-auto"
                 >
                     <FiPlus className="h-4 w-4" />
                     <span>Request Time Off</span>
@@ -183,55 +186,37 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {[
-                    { label: 'Pending', value: pending, color: 'amber' },
-                    { label: 'Approved', value: approved, color: 'emerald' },
-                    { label: 'Rejected', value: rejected, color: 'rose' },
-                ].map(({ label, value, color }) => {
-                    const colorClasses: Record<string, string> = {
-                        amber: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-                        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-                        rose: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
-                    };
-                    return (
-                        <motion.div
-                            key={label}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="rounded-2xl border border-card-border bg-card p-3 sm:p-5"
-                        >
-                            <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-xl border sm:h-9 sm:w-9 ${colorClasses[color]}`}>
-                                <FiSun className="w-4 h-4" />
-                            </div>
-                            <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">{label}</p>
-                            <p className="font-numbers text-2xl font-bold text-foreground sm:text-3xl">{value}</p>
-                        </motion.div>
-                    );
-                })}
+                    { label: 'Pending', value: pending, icon: FiClock, tone: 'var(--warning)' },
+                    { label: 'Approved', value: approved, icon: FiCheck, tone: 'var(--success)' },
+                    { label: 'Rejected', value: rejected, icon: FiX, tone: 'var(--danger)' },
+                ].map((stat) => (
+                    <StatTile key={stat.label} {...stat} />
+                ))}
             </div>
 
             {/* Filters */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div className="flex items-center gap-2 w-full overflow-x-auto pb-2 scrollbar-hide">
                     <div className="relative flex-1 min-w-[140px] max-w-sm group">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-amber-400 transition-colors w-3.5 h-3.5" />
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-warning-text transition-colors w-3.5 h-3.5" />
                         <input
                             type="text"
                             placeholder="Search by name or reason..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full h-11 pl-9 pr-10 bg-input-bg border border-card-border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 text-foreground placeholder:text-text-muted transition-colors text-sm"
+                            className="w-full h-11 pl-9 pr-10 bg-input-bg border border-card-border rounded-md focus:outline-none text-foreground placeholder:text-text-muted transition-colors text-sm"
                         />
                         {searchQuery && (
-                            <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear time-off search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98]">
+                            <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear time-off search" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.98] rounded-full">
                                 <FiX className="h-4 w-4" />
                             </button>
                         )}
                     </div>
 
                     <div className="relative group flex-shrink-0">
-                        <div className="h-11 w-36 bg-foreground/[0.03] border border-card-border rounded-xl flex items-center pl-3 relative overflow-hidden focus-within:outline-none focus-within:bg-foreground/[0.06] transition-all">
+                        <div className="h-11 w-36 bg-foreground/[0.03] border border-card-border rounded-full flex items-center pl-3 relative overflow-hidden focus-within:outline-none focus-within:bg-foreground/[0.06] transition-all">
                             <FiFilter className="text-text-muted absolute left-3 top-1/2 -translate-y-1/2 z-10 w-3.5 h-3.5" />
                             <select
                                 value={filterStatus}
@@ -247,7 +232,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                     </div>
 
                     <div className="relative group flex-shrink-0">
-                        <div className="h-11 w-36 bg-foreground/[0.03] border border-card-border rounded-xl flex items-center pl-3 relative overflow-hidden focus-within:outline-none focus-within:bg-foreground/[0.06] transition-all">
+                        <div className="h-11 w-36 bg-foreground/[0.03] border border-card-border rounded-full flex items-center pl-3 relative overflow-hidden focus-within:outline-none focus-within:bg-foreground/[0.06] transition-all">
                             <FiCalendar className="text-text-muted absolute left-3 top-1/2 -translate-y-1/2 z-10 w-3.5 h-3.5" />
                             <select
                                 value={filterType}
@@ -310,12 +295,12 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                     {user?.avatarUrl ? (
                                                         <Image src={user.avatarUrl} alt={user.fullName || ''} width={32} height={32} className="rounded-full object-cover border border-card-border" />
                                                     ) : (
-                                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
+                                                        <div style={avatarStyle(user?.fullName || user?.email)} className="w-8 h-8 rounded-full bg-foreground/[0.06] flex items-center justify-center text-foreground font-bold text-xs">
                                                             {(user?.fullName || user?.email || '?').charAt(0).toUpperCase()}
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <Link href={orgPath(`/users/${req.user_id}`)} className="text-sm font-bold text-foreground hover:text-amber-400 transition-colors" onClick={e => e.stopPropagation()}>
+                                                        <Link href={orgPath(`/users/${req.user_id}`)} className="text-sm font-bold text-foreground hover:text-warning-text transition-colors" onClick={e => e.stopPropagation()}>
                                                             {user?.fullName || 'Unknown'}
                                                         </Link>
                                                         <p className="text-[11px] text-text-muted/50">{user?.email}</p>
@@ -346,8 +331,8 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
 
                                             {/* Status */}
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusColors[req.status]}`}>
-                                                    {req.status}
+                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusColors[req.status]}`}>
+                                                    {formatStatus(req.status)}
                                                 </span>
                                             </td>
 
@@ -364,7 +349,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); handleApprove(req.id); }}
                                                                 disabled={actionLoading?.id === req.id}
-                                                                className="grid h-11 w-11 place-items-center rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50"
+                                                                className="grid h-11 w-11 place-items-center bg-success/10 hover:bg-success/20 text-success-text border border-success/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
                                                                 title="Approve"
                                                             >
                                                                 {actionLoading?.id === req.id && actionLoading.type === 'approve' ? (
@@ -376,7 +361,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); handleReject(req.id); }}
                                                                 disabled={actionLoading?.id === req.id}
-                                                                className="grid h-11 w-11 place-items-center rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50"
+                                                                className="grid h-11 w-11 place-items-center bg-danger/10 hover:bg-danger/20 text-danger-text border border-danger/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
                                                                 title="Reject"
                                                             >
                                                                 {actionLoading?.id === req.id && actionLoading.type === 'reject' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiX className="w-3.5 h-3.5" />}
@@ -386,7 +371,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                     <button
                                                         onClick={e => { e.stopPropagation(); handleDelete(req.id); }}
                                                         disabled={actionLoading?.id === req.id}
-                                                        className="grid h-11 w-11 place-items-center rounded-md hover:bg-rose-500/10 text-text-muted hover:text-rose-400 transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50"
+                                                        className="grid h-11 w-11 place-items-center hover:bg-danger/10 text-text-muted hover:text-danger-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
                                                         title="Delete"
                                                     >
                                                         {actionLoading?.id === req.id && actionLoading.type === 'delete' ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiTrash2 className="w-3.5 h-3.5" />}

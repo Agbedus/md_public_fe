@@ -20,11 +20,11 @@ const HOURS = eachHourOfInterval({ start: startOfDay(new Date()), end: endOfDay(
 function privacyClasses(p?: CalendarEvent["privacy"]) {
   switch (p) {
     case "public":
-      return { dot: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]", border: "border-emerald-500", text: "text-emerald-600 dark:text-emerald-300" };
+      return { dot: "bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]", border: "border-success", text: "text-success-text dark:text-success-text" };
     case "private":
-      return { dot: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]", border: "border-amber-500", text: "text-amber-600 dark:text-amber-300" };
+      return { dot: "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]", border: "border-warning", text: "text-warning-text dark:text-warning-text" };
     case "confidential":
-      return { dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-rose-500", text: "text-rose-600 dark:text-rose-300" };
+      return { dot: "bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-danger", text: "text-danger-text dark:text-danger-text" };
     default:
       return { dot: "bg-slate-400", border: "border-card-border", text: "text-text-secondary" };
   }
@@ -33,23 +33,23 @@ function privacyClasses(p?: CalendarEvent["privacy"]) {
 function taskClasses(status?: string) {
   switch (status) {
     case "completed":
-      return { dot: "", border: "border-emerald-500", text: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-50 dark:bg-emerald-950" };
+      return { dot: "", border: "border-success", text: "text-success-text dark:text-success-text", bg: "bg-success/10 dark:bg-success/20" };
     case "in_progress":
-      return { dot: "", border: "border-amber-500", text: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-950" };
+      return { dot: "", border: "border-warning", text: "text-warning-text dark:text-warning-text", bg: "bg-warning/10 dark:bg-warning/20" };
     default:
-      return { dot: "", border: "border-sky-500", text: "text-sky-600 dark:text-sky-300", bg: "bg-sky-50 dark:bg-sky-950" };
+      return { dot: "", border: "border-accent", text: "text-accent-text dark:text-accent-text", bg: "bg-accent/10 dark:bg-accent/20" };
   }
 }
 
 function timeOffClasses(status?: string) {
   switch (status) {
     case "approved":
-      return { dot: "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]", border: "border-emerald-500", text: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-50 dark:bg-emerald-950" };
+      return { dot: "bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]", border: "border-success", text: "text-success-text dark:text-success-text", bg: "bg-success/10 dark:bg-success/20" };
     case "rejected":
-      return { dot: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-rose-500", text: "text-rose-600 dark:text-rose-300", bg: "bg-rose-50 dark:bg-rose-950" };
+      return { dot: "bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-danger", text: "text-danger-text dark:text-danger-text", bg: "bg-danger/10 dark:bg-danger/20" };
     case "pending":
     default:
-      return { dot: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]", border: "border-amber-500", text: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-950" };
+      return { dot: "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]", border: "border-warning", text: "text-warning-text dark:text-warning-text", bg: "bg-warning/10 dark:bg-warning/20" };
   }
 }
 
@@ -99,7 +99,7 @@ export default function DayGrid({ date, events = [], onSelectDateTime, onEventCl
                   role="button"
                   tabIndex={0}
                   onClick={() => onSelectDateTime?.(slotStart)}
-                  className="h-16 border-b border-card-border hover:bg-blue-50 dark:hover:bg-white/[0.06] text-left p-1 transition-colors group/slot overflow-hidden"
+                  className="h-16 border-b border-card-border hover:bg-accent/10 dark:hover:bg-white/[0.06] text-left p-1 transition-colors group/slot overflow-hidden"
                 >
                   {slotEvents.length > 0 && (
                     <div className="h-full w-full flex gap-1 overflow-x-auto no-scrollbar">
@@ -107,7 +107,7 @@ export default function DayGrid({ date, events = [], onSelectDateTime, onEventCl
                         const isTask = e.isTask;
                         const isProject = e.isProject;
                         const isTimeOff = e.isTimeOff;
-                        const c = isProject ? { border: 'border-indigo-500', text: 'text-indigo-600 dark:text-indigo-300', dot: 'bg-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-950' } : (isTask ? { ...taskClasses(e.taskStatus), bg: 'bg-sky-50 dark:bg-sky-950' } : (isTimeOff ? timeOffClasses(e.timeOffStatus) : { ...privacyClasses(e.privacy), bg: 'bg-zinc-50 dark:bg-zinc-950' }));
+                        const c = isProject ? { border: 'border-accent', text: 'text-accent-text dark:text-accent-text', dot: 'bg-accent', bg: 'bg-accent/10 dark:bg-accent/20' } : (isTask ? { ...taskClasses(e.taskStatus), bg: 'bg-accent/10 dark:bg-accent/20' } : (isTimeOff ? timeOffClasses(e.timeOffStatus) : { ...privacyClasses(e.privacy), bg: 'bg-zinc-50 dark:bg-zinc-950' }));
                         
                         const widthPct = 100 / slotEvents.length;
                         

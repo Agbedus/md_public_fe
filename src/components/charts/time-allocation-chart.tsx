@@ -10,7 +10,7 @@ import { ChartEmpty } from './chart-empty';
 const PRIORITY_COLORS: Record<string, string> = {
   'High Priority': 'var(--pastel-rose)',
   'Medium Priority': 'var(--pastel-amber)',
-  'Low Priority': 'var(--pastel-blue)',
+  'Low Priority': 'var(--success)',
 };
 
 const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: number }> }) => {
@@ -35,7 +35,8 @@ const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: numb
           cy="50%"
           innerRadius={60}
           outerRadius={80}
-          paddingAngle={5}
+          paddingAngle={4}
+          cornerRadius={10}
           dataKey="value"
           labelLine={false}
           stroke="none"

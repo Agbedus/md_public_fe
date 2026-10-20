@@ -56,25 +56,25 @@ export type AttendancePolicy = {
 };
 
 export const presenceStateLabels: Record<PresenceState, string> = {
-    IN_OFFICE: 'In Office',
-    TEMPORARILY_OUT: 'Temporarily Out',
-    OUT_OF_OFFICE: 'Out of Office',
+    IN_OFFICE: 'In office',
+    TEMPORARILY_OUT: 'Temporarily out',
+    OUT_OF_OFFICE: 'Out of office',
 };
 
 export const attendanceStateLabels: Record<AttendanceState, string> = {
-    NOT_CLOCKED_IN: 'Not Clocked In',
-    CLOCKED_IN: 'Clocked In',
-    CLOCKED_OUT: 'Clocked Out',
+    NOT_CLOCKED_IN: 'Not clocked in',
+    CLOCKED_IN: 'Clocked in',
+    CLOCKED_OUT: 'Clocked out',
 };
 
 export const presenceStateColors: Record<PresenceState, { text: string; bg: string; dot: string }> = {
-    IN_OFFICE: { text: 'text-emerald-400', bg: 'bg-emerald-500/10', dot: 'bg-emerald-400' },
-    TEMPORARILY_OUT: { text: 'text-amber-400', bg: 'bg-amber-500/10', dot: 'bg-amber-400' },
-    OUT_OF_OFFICE: { text: 'text-rose-400', bg: 'bg-rose-500/10', dot: 'bg-rose-400' },
+    IN_OFFICE: { text: 'text-success-text', bg: 'bg-success/15', dot: 'bg-success' },
+    TEMPORARILY_OUT: { text: 'text-warning-text', bg: 'bg-warning/15', dot: 'bg-warning' },
+    OUT_OF_OFFICE: { text: 'text-danger-text', bg: 'bg-danger/12', dot: 'bg-danger' },
 };
 
 export const attendanceStateColors: Record<AttendanceState, { text: string; bg: string }> = {
-    NOT_CLOCKED_IN: { text: 'text-zinc-400', bg: 'bg-zinc-500/10' },
-    CLOCKED_IN: { text: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    CLOCKED_OUT: { text: 'text-blue-400', bg: 'bg-blue-500/10' },
+    NOT_CLOCKED_IN: { text: 'text-text-muted', bg: 'bg-foreground/[0.06]' },
+    CLOCKED_IN: { text: 'text-success-text', bg: 'bg-success/15' },
+    CLOCKED_OUT: { text: 'text-accent-text', bg: 'bg-accent/12' },
 };

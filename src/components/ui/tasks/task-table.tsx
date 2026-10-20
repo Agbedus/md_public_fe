@@ -6,6 +6,8 @@ import { useState } from "react";
 import TaskFormFields from "./task-form-fields";
 import { toast } from "@/lib/toast";
 import { useConfirm } from '@/providers/confirmation-provider';
+import { avatarStyle } from '@/lib/avatar-color';
+import { formatStatus } from '@/lib/format-status';
 
 interface TaskTableProps {
     tasks: Task[];
@@ -58,11 +60,11 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
             <table className="w-full text-left divide-y divide-card-border">
                 <thead className="bg-foreground/[0.03]">
                     <tr>
-                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Task</th>
-                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Description</th>
-                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Owner</th>
-                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-xs font-medium text-text-secondary uppercase tracking-wider">Actions</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary">Task</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary">Description</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary">Owner</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary">Status</th>
+                        <th className="px-6 py-3 text-xs font-medium text-text-secondary">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-card-border">
@@ -78,15 +80,15 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
                                             <button 
                                                 type="submit" 
                                                 disabled={isSubmitting}
-                                                className="p-2 text-green-500 hover:text-green-400 disabled:opacity-50"
+                                                className="p-2 text-success-text hover:text-success-text disabled:opacity-50"
                                             >
                                                 {isSubmitting ? (
-                                                    <div className="h-3.5 w-3.5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                                                    <div className="h-3.5 w-3.5 border-2 border-success border-t-transparent rounded-full animate-spin"></div>
                                                 ) : (
                                                     <FiCheck className="w-4 h-4" />
                                                 )}
                                             </button>
-                                            <button type="button" onClick={() => setEditingTask(null)} className="p-2 text-red-500 hover:text-red-400">
+                                            <button type="button" onClick={() => setEditingTask(null)} className="p-2 text-danger-text hover:text-danger-text">
                                                 <FiX />
                                             </button>
                                         </div>
@@ -102,7 +104,7 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
                                                 {task.owner.avatarUrl ? (
                                                     <Image src={task.owner.avatarUrl} alt={task.owner.fullName || ''} width={20} height={20} className="w-5 h-5 rounded-full" />
                                                 ) : (
-                                                    <div className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground">
+                                                    <div style={avatarStyle(task.owner.fullName || task.owner.email)} className="w-5 h-5 rounded-full bg-foreground/[0.06] flex items-center justify-center text-[11px] text-foreground">
                                                         {(task.owner.fullName || task.owner.email || '?')[0].toUpperCase()}
                                                     </div>
                                                 )}
@@ -111,8 +113,8 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
                                         ) : <span className="text-xs text-text-muted">-</span>}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full whitespace-nowrap ${task.status === 'DONE' ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'}`}>
-                                            {task.status}
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full whitespace-nowrap ${task.status === 'DONE' ? 'bg-success/20 text-success-text' : 'bg-warning/20 text-warning-text'}`}>
+                                            {formatStatus(task.status)}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -120,7 +122,7 @@ export default function TaskTable({ tasks, updateTask, deleteTask }: TaskTablePr
                                             <button onClick={() => setEditingTask(task)} className="p-2 text-text-muted hover:text-foreground">
                                                 <FiEdit />
                                             </button>
-                                            <button onClick={() => handleDelete(task)} className="p-2 text-text-muted hover:text-red-500">
+                                            <button onClick={() => handleDelete(task)} className="p-2 text-text-muted hover:text-danger-text">
                                                 <FiTrash2 />
                                             </button>
                                         </div>

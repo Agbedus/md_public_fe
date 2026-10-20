@@ -196,21 +196,21 @@ export default function ClientsPageClient({
             placeholder="Search clients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none focus:border-card-border text-foreground placeholder:text-text-muted/50 transition-all text-sm"
+            className="w-full h-11 pl-10 pr-4 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none text-foreground placeholder:text-text-muted/50 transition-all text-sm"
           />
         </div>
 
-        <div className="flex bg-foreground/[0.03] p-1 rounded-xl border border-card-border h-9 lg:h-11 flex-shrink-0">
+        <div className="flex bg-foreground/[0.05] p-1 rounded-full h-9 lg:h-11 flex-shrink-0">
           <button
             onClick={() => setViewMode("grid")}
-            className="relative flex items-center justify-center h-full px-2 rounded-lg text-text-muted hover:text-foreground transition-colors duration-200"
+            className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             title="Grid view"
           >
             {viewMode === "grid" && (
               <motion.div
                 layoutId="toggle-active"
-                transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                className="absolute inset-0 bg-card rounded-lg border border-card-border"
+                transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                className="tab-pill-on absolute inset-0 rounded-full bg-ink"
               />
             )}
             <span className="relative z-10">
@@ -219,14 +219,14 @@ export default function ClientsPageClient({
           </button>
           <button
             onClick={() => setViewMode("table")}
-            className="relative flex items-center justify-center h-full px-2 rounded-lg text-text-muted hover:text-foreground transition-colors duration-200"
+            className="relative has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
             title="Table view"
           >
             {viewMode === "table" && (
               <motion.div
                 layoutId="toggle-active"
-                transition={{ type: "spring", stiffness: 500, damping: 28 }}
-                className="absolute inset-0 bg-card rounded-lg border border-card-border"
+                transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                className="tab-pill-on absolute inset-0 rounded-full bg-ink"
               />
             )}
             <span className="relative z-10">
@@ -249,7 +249,7 @@ export default function ClientsPageClient({
             />
           ))}
           {filteredClients.length === 0 && (
-            <div className="col-span-full py-20 text-center glass rounded-2xl border border-card-border bg-card/50">
+            <div className="col-span-full py-20 text-center rounded-[28px] border border-card-border bg-card">
               <FiUser className="w-12 h-12 text-text-muted/20 mx-auto mb-4" />
               <p className="text-text-muted font-medium">
                 No clients found matching your search.
@@ -273,7 +273,7 @@ export default function ClientsPageClient({
             className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md transition-opacity"
             onClick={() => setIsCreateModalOpen(false)}
           />
-          <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-lg overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
+          <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-lg overflow-hidden">
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-white dark:bg-white/[0.03]">
               <h2 className="text-xl font-black text-foreground uppercase tracking-tight italic">
                 Add client
@@ -294,7 +294,7 @@ export default function ClientsPageClient({
                   type="text"
                   name="companyName"
                   required
-                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                   placeholder="Acme Corp"
                 />
               </div>
@@ -305,7 +305,7 @@ export default function ClientsPageClient({
                 <input
                   type="text"
                   name="contactPersonName"
-                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                   placeholder="Jane Smith"
                 />
               </div>
@@ -316,7 +316,7 @@ export default function ClientsPageClient({
                 <input
                   type="email"
                   name="contactEmail"
-                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                   placeholder="contact@acme.com"
                 />
               </div>
@@ -327,7 +327,7 @@ export default function ClientsPageClient({
                 <input
                   type="url"
                   name="websiteUrl"
-                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                   placeholder="https://acme.com"
                 />
               </div>
@@ -342,7 +342,7 @@ export default function ClientsPageClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-on-ink bg-ink hover:bg-ink/85 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                  className="md-btn md-btn-primary md-btn-sm"
                   title="Create Client"
                 >
                   <FiCheck className="w-4 h-4" />
@@ -361,7 +361,7 @@ export default function ClientsPageClient({
             className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md transition-opacity"
             onClick={() => setEditingClient(null)}
           />
-          <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-lg overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
+          <div className="relative bg-background border border-card-border rounded-3xl w-full max-w-lg overflow-hidden">
             <div className="p-6 border-b border-card-border flex justify-between items-center bg-white dark:bg-white/[0.03]">
               <h2 className="text-xl font-black text-foreground uppercase tracking-tight italic">
                 Edit client
@@ -383,7 +383,7 @@ export default function ClientsPageClient({
                   name="companyName"
                   required
                   defaultValue={editingClient.companyName}
-                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                 />
               </div>
               <div>
@@ -394,7 +394,7 @@ export default function ClientsPageClient({
                   type="text"
                   name="contactPersonName"
                   defaultValue={editingClient.contactPersonName || ""}
-                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                 />
               </div>
               <div>
@@ -405,7 +405,7 @@ export default function ClientsPageClient({
                   type="email"
                   name="contactEmail"
                   defaultValue={editingClient.contactEmail || ""}
-                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                 />
               </div>
               <div>
@@ -416,21 +416,21 @@ export default function ClientsPageClient({
                   type="url"
                   name="websiteUrl"
                   defaultValue={editingClient.websiteUrl || ""}
-                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none focus:border-indigo-500/30 transition-all font-bold"
+                  className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-4 py-3 text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
                 />
               </div>
               <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-card-border">
                 <button
                   type="button"
                   onClick={() => setEditingClient(null)}
-                  className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-foreground bg-white dark:bg-white/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
+                  className="md-btn md-btn-secondary md-btn-sm"
                   title="Cancel"
                 >
                   Discard
                 </button>
                 <button
                   type="submit"
-                  className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                  className="md-btn md-btn-primary md-btn-sm"
                   title="Save Changes"
                 >
                   <FiCheck className="w-4 h-4" />

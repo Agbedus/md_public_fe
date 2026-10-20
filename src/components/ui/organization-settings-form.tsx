@@ -14,7 +14,7 @@ interface OrganizationSettingsFormProps {
   organization: OrganizationSettings;
 }
 
-const inputClass = "w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] focus:border-emerald-500/40 transition-all";
+const inputClass = "w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all";
 const labelClass = "block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5";
 
 /** Neutral icon chip — dark/gray with a plain foreground-colored icon, matching
@@ -319,7 +319,7 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
                 <button
                   type="button"
                   onClick={copyInviteCode}
-                  className="shrink-0 flex items-center gap-1.5 text-foreground hover:text-emerald-500 transition-colors"
+                  className="shrink-0 flex items-center gap-1.5 text-foreground hover:text-success-text transition-colors"
                 >
                   <FiCopy size={13} />
                   Copy
@@ -363,11 +363,11 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
           type="submit"
           disabled={isSaving || !isDirty}
           aria-busy={isSaving}
-          className="flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+          className="md-btn md-btn-primary"
         >
           {isSaving ? (
             <>
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-emerald-500"></div>
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-success"></div>
               Saving...
             </>
           ) : (

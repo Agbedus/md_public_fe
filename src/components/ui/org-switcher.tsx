@@ -34,6 +34,8 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
     preferredSide: 'top',
     preferredAlign: 'start',
     gap: 4,
+    // Same width as the switcher button; the collapsed rail is too narrow for that.
+    matchAnchorWidth: !collapsed,
   });
 
   useEffect(() => {
@@ -73,9 +75,9 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
         aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         disabled={switching !== null}
-        className={`flex min-h-11 items-center w-full py-2 rounded-xl bg-card text-text-muted hover:text-foreground transition-[transform,color,background-color] duration-150 active:scale-[0.98] ${
-          collapsed ? 'justify-center px-0' : 'justify-between px-6'
-        }`}
+        className={`flex min-h-11 items-center w-full py-2 rounded-full bg-card text-text-muted hover:text-foreground transition-[transform,color,background-color] duration-150 active:scale-[0.98] ${
+ collapsed ? 'justify-center px-0' : 'justify-between px-6'
+ }`}
       >
         <div className="flex items-center overflow-hidden">
           <OrganizationAvatar name={currentOrg?.name || '?'} logoUrl={currentOrg?.logo_url} />
@@ -100,26 +102,26 @@ export default function OrgSwitcher({ organizations, currentOrgId, collapsed, co
             role="dialog"
             aria-label="Switch organization"
             onKeyDown={(event) => { if (event.key === 'Escape') { setIsOpen(false); dropdownRef.current?.querySelector('button')?.focus(); } }}
-            className={`z-[9999] w-[calc(16rem-1rem)] max-w-[calc(100vw-1.5rem)] rounded-xl border border-sidebar-border bg-card shadow-lg overflow-y-auto ${menuSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
+            className={`z-[9999] ${collapsed ? 'w-[calc(16rem-1rem)]' : ''} max-w-[calc(100vw-1.5rem)] rounded-3xl border border-sidebar-border bg-card shadow-lg overflow-y-auto ${menuSide === 'top' ? 'origin-bottom-left' : 'origin-top-left'}`}
           >
             {organizations.map((org) => (
               <button
                 key={org.id}
                 onClick={() => handleSwitch(org.id)}
-                className={`flex min-h-11 items-center w-full px-3 py-2 text-sm transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] ${
-                  org.id === currentOrgId ? 'text-foreground font-medium' : 'text-text-muted'
-                }`}
+                className={`flex min-h-10 items-center w-full px-3 py-1.5 text-sm transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.05] active:scale-[0.98] ${
+ org.id === currentOrgId ? 'text-foreground font-medium' : 'text-text-muted'
+ }`}
               >
                 <OrganizationAvatar name={org.name} logoUrl={org.logo_url} />
                 <span className="ml-2 truncate">{org.name}</span>
                 {org.id === currentOrgId && (
-                  <FiCheck size={14} className="ml-auto text-emerald-500 flex-shrink-0" />
+                  <FiCheck size={14} className="ml-auto text-accent-text flex-shrink-0" />
                 )}
               </button>
             ))}
             <div className="border-t border-sidebar-border p-1.5">
-              <button onClick={() => { setIsOpen(false); router.push('/create-workspace'); }} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-text-muted transition hover:bg-foreground/[0.05] hover:text-foreground">
-                <span className="flex h-5 w-5 items-center justify-center rounded bg-emerald-500/10 text-emerald-500"><FiPlus size={13} /></span>
+              <button onClick={() => { setIsOpen(false); router.push('/create-workspace'); }} className="flex w-full items-center gap-2 rounded-full px-2 py-2 text-sm text-text-muted transition hover:bg-foreground/[0.05] hover:text-foreground">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/12 text-accent-text"><FiPlus size={13} /></span>
                 Create workspace
               </button>
             </div>

@@ -89,42 +89,38 @@ export const ConfirmationProvider: React.FC<{ children: ReactNode }> = ({ childr
                             aria-modal="true"
                             aria-labelledby="confirmation-title"
                             aria-describedby="confirmation-message"
-                            className="relative w-full max-w-[340px] bg-background border border-card-border rounded-2xl shadow-xl overflow-hidden pointer-events-auto"
+                            className="relative w-full max-w-[360px] bg-background border border-card-border rounded-[28px] overflow-hidden pointer-events-auto"
                         >
-                            <div className="p-5">
+                            <div className="p-6">
                                 <div className="flex items-start gap-3">
-                                    <div className={`p-2 rounded-xl border shrink-0 ${
-                                        options.type === 'danger' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-500 border-rose-500/20' :
-                                        options.type === 'info' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' :
-                                        'bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20'
+                                    <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${
+                                        options.type === 'danger' ? 'bg-danger/12 text-danger-text' :
+                                        options.type === 'info' ? 'bg-accent/12 text-accent-text' :
+                                        'bg-warning/15 text-warning-text'
                                     }`}>
                                         {options.type === 'info' ? <FiInfo size={16} /> : <FiAlertTriangle size={16} />}
                                     </div>
                                     <div className="min-w-0 pt-0.5">
-                                        <h3 id="confirmation-title" className="text-sm font-semibold text-foreground tracking-tight leading-snug">
+                                        <h3 id="confirmation-title" className="text-[15px] font-semibold text-foreground leading-snug">
                                             {options.title}
                                         </h3>
-                                        <p id="confirmation-message" className="text-xs text-text-muted leading-relaxed mt-1">
+                                        <p id="confirmation-message" className="text-sm text-text-muted leading-relaxed mt-1">
                                             {options.message}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 mt-4">
+                                <div className="flex items-center gap-2 mt-6">
                                     <button
                                         ref={cancelButtonRef}
                                         onClick={handleCancel}
-                                        className="flex min-h-11 flex-1 items-center justify-center rounded-lg border border-card-border bg-foreground/[0.05] px-3 text-xs font-medium text-text-muted transition-[transform,color,background-color] duration-150 hover:bg-foreground/[0.08] hover:text-foreground active:scale-[0.98]"
+                                        className="md-btn md-btn-secondary flex-1"
                                     >
                                         {options.cancelText || 'Cancel'}
                                     </button>
                                     <button
                                         onClick={handleConfirm}
-                                        className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 ${
-                                            options.type === 'danger' ? 'bg-rose-500 hover:bg-rose-600' :
-                                            options.type === 'info' ? 'bg-blue-500 hover:bg-blue-600' :
-                                            'bg-amber-500 hover:bg-amber-600'
-                                        } text-white text-xs font-semibold transition-[transform,background-color] duration-150 active:scale-[0.98]`}
+                                        className={`md-btn flex-1 ${options.type === 'danger' ? 'md-btn-danger' : 'md-btn-primary'}`}
                                     >
                                         {options.type === 'danger' && <FiTrash2 className="h-3.5 w-3.5 shrink-0" />}
                                         {options.confirmText || (options.type === 'danger' ? 'Delete' : 'Confirm')}

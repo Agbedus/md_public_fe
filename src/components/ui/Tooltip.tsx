@@ -55,10 +55,10 @@ export function Tooltip({ content, children, position = 'top', className = "", s
   }, [show, updatePosition]);
 
   const arrowClass = {
-    top: "bottom-0 left-1/2 -translate-x-1/2 translate-y-full border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-white dark:border-t-zinc-900",
-    bottom: "top-0 left-1/2 -translate-x-1/2 -translate-y-full border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-white dark:border-b-zinc-900",
-    left: "right-0 top-1/2 -translate-y-1/2 translate-x-full border-t-[6px] border-b-[6px] border-l-[6px] border-t-transparent border-b-transparent border-l-white dark:border-l-zinc-900",
-    right: "left-0 top-1/2 -translate-y-1/2 -translate-x-full border-t-[6px] border-b-[6px] border-r-[6px] border-t-transparent border-b-transparent border-r-white dark:border-r-zinc-900",
+    top: "bottom-0 left-1/2 -translate-x-1/2 translate-y-full border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-[var(--tooltip-bg)]",
+    bottom: "top-0 left-1/2 -translate-x-1/2 -translate-y-full border-l-[6px] border-r-[6px] border-b-[6px] border-l-transparent border-r-transparent border-b-[var(--tooltip-bg)]",
+    left: "right-0 top-1/2 -translate-y-1/2 translate-x-full border-t-[6px] border-b-[6px] border-l-[6px] border-t-transparent border-b-transparent border-l-[var(--tooltip-bg)]",
+    right: "left-0 top-1/2 -translate-y-1/2 -translate-x-full border-t-[6px] border-b-[6px] border-r-[6px] border-t-transparent border-b-transparent border-r-[var(--tooltip-bg)]",
   }[position];
 
   const transformOrigin = {
@@ -90,7 +90,7 @@ export function Tooltip({ content, children, position = 'top', className = "", s
             transform: `translate(${coords.left}px, ${coords.top}px) ${transformOrigin}`,
           }}
         >
-          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-[0_4px_24px_-8px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_24px_-8px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.04)] p-3 min-w-[180px] max-w-[260px]">
+          <div className="relative min-w-[180px] max-w-[260px] rounded-[20px] border border-[var(--tooltip-border)] bg-[var(--tooltip-bg)] p-3 text-foreground">
             {content}
             <div className={`absolute ${arrowClass}`} />
           </div>

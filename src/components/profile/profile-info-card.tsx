@@ -8,7 +8,7 @@ import { orgRoleToneClasses } from '@/types/organization';
 import { toast } from '@/lib/toast';
 
 const inputClass =
-  'w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] focus:border-emerald-500/40 transition-all';
+  'w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all';
 const labelClass = 'block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1.5 ml-0.5 text-left';
 
 interface ProfileInfoCardProps {
@@ -147,7 +147,7 @@ export function ProfileInfoCard({
             {shownAvatar ? (
               <Image src={shownAvatar} alt={displayName} fill className="object-cover" />
             ) : (
-              <span className="w-full h-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-4xl lg:text-5xl font-bold">
+              <span className="w-full h-full bg-foreground/[0.06] flex items-center justify-center text-foreground text-4xl lg:text-5xl font-bold">
                 {initial}
               </span>
             )}
@@ -160,11 +160,11 @@ export function ProfileInfoCard({
             <Image src={shownAvatar} alt={displayName} fill className="rounded-full object-cover border-4 border-foreground/5" />
           </div>
         ) : (
-          <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-4xl lg:text-5xl font-bold border-4 border-foreground/5">
+          <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-foreground/[0.06] flex items-center justify-center text-foreground text-4xl lg:text-5xl font-bold border-4 border-foreground/5">
             {initial}
           </div>
         )}
-        {!isEditing && <div className="absolute bottom-2 right-2 p-2 rounded-full bg-emerald-500 border-4 border-background" />}
+        {!isEditing && <div className="absolute bottom-2 right-2 p-2 rounded-full bg-success border-4 border-background" />}
         <input ref={fileRef} type="file" accept="image/*" onChange={handlePick} className="hidden" />
       </div>
 
@@ -256,7 +256,7 @@ export function ProfileInfoCard({
             onClick={handleSave}
             disabled={!isDirty || isSaving}
             aria-busy={isSaving}
-            className="flex min-h-11 flex-1 items-center justify-center gap-2 py-2.5 lg:py-3 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 transition-[transform,opacity,background-color] duration-150 active:scale-[0.98] text-sm lg:text-base disabled:opacity-40 disabled:cursor-not-allowed"
+            className="md-btn md-btn-primary flex-1 lg:py-3 lg:text-base"
           >
             {isSaving ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiCheck className="w-4 h-4" />}
             {isSaving ? 'Saving...' : 'Save changes'}
