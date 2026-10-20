@@ -272,7 +272,7 @@ export function InviteMemberModal({
                         type="button"
                         onClick={handleSend}
                         disabled={emails.length === 0}
-                        className="mt-5 flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-md bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-5 flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-on-ink transition hover:bg-emerald-500/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <FiSend className="h-4 w-4" />
                         Send {emails.length || ''} invitation{emails.length === 1 ? '' : 's'}
@@ -348,7 +348,7 @@ export function InviteMemberModal({
                           <button
                             type="button"
                             onClick={handleClose}
-                            className="min-h-11 flex-1 rounded-md bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500/90 active:scale-[0.98]"
+                            className="min-h-11 flex-1 rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-on-ink transition hover:bg-emerald-500/90 active:scale-[0.98]"
                           >
                             Done
                           </button>

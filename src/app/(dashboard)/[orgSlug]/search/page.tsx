@@ -70,7 +70,7 @@ export default function SearchPage() {
         <button
           type="submit"
           disabled={isPending || !query.trim()}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-4 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-500/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-4 rounded-lg bg-ink text-on-ink text-xs font-semibold hover:bg-emerald-500/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         >
           {isPending ? '...' : 'Search'}
         </button>

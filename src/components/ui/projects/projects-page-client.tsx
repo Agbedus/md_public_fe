@@ -640,7 +640,7 @@ export default function ProjectsPageClient({
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-2"
+                  className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-on-ink bg-ink hover:bg-ink/85 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-2"
                 >
                   {isCreating ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

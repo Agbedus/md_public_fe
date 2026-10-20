@@ -481,3 +481,242 @@ body {
     touch-action: manipulation;
   }
 }
+
+/* ══ MyndDesk palette (trial) ═════════════════════════════════════════
+   Ink is the primary, one blue accent marks focus, links and selection,
+   and status colours only ever mean status:
+     success = green · warning = yellow · danger = rose/red
+     priority-high = orange (task priority only; medium/low stay neutral)
+
+   Each role has three tokens: the bright fill (`--warning`), a text tone
+   (`--warning-text`) and the ink for icons on the fill (`--on-warning`).
+   Dark is the default (:root/.dark), .light overrides, matching above.
+
+   To try it across the old pages without touching their markup, the legacy
+   Tailwind hue scales and the --pastel-* variables are pointed at these
+   roles below. Remove this block to return to the previous palette. */
+
+:root,
+.dark {
+  --ink: #f7f7f7;            --on-ink: #0a0a0b;
+  --accent: #4d9cff;         --accent-text: #8ec0ff;         --on-accent: #0a0a0b;
+  --success: #30e3a0;        --success-text: #5df2b6;        --on-success: #0a0a0b;
+  --warning: #ffd60a;        --warning-text: #ffcc00;        --on-warning: #0a0a0b;
+  --danger: #ff8fa0;         --danger-text: #ff453a;         --on-danger: #0a0a0b;
+  --priority-high: #ffb870;  --priority-high-text: #ff9f0a;  --on-priority-high: #0a0a0b;
+
+  --pastel-indigo: var(--accent-text);
+  --pastel-blue: var(--accent-text);
+  --pastel-purple: var(--accent-text);
+  --pastel-teal: var(--accent-text);
+  --pastel-emerald: var(--success-text);
+  --pastel-amber: var(--warning-text);
+  --pastel-yellow: var(--warning);
+  --pastel-rose: var(--danger-text);
+}
+
+.light {
+  --ink: #111113;            --on-ink: #ffffff;
+  --accent: #1a7dff;         --accent-text: #0058cc;         --on-accent: #ffffff;
+  --success: #10d48e;        --success-text: #047857;        --on-success: #0a0a0b;
+  --warning: #ffd60a;        --warning-text: #d4a700;        --on-warning: #0a0a0b;
+  --danger: #ff8fa0;         --danger-text: #ff2d3d;         --on-danger: #0a0a0b;
+  --priority-high: #ffb870;  --priority-high-text: #ff7a00;  --on-priority-high: #0a0a0b;
+
+  --pastel-indigo: var(--accent-text);
+  --pastel-blue: var(--accent-text);
+  --pastel-purple: var(--accent-text);
+  --pastel-teal: var(--accent-text);
+  --pastel-emerald: var(--success-text);
+  --pastel-amber: var(--warning-text);
+  --pastel-yellow: var(--warning);
+  --pastel-rose: var(--danger-text);
+}
+
+@theme {
+  /* Role utilities: bg-ink text-on-ink, text-accent-text, bg-warning/15 … */
+  --color-ink: var(--ink);
+  --color-on-ink: var(--on-ink);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger-text);
+  --color-on-danger: var(--on-danger);
+  --color-warning: var(--warning);
+  --color-warning-text: var(--warning-text);
+  --color-on-warning: var(--on-warning);
+  --color-priority-high: var(--priority-high);
+  --color-priority-high-text: var(--priority-high-text);
+  --color-on-priority-high: var(--on-priority-high);
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-on-success: var(--on-success);
+
+  /* Legacy hue scales → roles. 500 is the bright fill, 600 the text tone. */
+  --color-indigo-50: color-mix(in oklab, var(--accent) 10%, white);
+  --color-indigo-100: color-mix(in oklab, var(--accent) 18%, white);
+  --color-indigo-200: color-mix(in oklab, var(--accent) 32%, white);
+  --color-indigo-300: color-mix(in oklab, var(--accent) 55%, white);
+  --color-indigo-400: color-mix(in oklab, var(--accent) 80%, white);
+  --color-indigo-500: var(--accent);
+  --color-indigo-600: var(--accent-text);
+  --color-indigo-700: color-mix(in oklab, var(--accent-text) 85%, black);
+  --color-indigo-800: color-mix(in oklab, var(--accent-text) 70%, black);
+  --color-indigo-900: color-mix(in oklab, var(--accent-text) 55%, black);
+  --color-indigo-950: color-mix(in oklab, var(--accent-text) 40%, black);
+  --color-blue-50: color-mix(in oklab, var(--accent) 10%, white);
+  --color-blue-100: color-mix(in oklab, var(--accent) 18%, white);
+  --color-blue-200: color-mix(in oklab, var(--accent) 32%, white);
+  --color-blue-300: color-mix(in oklab, var(--accent) 55%, white);
+  --color-blue-400: color-mix(in oklab, var(--accent) 80%, white);
+  --color-blue-500: var(--accent);
+  --color-blue-600: var(--accent-text);
+  --color-blue-700: color-mix(in oklab, var(--accent-text) 85%, black);
+  --color-blue-800: color-mix(in oklab, var(--accent-text) 70%, black);
+  --color-blue-900: color-mix(in oklab, var(--accent-text) 55%, black);
+  --color-blue-950: color-mix(in oklab, var(--accent-text) 40%, black);
+  --color-sky-50: color-mix(in oklab, var(--accent) 10%, white);
+  --color-sky-100: color-mix(in oklab, var(--accent) 18%, white);
+  --color-sky-200: color-mix(in oklab, var(--accent) 32%, white);
+  --color-sky-300: color-mix(in oklab, var(--accent) 55%, white);
+  --color-sky-400: color-mix(in oklab, var(--accent) 80%, white);
+  --color-sky-500: var(--accent);
+  --color-sky-600: var(--accent-text);
+  --color-sky-700: color-mix(in oklab, var(--accent-text) 85%, black);
+  --color-sky-800: color-mix(in oklab, var(--accent-text) 70%, black);
+  --color-sky-900: color-mix(in oklab, var(--accent-text) 55%, black);
+  --color-sky-950: color-mix(in oklab, var(--accent-text) 40%, black);
+  --color-violet-50: color-mix(in oklab, var(--accent) 10%, white);
+  --color-violet-100: color-mix(in oklab, var(--accent) 18%, white);
+  --color-violet-200: color-mix(in oklab, var(--accent) 32%, white);
+  --color-violet-300: color-mix(in oklab, var(--accent) 55%, white);
+  --color-violet-400: color-mix(in oklab, var(--accent) 80%, white);
+  --color-violet-500: var(--accent);
+  --color-violet-600: var(--accent-text);
+  --color-violet-700: color-mix(in oklab, var(--accent-text) 85%, black);
+  --color-violet-800: color-mix(in oklab, var(--accent-text) 70%, black);
+  --color-violet-900: color-mix(in oklab, var(--accent-text) 55%, black);
+  --color-violet-950: color-mix(in oklab, var(--accent-text) 40%, black);
+  --color-purple-50: color-mix(in oklab, var(--accent) 10%, white);
+  --color-purple-100: color-mix(in oklab, var(--accent) 18%, white);
+  --color-purple-200: color-mix(in oklab, var(--accent) 32%, white);
+  --color-purple-300: color-mix(in oklab, var(--accent) 55%, white);
+  --color-purple-400: color-mix(in oklab, var(--accent) 80%, white);
+  --color-purple-500: var(--accent);
+  --color-purple-600: var(--accent-text);
+  --color-purple-700: color-mix(in oklab, var(--accent-text) 85%, black);
+  --color-purple-800: color-mix(in oklab, var(--accent-text) 70%, black);
+  --color-purple-900: color-mix(in oklab, var(--accent-text) 55%, black);
+  --color-purple-950: color-mix(in oklab, var(--accent-text) 40%, black);
+  --color-teal-50: color-mix(in oklab, var(--accent) 10%, white);
+  --color-teal-100: color-mix(in oklab, var(--accent) 18%, white);
+  --color-teal-200: color-mix(in oklab, var(--accent) 32%, white);
+  --color-teal-300: color-mix(in oklab, var(--accent) 55%, white);
+  --color-teal-400: color-mix(in oklab, var(--accent) 80%, white);
+  --color-teal-500: var(--accent);
+  --color-teal-600: var(--accent-text);
+  --color-teal-700: color-mix(in oklab, var(--accent-text) 85%, black);
+  --color-teal-800: color-mix(in oklab, var(--accent-text) 70%, black);
+  --color-teal-900: color-mix(in oklab, var(--accent-text) 55%, black);
+  --color-teal-950: color-mix(in oklab, var(--accent-text) 40%, black);
+  --color-cyan-50: color-mix(in oklab, var(--accent) 10%, white);
+  --color-cyan-100: color-mix(in oklab, var(--accent) 18%, white);
+  --color-cyan-200: color-mix(in oklab, var(--accent) 32%, white);
+  --color-cyan-300: color-mix(in oklab, var(--accent) 55%, white);
+  --color-cyan-400: color-mix(in oklab, var(--accent) 80%, white);
+  --color-cyan-500: var(--accent);
+  --color-cyan-600: var(--accent-text);
+  --color-cyan-700: color-mix(in oklab, var(--accent-text) 85%, black);
+  --color-cyan-800: color-mix(in oklab, var(--accent-text) 70%, black);
+  --color-cyan-900: color-mix(in oklab, var(--accent-text) 55%, black);
+  --color-cyan-950: color-mix(in oklab, var(--accent-text) 40%, black);
+  --color-rose-50: color-mix(in oklab, var(--danger) 10%, white);
+  --color-rose-100: color-mix(in oklab, var(--danger) 18%, white);
+  --color-rose-200: color-mix(in oklab, var(--danger) 32%, white);
+  --color-rose-300: color-mix(in oklab, var(--danger) 55%, white);
+  --color-rose-400: color-mix(in oklab, var(--danger) 80%, white);
+  --color-rose-500: var(--danger);
+  --color-rose-600: var(--danger-text);
+  --color-rose-700: color-mix(in oklab, var(--danger-text) 85%, black);
+  --color-rose-800: color-mix(in oklab, var(--danger-text) 70%, black);
+  --color-rose-900: color-mix(in oklab, var(--danger-text) 55%, black);
+  --color-rose-950: color-mix(in oklab, var(--danger-text) 40%, black);
+  --color-red-50: color-mix(in oklab, var(--danger) 10%, white);
+  --color-red-100: color-mix(in oklab, var(--danger) 18%, white);
+  --color-red-200: color-mix(in oklab, var(--danger) 32%, white);
+  --color-red-300: color-mix(in oklab, var(--danger) 55%, white);
+  --color-red-400: color-mix(in oklab, var(--danger) 80%, white);
+  --color-red-500: var(--danger);
+  --color-red-600: var(--danger-text);
+  --color-red-700: color-mix(in oklab, var(--danger-text) 85%, black);
+  --color-red-800: color-mix(in oklab, var(--danger-text) 70%, black);
+  --color-red-900: color-mix(in oklab, var(--danger-text) 55%, black);
+  --color-red-950: color-mix(in oklab, var(--danger-text) 40%, black);
+  --color-pink-50: color-mix(in oklab, var(--danger) 10%, white);
+  --color-pink-100: color-mix(in oklab, var(--danger) 18%, white);
+  --color-pink-200: color-mix(in oklab, var(--danger) 32%, white);
+  --color-pink-300: color-mix(in oklab, var(--danger) 55%, white);
+  --color-pink-400: color-mix(in oklab, var(--danger) 80%, white);
+  --color-pink-500: var(--danger);
+  --color-pink-600: var(--danger-text);
+  --color-pink-700: color-mix(in oklab, var(--danger-text) 85%, black);
+  --color-pink-800: color-mix(in oklab, var(--danger-text) 70%, black);
+  --color-pink-900: color-mix(in oklab, var(--danger-text) 55%, black);
+  --color-pink-950: color-mix(in oklab, var(--danger-text) 40%, black);
+  --color-amber-50: color-mix(in oklab, var(--warning) 10%, white);
+  --color-amber-100: color-mix(in oklab, var(--warning) 18%, white);
+  --color-amber-200: color-mix(in oklab, var(--warning) 32%, white);
+  --color-amber-300: color-mix(in oklab, var(--warning) 55%, white);
+  --color-amber-400: color-mix(in oklab, var(--warning) 80%, white);
+  --color-amber-500: var(--warning);
+  --color-amber-600: var(--warning-text);
+  --color-amber-700: color-mix(in oklab, var(--warning-text) 85%, black);
+  --color-amber-800: color-mix(in oklab, var(--warning-text) 70%, black);
+  --color-amber-900: color-mix(in oklab, var(--warning-text) 55%, black);
+  --color-amber-950: color-mix(in oklab, var(--warning-text) 40%, black);
+  --color-yellow-50: color-mix(in oklab, var(--warning) 10%, white);
+  --color-yellow-100: color-mix(in oklab, var(--warning) 18%, white);
+  --color-yellow-200: color-mix(in oklab, var(--warning) 32%, white);
+  --color-yellow-300: color-mix(in oklab, var(--warning) 55%, white);
+  --color-yellow-400: color-mix(in oklab, var(--warning) 80%, white);
+  --color-yellow-500: var(--warning);
+  --color-yellow-600: var(--warning-text);
+  --color-yellow-700: color-mix(in oklab, var(--warning-text) 85%, black);
+  --color-yellow-800: color-mix(in oklab, var(--warning-text) 70%, black);
+  --color-yellow-900: color-mix(in oklab, var(--warning-text) 55%, black);
+  --color-yellow-950: color-mix(in oklab, var(--warning-text) 40%, black);
+  --color-orange-50: color-mix(in oklab, var(--priority-high) 10%, white);
+  --color-orange-100: color-mix(in oklab, var(--priority-high) 18%, white);
+  --color-orange-200: color-mix(in oklab, var(--priority-high) 32%, white);
+  --color-orange-300: color-mix(in oklab, var(--priority-high) 55%, white);
+  --color-orange-400: color-mix(in oklab, var(--priority-high) 80%, white);
+  --color-orange-500: var(--priority-high);
+  --color-orange-600: var(--priority-high-text);
+  --color-orange-700: color-mix(in oklab, var(--priority-high-text) 85%, black);
+  --color-orange-800: color-mix(in oklab, var(--priority-high-text) 70%, black);
+  --color-orange-900: color-mix(in oklab, var(--priority-high-text) 55%, black);
+  --color-orange-950: color-mix(in oklab, var(--priority-high-text) 40%, black);
+  --color-emerald-50: color-mix(in oklab, var(--success) 10%, white);
+  --color-emerald-100: color-mix(in oklab, var(--success) 18%, white);
+  --color-emerald-200: color-mix(in oklab, var(--success) 32%, white);
+  --color-emerald-300: color-mix(in oklab, var(--success) 55%, white);
+  --color-emerald-400: color-mix(in oklab, var(--success) 80%, white);
+  --color-emerald-500: var(--success);
+  --color-emerald-600: var(--success-text);
+  --color-emerald-700: color-mix(in oklab, var(--success-text) 85%, black);
+  --color-emerald-800: color-mix(in oklab, var(--success-text) 70%, black);
+  --color-emerald-900: color-mix(in oklab, var(--success-text) 55%, black);
+  --color-emerald-950: color-mix(in oklab, var(--success-text) 40%, black);
+  --color-green-50: color-mix(in oklab, var(--success) 10%, white);
+  --color-green-100: color-mix(in oklab, var(--success) 18%, white);
+  --color-green-200: color-mix(in oklab, var(--success) 32%, white);
+  --color-green-300: color-mix(in oklab, var(--success) 55%, white);
+  --color-green-400: color-mix(in oklab, var(--success) 80%, white);
+  --color-green-500: var(--success);
+  --color-green-600: var(--success-text);
+  --color-green-700: color-mix(in oklab, var(--success-text) 85%, black);
+  --color-green-800: color-mix(in oklab, var(--success-text) 70%, black);
+  --color-green-900: color-mix(in oklab, var(--success-text) 55%, black);
+  --color-green-950: color-mix(in oklab, var(--success-text) 40%, black);
+}

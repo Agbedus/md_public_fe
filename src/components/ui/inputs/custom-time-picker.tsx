@@ -358,7 +358,7 @@ export function CustomTimePicker({
                  <button
                      type="button"
                      onClick={() => setIsOpen(false)}
-                     className="flex items-center justify-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                     className="flex items-center justify-center gap-2 px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-on-ink bg-ink hover:bg-ink/85 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
                  >
                      <FiCheck className="w-3.5 h-3.5" />
                      Confirm

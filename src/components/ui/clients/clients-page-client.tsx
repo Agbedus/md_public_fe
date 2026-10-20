@@ -342,7 +342,7 @@ export default function ClientsPageClient({
                 </button>
                 <button
                   type="submit"
-                  className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                  className="px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest text-on-ink bg-ink hover:bg-ink/85 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
                   title="Create Client"
                 >
                   <FiCheck className="w-4 h-4" />

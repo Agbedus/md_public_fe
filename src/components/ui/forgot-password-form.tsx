@@ -115,7 +115,7 @@ export default function ForgotPasswordForm() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="relative w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
+          className="relative w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
         >
           <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
             Send reset link

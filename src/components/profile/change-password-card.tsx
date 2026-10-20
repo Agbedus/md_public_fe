@@ -113,7 +113,7 @@ export function ChangePasswordCard() {
         <button
           type="submit"
           disabled={isPending}
-          className="relative w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+          className="relative w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
         >
           <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
             <FiCheck className="h-4 w-4" />

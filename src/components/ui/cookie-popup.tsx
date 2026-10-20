@@ -143,7 +143,7 @@ export const CookiePopup = () => {
                                             <span className="text-xs font-bold text-foreground uppercase tracking-wide">Performance & Intel</span>
                                             <p className="text-[10px] text-text-secondary font-bold leading-relaxed">Helps us see where work is slowing down.</p>
                                         </div>
-                                        <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${prefs.analytics ? 'bg-emerald-500' : 'bg-card-border'}`}>
+                                        <div className={`w-10 h-6 rounded-full transition-colors flex items-center px-1 ${prefs.analytics ? 'bg-accent' : 'bg-card-border'}`}>
                                             <motion.div 
                                                 animate={{ x: prefs.analytics ? 16 : 0 }}
                                                 className="w-4 h-4 rounded-full bg-white shadow-sm" 

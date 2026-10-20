@@ -344,7 +344,7 @@ export function CommandMenu({ open, setOpen }: CommandMenuProps) {
                         <button
                             onClick={handleCreateTask}
                             disabled={!taskName || isSubmitting}
-                            className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white font-bold py-2.5 px-8 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                            className="bg-ink hover:bg-ink/85 disabled:opacity-50 disabled:hover:bg-ink text-on-ink font-bold py-2.5 px-8 rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
                         >
                             {isSubmitting ? <FiLoader className="animate-spin" /> : <FiTarget />}
                             <span>Create task</span>

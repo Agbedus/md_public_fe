@@ -299,7 +299,7 @@ export default function AssistantOrb() {
     connectivityVariant === 'offline'
       ? 'bg-red-500 border-red-500 text-white'
       : connectivityVariant === 'recovery'
-        ? 'bg-emerald-500 border-emerald-500 text-white'
+        ? 'bg-ink border-ink text-on-ink'
         : 'bg-background/95 border-card-border text-foreground hover:border-indigo-500/30';
   const bubbleTailBorder =
     offline ? 'border-l-red-500' : recovered ? 'border-l-emerald-500' : 'border-l-card-border';
@@ -558,7 +558,7 @@ export default function AssistantOrb() {
             )}
             {(offline || recovered) && (
               <span
-                className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full border-2 border-background flex items-center justify-center z-10 ${offline ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'}`}
+                className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full border-2 border-background flex items-center justify-center z-10 ${offline ? 'bg-red-500 text-on-ink' : 'bg-ink text-on-ink'}`}
               >
                 {offline ? <FiWifiOff className="w-3 h-3" /> : <FiWifi className="w-3 h-3" />}
               </span>

@@ -248,7 +248,7 @@ export default function TimeOffModal({ open, onClose, onCreated }: TimeOffModalP
                             type="submit"
                             disabled={isSubmitting}
                             aria-busy={isSubmitting}
-                            className="flex min-h-11 items-center gap-2 rounded-md bg-emerald-500 px-6 py-2.5 text-sm font-semibold text-white transition-[transform,opacity,background-color] duration-150 hover:bg-emerald-500/90 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
+                            className="flex min-h-11 items-center gap-2 rounded-md bg-ink px-6 py-2.5 text-sm font-semibold text-on-ink transition-[transform,opacity,background-color] duration-150 hover:bg-emerald-500/90 active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
                         >
                             {isSubmitting ? (
                                 <FiLoader className="h-4 w-4 animate-spin" />

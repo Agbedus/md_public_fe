@@ -468,7 +468,7 @@ export function ShareButton({
                   {error && !isLoading && (
                     <div className="flex min-h-64 flex-col items-center justify-center gap-4 text-center" role="alert">
                       <p className="max-w-sm text-sm text-text-secondary">{error}</p>
-                      <button type="button" onClick={() => void createShare()} className="min-h-11 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-500/90">
+                      <button type="button" onClick={() => void createShare()} className="min-h-11 rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-on-ink hover:bg-emerald-500/90">
                         Try again
                       </button>
                     </div>
@@ -550,7 +550,7 @@ export function ShareButton({
                               <p className="mt-1 text-xs text-text-muted">The scan uses the same tracked MyndDesk invitation link.</p>
                             </div>
                             <div className="flex flex-wrap items-center justify-center gap-2">
-                              <button type="button" onClick={() => void downloadQrPng()} disabled={isPreparingQr} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500/90 disabled:cursor-wait disabled:opacity-60">
+                              <button type="button" onClick={() => void downloadQrPng()} disabled={isPreparingQr} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-on-ink transition-colors hover:bg-emerald-500/90 disabled:cursor-wait disabled:opacity-60">
                                 {isPreparingQr ? <FiLoader className="h-4 w-4 animate-spin" /> : <FiDownload className="h-4 w-4" />}
                                 Download PNG
                               </button>

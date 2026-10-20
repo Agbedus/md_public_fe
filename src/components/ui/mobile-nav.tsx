@@ -109,7 +109,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                                      {isActive && (
                                         <motion.div
                                             layoutId="mobile-nav-indicator"
-                                            className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-emerald-500"
+                                            className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-accent"
                                         />
                                     )}
                                 </motion.div>
@@ -136,7 +136,7 @@ export function MobileNav({ setIsCommandOpen, orgSlug: _orgSlug }: { setIsComman
                                     {isActive && (
                                         <motion.div
                                             layoutId="mobile-nav-indicator"
-                                            className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-emerald-500"
+                                            className="absolute -bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-accent"
                                         />
                                     )}
                                 </motion.div>

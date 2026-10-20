@@ -44,7 +44,7 @@ export function Toggle({
             onClick={() => onChange(!isChecked)}
             className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 ${
                 isChecked
-                    ? 'border-emerald-500/50 bg-emerald-500/20'
+                    ? 'border-accent/50 bg-accent/20'
                     : 'border-card-border bg-input-bg'
             } ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
         >
@@ -54,7 +54,7 @@ export function Toggle({
                 animate={{ x: isChecked ? 22 : 4 }}
                 transition={spring}
                 className={`block h-4 w-4 rounded-full shadow-sm transition-colors duration-200 ${
-                    isChecked ? 'bg-emerald-500' : 'bg-text-muted'
+                    isChecked ? 'bg-accent' : 'bg-text-muted'
                 }`}
             />
         </button>

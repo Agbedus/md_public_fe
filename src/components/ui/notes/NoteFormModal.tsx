@@ -178,7 +178,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                             <button
                                 type="submit"
                                 disabled={isSaving}
-                                className="h-9 px-5 rounded-xl text-white bg-emerald-600 hover:bg-emerald-500 transition-all disabled:opacity-50 flex items-center justify-center shadow-lg shadow-emerald-500/20 font-black text-[10px] uppercase tracking-wider gap-2"
+                                className="h-9 px-5 rounded-xl text-on-ink bg-ink hover:bg-ink/85 transition-all disabled:opacity-50 flex items-center justify-center shadow-lg shadow-emerald-500/20 font-black text-[10px] uppercase tracking-wider gap-2"
                                 title={initialNote ? 'Update Note' : 'Save Note'}
                             >
                                 <FiCheck size={18} />

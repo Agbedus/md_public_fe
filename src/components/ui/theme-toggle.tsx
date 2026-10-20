@@ -83,7 +83,7 @@ export function ThemeToggle({
 
       {/* Visual Indicator of resolved theme if in system mode */}
       {currentTheme === 'system' && !collapsed && (
-        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-accent/50" />
       )}
     </motion.button>
   );

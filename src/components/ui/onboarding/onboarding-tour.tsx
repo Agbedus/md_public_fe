@@ -208,7 +208,7 @@ export function OnboardingTour({ userKey, isInitiallyBlocked = false }: { userKe
               )}
               <button
                 onClick={() => (isLast ? finish('done') : setStepIndex((i) => i + 1))}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-on-ink bg-ink hover:bg-ink/85 transition-colors"
               >
                 {isLast ? 'Finish' : 'Next'}
                 {!isLast && <FiArrowRight size={12} />}

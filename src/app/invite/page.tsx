@@ -240,9 +240,9 @@ function InvitationContent() {
             </div>
             <div className="space-y-3 pt-2">
               {needsSignIn ? (
-                <Link href={switchAccountHref} className="block min-h-11 w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-500">Sign in again and join</Link>
+                <Link href={switchAccountHref} className="block min-h-11 w-full rounded-xl bg-ink px-4 py-3 text-center text-sm font-semibold text-on-ink hover:bg-ink/85">Sign in again and join</Link>
               ) : hasInvitation ? (
-                <button type="button" onClick={() => window.location.reload()} className="block min-h-11 w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-500">Try again</button>
+                <button type="button" onClick={() => window.location.reload()} className="block min-h-11 w-full rounded-xl bg-ink px-4 py-3 text-center text-sm font-semibold text-on-ink hover:bg-ink/85">Try again</button>
               ) : null}
               <Link
                 href="/"
@@ -302,20 +302,20 @@ function InvitationContent() {
                     <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>This invitation belongs to <strong>{invitedEmail}</strong>. You’re currently signed in as {sessionEmail}.</span>
                   </div>
-                  <Link href={switchAccountHref} className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
+                  <Link href={switchAccountHref} className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-on-ink transition hover:bg-ink/85">
                     Sign in as {invitedEmail}<FiArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
               ) : token ? (
                 <Link
                   href={`/register?invite=${encodeURIComponent(code || '')}&org=${encodeURIComponent(orgId || '')}&token=${encodeURIComponent(token)}&email=${encodeURIComponent(invitedEmail)}`}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-on-ink transition hover:bg-ink/85"
                 >
                   Create account and join<FiArrowRight className="h-4 w-4" />
                 </Link>
               ) : (
                 <div className="space-y-2">
-                  <Link href={loginHref} className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">Sign in to join<FiArrowRight className="h-4 w-4" /></Link>
+                  <Link href={loginHref} className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-on-ink transition hover:bg-ink/85">Sign in to join<FiArrowRight className="h-4 w-4" /></Link>
                   <Link href={`/register?invite=${encodeURIComponent(code || '')}`} className="block w-full rounded-xl px-4 py-2 text-center text-sm font-medium text-text-muted transition hover:bg-foreground/[0.05] hover:text-foreground">Create a new account</Link>
                 </div>
               )}

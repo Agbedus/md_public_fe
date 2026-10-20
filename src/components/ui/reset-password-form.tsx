@@ -35,7 +35,7 @@ function InvalidLinkState({ message }: { message: string }) {
       </div>
       <Link
         href="/forgot-password"
-        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all"
+        className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all"
       >
         Request a new link
       </Link>
@@ -109,7 +109,7 @@ export default function ResetPasswordForm() {
         </div>
         <Link
           href={`/login?email=${encodeURIComponent(email)}`}
-          className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all"
+          className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all"
         >
           Continue to sign in
           <FiArrowRight className="h-4 w-4" />
@@ -212,7 +212,7 @@ export default function ResetPasswordForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="relative w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
+          className="relative w-full inline-flex items-center justify-center px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
         >
           <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
             Reset password

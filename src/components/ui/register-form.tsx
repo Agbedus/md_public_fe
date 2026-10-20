@@ -490,7 +490,7 @@ export default function RegisterForm({
               >
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
                   step > s.num
-                    ? 'bg-emerald-500 text-white'
+                    ? 'bg-ink text-on-ink'
                     : step === s.num
                       ? 'bg-emerald-500/10 text-emerald-500 border-2 border-emerald-500/30'
                       : 'bg-foreground/[0.03] text-text-muted border border-card-border'
@@ -1074,7 +1074,7 @@ export default function RegisterForm({
             <button
               type="button"
               onClick={handleContinue}
-              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20 ${
+              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20 ${
                 step === 1 ? '' : ''
               }`}
             >
@@ -1093,7 +1093,7 @@ export default function RegisterForm({
             <button
               type="submit"
               disabled={isPending || (step === 3 && !agreedToTerms)}
-              className="relative w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
+              className="relative w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-ink hover:bg-ink/85 text-on-ink text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97] hover:shadow-lg hover:shadow-emerald-500/20"
             >
               <span className={isPending ? 'opacity-0' : 'inline-flex items-center gap-2'}>
                 Create account

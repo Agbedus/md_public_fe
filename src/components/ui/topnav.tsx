@@ -281,7 +281,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                       stiffness: 500, 
                       damping: 30,
                     }}
-                    className="bg-emerald-500 text-white rounded-full ring-2 ring-background flex items-center justify-center overflow-hidden"
+                    className="bg-ink text-on-ink rounded-full ring-2 ring-background flex items-center justify-center overflow-hidden"
                   >
                     <AnimatePresence mode="wait">
                       {(!notifMinimized || isNotifHovered) ? (
@@ -359,7 +359,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
                               </p>
                             </div>
                             {!notification.is_read && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                              <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5"></div>
                             )}
                           </div>
                         </div>

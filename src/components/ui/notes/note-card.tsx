@@ -451,7 +451,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                             type="button"
                                             onClick={handleAddUser}
                                             disabled={!selectedUser || isSharing}
-                                            className="w-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-emerald-500 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10"
+                                            className="w-full bg-ink text-on-ink text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-ink/85 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10"
                                         >
                                             {isSharing ? 'Sharing…' : 'Share note'}
                                         </button>
@@ -616,7 +616,7 @@ export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, s
                                 type="button"
                                 onClick={handleAddUser}
                                 disabled={!selectedUser || isSharing}
-                                className="w-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-emerald-500 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10"
+                                className="w-full bg-ink text-on-ink text-[10px] font-black uppercase tracking-widest py-2 rounded-xl hover:bg-ink/85 disabled:opacity-50 transition-all shadow-md shadow-emerald-500/10"
                             >
                                 {isSharing ? 'Sharing…' : 'Share note'}
                             </button>
