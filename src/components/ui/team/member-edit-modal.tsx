@@ -123,7 +123,7 @@ export function MemberEditModal({ member, isSelf, onClose, onSaved }: MemberEdit
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 className="relative w-16 h-16 rounded-full overflow-hidden border border-card-border group shrink-0"
-                title="Change photo"
+                data-tooltip="Change photo" aria-label="Change photo"
               >
                 {shownAvatar ? (
                   <Image src={shownAvatar} alt={fullName || 'Member'} fill className="object-cover" />

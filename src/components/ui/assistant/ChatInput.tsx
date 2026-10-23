@@ -1,14 +1,19 @@
 'use client';
 
 import React from 'react';
-import { FiSend, FiMic, FiMicOff, FiPaperclip, FiGlobe, FiSquare } from 'react-icons/fi';
+import { FiArrowUp, FiMic, FiMicOff, FiPaperclip, FiSquare } from 'react-icons/fi';
 import TextareaAutosize from 'react-textarea-autosize';
 import { useIsClient } from '@/hooks/use-is-client';
+import { AttachLinkPopover } from './attach-link-popover';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
   onStop?: () => void;
+  compact?: boolean;
+  inputRef?: React.Ref<HTMLTextAreaElement>;
+  value?: string;
+  onValueChange?: React.Dispatch<React.SetStateAction<string>>;
 }
 
 interface SpeechRecognitionEvent {
@@ -39,8 +44,10 @@ interface WindowWithSpeech extends Window {
   webkitSpeechRecognition?: { new(): SpeechRecognition };
 }
 
-export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInputProps) {
-  const [baseText, setBaseText] = React.useState('');
+export default function ChatInput({ onSendMessage, isLoading, onStop, compact = false, inputRef, value, onValueChange }: ChatInputProps) {
+  const [localText, setLocalText] = React.useState('');
+  const baseText = value ?? localText;
+  const setBaseText = onValueChange ?? setLocalText;
   const [interimText, setInterimText] = React.useState('');
   const [isRecording, setIsRecording] = React.useState(false);
   const isClient = useIsClient();
@@ -97,7 +104,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
       } catch {}
       recognitionRef.current = null;
     };
-  }, []);
+  }, [setBaseText]);
 
   const toggleRecording = () => {
     const recog = recognitionRef.current;
@@ -120,7 +127,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
 
   const handleSend = () => {
     const combined = (baseText + (interimText ? ' ' + interimText : '')).trim();
-    if (combined) {
+    if (combined && !isLoading) {
       onSendMessage(combined);
       setBaseText('');
       setInterimText('');
@@ -133,7 +140,7 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSend();
     }
@@ -142,20 +149,21 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
   const displayValue = (baseText + (interimText ? ' ' + interimText : '')).trimStart();
 
   return (
-    <div className="p-4 pt-2">
-      <div className="bg-white dark:bg-card p-2 relative flex flex-col w-full max-w-full rounded-[2rem] border border-card-border">
+    <div className="w-full min-w-0">
+      <div className={`relative flex w-full min-w-0 flex-col border border-card-border bg-card p-2 shadow-sm transition-colors focus-within:border-foreground/20 ${compact ? "rounded-3xl" : "rounded-[28px]"}`}>
         <TextareaAutosize
-          minRows={1}
-          maxRows={8}
+          ref={inputRef}
+          minRows={compact ? 1 : 2}
+          maxRows={compact ? 4 : 8}
           value={displayValue}
           onChange={(e) => { setBaseText(e.target.value); setInterimText(''); }}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message or use voice..."
-          className="flex-grow !bg-white dark:!bg-transparent text-foreground placeholder:text-text-muted px-4 py-3 resize-none focus:outline-none focus:!bg-white dark:focus:!bg-transparent focus:!shadow-none scrollbar-hide"
+          placeholder={compact ? "Ask Pip…" : "Ask Pip about your workspace…"}
+          className="min-w-0 flex-grow resize-none bg-transparent px-3 py-2 text-sm leading-relaxed text-foreground placeholder:text-text-muted focus:outline-none scrollbar-hide"
           aria-label="Message"
         />
 
-        <div className="flex items-center justify-between pl-2 pr-2 pb-1 mt-1">
+        <div className="mt-1 flex items-center justify-between gap-3 px-1">
           <div className="flex items-center gap-1">
             <input
                 ref={fileInputRef}
@@ -173,25 +181,14 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
             <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-full text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all duration-200"
+                className="grid h-10 w-10 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground active:scale-[0.96]"
                 aria-label="Attach file"
-                title="Attach file"
+                data-tooltip="Attach file"
             >
               <FiPaperclip className="w-5 h-5"/>
             </button>
 
-            <button
-                type="button"
-                onClick={() => {
-                  const url = prompt('Enter URL to attach');
-                  if (url) onSendMessage(url);
-                }}
-                className="p-2 rounded-full text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all duration-200"
-                aria-label="Attach URL"
-                title="Attach URL"
-            >
-              <FiGlobe className="w-5 h-5"/>
-            </button>
+            <AttachLinkPopover onAttach={(url) => setBaseText((previous) => previous ? `${previous} ${url}` : url)} />
           </div>
 
           <div className="flex items-center gap-2">
@@ -199,41 +196,26 @@ export default function ChatInput({ onSendMessage, isLoading, onStop }: ChatInpu
                 <button
                     type="button"
                     onClick={toggleRecording}
-                    className={`p-2 rounded-full transition-all duration-200 ${isRecording ? 'bg-foreground/[0.1] text-foreground animate-pulse' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06]'}`}
+                    className={`grid h-10 w-10 place-items-center rounded-full transition-colors ${isRecording ? 'bg-foreground/[0.1] text-foreground animate-pulse' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06]'}`}
                     aria-pressed={isRecording}
                     aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
-                    title={isRecording ? 'Stop' : 'Voice'}
+                    data-tooltip={isRecording ? 'Stop' : 'Voice'}
                 >
                   {isRecording ? <FiMicOff className="w-5 h-5"/> : <FiMic className="w-5 h-5"/>}
                 </button>
             )}
 
-            {isLoading ? (
-                <button
-                    type="button"
-                    onClick={onStop}
-                    className="group flex items-center justify-center p-1.5 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 shrink-0"
-                    aria-label="Stop generating"
-                    title="Stop"
-                >
-                    <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                        <FiSquare className="w-4 h-4 text-danger-text fill-current" />
-                    </span>
-                </button>
-            ) : (
-                <button
-                    type="button"
-                    onClick={handleSend}
-                    disabled={!displayValue.trim()}
-                    className="group flex items-center justify-center p-1.5 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0"
-                    aria-label="Send message"
-                    title="Send"
-                >
-                    <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                        <FiSend className="w-4 h-4"/>
-                    </span>
-                </button>
-            )}
+            {!compact && <span className="hidden text-[11px] text-text-muted sm:inline">Shift + Enter for a new line</span>}
+            <button
+              type="button"
+              onClick={isLoading ? onStop : handleSend}
+              disabled={!isLoading && !displayValue.trim()}
+              aria-label={isLoading ? 'Stop generating' : 'Send message'}
+              data-tooltip={isLoading ? 'Stop generating' : 'Send message'}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink text-on-ink transition-[transform,opacity] duration-150 hover:opacity-85 active:scale-[0.94] disabled:opacity-30 motion-reduce:transition-none"
+            >
+              {isLoading ? <FiSquare className="h-3.5 w-3.5 fill-current" /> : <FiArrowUp className="h-5 w-5" />}
+            </button>
           </div>
         </div>
       </div>

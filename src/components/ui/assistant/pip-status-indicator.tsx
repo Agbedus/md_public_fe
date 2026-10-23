@@ -93,7 +93,7 @@ export function PipStatusIndicator({ activity }: PipStatusIndicatorProps) {
       role="status"
       aria-live="polite"
       aria-label={LABELS[activity]}
-      title={LABELS[activity]}
+      data-tooltip={LABELS[activity]}
       className="relative flex min-h-7 items-center justify-end gap-2"
     >
       <AnimatePresence mode="wait" initial={false}>

@@ -1,4 +1,5 @@
 "use client";
+import { CollectionToolbar } from "@/components/ui/collection-toolbar";
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -71,10 +72,9 @@ const noteTypeIcons: Record<Note["type"], React.ElementType> = {
   sketch: FiEdit3,
 };
 
-
 import NotesLoading from "@/app/(dashboard)/[orgSlug]/notes/loading";
 
-import { TabPill } from '@/components/ui/tab-pill';
+import { TabPill } from "@/components/ui/tab-pill";
 type ShareableUser = {
   id: string;
   name: string | null;
@@ -360,91 +360,113 @@ export default function NotesPageClient({
         </div>
 
         {/* Controls Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 md:mb-8">
-          <div className="relative flex-1 md:flex-none md:w-64 hidden md:block">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              type="text"
-              placeholder="Search notes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none text-foreground placeholder:text-text-muted/50 transition-all"
-            />
-          </div>
-
-          <div className="flex items-center gap-3 md:gap-4 ml-auto">
-            <div className="flex bg-foreground/[0.05] p-1 rounded-full h-9 lg:h-11">
-              <button
-                onClick={() => setViewMode("grid")}
-                className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
-                title="Grid view"
-              >
-                {viewMode === "grid" && (
-                  <TabPill className="tab-pill-on bg-ink" />
-                )}
-                <span className="relative z-10">
-                  <FiGrid className="w-5 h-5" />
-                </span>
-              </button>
-              <button
-                onClick={() => setViewMode("table")}
-                className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
-                title="Table view"
-              >
-                {viewMode === "table" && (
-                  <TabPill className="tab-pill-on bg-ink" />
-                )}
-                <span className="relative z-10">
-                  <FiList className="w-5 h-5" />
-                </span>
-              </button>
+        <CollectionToolbar
+          label="Notes controls"
+          scrollArea="filters"
+          className="mb-5"
+          search={
+            <div className="relative w-full">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input
+                type="text"
+                placeholder="Search notes..."
+                aria-label="Search notes"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-11 w-full rounded-full border border-card-border bg-input-bg pl-10 pr-4 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+              />
             </div>
-
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 p-1.5 h-9 lg:h-11 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-xs md:text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
-            >
-              <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
-                <FiPlus className="w-4 h-4" />
-              </div>
-              <span className="hidden sm:inline">Add new note</span>
-              <span className="sm:hidden">Add</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="-mx-1 mb-6 flex gap-1.5 overflow-x-auto scrollbar-hide px-1 py-1 md:mb-8">
-          <button
-            onClick={() => setFilterType("all")}
-            className={`relative isolate inline-flex min-h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-sm transition-colors active:scale-[0.97] ${filterType === "all" ? "text-on-ink" : "bg-foreground/[0.04] text-text-secondary hover:bg-foreground/[0.07] hover:text-foreground"}`}
-          >
-            {filterType === "all" && <TabPill id="notes-filter" />}
-            <FiFolder
-              className={
-                filterType === "all" ? "text-on-ink" : "text-text-muted"
-              }
-            />
-            <span>All notes</span>
-          </button>
-          {noteTypes.map((type) => {
-            const Icon = noteTypeIcons[type] || FiFileText;
-            return (
-              <button
-                key={type}
-                onClick={() => setFilterType(type)}
-                className={`relative isolate inline-flex min-h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-sm transition-colors active:scale-[0.97] ${filterType === type ? "text-on-ink" : "bg-foreground/[0.04] text-text-secondary hover:bg-foreground/[0.07] hover:text-foreground"}`}
-              >
-                {filterType === type && <TabPill id="notes-filter" />}
-                {Icon && (
-                  <Icon
-                    className={filterType === type ? "text-on-ink" : "text-text-muted"}
+          }
+          filters={
+            <>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button
+                  onClick={() => setFilterType("all")}
+                  aria-pressed={filterType === "all"}
+                  className={`relative isolate inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-sm transition-colors active:scale-[0.97] ${filterType === "all" ? "text-on-ink" : "bg-foreground/[0.04] text-text-secondary hover:bg-foreground/[0.07] hover:text-foreground"}`}
+                >
+                  {filterType === "all" && <TabPill id="notes-filter" />}
+                  <FiFolder
+                    className={
+                      filterType === "all" ? "text-on-ink" : "text-text-muted"
+                    }
                   />
-                )}
-                <span>{type.charAt(0).toUpperCase() + type.slice(1)}</span>
-              </button>
-            );
-          })}
-        </div>
+                  <span>All notes</span>
+                </button>
+                {noteTypes.map((type) => {
+                  const Icon = noteTypeIcons[type] || FiFileText;
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => setFilterType(type)}
+                      aria-pressed={filterType === type}
+                      className={`relative isolate inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-sm transition-colors active:scale-[0.97] ${filterType === type ? "text-on-ink" : "bg-foreground/[0.04] text-text-secondary hover:bg-foreground/[0.07] hover:text-foreground"}`}
+                    >
+                      {filterType === type && <TabPill id="notes-filter" />}
+                      {Icon && (
+                        <Icon
+                          className={
+                            filterType === type
+                              ? "text-on-ink"
+                              : "text-text-muted"
+                          }
+                        />
+                      )}
+                      <span>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          }
+          tools={
+            <>
+              <div className="flex shrink-0 items-center gap-2">
+                <div className="flex bg-foreground/[0.05] p-1 rounded-full h-11">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full min-w-9 px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+                    data-tooltip="Grid view"
+                    aria-label="Grid view"
+                  >
+                    {viewMode === "grid" && (
+                      <TabPill className="tab-pill-on bg-ink" />
+                    )}
+                    <span className="relative z-10">
+                      <FiGrid className="w-5 h-5" />
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode("table")}
+                    className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full min-w-9 px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+                    data-tooltip="Table view"
+                    aria-label="Table view"
+                  >
+                    {viewMode === "table" && (
+                      <TabPill className="tab-pill-on bg-ink" />
+                    )}
+                    <span className="relative z-10">
+                      <FiList className="w-5 h-5" />
+                    </span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  aria-label="Add new note"
+                  className="flex w-11 shrink-0 items-center justify-center gap-2 sm:w-auto sm:px-4 h-11 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-xs md:text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
+                >
+                  <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
+                    <FiPlus className="w-4 h-4" />
+                  </div>
+                  <span className="hidden sm:inline">Add new note</span>
+                </button>
+              </div>
+            </>
+          }
+        />
 
         {errorMsg && (
           <div className="mb-4 rounded-xl border border-danger/20 bg-danger/10 p-4 text-danger-text text-sm">
@@ -475,6 +497,7 @@ export default function NotesPageClient({
                   >
                     <NoteCard
                       note={note}
+                      isReadingPreview={note.type !== "journal"}
                       onNoteUpdate={handleUpdate}
                       onNoteDelete={handleDelete}
                       onEdit={(n) => {

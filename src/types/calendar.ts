@@ -1,6 +1,6 @@
 import type { User } from "./user";
 
-export type CalendarView = "month" | "week" | "day" | "gantt";
+export type CalendarView = "month" | "week" | "day" | "agenda" | "gantt";
 
 export type EventStatus = "tentative" | "confirmed" | "cancelled";
 export type EventPrivacy = "public" | "private" | "confidential";

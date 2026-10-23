@@ -19,7 +19,7 @@ export function NoteUpdatedTime({ value }: { value?: string | null }) {
   const date = parseNoteTimestamp(value);
   if (!Number.isFinite(date.getTime())) return null;
   return (
-    <time dateTime={date.toISOString()} title={date.toUTCString()}>
+    <time dateTime={date.toISOString()} data-tooltip={date.toUTCString()}>
       {now ? formatNoteRelativeTime(value, now) : "…"}
     </time>
   );

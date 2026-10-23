@@ -20,6 +20,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useDroppable } from "@dnd-kit/core";
 import { toast } from "@/lib/toast";
 import { useConfirm } from "@/providers/confirmation-provider";
+import { useReducedMotion } from "framer-motion";
 
 type Status = keyof typeof statusMapping;
 
@@ -47,6 +48,7 @@ interface ColumnProps {
   movedId: string | null;
   flash: boolean;
   canManage?: boolean;
+  removingId: string | null;
 }
 
 // The dragged card settles into place with a soft spring instead of a snap.
@@ -55,7 +57,7 @@ const dropAnimation: DropAnimation = {
   easing: "cubic-bezier(.23, 1, .32, 1)",
 };
 
-function Column({ col, items, users, user, projects, columns, onMove, onDelete, selectedId, onSelect, movedId, flash, canManage }: ColumnProps) {
+function Column({ col, items, users, user, projects, columns, onMove, onDelete, selectedId, onSelect, movedId, flash, canManage, removingId }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: col });
   const color = STATUS_COLOR[col];
 
@@ -95,6 +97,7 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
               canManage={canManage}
               isSelected={selectedId === String(task.id)}
               justMoved={movedId === String(task.id)}
+              isRemoving={removingId === String(task.id)}
               onSelect={onSelect}
             />
           ))}
@@ -112,12 +115,14 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
 
 export default function KanbanBoard({ tasks = [], users, user, projects, updateTask, deleteTask, canManage }: KanbanBoardProps) {
   const confirm = useConfirm();
+  const reduceMotion = useReducedMotion();
   const columns = useMemo(() => Object.keys(statusMapping) as Status[], []);
   const boardRef = useRef<HTMLDivElement>(null);
 
   const [grouped, setGrouped] = useState<Record<string, Task[]>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const [movedId, setMovedId] = useState<string | null>(null);
   const [flashCol, setFlashCol] = useState<Status | null>(null);
 
@@ -199,12 +204,18 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
       type: "danger",
     });
     if (!confirmed) return;
+    setRemovingId(String(task.id));
+    if (!reduceMotion) await new Promise((resolve) => setTimeout(resolve, 140));
     const fd = new FormData();
     fd.append("id", String(task.id));
-    const result = await deleteTask(fd);
-    if (result?.success) {
-      toast.success(`Task deleted — ${task.name}`);
-      setSelectedId((curr) => (curr === String(task.id) ? null : curr));
+    try {
+      const result = await deleteTask(fd);
+      if (result?.success) {
+        toast.success(`Task deleted — ${task.name}`);
+        setSelectedId((curr) => (curr === String(task.id) ? null : curr));
+      }
+    } finally {
+      setRemovingId(null);
     }
   };
 
@@ -317,6 +328,7 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
                 movedId={movedId}
                 flash={flashCol === col}
                 canManage={canManage}
+                removingId={removingId}
               />
             ))}
           </div>

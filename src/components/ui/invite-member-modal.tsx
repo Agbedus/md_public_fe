@@ -1,5 +1,6 @@
 'use client';
 
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import { useRef, useState, useTransition } from 'react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
 import {
@@ -240,16 +241,14 @@ export function InviteMemberModal({
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <div>
                             <label className="mb-1.5 block text-sm font-medium text-foreground">Workspace role</label>
-                            <select
-                              value={role}
-                              onChange={(event) => setRole(event.target.value)}
-                              className="h-11 w-full rounded-full border border-card-border bg-input-bg px-3 text-sm text-foreground outline-none transition "
-                            >
-                              <option value="member">Member</option>
-                              <option value="manager">Manager</option>
-                              <option value="guest">Guest</option>
-                              {canInviteAdmin && <option value="admin">Admin</option>}
-                            </select>
+                            <CustomSelect
+                              label="Workspace role"
+                              value={String(role)}
+                              onChange={(value) => setRole(value)}
+                              options={[{ value: "member", label: "Member" }, { value: "manager", label: "Manager" }, { value: "guest", label: "Guest" }, ...(canInviteAdmin ? [({ value: "admin", label: "Admin" })] : [])]}
+                              className="w-full"
+                              triggerClassName="h-11 w-full rounded-full border border-card-border bg-input-bg px-3 text-sm text-foreground outline-none transition "
+                            />
                           </div>
                           <p className="self-end pb-2 text-xs leading-relaxed text-text-muted">This role applies to everyone in this batch.</p>
                         </div>

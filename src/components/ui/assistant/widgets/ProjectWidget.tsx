@@ -1,5 +1,8 @@
+"use client";
+
 import type { Project } from "@/types/project";
 import Link from "next/link";
+import { useOrgPath } from "@/hooks/use-org-slug";
 
 interface ProjectWidgetProps {
   project: Project;
@@ -7,6 +10,7 @@ interface ProjectWidgetProps {
 }
 
 export default function ProjectWidget({ project, taskCount }: ProjectWidgetProps) {
+  const orgPath = useOrgPath();
   // Status styling
   let statusColor = "text-text-muted";
   let statusBg = "bg-zinc-400/10";
@@ -26,7 +30,7 @@ export default function ProjectWidget({ project, taskCount }: ProjectWidgetProps
   }
 
   return (
-    <div className="bg-card p-4 rounded-xl border border-card-border hover:bg-foreground/[0.02] transition-all">
+    <div className="bg-card p-4 rounded-2xl border border-card-border hover:bg-foreground/[0.02] transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-foreground mb-2 truncate">{project.name}</h4>
@@ -49,8 +53,8 @@ export default function ProjectWidget({ project, taskCount }: ProjectWidgetProps
         </div>
         
         <Link 
-          href={`/projects/${project.id}/tasks`}
-          className="text-accent-text hover:text-accent-text text-sm font-medium whitespace-nowrap"
+          href={orgPath(`/projects/${project.id}/tasks`)}
+          className="inline-flex min-h-9 shrink-0 items-center rounded-full px-2 text-xs font-medium text-accent-text transition-colors hover:bg-accent/10"
         >
           View →
         </Link>

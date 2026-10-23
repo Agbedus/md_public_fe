@@ -5,6 +5,8 @@ import { FiCheck, FiX, FiStar, FiMapPin, FiArchive } from 'react-icons/fi';
 import type { Note } from '@/types/note';
 import type { Task } from '@/types/task';
 import SlashCommandEditor from '../editor/slash-command-editor';
+import { CustomSelect } from '@/components/ui/inputs/custom-select';
+import { EMPTY_NOTE_CHECKLIST } from '@/lib/note-content';
 
 import { BusyIcon } from '@/components/ui/busy-icon';
 interface NoteFormModalProps {
@@ -96,45 +98,42 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
             {/* Modal Body */}
             <div className={`relative w-full max-w-4xl max-h-[90vh] bg-background rounded-3xl overflow-hidden border border-card-border transition-all duration-300 transform ${isOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`} onClick={e => e.stopPropagation()}>
                 <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col h-full max-h-[90vh]">
-                    <div className="px-6 py-4 flex items-center justify-between border-b border-card-border bg-white dark:bg-white/[0.03]">
+                    <div className="px-4 sm:px-6 py-4 flex flex-wrap gap-3 items-center justify-between border-b border-card-border bg-white dark:bg-white/[0.03]">
                         {/* Group 1: Selections */}
-                        <div className="flex items-center gap-3">
-                            <select
+                        <div className="flex min-w-0 flex-wrap items-center gap-3">
+                            <CustomSelect
+                                label="Note priority"
                                 name="priority"
-                                id="priority"
                                 value={priority || 'low'}
-                                onChange={(e) => setPriority(e.target.value as Note['priority'])}
-                                className="h-9 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-3 text-[11px] font-semibold text-text-secondary focus:outline-none cursor-pointer hover:bg-foreground/[0.06] transition-all"
-                                required
-                            >
-                                <option value="low" className="bg-background">Low Priority</option>
-                                <option value="medium" className="bg-background">Medium Priority</option>
-                                <option value="high" className="bg-background">High Priority</option>
-                            </select>
-                            <select
+                                onChange={(value) => setPriority(value as Note['priority'])}
+                                options={['low', 'medium', 'high'].map(value => ({ value, label: `${value.charAt(0).toUpperCase() + value.slice(1)} priority` }))}
+                                className="!w-auto min-w-32"
+                                triggerClassName="!h-9 !min-h-9 !py-0 text-xs"
+                            />
+                            <CustomSelect
+                                label="Note type"
                                 name="type"
-                                id="type"
-                                value={typeVal}
-                                onChange={(e) => setTypeVal(e.target.value as Note['type'])}
-                                className="h-9 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-3 text-[11px] capitalize font-semibold text-text-secondary focus:outline-none cursor-pointer hover:bg-foreground/[0.06] transition-all"
-                                required
-                            >
-                                {noteTypes.map(type => (
-                                    <option key={type} value={type} className="bg-background">{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-                                ))}
-                            </select>
-                            <select
+                                value={typeVal || 'note'}
+                                onChange={(value) => {
+                                    setTypeVal(value as Note['type']);
+                                    const body = new DOMParser().parseFromString(content, 'text/html').body;
+                                    if (['checklist', 'todo'].includes(value) && !body.textContent?.trim() && !body.querySelector('img, hr, ul, ol')) {
+                                        setContent(EMPTY_NOTE_CHECKLIST);
+                                    }
+                                }}
+                                options={noteTypes.map(value => ({ value, label: value.charAt(0).toUpperCase() + value.slice(1) }))}
+                                className="!w-auto min-w-28"
+                                triggerClassName="!h-9 !min-h-9 !py-0 text-xs"
+                            />
+                            <CustomSelect
+                                label="Associated task"
                                 name="task_id"
-                                id="task_id"
                                 value={taskId}
-                                onChange={(e) => setTaskId(e.target.value)}
-                                className="h-9 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl px-3 text-[11px] font-semibold text-text-secondary focus:outline-none max-w-[150px] cursor-pointer hover:bg-foreground/[0.06] transition-all"
-                            >
-                                <option value="" className="bg-background">No Task Associated</option>
-                                {tasks?.map(task => (
-                                    <option key={task.id} value={task.id} className="bg-background">{task.name}</option>
-                                ))}
-                            </select>
+                                onChange={setTaskId}
+                                options={[{ value: '', label: 'No associated task' }, ...(tasks || []).map(task => ({ value: String(task.id), label: task.name }))]}
+                                className="!w-auto min-w-36 max-w-48"
+                                triggerClassName="!h-9 !min-h-9 !py-0 text-xs"
+                            />
                         </div>
 
                         {/* Group 2: Status */}
@@ -143,7 +142,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 type="button"
                                 onClick={() => setIsPinned(!isPinned)}
                                 className={`h-full px-3 rounded-lg transition-all ${isPinned ? 'text-accent-text bg-accent/10' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'}`}
-                                title="Pin note"
+                                data-tooltip="Pin note" aria-label="Pin note"
                             >
                                 <FiMapPin size={14} className={isPinned ? 'fill-current' : ''} />
                             </button>
@@ -151,7 +150,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 type="button"
                                 onClick={() => setIsFavorite(!isFavorite)}
                                 className={`h-full px-3 rounded-lg transition-all ${isFavorite ? 'text-warning-text bg-warning/10' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'}`}
-                                title="Favorite note"
+                                data-tooltip="Favorite note" aria-label="Favorite note"
                             >
                                 <FiStar size={14} className={isFavorite ? 'fill-current' : ''} />
                             </button>
@@ -159,7 +158,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 type="button"
                                 onClick={() => setIsArchived(!isArchived)}
                                 className={`h-full px-3 rounded-lg transition-all ${isArchived ? 'text-text-secondary bg-foreground/[0.1]' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.03]'}`}
-                                title="Archive note"
+                                data-tooltip="Archive note" aria-label="Archive note"
                             >
                                 <FiArchive size={14} className={isArchived ? 'fill-current' : ''} />
                             </button>
@@ -172,7 +171,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 onClick={onClose}
                                 disabled={isSaving}
                                 className="h-9 w-9 text-text-muted hover:text-foreground hover:bg-foreground/[0.05] transition-all disabled:opacity-50 flex items-center justify-center border border-transparent hover:border-card-border rounded-full"
-                                title="Cancel"
+                                data-tooltip="Cancel" aria-label="Cancel"
                             >
                                 <FiX size={18} />
                             </button>
@@ -180,7 +179,7 @@ export default function NoteFormModal({ isOpen, onClose, onSave, noteTypes, isSa
                                 type="submit"
                                 disabled={isSaving}
                                 className="md-btn md-btn-primary"
-                                title={initialNote ? 'Update Note' : 'Save Note'}
+                                data-tooltip={initialNote ? 'Update Note' : 'Save Note'} aria-label={initialNote ? 'Update Note' : 'Save Note'}
                             >
                                 <span>{initialNote ? 'Update note' : 'Save note'}</span> <span className="md-btn-chip"><BusyIcon state={isSaving ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
 

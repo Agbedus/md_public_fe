@@ -77,14 +77,14 @@ function SettingCard({ icon: Icon, label, hint, value, accent, chipBg, onIncreme
       <div className="flex items-center gap-3">
         <button
           onClick={onDecrement}
-          title={`Decrease ${label}`}
+          data-tooltip={`Decrease ${label}`} aria-label={`Decrease ${label}`}
           className="w-9 h-9 rounded-full bg-background hover:bg-foreground/[0.08] border border-card-border text-foreground flex items-center justify-center transition-all active:scale-90"
         >
           <FiMinus size={14} />
         </button>
         <button
           onClick={onIncrement}
-          title={`Increase ${label}`}
+          data-tooltip={`Increase ${label}`} aria-label={`Increase ${label}`}
           className="w-9 h-9 rounded-full bg-background hover:bg-foreground/[0.08] border border-card-border text-foreground flex items-center justify-center transition-all active:scale-90"
         >
           <FiPlus size={14} />
@@ -285,7 +285,7 @@ export default function Pomodoro() {
                   <p className="text-xs text-text-muted mt-1">Tune your work and break durations</p>
                 </div>
               </div>
-              <button onClick={() => setSettingsOpen(false)} className="p-2 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-secondary hover:text-foreground transition-all" title="Close settings">
+              <button onClick={() => setSettingsOpen(false)} className="p-2 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-secondary hover:text-foreground transition-all" data-tooltip="Close settings" aria-label="Close settings">
                 <FiX size={16} />
               </button>
             </div>
@@ -385,13 +385,13 @@ export default function Pomodoro() {
             {/* Controls beneath the circle */}
             <div className="flex flex-col items-center gap-4">
               <div className="flex items-center justify-center gap-5">
-                <button title="Reset" onClick={reset} className="p-4 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-secondary border border-card-border transition-all">
+                <button data-tooltip="Reset" aria-label="Reset" onClick={reset} className="p-4 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-secondary border border-card-border transition-all">
                   <FiRefreshCw size={20} />
                 </button>
 
                 {/* Play / pause — theme coloured, red while running so it reads as stop */}
                 <button
-                  title={isRunning ? 'Pause' : 'Start'}
+                  data-tooltip={isRunning ? 'Pause' : 'Start'} aria-label={isRunning ? 'Pause' : 'Start'}
                   onClick={startPause}
                   className={`flex items-center justify-center gap-3 px-10 py-4 rounded-full text-base font-bold tracking-wide transition-all active:scale-95 ${
                     isRunning
@@ -403,19 +403,19 @@ export default function Pomodoro() {
                   <span>{isRunning ? 'Pause' : 'Start'}</span>
                 </button>
 
-                <button title="Settings" onClick={() => setSettingsOpen(true)} className="p-4 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-secondary border border-card-border transition-all">
+                <button data-tooltip="Settings" aria-label="Settings" onClick={() => setSettingsOpen(true)} className="p-4 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-secondary border border-card-border transition-all">
                   <FiSettings size={20} />
                 </button>
               </div>
 
               <div className="flex items-center gap-4 mt-1">
-                <button title="Work" onClick={() => switchMode('work')} className={`p-3 rounded-full ${mode === 'work' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
+                <button data-tooltip="Work" aria-label="Work" onClick={() => switchMode('work')} className={`p-3 rounded-full ${mode === 'work' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
                   <FiClock size={18} />
                 </button>
-                <button title="Short Break" onClick={() => switchMode('short')} className={`p-3 rounded-full ${mode === 'short' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
+                <button data-tooltip="Short Break" aria-label="Short Break" onClick={() => switchMode('short')} className={`p-3 rounded-full ${mode === 'short' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
                   <FiCoffee size={18} />
                 </button>
-                <button title="Long Break" onClick={() => switchMode('long')} className={`p-3 rounded-full ${mode === 'long' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
+                <button data-tooltip="Long Break" aria-label="Long Break" onClick={() => switchMode('long')} className={`p-3 rounded-full ${mode === 'long' ? 'bg-foreground/[0.03] text-foreground' : 'bg-foreground/[0.06] text-text-secondary'}`}>
                   <FiMoon size={18} />
                 </button>
               </div>

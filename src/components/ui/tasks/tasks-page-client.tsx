@@ -1,4 +1,5 @@
 "use client";
+import { CollectionToolbar } from "@/components/ui/collection-toolbar";
 
 import {
   useState,
@@ -8,7 +9,12 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  type Variants,
+} from "framer-motion";
 import {
   FiCheck,
   FiX,
@@ -39,6 +45,7 @@ import { TaskSummarySection } from "./task-summary";
 import { UserLeaderboard } from "./user-leaderboard";
 import { toast } from "@/lib/toast";
 import { CustomDatePicker } from "@/components/ui/inputs/custom-date-picker";
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import { format } from "date-fns";
 import {
   createOptimisticTask,
@@ -60,8 +67,8 @@ import { useConfirm } from "@/providers/confirmation-provider";
 import { emit, on } from "@/lib/event-bus";
 import { trackAction } from "@/lib/recent-actions";
 
-import { TabPill } from '@/components/ui/tab-pill';
-import { BusyIcon, Spinner } from '@/components/ui/busy-icon';
+import { TabPill } from "@/components/ui/tab-pill";
+import { BusyIcon, Spinner } from "@/components/ui/busy-icon";
 /** The snake_case task shape the API returns. */
 interface ApiTaskShape {
   id: number;
@@ -126,6 +133,7 @@ export default function TasksPageClient({
   users: initialUsers = [],
   projects: initialProjects = [],
   projectId,
+  embedded = false,
   currentUserId,
   currentUserRoles = [],
   orgRole,
@@ -134,11 +142,13 @@ export default function TasksPageClient({
   users?: User[];
   projects?: Project[];
   projectId?: number;
+  embedded?: boolean;
   currentUserId?: string;
   currentUserRoles?: string[];
   orgRole?: string;
 }) {
   const confirm = useConfirm();
+  const reduceMotion = useReducedMotion();
   const [tableTab, setTableTab] = useState<"active" | "done">("active");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -205,7 +215,8 @@ export default function TasksPageClient({
     searchQuery,
     filterPriority,
     filterStatus,
-    projectId: projectId ?? (filterProjectId ? Number(filterProjectId) : undefined),
+    projectId:
+      projectId ?? (filterProjectId ? Number(filterProjectId) : undefined),
     limit: 50,
     users,
     initialTasks,
@@ -253,8 +264,10 @@ export default function TasksPageClient({
     const map = new Map<number, Task>();
     realtimeCreatedTasks.forEach((t) => map.set(t.id, t));
     optimisticTasks.forEach((t) => map.set(t.id, t));
-    return Array.from(map.values());
-  }, [realtimeCreatedTasks, optimisticTasks]);
+    return Array.from(map.values()).filter(
+      (task) => !projectId || task.projectId === projectId,
+    );
+  }, [realtimeCreatedTasks, optimisticTasks, projectId]);
 
   // Filtered tasks for visual grouping and search
   const filteredTasks = useMemo(() => {
@@ -275,7 +288,9 @@ export default function TasksPageClient({
         String(task.userId ?? "") === filterMemberId ||
         String(task.owner?.id ?? "") === filterMemberId ||
         task.assigneeIds?.some((id) => String(id) === filterMemberId) ||
-        task.assignees?.some((assignee) => String(assignee.user.id) === filterMemberId);
+        task.assignees?.some(
+          (assignee) => String(assignee.user.id) === filterMemberId,
+        );
 
       const matchesMyTasks =
         !filterMyTasks ||
@@ -290,7 +305,12 @@ export default function TasksPageClient({
             )));
 
       return (
-        matchesSearch && matchesPriority && matchesStatus && matchesProject && matchesMember && matchesMyTasks
+        matchesSearch &&
+        matchesPriority &&
+        matchesStatus &&
+        matchesProject &&
+        matchesMember &&
+        matchesMyTasks
       );
     });
 
@@ -357,7 +377,12 @@ export default function TasksPageClient({
     [filterMemberId, users],
   );
   const hasActiveFilters = Boolean(
-    searchQuery || filterPriority || filterStatus || filterProjectId || filterMemberId || filterMyTasks,
+    searchQuery ||
+    filterPriority ||
+    filterStatus ||
+    filterProjectId ||
+    filterMemberId ||
+    filterMyTasks,
   );
   const isResolvingMemberFilter = Boolean(filterMemberId && !isReachingEnd);
   const clearTaskFilters = useCallback(() => {
@@ -374,7 +399,8 @@ export default function TasksPageClient({
     if (memberName && isResolvingMemberFilter) {
       return {
         title: `Finding tasks for ${memberName}`,
-        description: "Checking the remaining tasks for work they own or are assigned to.",
+        description:
+          "Checking the remaining tasks for work they own or are assigned to.",
       };
     }
     if (memberName && selectedProject) {
@@ -403,9 +429,18 @@ export default function TasksPageClient({
     }
     return {
       title: tableTab === "done" ? "No completed tasks" : "No active tasks",
-      description: tableTab === "done" ? "Completed tasks will appear here." : "Create a task to get started.",
+      description:
+        tableTab === "done"
+          ? "Completed tasks will appear here."
+          : "Create a task to get started.",
     };
-  }, [hasActiveFilters, isResolvingMemberFilter, selectedMember, selectedProject, tableTab]);
+  }, [
+    hasActiveFilters,
+    isResolvingMemberFilter,
+    selectedMember,
+    selectedProject,
+    tableTab,
+  ]);
 
   useEffect(() => {
     const unsub = on("task:created", (data: any) => {
@@ -477,8 +512,8 @@ export default function TasksPageClient({
   const [newReviewRequired, setNewReviewRequired] = useState(false);
   const [newDependsOn, setNewDependsOn] = useState<number | null>(null);
   const newNameRef = useRef<HTMLInputElement | null>(null);
-  // When true the create form is popped out into a modal instead of sitting in
-  // the table row. Only one of the two renders at a time, so the shared
+  // When true the create form is popped out into a modal instead of sitting
+  // in the table row. Only one of the two renders at a time, so the shared
   // `create-task-form` id and its associated inputs stay unique.
   const [isCreateExpanded, setIsCreateExpanded] = useState(false);
 
@@ -529,9 +564,9 @@ export default function TasksPageClient({
   };
 
   // ── Shared create-task fields ──────────────────────────────────────────
-  // Rendered either inside the table row or inside the pop-out modal.
+  // Rendered either in the table row or inside the pop-out modal.
   const inputClass =
-    "w-full bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] px-3 py-2 text-foreground placeholder:text-text-muted/50 text-xs transition-all";
+    "w-full bg-foreground/[0.03] border border-card-border rounded-xl focus:outline-none focus:bg-foreground/[0.06] h-9 min-h-9 max-h-9 px-3 py-0 text-foreground placeholder:text-text-muted/50 text-xs transition-colors";
 
   const createNameField = (
     <input
@@ -568,7 +603,7 @@ export default function TasksPageClient({
       placeholder="Add more detail about this task..."
       form="create-task-form"
       rows={5}
-      className={`${inputClass.replace("bg-foreground/[0.03]", "bg-foreground/[0.06]")} min-h-[120px] resize-y leading-relaxed`}
+      className={`${inputClass.replace("bg-foreground/[0.03]", "bg-foreground/[0.06]").replace("h-9 min-h-9 max-h-9", "").replace("py-0", "py-2")} min-h-[120px] resize-y leading-relaxed`}
       onChange={() => setIsDirty(true)}
     />
   );
@@ -582,11 +617,12 @@ export default function TasksPageClient({
       }}
       placeholder="Due date"
       className="w-full"
+      triggerClassName="!h-9 !min-h-9 !max-h-9 !py-0 text-xs"
     />
   );
 
   const createChecksField = (
-    <div className="flex items-center gap-4">
+    <div className="flex h-9 items-center gap-3 whitespace-nowrap">
       <label className="flex items-center gap-2 cursor-pointer group">
         <div className="relative flex items-center">
           <input
@@ -635,28 +671,24 @@ export default function TasksPageClient({
         setIsDirty(true);
       }}
       placeholder="Depends on..."
-      className="w-full"
+      className="w-full min-w-0"
+      triggerClassName="!h-9 !min-h-9 !max-h-9 !py-0 text-xs"
     />
   );
 
   const createPriorityField = (
-    <select
+    <CustomSelect
+      label="Priority"
       name="priority"
       form="create-task-form"
-      className={`${inputClass} appearance-none cursor-pointer`}
-      required
+      defaultValue="low"
+      triggerClassName="!h-9 !min-h-9 !max-h-9 !py-0 text-xs"
+      options={Object.entries(priorityMapping).map(([value, label]) => ({
+        value,
+        label,
+      }))}
       onChange={() => setIsDirty(true)}
-    >
-      <option value="low" className="bg-card">
-        Low
-      </option>
-      <option value="medium" className="bg-card">
-        Medium
-      </option>
-      <option value="high" className="bg-card">
-        High
-      </option>
-    </select>
+    />
   );
 
   const createAssigneesField = (
@@ -665,6 +697,7 @@ export default function TasksPageClient({
         value: u.id,
         label: u.fullName || u.email,
         subLabel: u.email,
+        avatarUrl: u.avatarUrl,
       }))}
       value={newAssignees}
       onChange={(val) => {
@@ -672,43 +705,48 @@ export default function TasksPageClient({
         setIsDirty(true);
       }}
       multiple
+      compact
       placeholder="Assign..."
       searchPlaceholder="Search users..."
-      className="w-full"
+      className="w-full min-w-0"
+      triggerClassName="!h-9 !min-h-9 !max-h-9 !py-0 text-xs"
     />
   );
 
   const createProjectField = (
     <Combobox
-      options={projects.map((p) => ({
-        value: p.id,
-        label: p.name,
-        subLabel: p.key || undefined,
-      }))}
+      options={projects
+        .filter((p) => !projectId || p.id === projectId)
+        .map((p) => ({
+          value: p.id,
+          label: p.name,
+          subLabel: p.key || undefined,
+        }))}
       value={newProject || ""}
       onChange={(val) => {
-        setNewProject(val as string | number | null);
+        setNewProject(projectId ?? (val as string | number | null));
         setIsDirty(true);
       }}
       placeholder="Project..."
       searchPlaceholder="Search projects..."
-      className="w-full"
+      className="w-full min-w-0"
+      triggerClassName="!h-9 !min-h-9 !max-h-9 !py-0 text-xs"
     />
   );
 
   const createStatusField = (
-    <select
+    <CustomSelect
+      label="Status"
       name="status"
       form="create-task-form"
-      className={`${inputClass} appearance-none cursor-pointer`}
-      required
-    >
-      {Object.entries(statusMapping).map(([key, value]) => (
-        <option key={key} value={key} className="bg-card">
-          {value}
-        </option>
-      ))}
-    </select>
+      defaultValue="TODO"
+      triggerClassName="!h-9 !min-h-9 !max-h-9 !py-0 text-xs"
+      options={Object.entries(statusMapping).map(([value, label]) => ({
+        value,
+        label,
+      }))}
+      onChange={() => setIsDirty(true)}
+    />
   );
 
   // Infinite Scroll Sentinel
@@ -799,9 +837,10 @@ export default function TasksPageClient({
       toast.success("Task created successfully");
     } catch (err) {
       console.error(err);
-      const message = err instanceof Error
-        ? err.message
-        : "Could not save the new task. Please try again.";
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not save the new task. Please try again.";
       setErrorMsg(message);
       toast.error(message);
     } finally {
@@ -912,42 +951,85 @@ export default function TasksPageClient({
   // numbers visible. The choice is remembered per browser.
   const taskCounts = {
     open: optimisticTasks.filter((t) => t.status !== "DONE").length,
-    inProgress: optimisticTasks.filter((t) => t.status === "IN_PROGRESS").length,
+    inProgress: optimisticTasks.filter((t) => t.status === "IN_PROGRESS")
+      .length,
     done: optimisticTasks.filter((t) => t.status === "DONE").length,
-    highPriority: optimisticTasks.filter((t) => t.priority === "high" && t.status !== "DONE").length,
+    highPriority: optimisticTasks.filter(
+      (t) => t.priority === "high" && t.status !== "DONE",
+    ).length,
+  };
+  const tableDirection = tableTab === "done" ? 1 : -1;
+  const tableSwitchVariants: Variants = {
+    enter: (direction: number) => ({
+      opacity: 0,
+      x: reduceMotion ? 0 : direction * 20,
+    }),
+    center: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: reduceMotion ? 0 : 0.2,
+        ease: [0.23, 1, 0.32, 1],
+      },
+    },
+    exit: (direction: number) => ({
+      opacity: 0,
+      x: reduceMotion ? 0 : -direction * 12,
+      transition: {
+        duration: reduceMotion ? 0 : 0.12,
+        ease: [0.23, 1, 0.32, 1],
+      },
+    }),
   };
 
   return (
-    <div className="md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
-      <div className="hidden lg:block mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight m-1.5">
-          Tasks
-        </h1>
-        <p className="text-text-muted text-lg">
-          Manage team work and track progress.
-        </p>
-      </div>
+    <div
+      className={
+        embedded
+          ? "md-zen w-full min-w-0"
+          : "md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-4 py-5 sm:px-6 md:min-h-screen md:py-8"
+      }
+    >
+      {!embedded && (
+        <div className="hidden lg:block mb-6">
+          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
+            Tasks
+          </h1>
+          <p className="text-text-muted text-lg">
+            Manage team work and track progress.
+          </p>
+        </div>
+      )}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 lg:mb-6">
         <p className="text-sm text-text-muted font-numbers">
-          {taskCounts.open} open · {taskCounts.inProgress} in progress · {taskCounts.done} done
+          {taskCounts.open} open · {taskCounts.inProgress} in progress ·{" "}
+          {taskCounts.done} done
           {taskCounts.highPriority > 0 && (
-            <span className="text-[var(--pastel-rose)]"> · {taskCounts.highPriority} high priority</span>
+            <span className="text-[var(--pastel-rose)]">
+              {" "}
+              · {taskCounts.highPriority} high priority
+            </span>
           )}
         </p>
-        <button
-          type="button"
-          onClick={toggleOverview}
-          aria-expanded={showOverview}
-          aria-controls="tasks-overview"
-          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-text-muted transition-colors hover:bg-foreground/[0.045] hover:text-foreground"
-        >
-          {showOverview ? "Hide overview" : "Show overview"}
-          <FiChevronDown aria-hidden className={`transition-transform duration-200 motion-reduce:transition-none ${showOverview ? "rotate-180" : ""}`} />
-        </button>
+        {!embedded && (
+          <button
+            type="button"
+            onClick={toggleOverview}
+            aria-expanded={showOverview}
+            aria-controls="tasks-overview"
+            className="hover-scale inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-text-muted transition-colors hover:bg-foreground/[0.045] hover:text-foreground"
+          >
+            {showOverview ? "Hide overview" : "Show overview"}
+            <FiChevronDown
+              aria-hidden
+              className={`transition-transform duration-200 motion-reduce:transition-none ${showOverview ? "rotate-180" : ""}`}
+            />
+          </button>
+        )}
       </div>
 
-      {showOverview && (
+      {!embedded && showOverview && (
         <div id="tasks-overview">
           <TaskSummarySection tasks={optimisticTasks} />
 
@@ -955,21 +1037,26 @@ export default function TasksPageClient({
             tasks={mergedTasks}
             users={users}
             selectedUserId={filterMemberId}
-            onSelectUser={(user) => setFilterMemberId(user ? String(user.id) : "")}
+            onSelectUser={(user) =>
+              setFilterMemberId(user ? String(user.id) : "")
+            }
           />
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-        <div className="flex items-center gap-2 w-full overflow-x-auto pb-2 scrollbar-hide">
-          <div className="relative flex-1 min-w-[140px] max-w-sm group">
+      <CollectionToolbar
+        label="Task controls"
+        className="mb-5"
+        search={
+          <div className="relative w-full group">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search tasks..."
+              aria-label="Search tasks"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-10 h-11 bg-input-bg border border-card-border rounded-md focus:outline-none text-foreground placeholder:text-text-muted transition-colors text-sm"
+              className="h-11 w-full rounded-full border border-card-border bg-input-bg pl-9 pr-10 text-sm text-foreground placeholder:text-text-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             />
             {searchQuery && (
               <button
@@ -982,107 +1069,131 @@ export default function TasksPageClient({
               </button>
             )}
           </div>
-
-          <div className="relative group flex-shrink-0">
-            <div className="h-9 lg:h-11 w-9 lg:w-36 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
-              <FiFilter className="text-text-muted group-hover:text-foreground transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
-              <select
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value)}
-                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-xs lg:font-medium appearance-none focus:outline-none"
-              >
-                <option value="" className="bg-card">
-                  Priority
-                </option>
-                {Object.entries(priorityMapping).map(([key, value]) => (
-                  <option key={key} value={key} className="bg-card">
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="relative group flex-shrink-0">
-            <div className="h-9 lg:h-11 w-9 lg:w-36 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
-              <FiFilter className="text-text-muted group-hover:text-foreground transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-xs lg:font-medium appearance-none focus:outline-none"
-              >
-                <option value="" className="bg-card">
-                  Status
-                </option>
-                {Object.entries(statusMapping).map(([key, value]) => (
-                  <option key={key} value={key} className="bg-card">
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="relative group flex-shrink-0">
-              <div className="h-9 lg:h-11 w-9 lg:w-40 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden  transition-all">
-                <FiFolder className="text-text-muted group-hover:text-foreground transition-colors w-3.5 h-3.5 lg:absolute lg:left-3 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
-                <select
-                  aria-label="Filter tasks by project"
-                  value={filterProjectId}
-                  onChange={(e) => setFilterProjectId(e.target.value)}
-                  className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-8 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-xs lg:font-medium appearance-none focus:outline-none"
+        }
+        filters={
+          <>
+            {viewMode === "table" && (
+              <div className="flex w-fit flex-shrink-0 items-center gap-1 rounded-full bg-foreground/[0.05] p-1">
+                <button
+                  type="button"
+                  onClick={() => setTableTab("active")}
+                  aria-pressed={tableTab === "active"}
+                  className={`hover-scale relative isolate min-h-9 rounded-full px-4 text-sm transition-colors ${tableTab === "active" ? "font-medium text-on-ink" : "text-text-muted hover:text-foreground"}`}
                 >
-                  <option value="" className="bg-card">All projects</option>
-                  {[...projects]
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((project) => (
-                      <option key={project.id} value={String(project.id)} className="bg-card">
-                        {project.name}
-                      </option>
-                    ))}
-                </select>
+                  {tableTab === "active" && <TabPill />}
+                  Active
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableTab("done")}
+                  aria-pressed={tableTab === "done"}
+                  className={`hover-scale relative isolate min-h-9 rounded-full px-4 text-sm transition-colors ${tableTab === "done" ? "font-medium text-on-ink" : "text-text-muted hover:text-foreground"}`}
+                >
+                  {tableTab === "done" && <TabPill />}
+                  Done
+                </button>
               </div>
+            )}
+
+            <CustomSelect
+              label="Filter tasks by priority"
+              value={filterPriority}
+              onChange={setFilterPriority}
+              options={[
+                { value: "", label: "Priority" },
+                ...Object.entries(priorityMapping).map(([value, label]) => ({
+                  value,
+                  label,
+                })),
+              ]}
+              icon={<FiFilter className="h-3.5 w-3.5" />}
+              className="!w-auto min-w-36 flex-shrink-0"
+              triggerClassName="rounded-full text-xs text-text-muted"
+            />
+            <CustomSelect
+              label="Filter tasks by status"
+              value={filterStatus}
+              onChange={setFilterStatus}
+              options={[
+                { value: "", label: "Status" },
+                ...Object.entries(statusMapping).map(([value, label]) => ({
+                  value,
+                  label,
+                })),
+              ]}
+              icon={<FiFilter className="h-3.5 w-3.5" />}
+              className="!w-auto min-w-36 flex-shrink-0"
+              triggerClassName="rounded-full text-xs text-text-muted"
+            />
+            {!projectId && (
+              <CustomSelect
+                label="Filter tasks by project"
+                value={filterProjectId}
+                onChange={setFilterProjectId}
+                options={[
+                  { value: "", label: "All projects" },
+                  ...[...projects]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((project) => ({
+                      value: String(project.id),
+                      label: project.name,
+                    })),
+                ]}
+                icon={<FiFolder className="h-3.5 w-3.5" />}
+                className="!w-auto min-w-40 max-w-64 flex-shrink-0"
+                triggerClassName="rounded-full text-xs text-text-muted"
+              />
+            )}
+
+            {/* My Tasks Toggle */}
+            <button
+              onClick={() => setFilterMyTasks((f) => !f)}
+              aria-label="My tasks"
+              aria-pressed={filterMyTasks}
+              className={`hover-scale flex h-11 flex-shrink-0 items-center gap-2 rounded-full border px-3 text-xs font-medium transition-colors lg:px-4 ${
+                filterMyTasks
+                  ? "bg-accent/20 border-accent/40 text-accent-text dark:text-accent-text"
+                  : "bg-foreground/[0.03] border-card-border text-text-muted hover:text-foreground hover:border-card-border"
+              }`}
+            >
+              <FiUser className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">My tasks</span>
+            </button>
+          </>
+        }
+        tools={
+          <>
+            <div className="flex h-11 flex-shrink-0 rounded-full bg-foreground/[0.05] p-1">
+              <button
+                onClick={() => setViewMode("table")}
+                aria-label="Table view"
+                aria-pressed={viewMode === "table"}
+                className="hover-scale relative isolate flex h-full min-w-10 items-center justify-center rounded-full px-2 text-text-muted transition-colors duration-200 hover:text-foreground has-[.tab-pill-on]:!text-on-ink"
+              >
+                {viewMode === "table" && (
+                  <TabPill className="tab-pill-on bg-ink" />
+                )}
+                <span className="relative z-10">
+                  <FiList className="w-5 h-5" />
+                </span>
+              </button>
+              <button
+                onClick={() => setViewMode("kanban")}
+                aria-label="Board view"
+                aria-pressed={viewMode === "kanban"}
+                className="hover-scale relative isolate flex h-full min-w-10 items-center justify-center rounded-full px-2 text-text-muted transition-colors duration-200 hover:text-foreground has-[.tab-pill-on]:!text-on-ink"
+              >
+                {viewMode === "kanban" && (
+                  <TabPill className="tab-pill-on bg-ink" />
+                )}
+                <span className="relative z-10">
+                  <FiGrid className="w-5 h-5" />
+                </span>
+              </button>
             </div>
-
-          {/* My Tasks Toggle */}
-          <button
-            onClick={() => setFilterMyTasks((f) => !f)}
-            className={`flex items-center gap-2 h-9 lg:h-11 px-3 lg:px-4 rounded-xl border text-xs font-medium transition-all flex-shrink-0 ${
- filterMyTasks
- ? "bg-accent/20 border-accent/40 text-accent-text dark:text-accent-text"
- : "bg-foreground/[0.03] border-card-border text-text-muted hover:text-foreground hover:border-card-border"
- }`}
-          >
-            <FiUser className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">My tasks</span>
-          </button>
-
-          <div className="flex bg-foreground/[0.05] p-1 h-9 lg:h-11 rounded-full flex-shrink-0 ml-auto">
-            <button
-              onClick={() => setViewMode("table")}
-              className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
-            >
-              {viewMode === "table" && (
-                <TabPill className="tab-pill-on bg-ink" />
-              )}
-              <span className="relative z-10">
-                <FiList className="w-5 h-5" />
-              </span>
-            </button>
-            <button
-              onClick={() => setViewMode("kanban")}
-              className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
-            >
-              {viewMode === "kanban" && (
-                <TabPill className="tab-pill-on bg-ink" />
-              )}
-              <span className="relative z-10">
-                <FiGrid className="w-5 h-5" />
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {errorMsg && (
         <div className="mb-6 rounded-xl border border-danger/20 bg-danger/10 p-4 text-danger-text dark:text-danger-text text-sm flex items-center gap-2">
@@ -1099,7 +1210,11 @@ export default function TasksPageClient({
               icon={FiClipboard}
               title={emptyStateCopy.title}
               description={emptyStateCopy.description}
-              action={hasActiveFilters && !isResolvingMemberFilter ? { label: "Clear filters", onClick: clearTaskFilters } : undefined}
+              action={
+                hasActiveFilters && !isResolvingMemberFilter
+                  ? { label: "Clear filters", onClick: clearTaskFilters }
+                  : undefined
+              }
             />
           </div>
         ) : (
@@ -1114,351 +1229,328 @@ export default function TasksPageClient({
           />
         )
       ) : (
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between gap-4 overflow-x-auto pb-1 scrollbar-hide">
-            <div className="flex w-fit flex-shrink-0 items-center gap-1 rounded-full bg-foreground/[0.05] p-1">
-              <button
-                type="button"
-                onClick={() => setTableTab("active")}
-                aria-pressed={tableTab === "active"}
-                className={`relative isolate min-h-9 rounded-full px-4 text-sm transition-colors ${tableTab === "active" ? "font-medium text-on-ink" : "text-text-muted hover:text-foreground"}`}
-              >
-                {tableTab === "active" && <TabPill />}
-                Active
-              </button>
-              <button
-                type="button"
-                onClick={() => setTableTab("done")}
-                aria-pressed={tableTab === "done"}
-                className={`relative isolate min-h-9 rounded-full px-4 text-sm transition-colors ${tableTab === "done" ? "font-medium text-on-ink" : "text-text-muted hover:text-foreground"}`}
-              >
-                {tableTab === "done" && <TabPill />}
-                Done
-              </button>
-            </div>
-          </div>
-
-          {/* Switching Active/Done swaps the whole table with a short fade, so rows
-              from the old tab never linger or drift over the new one. */}
-          <motion.div
-            key={tableTab}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
-            className="flex flex-col overflow-hidden rounded-[28px] bg-card"
-          >
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <caption className="sr-only">Tasks table</caption>
-                <thead>
-                  <tr className="border-b border-card-border bg-foreground/[0.03] text-left">
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap sticky left-0 z-20 bg-card border-r border-card-border"
-                    >
-                      Name
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden lg:table-cell"
-                    >
-                      Description
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden sm:table-cell"
-                    >
-                      Priority
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden lg:table-cell"
-                    >
-                      Assignee
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
-                    >
-                      Due Date
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden md:table-cell"
-                    >
-                      Owner
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap hidden md:table-cell"
-                    >
-                      Project
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
-                    >
-                      Status
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
-                    >
-                      Time Logged
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
-                    >
-                      QA/Review
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-xs font-medium text-text-muted whitespace-nowrap"
-                    >
-                      Depends On
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 text-right text-xs font-medium text-text-muted whitespace-nowrap sticky right-0 z-20 bg-card border-l border-card-border"
-                    >
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-card-border">
-                  <AnimatePresence initial={false}>
-                    {filteredTasks.map((task, index) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        user={currentUser}
-                        users={users}
-                        projects={projects}
-                        updateTask={handleUpdate}
-                        deleteTask={handleDelete}
-                        isEditing={editingTaskId === task.id}
-                        isNew={newTaskIds.has(task.id)}
-                        onEdit={() => setEditingTaskId(task.id)}
-                        onCancel={() => setEditingTaskId(null)}
-                        canManage={canManage}
-                      />
-                    ))}
-
-                    {isLoadingMore && (
-                      <tr className="bg-foreground/[0.01] animate-pulse">
-                        <td className="px-6 py-4 sticky left-0 z-20 bg-card border-r border-card-border">
-                          <div className="h-4 w-32 bg-foreground/10 rounded-lg"></div>
-                        </td>
-                        <td className="px-6 py-4 hidden lg:table-cell">
-                          <div className="h-4 w-48 bg-foreground/5 rounded-lg"></div>
-                        </td>
-                        <td className="px-6 py-4 hidden sm:table-cell">
-                          <div className="h-5 w-12 rounded-full bg-foreground/10"></div>
-                        </td>
-                        <td className="px-6 py-4 hidden lg:table-cell">
-                          <div className="flex -space-x-2">
-                            <div className="h-6 w-6 rounded-full bg-foreground/5"></div>
-                            <div className="h-6 w-6 rounded-full bg-foreground/5"></div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-4 w-20 bg-foreground/5 rounded-lg"></div>
-                        </td>
-                        <td className="px-6 py-4 hidden md:table-cell">
-                          <div className="h-8 w-8 rounded-full bg-foreground/10"></div>
-                        </td>
-                        <td className="px-6 py-4 hidden md:table-cell">
-                          <div className="h-4 w-16 bg-foreground/5 rounded-lg"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-6 w-20 rounded-full bg-foreground/10"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-4 w-12 bg-foreground/5 rounded-lg"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-4 w-16 bg-foreground/5 rounded-lg"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-4 w-24 bg-foreground/5 rounded-lg"></div>
-                        </td>
-                        <td className="px-6 py-4 sticky right-0 z-20 bg-card border-l border-card-border">
-                          <div className="h-8 w-8 ml-auto rounded-lg bg-foreground/5"></div>
-                        </td>
-                      </tr>
-                    )}
-                    {/* Fade only, deliberately no y/scale: a transform on the row creates
-                                            a containing block that breaks `position: sticky` on its cells,
-                                            which made the pinned Name and Actions columns scroll away with
-                                            the middle of the table. */}
-                    {isAddingTask && !isCreateExpanded && (
-                      <motion.tr
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0, transition: { duration: 0.2 } }}
-                        className="bg-foreground/[0.03]"
+        <div className="flex flex-col gap-4">
+          {/* A brief directional exit and entrance keeps the two lists distinct. */}
+          <AnimatePresence initial={false} mode="wait" custom={tableDirection}>
+            <motion.div
+              key={tableTab}
+              custom={tableDirection}
+              variants={tableSwitchVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="flex flex-col overflow-hidden rounded-[28px] bg-card"
+            >
+              <div className="overflow-x-auto">
+                <table
+                  className={`w-full table-fixed border-collapse ${
+                    isAddingTask && !isCreateExpanded
+                      ? "min-w-[2300px] [&_th]:table-cell [&_td]:table-cell [&_th:nth-child(1)]:w-[280px] [&_th:nth-child(2)]:w-[260px] [&_th:nth-child(3)]:w-[150px] [&_th:nth-child(4)]:w-[220px] [&_th:nth-child(5)]:w-[170px] [&_th:nth-child(7)]:w-[180px] [&_th:nth-child(8)]:w-[170px] [&_th:nth-child(10)]:w-[160px] [&_th:nth-child(11)]:w-[220px] [&_th:nth-child(12)]:w-[160px]"
+                      : "min-w-[1000px] sm:min-w-[1120px] md:min-w-[1400px] lg:min-w-[1700px]"
+                  }`}
+                >
+                  <caption className="sr-only">Tasks table</caption>
+                  <thead>
+                    <tr className="border-b border-card-border bg-foreground/[0.03] text-left">
+                      <th
+                        scope="col"
+                        className="sticky left-0 z-20 w-[260px] border-r border-card-border bg-card px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap"
                       >
-                        {/* Name and description match the widths these columns already
-                                                    use when displaying a task, so there is room to type. */}
-                        <td className="px-4 py-2 sticky left-0 z-10 bg-card border-r border-card-border min-w-[250px]">
-                          <form
-                            id="create-task-form"
-                            onSubmit={handleCreateSubmit}
-                          >
-                            {createNameField}
-                          </form>
-                        </td>
-                        <td className="px-4 py-2 bg-foreground/[0.03] min-w-[300px]">
-                          {createDescriptionField}
-                        </td>
-                        <td className="px-4 py-2">{createPriorityField}</td>
-                        <td className="px-4 py-2 min-w-[200px]">
-                          {createAssigneesField}
-                        </td>
-                        <td className="px-4 py-2 bg-foreground/[0.03]">
-                          {createDueDateField}
-                        </td>
-                        {/* Owner is stamped from the session on create, so there is
-                                                    nothing to edit — but the cell has to exist or every column
-                                                    after it sits under the wrong header. */}
-                        <td className="px-4 py-2">
-                          <span className="text-text-muted/30 text-[11px]">
-                            —
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 min-w-[150px]">
-                          {createProjectField}
-                        </td>
-                        <td className="px-4 py-2">{createStatusField}</td>
-                        {/* Time Logged placeholder in create row */}
-                        <td className="px-4 py-2">
-                          <span className="text-text-muted/30 text-[11px]">
-                            —
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 bg-foreground/[0.03]">
-                          {createChecksField}
-                        </td>
-                        <td className="px-4 py-2 bg-foreground/[0.03]">
-                          {createDependsOnField}
-                        </td>
-                        <td className="px-4 py-2 text-right text-xs font-medium sticky right-0 z-10 bg-card border-l border-card-border">
-                          <div className="flex items-center justify-end space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => setIsCreateExpanded(true)}
-                              title="Open in a bigger form"
-                              aria-label="Open in a bigger form"
-                              className="inline-flex items-center p-1.5 border border-card-border rounded-lg text-text-muted bg-foreground/[0.03] hover:bg-foreground/[0.06] hover:text-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 transition-all"
+                        Name
+                      </th>
+                      <th
+                        scope="col"
+                        className="hidden w-[200px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap lg:table-cell"
+                      >
+                        Description
+                      </th>
+                      <th
+                        scope="col"
+                        className="hidden w-[110px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap sm:table-cell"
+                      >
+                        Priority
+                      </th>
+                      <th
+                        scope="col"
+                        className="hidden w-[100px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap lg:table-cell"
+                      >
+                        Assignee
+                      </th>
+                      <th
+                        scope="col"
+                        className="w-[120px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap"
+                      >
+                        Due Date
+                      </th>
+                      <th
+                        scope="col"
+                        className="hidden w-[170px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap md:table-cell"
+                      >
+                        Owner
+                      </th>
+                      <th
+                        scope="col"
+                        className="hidden w-[110px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap md:table-cell"
+                      >
+                        Project
+                      </th>
+                      <th
+                        scope="col"
+                        className="w-[110px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap"
+                      >
+                        Status
+                      </th>
+                      <th
+                        scope="col"
+                        className="w-[130px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap"
+                      >
+                        Time Logged
+                      </th>
+                      <th
+                        scope="col"
+                        className="w-[110px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap"
+                      >
+                        QA/Review
+                      </th>
+                      <th
+                        scope="col"
+                        className="w-[130px] px-5 py-3 text-xs font-medium text-text-muted whitespace-nowrap"
+                      >
+                        Depends On
+                      </th>
+                      <th
+                        scope="col"
+                        className="sticky right-0 z-20 w-[140px] border-l border-card-border bg-card px-5 py-3 text-right text-xs font-medium text-text-muted whitespace-nowrap"
+                      >
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-card-border">
+                    <AnimatePresence initial={false}>
+                      {filteredTasks.map((task, index) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          user={currentUser}
+                          users={users}
+                          projects={projects}
+                          updateTask={handleUpdate}
+                          deleteTask={handleDelete}
+                          isEditing={editingTaskId === task.id}
+                          isNew={newTaskIds.has(task.id)}
+                          onEdit={() => setEditingTaskId(task.id)}
+                          onCancel={() => setEditingTaskId(null)}
+                          canManage={canManage}
+                        />
+                      ))}
+
+                      {isLoadingMore && (
+                        <tr className="bg-foreground/[0.01] animate-pulse">
+                          <td className="px-5 py-3 sticky left-0 z-20 bg-card border-r border-card-border">
+                            <div className="h-4 w-32 bg-foreground/10 rounded-lg"></div>
+                          </td>
+                          <td className="px-5 py-3 hidden lg:table-cell">
+                            <div className="h-4 w-48 bg-foreground/5 rounded-lg"></div>
+                          </td>
+                          <td className="px-5 py-3 hidden sm:table-cell">
+                            <div className="h-5 w-12 rounded-full bg-foreground/10"></div>
+                          </td>
+                          <td className="px-5 py-3 hidden lg:table-cell">
+                            <div className="flex -space-x-2">
+                              <div className="h-6 w-6 rounded-full bg-foreground/5"></div>
+                              <div className="h-6 w-6 rounded-full bg-foreground/5"></div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="h-4 w-20 bg-foreground/5 rounded-lg"></div>
+                          </td>
+                          <td className="px-5 py-3 hidden md:table-cell">
+                            <div className="h-8 w-8 rounded-full bg-foreground/10"></div>
+                          </td>
+                          <td className="px-5 py-3 hidden md:table-cell">
+                            <div className="h-4 w-16 bg-foreground/5 rounded-lg"></div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="h-6 w-20 rounded-full bg-foreground/10"></div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="h-4 w-12 bg-foreground/5 rounded-lg"></div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="h-4 w-16 bg-foreground/5 rounded-lg"></div>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="h-4 w-24 bg-foreground/5 rounded-lg"></div>
+                          </td>
+                          <td className="px-5 py-3 sticky right-0 z-20 bg-card border-l border-card-border">
+                            <div className="h-8 w-8 ml-auto rounded-lg bg-foreground/5"></div>
+                          </td>
+                        </tr>
+                      )}
+                      {isAddingTask && !isCreateExpanded && (
+                        <motion.tr
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: reduceMotion ? 0 : 0.18 }}
+                          className="bg-foreground/[0.03]"
+                        >
+                          <td className="sticky left-0 z-10 border-r border-card-border bg-card px-4 py-3">
+                            <form
+                              id="create-task-form"
+                              onSubmit={handleCreateSubmit}
                             >
-                              <FiMaximize2 className="h-3 w-3" />
-                            </button>
-                            <button
-                              type="submit"
-                              form="create-task-form"
-                              disabled={isPending || savingCreate}
-                              className="grid h-8 w-8 place-items-center rounded-full bg-ink text-on-ink transition-opacity hover:opacity-90 disabled:opacity-50"
-                            >
+                              {createNameField}
+                            </form>
+                          </td>
+                          <td className="px-4 py-3">
+                            {createDescriptionField}
+                          </td>
+                          <td className="px-4 py-3">{createPriorityField}</td>
+                          <td className="px-4 py-3">{createAssigneesField}</td>
+                          <td className="px-4 py-3">{createDueDateField}</td>
+                          <td className="px-4 py-3 text-xs text-text-muted/50">
+                            —
+                          </td>
+                          <td className="px-4 py-3">{createProjectField}</td>
+                          <td className="px-4 py-3">{createStatusField}</td>
+                          <td className="px-4 py-3 text-xs text-text-muted/50">
+                            —
+                          </td>
+                          <td className="px-4 py-3">{createChecksField}</td>
+                          <td className="px-4 py-3">{createDependsOnField}</td>
+                          <td className="sticky right-0 z-10 border-l border-card-border bg-card px-4 py-3">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setIsCreateExpanded(true)}
+                                aria-label="Open in a bigger form"
+                                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
+                              >
+                                <FiMaximize2 className="h-3.5 w-3.5" />
                               </button>
-                            <button
-                              type="button"
-                              onClick={handleCancelCreate}
-                              disabled={savingCreate}
-                              className="inline-flex items-center p-1.5 border border-card-border text-text-muted bg-foreground/[0.03] hover:bg-foreground/[0.06] hover:text-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 disabled:opacity-50 transition-all rounded-full"
-                            >
-                              <FiX className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    )}
-                  </AnimatePresence>
-                  {filteredTasks.length === 0 &&
-                    !isLoadingMore &&
-                    !isAddingTask && (
-                      <tr>
-                        <td colSpan={12} className="px-6 py-4 text-center">
-                          <EmptyState
-                            compact
-                            icon={FiClipboard}
-                            title={emptyStateCopy.title}
-                            description={emptyStateCopy.description}
-                            action={hasActiveFilters && !isResolvingMemberFilter ? { label: "Clear filters", onClick: clearTaskFilters } : undefined}
-                          />
-                        </td>
-                      </tr>
-                    )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Infinite Scroll Sentinel */}
-            {!isReachingEnd && <div ref={sentinelRef} className="h-4 w-full" />}
-
-            <div className="p-4 border-t border-card-border bg-foreground/[0.01] flex items-center justify-between">
-              <div className="flex items-center">
-                {!isAddingTask && (
-                  <button
-                    onClick={async () => {
-                      if (isAddingTask && isDirty) {
-                        const confirmed = await confirm({
-                          title: "Unsaved Changes",
-                          message:
-                            "You have unsaved changes. Are you sure you want to close the form?",
-                          confirmText: "Close Anyway",
-                          type: "warning",
-                        });
-
-                        if (confirmed) {
-                          setIsAddingTask(!isAddingTask);
-                          setIsDirty(false);
-                        }
-                      } else {
-                        setIsAddingTask(!isAddingTask);
-                      }
-                    }}
-                    className="flex items-center gap-2 p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
-                  >
-                    <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
-                      <FiPlus className="w-4 h-4" />
-                    </div>
-                    <span>New task</span>
-                  </button>
-                )}
+                              <button
+                                type="submit"
+                                form="create-task-form"
+                                disabled={isPending || savingCreate}
+                                aria-label="Create task"
+                                className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink text-on-ink transition-opacity hover:opacity-90 disabled:opacity-50"
+                              >
+                                <BusyIcon
+                                  state={savingCreate ? "loading" : "idle"}
+                                  icon={<FiCheck className="h-4 w-4" />}
+                                />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleCancelCreate}
+                                disabled={savingCreate}
+                                aria-label="Cancel new task"
+                                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground disabled:opacity-50"
+                              >
+                                <FiX className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      )}
+                    </AnimatePresence>
+                    {filteredTasks.length === 0 &&
+                      !isLoadingMore &&
+                      !isAddingTask && (
+                        <tr>
+                          <td colSpan={12} className="px-5 py-3 text-center">
+                            <EmptyState
+                              compact
+                              icon={FiClipboard}
+                              title={emptyStateCopy.title}
+                              description={emptyStateCopy.description}
+                              action={
+                                hasActiveFilters && !isResolvingMemberFilter
+                                  ? {
+                                      label: "Clear filters",
+                                      onClick: clearTaskFilters,
+                                    }
+                                  : undefined
+                              }
+                            />
+                          </td>
+                        </tr>
+                      )}
+                  </tbody>
+                </table>
               </div>
 
-              {isLoadingMore && (
-                <div className="flex items-center gap-4 rounded-full border border-card-border bg-card py-2 pl-4 pr-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  <div className="flex flex-col items-end">
-                    <div className="mb-1 text-xs leading-none text-text-muted">
-                      Loading more
-                    </div>
-                    <div className="h-1 w-12 overflow-hidden rounded-full bg-accent/20">
-                      <motion.div
-                        className="h-full bg-accent"
-                        initial={{ x: "-100%" }}
-                        animate={{ x: "100%" }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: 1,
-                          ease: "linear",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="relative h-6 w-6 flex items-center justify-center">
-                    <div className="absolute inset-0 rounded-full border-2 border-accent/15"></div>
-                    <Spinner className="h-4 w-4 text-accent-text" />
-                  </div>
-                </div>
+              {/* Infinite Scroll Sentinel */}
+              {!isReachingEnd && (
+                <div ref={sentinelRef} className="h-4 w-full" />
               )}
-            </div>
-          </motion.div>
+
+              <div className="p-4 border-t border-card-border bg-foreground/[0.01] flex items-center justify-between">
+                <div className="flex items-center">
+                  {!isAddingTask && (
+                    <button
+                      onClick={async () => {
+                        if (isAddingTask && isDirty) {
+                          const confirmed = await confirm({
+                            title: "Unsaved Changes",
+                            message:
+                              "You have unsaved changes. Are you sure you want to close the form?",
+                            confirmText: "Close Anyway",
+                            type: "warning",
+                          });
+
+                          if (confirmed) {
+                            setIsAddingTask(!isAddingTask);
+                            setIsDirty(false);
+                          }
+                        } else {
+                          setIsAddingTask(!isAddingTask);
+                        }
+                      }}
+                      className="hover-scale group flex h-10 items-center gap-2 rounded-full border border-card-border bg-foreground/[0.03] px-3 text-sm text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
+                    >
+                      <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
+                        <FiPlus className="w-4 h-4" />
+                      </div>
+                      <span>New task</span>
+                    </button>
+                  )}
+                </div>
+
+                {isLoadingMore && (
+                  <div className="flex items-center gap-4 rounded-full border border-card-border bg-card py-2 pl-4 pr-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="flex flex-col items-end">
+                      <div className="mb-1 text-xs leading-none text-text-muted">
+                        Loading more
+                      </div>
+                      <div className="h-1 w-12 overflow-hidden rounded-full bg-accent/20">
+                        <motion.div
+                          className="h-full bg-accent"
+                          initial={{ x: "-100%" }}
+                          animate={{ x: "100%" }}
+                          transition={{
+                            repeat: Infinity,
+                            duration: 1,
+                            ease: "linear",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="relative h-6 w-6 flex items-center justify-center">
+                      <div className="absolute inset-0 rounded-full border-2 border-accent/15"></div>
+                      <Spinner className="h-4 w-4 text-accent-text" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       )}
 
-      {/* Popped-out create form. Renders the same fields as the table row
+      {/* Popped-out create form. Renders the same fields as the inline form
                 (and the same `create-task-form`), just with more room. Only one
                 of the two is mounted at a time. */}
       <AnimatePresence>
@@ -1487,8 +1579,8 @@ export default function TasksPageClient({
                   <button
                     type="button"
                     onClick={() => setIsCreateExpanded(false)}
-                    title="Back to the table row"
-                    aria-label="Back to the table row"
+                    data-tooltip="Back to the inline form"
+                    aria-label="Back to the inline form"
                     className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
                   >
                     <FiMinimize2 className="w-4 h-4" />
@@ -1496,7 +1588,7 @@ export default function TasksPageClient({
                   <button
                     type="button"
                     onClick={handleCancelCreate}
-                    title="Cancel"
+                    data-tooltip="Cancel"
                     aria-label="Cancel"
                     className="p-2 text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all rounded-full"
                   >
@@ -1581,8 +1673,13 @@ export default function TasksPageClient({
                   disabled={isPending || savingCreate}
                   className="md-btn md-btn-primary"
                 >
-                  Create task <span className="md-btn-chip"><BusyIcon state={savingCreate ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
-
+                  Create task{" "}
+                  <span className="md-btn-chip">
+                    <BusyIcon
+                      state={savingCreate ? "loading" : "idle"}
+                      icon={<FiCheck />}
+                    />
+                  </span>
                 </button>
               </div>
             </motion.div>

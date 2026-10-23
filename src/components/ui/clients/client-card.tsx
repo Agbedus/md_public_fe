@@ -50,7 +50,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                         onClick={() => onEdit(client)}
                         disabled={isPending}
                         className="p-2 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all active:scale-95 disabled:opacity-50"
-                        title="Edit Client"
+                        data-tooltip="Edit Client" aria-label="Edit Client"
                     >
                         <FiEdit2 className="w-4 h-4" />
                     </button>
@@ -58,7 +58,7 @@ export default function ClientCard({ client, onEdit, onDelete, isPending = false
                         onClick={() => onDelete(client)}
                         disabled={isPending}
                         className="p-2 rounded-full bg-danger/5 hover:bg-danger/20 text-text-muted hover:text-danger-text border border-card-border hover:border-danger/20 transition-all active:scale-95 disabled:opacity-50"
-                        title="Delete Client"
+                        data-tooltip="Delete Client" aria-label="Delete Client"
                     >
                         <FiTrash2 className="w-4 h-4" />
                     </button>

@@ -4,11 +4,14 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { FiSearch, FiX, FiCheck, FiChevronDown } from 'react-icons/fi';
 import { Portal } from './portal';
 import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
+import Image from 'next/image';
+import { avatarStyle } from '@/lib/avatar-color';
 
 export interface ComboboxOption {
   value: string | number;
   label: string;
   subLabel?: string;
+  avatarUrl?: string | null;
 }
 
 interface ComboboxProps {
@@ -19,6 +22,8 @@ interface ComboboxProps {
   searchPlaceholder?: string;
   multiple?: boolean;
   className?: string;
+  triggerClassName?: string;
+  compact?: boolean;
   name?: string; // For hidden input
 }
 
@@ -30,6 +35,8 @@ export function Combobox({
   searchPlaceholder = 'Search...',
   multiple = false,
   className = '',
+  triggerClassName = '',
+  compact = false,
   name,
 }: ComboboxProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -102,7 +109,7 @@ export function Combobox({
   };
 
   return (
-    <div className={`relative ${className}`} ref={containerRef}>
+    <div className={`relative min-w-0 ${className}`} ref={containerRef}>
       {/* Hidden input for plain FormData submission. Multi-select serializes
           as a JSON string, matching what the server actions expect. */}
       {name && (
@@ -116,20 +123,21 @@ export function Combobox({
       {/* Trigger */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full min-h-[34px] bg-foreground/[0.03] border border-foreground/5 rounded-xl px-3 py-1.5 text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all cursor-pointer flex items-center justify-between gap-2"
+        className={`w-full min-w-0 min-h-[34px] bg-foreground/[0.03] border border-foreground/5 rounded-xl px-3 py-1.5 text-foreground text-xs focus:outline-none focus:bg-foreground/[0.06] transition-all cursor-pointer flex items-center justify-between gap-2 ${triggerClassName}`}
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className={`flex min-w-0 flex-1 gap-1.5 ${compact ? 'flex-nowrap overflow-x-auto scrollbar-hide' : 'flex-wrap'}`}>
           {selectedOptions.length > 0 ? (
             selectedOptions.map((option) => (
               <span
                 key={option.value}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-foreground/[0.03] border border-foreground/5 text-[11px] text-text-secondary"
+                className={`inline-flex min-w-0 max-w-full items-center gap-1 rounded-full bg-foreground/[0.03] border border-foreground/5 text-[11px] text-text-secondary ${compact ? 'shrink-0 py-0.5 pl-0.5 pr-1.5' : 'px-2 py-0.5'}`}
               >
-                {option.label}
+                {'avatarUrl' in option && <ComboboxAvatar option={option} small />}
+                <span className="truncate">{option.label}</span>
                 <button
                   type="button"
                   onClick={(e) => removeValue(e, option.value)}
-                  className="hover:text-foreground transition-colors"
+                  className="shrink-0 hover:text-foreground transition-colors"
                 >
                   <FiX className="w-3 h-3" />
                 </button>
@@ -139,7 +147,7 @@ export function Combobox({
             <span className="text-text-muted">{placeholder}</span>
           )}
         </div>
-        <FiChevronDown className={`w-4 h-4 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <FiChevronDown className={`w-4 h-4 shrink-0 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {/* Dropdown in Portal */}
@@ -160,7 +168,7 @@ export function Combobox({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="h-10 w-full border border-card-border bg-input-bg pl-9 pr-3 text-sm text-foreground placeholder:text-text-muted"
+                  className={`w-full border border-card-border bg-input-bg pl-9 pr-3 text-foreground placeholder:text-text-muted ${compact ? 'h-8 text-xs' : 'h-10 text-sm'}`}
                   autoFocus
                 />
               </div>
@@ -177,11 +185,14 @@ export function Combobox({
                       key={option.value}
                       type="button"
                       onClick={() => handleSelect(option.value)}
-                      className={`md-menu-item group justify-between ${isSelected ? 'bg-accent/10' : ''}`}
+                      className={`md-menu-item group justify-between ${compact ? 'min-h-9 gap-2 px-2.5 py-1' : ''} ${isSelected ? 'bg-accent/10' : ''}`}
                     >
-                      <div>
-                        <div className="text-sm text-foreground">{option.label}</div>
-                        {option.subLabel && <div className="text-xs text-text-muted">{option.subLabel}</div>}
+                      <div className="flex min-w-0 items-center gap-2">
+                        {'avatarUrl' in option && <ComboboxAvatar option={option} />}
+                        <div className="min-w-0">
+                          <div className={`truncate text-foreground ${compact ? 'text-xs' : 'text-sm'}`}>{option.label}</div>
+                          {option.subLabel && !(compact && 'avatarUrl' in option) && <div className="truncate text-xs text-text-muted">{option.subLabel}</div>}
+                        </div>
                       </div>
                       {isSelected && <FiCheck className="h-4 w-4 shrink-0 text-accent-text" />}
                     </button>
@@ -197,5 +208,20 @@ export function Combobox({
         </Portal>
       )}
     </div>
+  );
+}
+
+function ComboboxAvatar({ option, small = false }: { option: ComboboxOption; small?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-medium ${small ? 'h-4 w-4 text-[9px]' : 'h-6 w-6 text-[10px]'}`}
+      style={avatarStyle(option.label)}
+      aria-hidden="true"
+    >
+      {option.avatarUrl && !failed ? (
+        <Image src={option.avatarUrl} alt="" fill sizes={small ? '16px' : '24px'} className="object-cover" onError={() => setFailed(true)} />
+      ) : option.label.charAt(0).toUpperCase()}
+    </span>
   );
 }

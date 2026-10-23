@@ -99,6 +99,7 @@ export const metadata: Metadata = {
 import { Toaster } from 'react-hot-toast';
 import { TaskTimerProvider } from '@/providers/task-timer-provider';
 import { TaskTimerUI } from '@/components/ui/tasks/task-timer-ui';
+import { AppTooltips } from "@/components/ui/app-tooltips";
 import { CookiePopup } from '@/components/ui/cookie-popup';
 
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -135,6 +136,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} ${dmSans.variable} ${spaceGrotesk.variable} antialiased`}
       >
         <ThemeProvider>
+          <AppTooltips />
           <MotionProvider>
             <GlobalActionProvider>
               <TaskTimerProvider>

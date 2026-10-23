@@ -160,7 +160,7 @@ export default function TeamAttendanceGrid({ initialRecords, initialHistory = []
                             onClick={() => mutate()}
                             disabled={isValidating}
                             aria-label="Refresh presence"
-                            title="Refresh"
+                            data-tooltip="Refresh"
                             className="grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.05] text-text-muted transition-colors hover:text-foreground"
                         >
                             <FiRefreshCw className={`h-3.5 w-3.5 ${isValidating ? 'animate-spin' : ''}`} />
@@ -226,7 +226,7 @@ export default function TeamAttendanceGrid({ initialRecords, initialHistory = []
                                             type="button"
                                             onClick={() => setSelectedRecord(record)}
                                             aria-label={`Adjust ${record.userName}'s times`}
-                                            title="Adjust times"
+                                            data-tooltip="Adjust times"
                                             className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-text-muted transition-colors hover:bg-accent/12 hover:text-accent-text"
                                         >
                                             <FiEdit2 className="h-3.5 w-3.5" />

@@ -1,11 +1,19 @@
 "use client";
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { addDays, addMonths, addWeeks, startOfDay, isWithinInterval, endOfDay } from "date-fns";
+import {
+  addDays,
+  addMonths,
+  addWeeks,
+  startOfDay,
+  isWithinInterval,
+  endOfDay,
+} from "date-fns";
 import type { CalendarEvent, CalendarView } from "@/types/calendar";
 import Toolbar from "./Toolbar";
 import MonthGrid from "./MonthGrid";
 import WeekGrid from "./WeekGrid";
 import DayGrid from "./DayGrid";
+import AgendaView from "./AgendaView";
 import GanttGrid from "./GanttGrid";
 
 import EventModal from "./EventModal";
@@ -40,36 +48,57 @@ interface CalendarProps {
   currentUserId?: string;
 }
 
-export default function Calendar({ initialDate, initialView = "month", initialEvents, initialTasks, initialUsers, initialProjects, initialTimeOff, currentUserRoles = [], currentUserOrgRole, currentUserId }: CalendarProps) {
-  const [currentDate, setCurrentDate] = useState<Date>(initialDate ? startOfDay(initialDate) : startOfDay(new Date()));
+export default function Calendar({
+  initialDate,
+  initialView = "month",
+  initialEvents,
+  initialTasks,
+  initialUsers,
+  initialProjects,
+  initialTimeOff,
+  currentUserRoles = [],
+  currentUserOrgRole,
+  currentUserId,
+}: CalendarProps) {
+  const [currentDate, setCurrentDate] = useState<Date>(
+    initialDate ? startOfDay(initialDate) : startOfDay(new Date()),
+  );
   const [view, setView] = useState<CalendarView>(initialView);
-  const [activeFilter, setActiveFilter] = useState<'projects' | 'tasks' | 'events' | 'timeOff'>('tasks');
+  const [activeFilter, setActiveFilter] = useState<
+    "projects" | "tasks" | "events" | "timeOff"
+  >("tasks");
 
   // Force Gantt view for Projects and Time Off - Handle this in the change handler
-  const handleFilterChange = useCallback((newFilter: 'projects' | 'tasks' | 'events' | 'timeOff') => {
-    setActiveFilter(newFilter);
-    if (newFilter === 'projects' || newFilter === 'timeOff') {
-      setView('gantt');
-    } else if (view === 'gantt') {
-      setView('month');
-    }
-  }, [view]);
+  const handleFilterChange = useCallback(
+    (newFilter: "projects" | "tasks" | "events" | "timeOff") => {
+      setActiveFilter(newFilter);
+      if (newFilter === "projects" || newFilter === "timeOff") {
+        setView("gantt");
+      } else if (view === "gantt") {
+        setView("month");
+      }
+    },
+    [view],
+  );
 
   // Background data
   const { users } = useUsers(initialUsers);
-  const { 
-    events: serverEvents, 
-    tasks: serverTasks, 
-    projects: serverProjects, 
-    timeOffRequests, 
-    isLoading: dataLoading, 
-    mutate 
-  } = useCalendarData({
-    events: initialEvents,
-    tasks: initialTasks,
-    projects: initialProjects,
-    timeOff: initialTimeOff
-  }, users);
+  const {
+    events: serverEvents,
+    tasks: serverTasks,
+    projects: serverProjects,
+    timeOffRequests,
+    isLoading: dataLoading,
+    mutate,
+  } = useCalendarData(
+    {
+      events: initialEvents,
+      tasks: initialTasks,
+      projects: initialProjects,
+      timeOff: initialTimeOff,
+    },
+    users,
+  );
 
   const isLoading = dataLoading && serverEvents.length === 0;
 
@@ -80,113 +109,144 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
 
   // Requesting time off is a baseline org capability — any member and above,
   // matching the backend's get_current_org_collaborator guard.
-  const canRequestTimeOff = canCollaborate({ roles: currentUserRoles, orgRole: currentUserOrgRole });
+  const canRequestTimeOff = canCollaborate({
+    roles: currentUserRoles,
+    orgRole: currentUserOrgRole,
+  });
   // Org admins may change any event; everyone else — MANAGER included, who now
   // sees the whole org's calendar — only the events they created.
-  const permissionSubject = { id: currentUserId, roles: currentUserRoles, orgRole: currentUserOrgRole };
+  const permissionSubject = {
+    id: currentUserId,
+    roles: currentUserRoles,
+    orgRole: currentUserOrgRole,
+  };
 
   // Combine events, tasks, projects, and time-off for the calendar
   const allEvents = useMemo(() => {
     const items: UICalendarEvent[] = [];
 
-    if (activeFilter === 'events' || activeFilter === 'timeOff') {
-        serverEvents.forEach((ev: any) => {
-            const isTimeOffEvent = ev.title.toLowerCase().startsWith('leave:') || 
-                                   ev.title.toLowerCase().startsWith('off:') || 
-                                   ev.title.toLowerCase().startsWith('sick:') ||
-                                   ev.title.toLowerCase().startsWith('other:');
-            
-            if ((isTimeOffEvent && activeFilter === 'timeOff') || (!isTimeOffEvent && activeFilter === 'events')) {
-                const status = isTimeOffEvent ? 'approved' : undefined;
-                const color = isTimeOffEvent ? 'bg-success' : ev.color;
-                
-                const user = isTimeOffEvent ? users.find((u: User) => u.id === ev.userId) : undefined;
+    if (activeFilter === "events" || activeFilter === "timeOff") {
+      serverEvents.forEach((ev: any) => {
+        const isTimeOffEvent =
+          ev.title.toLowerCase().startsWith("leave:") ||
+          ev.title.toLowerCase().startsWith("off:") ||
+          ev.title.toLowerCase().startsWith("sick:") ||
+          ev.title.toLowerCase().startsWith("other:");
 
-                items.push({
-                    ...ev,
-                    start: new Date(ev.start),
-                    end: new Date(ev.end),
-                    color: color,
-                    title: isTimeOffEvent ? `🌴 ${ev.title}` : ev.title,
-                    isTimeOff: isTimeOffEvent,
-                    timeOffStatus: status,
-                    user: user,
-                });
-            }
+        if (
+          (isTimeOffEvent && activeFilter === "timeOff") ||
+          (!isTimeOffEvent && activeFilter === "events")
+        ) {
+          const status = isTimeOffEvent ? "approved" : undefined;
+          const color = isTimeOffEvent ? "bg-success" : ev.color;
+
+          const user = isTimeOffEvent
+            ? users.find((u: User) => u.id === ev.userId)
+            : undefined;
+
+          items.push({
+            ...ev,
+            start: new Date(ev.start),
+            end: new Date(ev.end),
+            color: color,
+            title: isTimeOffEvent ? `🌴 ${ev.title}` : ev.title,
+            isTimeOff: isTimeOffEvent,
+            timeOffStatus: status,
+            user: user,
+          });
+        }
+      });
+    }
+
+    if (activeFilter === "tasks") {
+      serverTasks
+        .filter((t: Task) => t.dueDate)
+        .forEach((t: Task) => {
+          const statusMap =
+            t.status === "DONE"
+              ? "completed"
+              : t.status === "IN_PROGRESS"
+                ? "in_progress"
+                : "task";
+          const color =
+            statusMap === "completed"
+              ? "bg-success"
+              : statusMap === "in_progress"
+                ? "bg-warning"
+                : "bg-accent";
+          items.push({
+            id: `task-${t.id}`,
+            title: t.name,
+            start: new Date(t.dueDate!),
+            end: new Date(t.dueDate!),
+            allDay: true,
+            color,
+            isTask: true,
+            taskStatus: statusMap as any,
+            taskPriority: t.priority,
+            taskAssignees: t.assignees?.map((a) => a.user),
+            description: t.description || "",
+          });
         });
     }
 
-    if (activeFilter === 'tasks') {
-        serverTasks
-          .filter((t: Task) => t.dueDate)
-          .forEach((t: Task) => {
-            const statusMap = t.status === "DONE" ? "completed" : t.status === "IN_PROGRESS" ? "in_progress" : "task";
-            const color =
-              statusMap === "completed" ? "bg-success" : statusMap === "in_progress" ? "bg-warning" : "bg-accent";
-            items.push({
-              id: `task-${t.id}`,
-              title: t.name,
-              start: new Date(t.dueDate!),
-              end: new Date(t.dueDate!),
-              allDay: true,
-              color,
-              isTask: true,
-              taskStatus: statusMap as any,
-              taskPriority: t.priority,
-              taskAssignees: t.assignees?.map(a => a.user),
-              description: t.description || "",
-            });
-          });
+    if (activeFilter === "projects") {
+      serverProjects.forEach((p: Project) => {
+        if (p.startDate) {
+          items.push({
+            id: `project-${p.id}`,
+            title: `[PROJ] ${p.name}`,
+            start: new Date(p.startDate),
+            end: p.endDate
+              ? new Date(p.endDate)
+              : addDays(new Date(p.startDate), 14),
+            allDay: true,
+            color: "#818cf8",
+            isProject: true,
+            projectStatus: p.status,
+            projectPriority: p.priority,
+            projectKey: p.key || undefined,
+            projectBudget: p.budget || undefined,
+            description: p.description || "",
+          } as any);
+        }
+      });
     }
 
-    if (activeFilter === 'projects') {
-        serverProjects.forEach((p: Project) => {
-            if (p.startDate) {
-                items.push({
-                    id: `project-${p.id}`,
-                    title: `[PROJ] ${p.name}`,
-                    start: new Date(p.startDate),
-                    end: p.endDate ? new Date(p.endDate) : addDays(new Date(p.startDate), 14),
-                    allDay: true,
-                    color: '#818cf8',
-                    isProject: true,
-                    projectStatus: p.status,
-                    projectPriority: p.priority,
-                    projectKey: p.key || undefined,
-                    projectBudget: p.budget || undefined,
-                    description: p.description || "",
-                } as any);
-            }
+    if (activeFilter === "timeOff") {
+      timeOffRequests
+        .filter((r: TimeOffRequest) => r.status === "pending")
+        .forEach((r: TimeOffRequest) => {
+          const user = users.find((u: User) => u.id === r.user_id);
+          const userName = user?.fullName || user?.email || "User";
+          const typeLabel = r.type.charAt(0).toUpperCase() + r.type.slice(1);
+          items.push({
+            id: `timeoff-${r.id}`,
+            title: `⏳ ${userName} — ${typeLabel}`,
+            start: new Date(r.start_date),
+            end: new Date(r.end_date),
+            allDay: true,
+            color: "bg-warning/80",
+            description: r.justification || "",
+            isTimeOff: true,
+            timeOffStatus: r.status,
+            timeOffType: r.type,
+            timeOffJustification: r.justification || undefined,
+            user: user,
+            userId: r.user_id,
+          } as any);
         });
-    }
-
-    if (activeFilter === 'timeOff') {
-        timeOffRequests
-          .filter((r: TimeOffRequest) => r.status === 'pending')
-          .forEach((r: TimeOffRequest) => {
-            const user = users.find((u: User) => u.id === r.user_id);
-            const userName = user?.fullName || user?.email || 'User';
-            const typeLabel = r.type.charAt(0).toUpperCase() + r.type.slice(1);
-            items.push({
-              id: `timeoff-${r.id}`,
-              title: `⏳ ${userName} — ${typeLabel}`,
-              start: new Date(r.start_date),
-              end: new Date(r.end_date),
-              allDay: true,
-              color: 'bg-warning/80',
-              description: r.justification || '',
-              isTimeOff: true,
-              timeOffStatus: r.status,
-              timeOffType: r.type,
-              timeOffJustification: r.justification || undefined,
-              user: user,
-              userId: r.user_id,
-            } as any);
-          });
     }
 
     return items;
-  }, [serverEvents, serverTasks, serverProjects, timeOffRequests, users, activeFilter]);
+  }, [
+    serverEvents,
+    serverTasks,
+    serverProjects,
+    timeOffRequests,
+    users,
+    activeFilter,
+  ]);
 
   // Optimistic writes go straight into the `calendar-data` SWR cache with
   // revalidation off, so the change survives until the follow-up `mutateAll()`
@@ -206,15 +266,29 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalStart, setModalStart] = useState<Date | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<UICalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<UICalendarEvent | null>(
+    null,
+  );
   const [timeOffModalOpen, setTimeOffModalOpen] = useState(false);
 
   const onPrev = useCallback(() => {
-    setCurrentDate((d) => (view === "month" ? addMonths(d, -1) : view === "week" ? addWeeks(d, -1) : addDays(d, -1)));
+    setCurrentDate((d) =>
+      view === "month" || view === "agenda"
+        ? addMonths(d, -1)
+        : view === "week"
+          ? addWeeks(d, -1)
+          : addDays(d, -1),
+    );
   }, [view]);
 
   const onNext = useCallback(() => {
-    setCurrentDate((d) => (view === "month" ? addMonths(d, 1) : view === "week" ? addWeeks(d, 1) : addDays(d, 1)));
+    setCurrentDate((d) =>
+      view === "month" || view === "agenda"
+        ? addMonths(d, 1)
+        : view === "week"
+          ? addWeeks(d, 1)
+          : addDays(d, 1),
+    );
   }, [view]);
 
   const onToday = useCallback(() => setCurrentDate(startOfDay(new Date())), []);
@@ -226,14 +300,15 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
         start: new Date(e.start),
         end: new Date(e.end),
       })),
-    [optimisticEvents]
+    [optimisticEvents],
   );
 
   if (isLoading) {
     return <CalendarLoading />;
   }
 
-  const isGanttForced = activeFilter === 'projects' || activeFilter === 'timeOff';
+  const isGanttForced =
+    activeFilter === "projects" || activeFilter === "timeOff";
 
   return (
     <div className="flex flex-col h-full space-y-6 relative">
@@ -270,6 +345,7 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
                 date={currentDate}
                 events={normalizedEvents}
                 onSelectDate={(d) => {
+                  setCurrentDate(startOfDay(d));
                   setModalStart(d);
                   setModalOpen(true);
                 }}
@@ -298,13 +374,20 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
                 onEventClick={setSelectedEvent}
               />
             )}
+            {view === "agenda" && (
+              <AgendaView
+                date={currentDate}
+                events={normalizedEvents}
+                onEventClick={setSelectedEvent}
+              />
+            )}
             {view === "gantt" && (
-               <GanttGrid
-               date={currentDate}
-               events={normalizedEvents}
-               activeFilter={activeFilter}
-               onEventClick={setSelectedEvent}
-             />
+              <GanttGrid
+                date={currentDate}
+                events={normalizedEvents}
+                activeFilter={activeFilter}
+                onEventClick={setSelectedEvent}
+              />
             )}
           </>
         )}
@@ -317,14 +400,20 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
           setModalStart(null);
         }}
         initialStart={modalStart}
-        onCreated={() => { mutateAll(); }}
-        onOptimisticAdd={(e) => applyOptimisticEvent(events => [...events, e])}
+        onCreated={() => {
+          mutateAll();
+        }}
+        onOptimisticAdd={(e) =>
+          applyOptimisticEvent((events) => [...events, e])
+        }
       />
 
       <TimeOffModal
         open={timeOffModalOpen}
         onClose={() => setTimeOffModalOpen(false)}
-        onCreated={() => { mutateAll(); }}
+        onCreated={() => {
+          mutateAll();
+        }}
       />
 
       {selectedEvent && (
@@ -332,9 +421,19 @@ export default function Calendar({ initialDate, initialView = "month", initialEv
           event={selectedEvent}
           open={!!selectedEvent}
           onClose={() => setSelectedEvent(null)}
-          onUpdated={() => { mutateAll(); }}
-          onOptimisticUpdate={(e) => applyOptimisticEvent(events => events.map(x => (String(x.id) === String(e.id) ? e : x)))}
-          onOptimisticDelete={(e) => applyOptimisticEvent(events => events.filter(x => String(x.id) !== String(e.id)))}
+          onUpdated={() => {
+            mutateAll();
+          }}
+          onOptimisticUpdate={(e) =>
+            applyOptimisticEvent((events) =>
+              events.map((x) => (String(x.id) === String(e.id) ? e : x)),
+            )
+          }
+          onOptimisticDelete={(e) =>
+            applyOptimisticEvent((events) =>
+              events.filter((x) => String(x.id) !== String(e.id)),
+            )
+          }
           canModify={canModifyRecord(permissionSubject, selectedEvent.userId)}
         />
       )}

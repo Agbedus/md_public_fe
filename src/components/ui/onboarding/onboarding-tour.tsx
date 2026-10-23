@@ -179,7 +179,7 @@ export function OnboardingTour({ userKey, isInitiallyBlocked = false }: { userKe
           <button
             onClick={() => finish('skipped')}
             className="absolute top-3 right-3 p-1 rounded-lg text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-colors"
-            title="Skip tour"
+            data-tooltip="Skip tour" aria-label="Skip tour"
           >
             <FiX size={14} />
           </button>

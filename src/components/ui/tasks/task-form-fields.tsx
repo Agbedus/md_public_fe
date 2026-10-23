@@ -1,3 +1,4 @@
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import React from 'react';
 import { statusMapping } from "@/types/task";
 import { FiCheck } from 'react-icons/fi';
@@ -22,14 +23,15 @@ export default function TaskFormFields() {
             </div>
             <div className="space-y-2">
                 <label htmlFor="status" className="block text-sm font-medium text-text-secondary">Status</label>
-                <select
-                    name="status"
-                    className="block w-full bg-foreground/[0.03] border border-card-border rounded-md py-2 px-3 text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all sm:text-sm"
-                >
-                    {Object.entries(statusMapping).map(([key, value]) => (
-                        <option key={key} value={key}>{value}</option>
-                    ))}
-                </select>
+                <CustomSelect
+                  label="Status"
+                  name="status"
+                  options={[...(Object.entries(statusMapping).map(([key, value]) => (
+                  ({ value: String(key), label: String(value ?? '') })
+                  )))]}
+                  className="w-full"
+                  triggerClassName="w-full bg-foreground/[0.03] border border-card-border rounded-md py-2 px-3 text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all sm:text-sm"
+                />
             </div>
             <div className="flex items-center gap-6 py-2">
                 <label className="flex items-center gap-2 cursor-pointer group">

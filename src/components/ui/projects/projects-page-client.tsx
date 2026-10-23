@@ -1,5 +1,8 @@
 "use client";
+import { CollectionToolbar } from "@/components/ui/collection-toolbar";
 
+import { FormWizard, FormStepNavigation } from "@/components/ui/form-wizard";
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import { StatTile } from "@/components/ui/stat-tile";
 import type { IconType } from "react-icons";
 import React, { useState, useMemo, useCallback } from "react";
@@ -46,10 +49,10 @@ import { useNotes } from "@/hooks/use-notes";
 import { useTasks } from "@/hooks/use-tasks";
 import { Task } from "@/types/task";
 import ProjectsLoading from "@/app/(dashboard)/[orgSlug]/projects/loading";
-import { formatStatus } from '@/lib/format-status';
+import { formatStatus } from "@/lib/format-status";
 
-import { TabPill } from '@/components/ui/tab-pill';
-import { BusyIcon } from '@/components/ui/busy-icon';
+import { TabPill } from "@/components/ui/tab-pill";
+import { BusyIcon } from "@/components/ui/busy-icon";
 interface ProjectsPageClientProps {
   /** Signed-in user's permission subject, for ownership-aware edit/delete. */
   subject?: PermissionSubjectProps | null;
@@ -298,7 +301,7 @@ export default function ProjectsPageClient({
   return (
     <div className="md-zen mx-auto min-h-[calc(100dvh-8rem)] max-w-[1600px] px-3 py-4 sm:px-4 md:min-h-screen md:py-8">
       {/* Header Section */}
-      <div className="hidden lg:flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-10">
+      <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight m-1.5">
             Projects
@@ -310,7 +313,7 @@ export default function ProjectsPageClient({
         <div className="flex items-center gap-4">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 p-1.5 h-9 lg:h-11 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-card-border text-sm text-text-muted hover:text-foreground transition-all duration-200 group"
+            className="md-btn md-btn-primary shrink-0"
           >
             <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
               <FiPlus className="w-4 h-4" />
@@ -318,21 +321,6 @@ export default function ProjectsPageClient({
             <span>New project</span>
           </button>
         </div>
-      </div>
-
-      <div className="flex items-center justify-between mb-5 md:hidden">
-        <h1 className="m-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Projects
-        </h1>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="group flex min-h-11 items-center gap-2 rounded-xl border border-card-border bg-foreground/[0.03] px-3 text-xs text-text-muted transition-all duration-200 hover:bg-foreground/[0.06] hover:text-foreground"
-        >
-          <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors rounded-full">
-            <FiPlus className="w-3.5 h-3.5" />
-          </div>
-          <span>New</span>
-        </button>
       </div>
 
       {/* Portfolio Intelligence Grid */}
@@ -392,7 +380,7 @@ export default function ProjectsPageClient({
         <PortfolioStatCard
           icon={FiTrendingUp}
           label="Completion rate"
-          value={`${((projectsWithTasks.filter((p) => p.status === "completed").length / (projectsWithTasks.length || 1)) * 10).toFixed(1)}x`}
+          value={`${((projectsWithTasks.filter((p) => p.status === "completed").length / (projectsWithTasks.length || 1)) * 100).toFixed(0)}%`}
           subValue="Of all projects"
           color="rose"
           trend={trends.total}
@@ -486,74 +474,83 @@ export default function ProjectsPageClient({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 mb-6 lg:mb-10 overflow-x-auto pb-2 scrollbar-hide">
-        <div className="flex items-center gap-2 lg:gap-4 w-full lg:w-auto">
-          <div className="relative flex-1 min-w-[140px] max-w-sm group">
+      <CollectionToolbar
+        label="Project controls"
+        className="mb-5"
+        search={
+          <div className="relative w-full group">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search projects..."
+              aria-label="Search projects"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9 lg:h-11 pl-8 pr-4 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none text-foreground placeholder:text-text-muted/50 transition-all text-xs lg:text-sm"
+              className="h-11 w-full rounded-full border border-card-border bg-input-bg pl-9 pr-4 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             />
           </div>
-
-          <div className="relative group flex-shrink-0">
-            <div className="h-9 lg:h-11 w-9 lg:w-44 bg-white dark:bg-white/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden ">
-              <FiFilter className="text-text-muted group-hover:text-[var(--pastel-indigo)] transition-colors w-3.5 h-3.5 lg:absolute lg:left-3.5 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-10 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:uppercase lg:tracking-wider appearance-none focus:outline-none"
-              >
-                <option value="all" className="bg-card">
-                  All Status
-                </option>
-                <option value="planning" className="bg-card">
-                  Planning
-                </option>
-                <option value="in_progress" className="bg-card">
-                  In Progress
-                </option>
-                <option value="completed" className="bg-card">
-                  Completed
-                </option>
-                <option value="on_hold" className="bg-card">
-                  On Hold
-                </option>
-              </select>
+        }
+        filters={
+          <>
+            <div
+              className="flex shrink-0 items-center gap-1 rounded-full bg-foreground/[0.04] p-1"
+              role="group"
+              aria-label="Project status"
+            >
+              {[
+                { value: "all", label: "All" },
+                { value: "planning", label: "Planning" },
+                { value: "in_progress", label: "In progress" },
+                { value: "completed", label: "Completed" },
+                { value: "on_hold", label: "On hold" },
+              ].map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setStatusFilter(value)}
+                  aria-pressed={statusFilter === value}
+                  className={`relative isolate min-h-9 shrink-0 whitespace-nowrap rounded-full px-3.5 text-sm transition-colors ${statusFilter === value ? "text-on-ink" : "text-text-muted hover:text-foreground"}`}
+                >
+                  {statusFilter === value && <TabPill />}
+                  {label}
+                </button>
+              ))}
             </div>
-          </div>
-        </div>
-
-        <div className="flex bg-foreground/[0.05] p-1 rounded-full h-9 lg:h-11 flex-shrink-0 ml-auto">
-          <button
-            onClick={() => setViewMode("list")}
-            className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
-            title="Table view"
-          >
-            {viewMode === "list" && (
-              <TabPill className="tab-pill-on bg-ink" />
-            )}
-            <span className="relative z-10">
-              <FiList className="w-5 h-5" />
-            </span>
-          </button>
-          <button
-            onClick={() => setViewMode("grid")}
-            className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
-            title="Grid view"
-          >
-            {viewMode === "grid" && (
-              <TabPill className="tab-pill-on bg-ink" />
-            )}
-            <span className="relative z-10">
-              <FiGrid className="w-5 h-5" />
-            </span>
-          </button>
-        </div>
-      </div>
+          </>
+        }
+        tools={
+          <>
+            <div className="flex bg-foreground/[0.05] p-1 rounded-full h-11 flex-shrink-0 ml-auto">
+              <button
+                onClick={() => setViewMode("list")}
+                className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full min-w-9 px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+                data-tooltip="Table view"
+                aria-label="Table view"
+              >
+                {viewMode === "list" && (
+                  <TabPill className="tab-pill-on bg-ink" />
+                )}
+                <span className="relative z-10">
+                  <FiList className="w-5 h-5" />
+                </span>
+              </button>
+              <button
+                onClick={() => setViewMode("grid")}
+                className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+                data-tooltip="Grid view"
+                aria-label="Grid view"
+              >
+                {viewMode === "grid" && (
+                  <TabPill className="tab-pill-on bg-ink" />
+                )}
+                <span className="relative z-10">
+                  <FiGrid className="w-5 h-5" />
+                </span>
+              </button>
+            </div>
+          </>
+        }
+      />
 
       {viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -593,6 +590,7 @@ export default function ProjectsPageClient({
             onClick={() => setSelectedProject(null)}
           />
           <ProjectDetails
+            subject={subject}
             project={selectedProject}
             users={users}
             clients={clients}
@@ -621,28 +619,45 @@ export default function ProjectsPageClient({
                 <FiX size={20} />
               </button>
             </div>
-            <form action={handleCreate} className="p-4 sm:p-6 md:p-8">
-              <div className="max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
-                <ProjectFormFields users={users} clients={clients} />
-              </div>
-              <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-card-border">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="md-btn md-btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreating}
-                  className="md-btn md-btn-primary"
-                >
-                  Create project <span className="md-btn-chip"><BusyIcon state={isCreating ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
-
-                </button>
-              </div>
-            </form>
+            <FormWizard
+              formId="create-project-form"
+              steps={["Project", "Schedule & budget", "People"]}
+              busy={isCreating}
+            >
+              <form
+                id="create-project-form"
+                action={handleCreate}
+                className="p-4 sm:p-6 md:p-8"
+              >
+                <div className="max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
+                  <ProjectFormFields users={users} clients={clients} />
+                </div>
+                <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-card-border">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    className="md-btn md-btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <FormStepNavigation>
+                    <button
+                      type="submit"
+                      disabled={isCreating}
+                      className="md-btn md-btn-primary"
+                    >
+                      Create project{" "}
+                      <span className="md-btn-chip">
+                        <BusyIcon
+                          state={isCreating ? "loading" : "idle"}
+                          icon={<FiCheck />}
+                        />
+                      </span>
+                    </button>
+                  </FormStepNavigation>
+                </div>
+              </form>
+            </FormWizard>
           </div>
         </div>
       )}
@@ -665,32 +680,49 @@ export default function ProjectsPageClient({
                 <FiX size={20} />
               </button>
             </div>
-            <form action={handleUpdate} className="p-4 sm:p-6 md:p-8">
-              <div className="max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
-                <ProjectFormFields
-                  defaultValues={editingProject}
-                  users={users}
-                  clients={clients}
-                />
-              </div>
-              <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-card-border">
-                <button
-                  type="button"
-                  onClick={() => setEditingProject(null)}
-                  className="md-btn md-btn-secondary"
-                >
-                  Discard
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUpdating}
-                  className="md-btn md-btn-primary"
-                >
-                  Save changes <span className="md-btn-chip"><BusyIcon state={isUpdating ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
-
-                </button>
-              </div>
-            </form>
+            <FormWizard
+              formId="edit-project-form"
+              steps={["Project", "Schedule & budget", "People"]}
+              busy={isUpdating}
+            >
+              <form
+                id="edit-project-form"
+                action={handleUpdate}
+                className="p-4 sm:p-6 md:p-8"
+              >
+                <div className="max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
+                  <ProjectFormFields
+                    defaultValues={editingProject}
+                    users={users}
+                    clients={clients}
+                  />
+                </div>
+                <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-card-border">
+                  <button
+                    type="button"
+                    onClick={() => setEditingProject(null)}
+                    className="md-btn md-btn-secondary"
+                  >
+                    Discard
+                  </button>
+                  <FormStepNavigation>
+                    <button
+                      type="submit"
+                      disabled={isUpdating}
+                      className="md-btn md-btn-primary"
+                    >
+                      Save changes{" "}
+                      <span className="md-btn-chip">
+                        <BusyIcon
+                          state={isUpdating ? "loading" : "idle"}
+                          icon={<FiCheck />}
+                        />
+                      </span>
+                    </button>
+                  </FormStepNavigation>
+                </div>
+              </form>
+            </FormWizard>
           </div>
         </div>
       )}
@@ -718,5 +750,13 @@ function PortfolioStatCard({
     amber: "var(--warning)",
     rose: "var(--status-qa)",
   };
-  return <StatTile icon={icon} label={label} value={value} hint={subValue} tone={tones[color]} />;
+  return (
+    <StatTile
+      icon={icon}
+      label={label}
+      value={value}
+      hint={subValue}
+      tone={tones[color]}
+    />
+  );
 }

@@ -1,11 +1,16 @@
+"use client";
+
+import { FiCalendar, FiMapPin, FiUsers } from "react-icons/fi";
 import type { CalendarEvent } from "@/types/calendar";
 import Link from "next/link";
+import { useOrgPath } from "@/hooks/use-org-slug";
 
 interface EventWidgetProps {
   event: CalendarEvent;
 }
 
 export default function EventWidget({ event }: EventWidgetProps) {
+  const orgPath = useOrgPath();
   // Format date and time - handle both string and Date types
   const formatDateTime = (dateInput: string | Date) => {
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
@@ -40,27 +45,27 @@ export default function EventWidget({ event }: EventWidgetProps) {
   if (event.status === "cancelled") statusColor = "text-danger-text";
 
   return (
-    <div className="bg-card p-4 rounded-xl border border-card-border hover:bg-foreground/[0.02] transition-all">
+    <div className="bg-card p-4 rounded-2xl border border-card-border hover:bg-foreground/[0.02] transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-foreground mb-2 truncate">{event.title}</h4>
           
           <div className="space-y-1.5 text-sm text-text-muted mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-text-muted">📅</span>
+              <FiCalendar className="h-3.5 w-3.5 shrink-0 text-text-muted" />
               <span suppressHydrationWarning>{formatDateTime(event.start)}</span>
             </div>
             
             {event.location && (
               <div className="flex items-center gap-2">
-                <span className="text-text-muted">📍</span>
+                <FiMapPin className="h-3.5 w-3.5 shrink-0 text-text-muted" />
                 <span className="truncate">{event.location}</span>
               </div>
             )}
             
             {event.attendees && event.attendees.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-text-muted">👥</span>
+                <FiUsers className="h-3.5 w-3.5 shrink-0 text-text-muted" />
                 <span className="truncate">{event.attendees.length} attendee{event.attendees.length > 1 ? 's' : ''}</span>
               </div>
             )}
@@ -74,8 +79,8 @@ export default function EventWidget({ event }: EventWidgetProps) {
         </div>
         
         <Link 
-          href={`/calendar?id=${String(event.id)}`}
-          className="text-accent-text hover:text-accent-text text-sm font-medium whitespace-nowrap"
+          href={orgPath(`/calendar?id=${String(event.id)}`)}
+          className="inline-flex min-h-9 shrink-0 items-center rounded-full px-2 text-xs font-medium text-accent-text transition-colors hover:bg-accent/10"
         >
           View →
         </Link>

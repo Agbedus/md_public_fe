@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import { useEditor, useEditorState, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { TaskList, TaskItem } from "@tiptap/extension-list";
@@ -12,6 +12,8 @@ import { toast } from "@/lib/toast";
 import { useAdaptiveDropdown } from "@/hooks/use-adaptive-dropdown";
 import SlashCommand, { getSuggestionItems, renderItems } from "./slash-command";
 import { NoteUpdatedTime } from "../notes/note-updated-time";
+import noteStyles from "../notes/note-rich-text.module.css";
+import { normalizeNoteContent } from "@/lib/note-content";
 import {
   NoteParagraph,
   NoteHeading,
@@ -45,6 +47,7 @@ interface SlashCommandEditorProps {
   onChange: (content: string) => void;
   updatedAt?: string | null;
   sharedWith?: Note["shared_with"];
+  compact?: boolean;
   user?: {
     id?: string | null;
     name?: string | null;
@@ -68,13 +71,13 @@ function Tool({
   return (
     <button
       type="button"
-      title={label}
+      data-tooltip={label}
       aria-label={label}
       aria-pressed={active}
       disabled={disabled}
       onMouseDown={(event) => event.preventDefault()}
       onClick={action}
-      className={`inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40 ${active ? "bg-foreground/[0.08] text-foreground" : "text-text-muted hover:bg-foreground/[0.04] hover:text-foreground"}`}
+      className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40 ${active ? "bg-foreground/[0.08] text-foreground" : "text-text-muted hover:bg-foreground/[0.04] hover:text-foreground"}`}
     >
       {children}
     </button>
@@ -140,11 +143,11 @@ function ColorPalette({
         <button
           key={color.name}
           type="button"
-          title={color.name}
+          data-tooltip={color.name}
           aria-label={color.name}
           aria-pressed={selectedColor === color.value}
           onClick={() => choose(color.value)}
-          className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-foreground/[0.05] focus-visible:outline-2 focus-visible:outline-accent"
+          className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-foreground/[0.05] focus-visible:outline-2 focus-visible:outline-accent"
         >
           <span
             className="flex h-6 w-6 items-center justify-center rounded-full border border-card-border"
@@ -167,6 +170,7 @@ export default function SlashCommandEditor({
   user,
   updatedAt,
   sharedWith = [],
+  compact = false,
 }: SlashCommandEditorProps) {
   const [paletteAnchor, setPaletteAnchor] = useState<HTMLButtonElement | null>(
     null,
@@ -197,7 +201,12 @@ export default function SlashCommandEditor({
       NoteTextColor,
       NoteImage,
       TaskList,
-      TaskItem.configure({ nested: false }),
+      TaskItem.configure({
+        nested: true,
+        // The live node view needs the same marker as serialized task items
+        // so the editor and saved notes share their checkbox-row styles.
+        HTMLAttributes: { "data-type": "taskItem" },
+      }),
       Placeholder.configure({
         placeholder: "Write your note, or press / for formatting…",
       }),
@@ -205,11 +214,12 @@ export default function SlashCommandEditor({
         suggestion: { items: getSuggestionItems, render: renderItems },
       }),
     ],
-    content: initialContent || "",
+    content: normalizeNoteContent(initialContent || ""),
+    autofocus: compact ? "end" : false,
     editorProps: {
       attributes: {
-        class:
-          "prose dark:prose-invert prose-sm sm:prose-base focus:outline-none min-h-[25rem] w-full max-w-none text-foreground",
+        class: `focus:outline-none w-full max-w-none text-foreground ${compact ? "min-h-24" : "min-h-[25rem]"}`,
+        "aria-label": "Note content",
       },
     },
     onUpdate: ({ editor }) => {
@@ -217,6 +227,7 @@ export default function SlashCommandEditor({
       onChangeRef.current(lastEmitted.current);
     },
   });
+  useEditorState({ editor, selector: ({ editor: instance }) => instance?.state });
   useEffect(() => {
     if (!editor) return;
     const selection = () => {
@@ -278,7 +289,7 @@ export default function SlashCommandEditor({
       initialContent === editor.getHTML()
     )
       return;
-    editor.commands.setContent(initialContent, { emitUpdate: false });
+    editor.commands.setContent(normalizeNoteContent(initialContent), { emitUpdate: false });
   }, [editor, initialContent]);
 
   const focusSelection = (instance: Editor) => {
@@ -363,14 +374,14 @@ export default function SlashCommandEditor({
   const colourButton = (selection = false) => (
     <button
       type="button"
-      title="Text colour"
+      data-tooltip="Text colour"
       aria-label={selection ? "Selection text colour" : "Text colour"}
       aria-expanded={!!paletteAnchor}
       onClick={(event) => {
         const target = event.currentTarget;
         setPaletteAnchor((current) => (current === target ? null : target));
       }}
-      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-foreground/[0.04]"
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-muted hover:bg-foreground/[0.04]"
     >
       <FiDroplet />
     </button>
@@ -424,16 +435,16 @@ export default function SlashCommandEditor({
           </div>,
           document.body,
         )}
-      <EditorContent editor={editor} className="tiptap-editor flex-1" />
+      <EditorContent editor={editor} className={`${noteStyles.body} ${noteStyles.editor} tiptap-editor flex-1`} />
       {editor && (
-        <div className="mt-6 min-w-0 border-t border-card-border pt-3">
+        <div className={`${compact ? "mt-3" : "mt-6"} min-w-0 border-t border-card-border pt-3`}>
           {updatedAt && (
             <div className="mb-2 text-xs text-text-muted">
               <NoteUpdatedTime value={updatedAt} />
             </div>
           )}
           <div className="flex min-w-0 items-center gap-3">
-            <div
+            {!compact && <div
               className="flex shrink-0 items-center gap-2"
               aria-label="Note collaborators"
             >
@@ -457,7 +468,7 @@ export default function SlashCommandEditor({
                   />
                 </div>
               )}
-            </div>
+            </div>}
             <div
               data-note-editor-controls
               role="toolbar"
@@ -642,74 +653,7 @@ export default function SlashCommandEditor({
           close={() => setPaletteAnchor(null)}
         />
       )}
-      <style jsx global>{`
-        .tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
-          content: attr(data-placeholder);
-          float: left;
-          color: var(--text-muted);
-          pointer-events: none;
-          height: 0;
-        }
-        .tiptap-editor .ProseMirror p {
-          min-height: 1.5em;
-        }
-        .tiptap-editor .ProseMirror h1 {
-          font-size: 2rem;
-          font-weight: 700;
-        }
-        .tiptap-editor .ProseMirror h2 {
-          font-size: 1.5rem;
-          font-weight: 600;
-        }
-        .tiptap-editor .ProseMirror h3 {
-          font-size: 1.25rem;
-          font-weight: 600;
-        }
-        .tiptap-editor .ProseMirror ul {
-          list-style: disc;
-          padding-left: 1.5rem;
-        }
-        .tiptap-editor .ProseMirror ol {
-          list-style: decimal;
-          padding-left: 1.5rem;
-        }
-        .tiptap-editor .ProseMirror ul[data-type="taskList"] {
-          list-style: none;
-          padding-left: 0;
-        }
-        .tiptap-editor .ProseMirror li[data-type="taskItem"] {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.5rem;
-        }
-        .tiptap-editor .ProseMirror li[data-type="taskItem"] > label {
-          flex-shrink: 0;
-          padding-top: 0.25rem;
-        }
-        .tiptap-editor .ProseMirror li[data-type="taskItem"] > div {
-          flex: 1;
-          min-width: 0;
-        }
-        .tiptap-editor .ProseMirror li[data-type="taskItem"] p {
-          margin: 0;
-        }
-        .tiptap-editor .ProseMirror pre {
-          background: var(--input-bg);
-          padding: 1rem;
-          border-radius: 0.75rem;
-          font-family: monospace;
-        }
-        .tiptap-editor .ProseMirror code {
-          background: var(--input-bg);
-          padding: 0.15rem 0.3rem;
-          border-radius: 0.25rem;
-          font-family: monospace;
-        }
-        .tiptap-editor .ProseMirror blockquote {
-          border-left: 3px solid var(--card-border);
-          padding-left: 1rem;
-        }
-      `}</style>
+
     </div>
   );
 }

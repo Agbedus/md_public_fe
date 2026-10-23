@@ -1,23 +1,40 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Project, statusMapping, priorityMapping } from '@/types/project';
-import { User } from '@/types/user';
-import { Client } from '@/types/client';
-import { FiEdit2, FiTrash2, FiClock, FiCheck, FiX, FiDollarSign } from 'react-icons/fi';
-import { format } from 'date-fns';
-import { CustomDatePicker } from '@/components/ui/inputs/custom-date-picker';
-import { CustomNumberInput } from '@/components/ui/inputs/custom-number-input';
-import { updateTask, deleteTask, createTask } from '@/app/(dashboard)/[orgSlug]/tasks/actions';
-import UserAvatarGroup from '@/components/ui/user-avatar-group';
-import TaskCard from '@/components/ui/tasks/task-card';
-import { FiChevronRight, FiChevronDown, FiPlus, FiPieChart } from 'react-icons/fi';
-import { TaskDonutChart } from './task-donut-chart';
-import { useRouter } from 'next/navigation';
-import { toast } from '@/lib/toast';
-import { useConfirm } from '@/providers/confirmation-provider';
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
+import React, { useState, useRef, useEffect } from "react";
+import { Project, statusMapping, priorityMapping } from "@/types/project";
+import { User } from "@/types/user";
+import { Client } from "@/types/client";
+import {
+  FiEdit2,
+  FiTrash2,
+  FiClock,
+  FiCheck,
+  FiX,
+  FiDollarSign,
+} from "react-icons/fi";
+import { format } from "date-fns";
+import { CustomDatePicker } from "@/components/ui/inputs/custom-date-picker";
+import { CustomNumberInput } from "@/components/ui/inputs/custom-number-input";
+import {
+  updateTask,
+  deleteTask,
+  createTask,
+} from "@/app/(dashboard)/[orgSlug]/tasks/actions";
+import UserAvatarGroup from "@/components/ui/user-avatar-group";
+import TaskCard from "@/components/ui/tasks/task-card";
+import {
+  FiChevronRight,
+  FiChevronDown,
+  FiPlus,
+  FiPieChart,
+} from "react-icons/fi";
+import { TaskDonutChart } from "./task-donut-chart";
+import { useRouter } from "next/navigation";
+import { toast } from "@/lib/toast";
+import { useConfirm } from "@/providers/confirmation-provider";
 
-import { Spinner } from '@/components/ui/busy-icon';
+import { Spinner } from "@/components/ui/busy-icon";
 interface ProjectTableProps {
   projects: Project[];
   users: User[];
@@ -34,21 +51,30 @@ interface ProjectTableProps {
   canModifyProject?: (project: Project) => boolean;
 }
 
-export function ProjectTable({ projects, users, clients, onSelectProject, onCreateProject, onUpdateProject, onDeleteProject, canModifyProject = () => true }: ProjectTableProps) {
+export function ProjectTable({
+  projects,
+  users,
+  clients,
+  onSelectProject,
+  onCreateProject,
+  onUpdateProject,
+  onDeleteProject,
+  canModifyProject = () => true,
+}: ProjectTableProps) {
   const confirm = useConfirm();
   const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<{
     startDate: Date | null;
     endDate: Date | null;
-    budget: number | '';
-  }>({ startDate: null, endDate: null, budget: '' });
+    budget: number | "";
+  }>({ startDate: null, endDate: null, budget: "" });
 
   const [newProjectValues, setNewProjectValues] = useState<{
     startDate: Date | null;
     endDate: Date | null;
-    budget: number | '';
-  }>({ startDate: null, endDate: null, budget: '' });
+    budget: number | "";
+  }>({ startDate: null, endDate: null, budget: "" });
 
   const [newTaskDueDate, setNewTaskDueDate] = useState<Date | null>(null);
 
@@ -57,15 +83,14 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
   const [addingTaskId, setAddingTaskId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Combobox state
 
-  
   const newNameRef = useRef<HTMLInputElement | null>(null);
 
   const toggleExpand = (id: number) => {
-    setExpandedIds(prev => 
-      prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
+    setExpandedIds((prev) =>
+      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id],
     );
   };
 
@@ -74,7 +99,7 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
     setEditValues({
       startDate: project.startDate ? new Date(project.startDate) : null,
       endDate: project.endDate ? new Date(project.endDate) : null,
-      budget: project.budget ?? ''
+      budget: project.budget ?? "",
     });
   };
 
@@ -92,23 +117,23 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
-    
+
     try {
       const formData = new FormData(event.currentTarget);
-      const name = formData.get('name') as string;
-      
+      const name = formData.get("name") as string;
+
       if (!name || name.trim().length === 0) {
-        throw new Error('Project name is required');
+        throw new Error("Project name is required");
       }
 
-      const existing = projects.find(p => p.id === editingId);
-      if (!existing) throw new Error('Project not found');
-      formData.set('id', editingId!.toString());
+      const existing = projects.find((p) => p.id === editingId);
+      if (!existing) throw new Error("Project not found");
+      formData.set("id", editingId!.toString());
       await onUpdateProject(existing, formData);
-      toast.success('Project updated successfully');
+      toast.success("Project updated successfully");
       setEditingId(null);
     } catch (err: any) {
-      const msg = err.message || 'Failed to update project';
+      const msg = err.message || "Failed to update project";
       toast.error(msg);
       setError(msg);
     } finally {
@@ -123,18 +148,18 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
 
     try {
       const formData = new FormData(event.currentTarget);
-      const name = formData.get('name') as string;
-      
+      const name = formData.get("name") as string;
+
       if (!name || name.trim().length === 0) {
-        throw new Error('Project name is required');
+        throw new Error("Project name is required");
       }
 
       await onCreateProject(formData);
-      toast.success('Project created successfully');
+      toast.success("Project created successfully");
       setIsAdding(false);
-      setNewProjectValues({ startDate: null, endDate: null, budget: '' });
+      setNewProjectValues({ startDate: null, endDate: null, budget: "" });
     } catch (err: any) {
-      const msg = err.message || 'Failed to create project';
+      const msg = err.message || "Failed to create project";
       toast.error(msg);
       setError(msg);
     } finally {
@@ -144,27 +169,30 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
 
   const handleDelete = async (project: Project) => {
     const confirmed = await confirm({
-      title: 'Delete Project',
+      title: "Delete Project",
       message: `Delete "${project.name}"? Its tasks will be kept and moved out of the project. This cannot be undone.`,
-      confirmText: 'Delete Project',
-      type: 'danger'
+      confirmText: "Delete Project",
+      type: "danger",
     });
 
     if (confirmed) {
       try {
         await onDeleteProject(project);
-        toast.success('Project deleted successfully');
+        toast.success("Project deleted successfully");
       } catch (err: any) {
-        toast.error(err?.message || 'Failed to delete project');
+        toast.error(err?.message || "Failed to delete project");
       }
     }
   };
 
   const statusColors = {
     planning: "bg-foreground/[0.03] text-text-muted border-card-border",
-    in_progress: "bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] border-[var(--pastel-blue)]/20",
-    completed: "bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20",
-    on_hold: "bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20",
+    in_progress:
+      "bg-[var(--pastel-blue)]/10 text-[var(--pastel-blue)] border-[var(--pastel-blue)]/20",
+    completed:
+      "bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20",
+    on_hold:
+      "bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20",
   };
 
   const priorityColors = {
@@ -175,12 +203,14 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
 
   const getTaskStats = (project: Project) => {
     const total = project.tasks?.length || 0;
-    const done = project.tasks?.filter(t => t.status === 'DONE').length || 0;
-    const inProgress = project.tasks?.filter(t => ['IN_PROGRESS', 'REVIEW', 'QA'].includes(t.status)).length || 0;
+    const done = project.tasks?.filter((t) => t.status === "DONE").length || 0;
+    const inProgress =
+      project.tasks?.filter((t) =>
+        ["IN_PROGRESS", "REVIEW", "QA"].includes(t.status),
+      ).length || 0;
     const todo = total - done - inProgress;
     return { total, done, inProgress, todo };
   };
-
 
   return (
     <div className="w-full space-y-4">
@@ -191,128 +221,730 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
       )}
       <div className="rounded-[28px] overflow-hidden flex flex-col border border-card-border bg-card">
         <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm min-w-[1400px]">
-        <thead className="bg-foreground/[0.03] border-b border-card-border">
-          <tr>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap sticky left-0 z-20 bg-card border-r border-card-border">Project</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted text-center whitespace-nowrap">Progress</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Key</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Status</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Priority</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Owner</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Client</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Timeline</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Budget</th>
-            <th scope="col" className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap">Time Logged</th>
-            <th scope="col" className="px-6 py-4 text-right text-[11px] font-bold text-text-muted whitespace-nowrap sticky right-0 z-20 bg-card border-l border-card-border">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-foreground/5">
-          {projects.map((project, index) => {
-            // Fall back to the row index if a project somehow lacks an id, so the
-            // list always has a stable, defined key.
-            const rowKey = project.id ?? `project-row-${index}`;
-            const isEditing = editingId === project.id;
-            const owner = users.find(u => u.id === project.ownerId);
-            const client = clients.find(c => c.id === project.clientId);
-            const totalHours = (project.tasks || []).reduce((sum, t) => sum + (t.totalHours ?? 0), 0);
+          <table className="w-full text-left text-sm min-w-[1400px]">
+            <thead className="bg-foreground/[0.03] border-b border-card-border">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap sticky left-0 z-20 bg-card border-r border-card-border"
+                >
+                  Project
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted text-center whitespace-nowrap"
+                >
+                  Progress
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap"
+                >
+                  Key
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap"
+                >
+                  Priority
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap"
+                >
+                  Owner
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap"
+                >
+                  Client
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap"
+                >
+                  Timeline
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap"
+                >
+                  Budget
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[11px] font-bold text-text-muted whitespace-nowrap"
+                >
+                  Time Logged
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-right text-[11px] font-bold text-text-muted whitespace-nowrap sticky right-0 z-20 bg-card border-l border-card-border"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-foreground/5">
+              {projects.map((project, index) => {
+                // Fall back to the row index if a project somehow lacks an id, so the
+                // list always has a stable, defined key.
+                const rowKey = project.id ?? `project-row-${index}`;
+                const isEditing = editingId === project.id;
+                const owner = users.find((u) => u.id === project.ownerId);
+                const client = clients.find((c) => c.id === project.clientId);
+                const totalHours = (project.tasks || []).reduce(
+                  (sum, t) => sum + (t.totalHours ?? 0),
+                  0,
+                );
 
-            if (isEditing) {
-              return (
-                <React.Fragment key={rowKey}>
+                if (isEditing) {
+                  return (
+                    <React.Fragment key={rowKey}>
+                      <tr className="bg-foreground/[0.02]">
+                        <td colSpan={11} className="p-0">
+                          <form onSubmit={handleUpdate} className="contents">
+                            <table className="w-full min-w-[2000px]">
+                              <tbody>
+                                <tr>
+                                  <td className="px-4 py-2 min-w-[280px]">
+                                    <input
+                                      type="text"
+                                      name="name"
+                                      defaultValue={project.name}
+                                      required
+                                      className="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 min-w-[160px]">
+                                    <input
+                                      type="text"
+                                      name="key"
+                                      defaultValue={project.key || ""}
+                                      className="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 min-w-[200px]">
+                                    <CustomSelect
+                                      label="Status"
+                                      name="status"
+                                      defaultValue={String(project.status)}
+                                      options={[
+                                        {
+                                          value: "planning",
+                                          label: "Planning",
+                                        },
+                                        {
+                                          value: "in_progress",
+                                          label: "In Progress",
+                                        },
+                                        {
+                                          value: "completed",
+                                          label: "Completed",
+                                        },
+                                        { value: "on_hold", label: "On Hold" },
+                                      ]}
+                                      size="md"
+                                      className="w-full"
+                                      triggerClassName="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 min-w-[160px]">
+                                    <CustomSelect
+                                      label="Priority"
+                                      name="priority"
+                                      defaultValue={String(project.priority)}
+                                      options={[
+                                        { value: "low", label: "Low" },
+                                        { value: "medium", label: "Medium" },
+                                        { value: "high", label: "High" },
+                                      ]}
+                                      size="md"
+                                      className="w-full"
+                                      triggerClassName="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 min-w-[200px]">
+                                    <CustomSelect
+                                      label="Project owner"
+                                      name="ownerId"
+                                      defaultValue={String(
+                                        project.ownerId || "",
+                                      )}
+                                      options={[
+                                        { value: "", label: "None" },
+                                        ...users.map((u) => ({
+                                          value: String(u.id),
+                                          label: String(u.fullName || u.email),
+                                        })),
+                                      ]}
+                                      size="md"
+                                      className="w-full"
+                                      triggerClassName="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 min-w-[200px]">
+                                    <CustomSelect
+                                      label="Client"
+                                      name="clientId"
+                                      defaultValue={String(
+                                        project.clientId || "",
+                                      )}
+                                      options={[
+                                        { value: "", label: "None" },
+                                        ...clients.map((c) => ({
+                                          value: String(c.id),
+                                          label: String(c.companyName ?? ""),
+                                        })),
+                                      ]}
+                                      size="md"
+                                      className="w-full"
+                                      triggerClassName="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 min-w-[180px]">
+                                    <CustomDatePicker
+                                      value={editValues.startDate}
+                                      onChange={(date) =>
+                                        setEditValues((prev) => ({
+                                          ...prev,
+                                          startDate: date,
+                                        }))
+                                      }
+                                      name="startDate"
+                                      triggerClassName="!h-11 rounded-full"
+                                      className="w-full"
+                                      placeholder="Start"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 min-w-[180px]">
+                                    <CustomDatePicker
+                                      value={editValues.endDate}
+                                      onChange={(date) =>
+                                        setEditValues((prev) => ({
+                                          ...prev,
+                                          endDate: date,
+                                        }))
+                                      }
+                                      name="endDate"
+                                      triggerClassName="!h-11 rounded-full"
+                                      className="w-full"
+                                      placeholder="End"
+                                      minDate={
+                                        editValues.startDate || undefined
+                                      }
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 w-[140px]">
+                                    <CustomNumberInput
+                                      value={editValues.budget}
+                                      onChange={(val) =>
+                                        setEditValues((prev) => ({
+                                          ...prev,
+                                          budget: val,
+                                        }))
+                                      }
+                                      name="budget"
+                                      className="w-full"
+                                      placeholder="0"
+                                      min={0}
+                                    />
+                                  </td>
+                                  <td className="px-4 py-2 w-[80px]">
+                                    <div className="flex items-center justify-end gap-1">
+                                      <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="p-1 rounded hover:bg-success/10 text-success-text transition-colors disabled:opacity-50"
+                                        data-tooltip="Save"
+                                        aria-label="Save"
+                                      >
+                                        {isSubmitting ? (
+                                          <Spinner className="w-3.5 h-3.5 text-success-text" />
+                                        ) : (
+                                          <FiCheck className="w-4 h-4" />
+                                        )}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={cancelEditing}
+                                        className="p-1 rounded hover:bg-danger/10 text-danger-text transition-colors"
+                                        data-tooltip="Cancel"
+                                        aria-label="Cancel"
+                                      >
+                                        <FiX className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </form>
+                        </td>
+                      </tr>
+                    </React.Fragment>
+                  );
+                }
+
+                return (
+                  <React.Fragment key={rowKey}>
+                    <tr
+                      className={`group hover:bg-foreground/[0.03] transition-colors items-center cursor-pointer ${expandedIds.includes(project.id) ? "bg-foreground/[0.03]" : ""}`}
+                      onClick={() => router.push(`/projects/${project.id}`)}
+                    >
+                      <td className="px-6 py-3 sticky left-0 z-10 bg-card border-r border-card-border">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-1.5 h-1.5 rounded-full ${(statusColors[project.status] ?? statusColors.planning).split(" ")[1].replace("text-", "bg-")}`}
+                          />
+                          <div className="font-bold text-foreground text-xs tracking-tight truncate group-hover:text-accent-text transition-colors capitalize">
+                            {project.name}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 text-center">
+                        <TaskDonutChart {...getTaskStats(project)} size={40} />
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        {project.key && (
+                          <div className="px-2 py-0.5 rounded-md text-[11px] font-bold font-mono text-text-muted bg-foreground/[0.03] border border-card-border capitalize inline-block">
+                            {project.key}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium capitalize border whitespace-nowrap ${statusColors[project.status] ?? statusColors.planning}`}
+                        >
+                          {statusMapping[project.status] ??
+                            project.status ??
+                            "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium capitalize border whitespace-nowrap ${
+                            project.priority === "high"
+                              ? "bg-[var(--pastel-rose)]/10 text-[var(--pastel-rose)] border-[var(--pastel-rose)]/20"
+                              : project.priority === "medium"
+                                ? "bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20"
+                                : "bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20"
+                          }`}
+                        >
+                          {priorityMapping[project.priority]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        {owner ? (
+                          <div className="flex items-center gap-2">
+                            <UserAvatarGroup
+                              users={[owner]}
+                              size="md"
+                              limit={1}
+                            />
+                            <span className="text-[11px] font-bold text-text-muted group-hover:text-foreground transition-colors capitalize tracking-tight">
+                              {owner.fullName}
+                            </span>
+                          </div>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        <span className="text-[11px] font-bold text-text-muted capitalize tracking-tight group-hover:text-foreground transition-colors">
+                          {client ? (
+                            client.companyName
+                          ) : (
+                            <span className="text-text-muted/30 italic">
+                              No Client
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[11px] font-bold text-foreground/80 capitalize tracking-tight">
+                            {project.startDate
+                              ? format(new Date(project.startDate), "MMM dd")
+                              : "-"}
+                          </span>
+                          <span className="text-[11px] font-bold text-text-muted capitalize opacity-50">
+                            {project.endDate
+                              ? `UNTIL ${format(new Date(project.endDate), "MMM dd, yyyy")}`
+                              : "-"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        {project.budget ? (
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-bold text-foreground tracking-tight">
+                              ${project.budget.toLocaleString()}
+                            </span>
+                            <span className="text-[11px] font-bold text-text-muted capitalize">
+                              {project.currency}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-text-muted/30 italic text-[11px]">
+                            -
+                          </span>
+                        )}
+                      </td>
+                      {/* Time Logged */}
+                      <td className="px-6 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <FiClock className="w-3 h-3 text-text-muted flex-shrink-0" />
+                          <span className="text-xs font-bold text-foreground tabular-nums">
+                            {totalHours > 0 ? (
+                              `${totalHours.toFixed(1)}h`
+                            ) : (
+                              <span className="text-text-muted/30 italic text-[11px]">
+                                -
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 text-right sticky right-0 z-10 bg-card border-l border-card-border">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          {canModifyProject(project) && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  startEditing(project);
+                                }}
+                                className="p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all"
+                                data-tooltip="Edit"
+                                aria-label="Edit"
+                              >
+                                <FiEdit2 className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(project);
+                                }}
+                                className="p-2 rounded-xl bg-danger/5 hover:bg-danger/10 text-text-muted hover:text-danger-text border border-card-border hover:border-danger/20 transition-all"
+                                data-tooltip="Delete"
+                                aria-label="Delete"
+                              >
+                                <FiTrash2 className="w-3 h-3" />
+                              </button>
+                            </>
+                          )}
+                          <div className="p-1.5 bg-foreground/[0.03] border border-card-border text-text-muted rounded-full">
+                            <FiChevronRight
+                              className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedIds.includes(project.id) ? "rotate-90 text-accent-text" : ""}`}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    {expandedIds.includes(project.id) && (
+                      <tr className="bg-foreground/[0.02]">
+                        <td colSpan={11} className="p-0 border-none">
+                          <div className="sticky left-0 p-6 pl-12 bg-card border-y border-card-border w-full">
+                            <div className="flex justify-between items-center mb-3">
+                              <h4 className="text-xs font-bold text-text-muted">
+                                Tasks ({project.tasks?.length || 0})
+                              </h4>
+                              <button
+                                onClick={() =>
+                                  setAddingTaskId(
+                                    addingTaskId === project.id
+                                      ? null
+                                      : project.id,
+                                  )
+                                }
+                                className="flex items-center gap-1 text-[11px] font-bold text-text-muted hover:text-foreground transition-all px-2 py-1 rounded bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border"
+                              >
+                                <FiPlus className="w-3 h-3" />
+                                <span>Add Task</span>
+                              </button>
+                            </div>
+
+                            {addingTaskId === project.id && (
+                              <div className="mb-4 p-4 rounded-xl bg-foreground/[0.03] border border-accent/20 animate-in fade-in slide-in-from-top-2">
+                                <form
+                                  onSubmit={async (e) => {
+                                    // ... rest same ...
+                                  }}
+                                  className="space-y-4"
+                                >
+                                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="md:col-span-2">
+                                      <input
+                                        type="text"
+                                        name="name"
+                                        placeholder="Task Name *"
+                                        required
+                                        className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06]"
+                                      />
+                                    </div>
+                                    <div>
+                                      <CustomSelect
+                                        label="Priority"
+                                        name="priority"
+                                        defaultValue={"medium"}
+                                        options={[
+                                          {
+                                            value: "low",
+                                            label: "Low Priority",
+                                          },
+                                          {
+                                            value: "medium",
+                                            label: "Medium Priority",
+                                          },
+                                          {
+                                            value: "high",
+                                            label: "High Priority",
+                                          },
+                                        ]}
+                                        size="md"
+                                        className="w-full"
+                                        triggerClassName="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06]"
+                                      />
+                                    </div>
+                                    <div>
+                                      <CustomDatePicker
+                                        value={newTaskDueDate}
+                                        onChange={setNewTaskDueDate}
+                                        name="dueDate"
+                                        placeholder="Due Date"
+                                        className="w-full"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex-1">
+                                      <textarea
+                                        name="description"
+                                        placeholder="Add a description..."
+                                        rows={1}
+                                        className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06] resize-none"
+                                      />
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="md-btn md-btn-primary md-btn-sm"
+                                      >
+                                        {isSubmitting ? (
+                                          <Spinner className="h-3.5 w-3.5 text-success-text" />
+                                        ) : (
+                                          <FiCheck className="w-4 h-4" />
+                                        )}
+                                        <span>
+                                          {isSubmitting
+                                            ? "Creating..."
+                                            : "Create"}
+                                        </span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setAddingTaskId(null)}
+                                        className="px-3 py-2 rounded-lg bg-foreground/[0.03] text-text-muted hover:text-foreground transition-all text-sm border border-card-border"
+                                      >
+                                        <FiX className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </form>
+                              </div>
+                            )}
+
+                            {project.tasks && project.tasks.length > 0 ? (
+                              <div className="overflow-x-auto rounded-xl border border-card-border bg-background/50">
+                                <table className="w-full text-left text-sm min-w-[1000px]">
+                                  <thead className="bg-foreground/[0.03] text-text-muted font-bold text-[11px]">
+                                    <tr>
+                                      <th className="px-4 py-2">Name</th>
+                                      <th className="px-4 py-2">Description</th>
+                                      <th className="px-4 py-2">Due Date</th>
+                                      <th className="px-4 py-2">Priority</th>
+                                      <th className="px-4 py-2">Assignee</th>
+                                      {/* Project hidden */}
+                                      <th className="px-4 py-2">Status</th>
+                                      <th className="px-4 py-2 text-right">
+                                        Actions
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-foreground/5">
+                                    {project.tasks?.map((task) => (
+                                      <TaskCard
+                                        key={task.id}
+                                        task={task}
+                                        users={users}
+                                        projects={projects}
+                                        updateTask={updateTask}
+                                        deleteTask={deleteTask}
+                                        hideProject={true}
+                                      />
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            ) : (
+                              !addingTaskId && (
+                                <div className="text-sm text-text-muted italic py-2">
+                                  No tasks found for this project.
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+
+              {/* Add New Row */}
+              {isAdding && (
                 <tr className="bg-foreground/[0.02]">
                   <td colSpan={11} className="p-0">
-                    <form onSubmit={handleUpdate} className="contents">
-                      <table className="w-full">
+                    <form onSubmit={handleCreate} className="contents">
+                      <table className="w-full min-w-[2000px]">
                         <tbody>
                           <tr>
-                            <td className="px-4 py-2 w-[200px]">
+                            <td className="px-4 py-2 min-w-[280px]">
                               <input
+                                ref={newNameRef}
                                 type="text"
                                 name="name"
-                                defaultValue={project.name}
                                 required
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                                placeholder="Project name"
+                                className="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] placeholder:text-text-muted/30"
                               />
                             </td>
-                            <td className="px-4 py-2 w-[100px]">
+                            <td className="px-4 py-2 min-w-[160px]">
                               <input
                                 type="text"
                                 name="key"
-                                defaultValue={project.key || ''}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                                placeholder="PROJ-123"
+                                className="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] placeholder:text-text-muted/30"
                               />
                             </td>
-                            <td className="px-4 py-2 w-[120px]">
-                              <select
+                            <td className="px-4 py-2 min-w-[200px]">
+                              <CustomSelect
+                                label="Status"
                                 name="status"
-                                defaultValue={project.status}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
-                              >
-                                <option value="planning">Planning</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="completed">Completed</option>
-                                <option value="on_hold">On Hold</option>
-                              </select>
+                                defaultValue={"planning"}
+                                options={[
+                                  { value: "planning", label: "Planning" },
+                                  {
+                                    value: "in_progress",
+                                    label: "In Progress",
+                                  },
+                                  { value: "completed", label: "Completed" },
+                                  { value: "on_hold", label: "On Hold" },
+                                ]}
+                                size="md"
+                                className="w-full"
+                                triggerClassName="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                              />
                             </td>
-                            <td className="px-4 py-2 w-[100px]">
-                              <select
+                            <td className="px-4 py-2 min-w-[160px]">
+                              <CustomSelect
+                                label="Priority"
                                 name="priority"
-                                defaultValue={project.priority}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
-                              >
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
-                              </select>
+                                defaultValue={"medium"}
+                                options={[
+                                  { value: "low", label: "Low" },
+                                  { value: "medium", label: "Medium" },
+                                  { value: "high", label: "High" },
+                                ]}
+                                size="md"
+                                className="w-full"
+                                triggerClassName="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                              />
                             </td>
-                            <td className="px-4 py-2 w-[120px]">
-                              <select
+                            <td className="px-4 py-2 min-w-[200px]">
+                              <CustomSelect
+                                label="Project owner"
                                 name="ownerId"
-                                defaultValue={project.ownerId || ''}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
-                              >
-                                <option value="">None</option>
-                                {users.map(u => (
-                                  <option key={u.id} value={u.id}>{u.fullName}</option>
-                                ))}
-                              </select>
+                                options={[
+                                  { value: "", label: "None" },
+                                  ...users.map((u) => ({
+                                    value: String(u.id),
+                                    label: String(u.fullName || u.email),
+                                  })),
+                                ]}
+                                size="md"
+                                className="w-full"
+                                triggerClassName="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                              />
                             </td>
-                            <td className="px-4 py-2 w-[120px]">
-                              <select
+
+                            <td className="px-4 py-2 min-w-[200px]">
+                              <CustomSelect
+                                label="Client"
                                 name="clientId"
-                                defaultValue={project.clientId || ''}
-                                className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
-                              >
-                                <option value="">None</option>
-                                {clients.map(c => (
-                                  <option key={c.id} value={c.id}>{c.companyName}</option>
-                                ))}
-                              </select>
+                                options={[
+                                  { value: "", label: "None" },
+                                  ...clients.map((c) => ({
+                                    value: String(c.id),
+                                    label: String(c.companyName ?? ""),
+                                  })),
+                                ]}
+                                size="md"
+                                className="w-full"
+                                triggerClassName="w-full bg-foreground/[0.03] border border-card-border !h-11 rounded-full px-4 py-2 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
+                              />
                             </td>
-                            <td className="px-4 py-2 w-[110px]">
+                            <td className="px-4 py-2 min-w-[180px]">
                               <CustomDatePicker
-                                value={editValues.startDate}
-                                onChange={(date) => setEditValues(prev => ({ ...prev, startDate: date }))}
+                                value={newProjectValues.startDate}
+                                onChange={(date) =>
+                                  setNewProjectValues((prev) => ({
+                                    ...prev,
+                                    startDate: date,
+                                  }))
+                                }
                                 name="startDate"
+                                triggerClassName="!h-11 rounded-full"
                                 className="w-full"
                                 placeholder="Start"
                               />
                             </td>
-                            <td className="px-4 py-2 w-[110px]">
+                            <td className="px-4 py-2 min-w-[180px]">
                               <CustomDatePicker
-                                value={editValues.endDate}
-                                onChange={(date) => setEditValues(prev => ({ ...prev, endDate: date }))}
+                                value={newProjectValues.endDate}
+                                onChange={(date) =>
+                                  setNewProjectValues((prev) => ({
+                                    ...prev,
+                                    endDate: date,
+                                  }))
+                                }
                                 name="endDate"
+                                triggerClassName="!h-11 rounded-full"
                                 className="w-full"
                                 placeholder="End"
-                                minDate={editValues.startDate || undefined}
+                                minDate={
+                                  newProjectValues.startDate || undefined
+                                }
                               />
                             </td>
                             <td className="px-4 py-2 w-[140px]">
                               <CustomNumberInput
-                                value={editValues.budget}
-                                onChange={(val) => setEditValues(prev => ({ ...prev, budget: val }))}
+                                value={newProjectValues.budget}
+                                onChange={(val) =>
+                                  setNewProjectValues((prev) => ({
+                                    ...prev,
+                                    budget: val,
+                                  }))
+                                }
                                 name="budget"
                                 className="w-full"
                                 placeholder="0"
@@ -325,7 +957,8 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                   type="submit"
                                   disabled={isSubmitting}
                                   className="p-1 rounded hover:bg-success/10 text-success-text transition-colors disabled:opacity-50"
-                                  title="Save"
+                                  data-tooltip="Save"
+                                  aria-label="Save"
                                 >
                                   {isSubmitting ? (
                                     <Spinner className="w-3.5 h-3.5 text-success-text" />
@@ -335,9 +968,10 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={cancelEditing}
+                                  onClick={() => setIsAdding(false)}
                                   className="p-1 rounded hover:bg-danger/10 text-danger-text transition-colors"
-                                  title="Cancel"
+                                  data-tooltip="Cancel"
+                                  aria-label="Cancel"
                                 >
                                   <FiX className="w-4 h-4" />
                                 </button>
@@ -349,397 +983,36 @@ export function ProjectTable({ projects, users, clients, onSelectProject, onCrea
                     </form>
                   </td>
                 </tr>
-                </React.Fragment>
-              );
-            }
+              )}
 
-            return (
-              <React.Fragment key={rowKey}>
-              <tr
-                className={`group hover:bg-foreground/[0.03] transition-colors items-center cursor-pointer ${expandedIds.includes(project.id) ? 'bg-foreground/[0.03]' : ''}`}
-                onClick={() => router.push(`/projects/${project.id}`)}
-              >
-                <td className="px-6 py-3 sticky left-0 z-10 bg-card border-r border-card-border">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-1.5 h-1.5 rounded-full ${(statusColors[project.status] ?? statusColors.planning).split(' ')[1].replace('text-', 'bg-')}`} />
-                    <div className="font-bold text-foreground text-xs tracking-tight truncate group-hover:text-accent-text transition-colors capitalize">{project.name}</div>
-                  </div>
-                </td>
-                <td className="px-6 py-3 text-center">
-                    <TaskDonutChart {...getTaskStats(project)} size={40} />
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  {project.key && (
-                    <div className="px-2 py-0.5 rounded-md text-[11px] font-bold font-mono text-text-muted bg-foreground/[0.03] border border-card-border capitalize inline-block">
-                      {project.key}
+              <tr className="sticky bottom-0 z-10">
+                <td colSpan={10} className="px-4 py-3 sticky left-0">
+                  <button
+                    onClick={() => setIsAdding(true)}
+                    className="flex items-center gap-2 p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-foreground/10 text-sm text-text-muted hover:text-foreground transition-all duration-200 group w-fit"
+                  >
+                    <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border rounded-full">
+                      <FiPlus className="w-4 h-4" />
                     </div>
-                  )}
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium capitalize border whitespace-nowrap ${statusColors[project.status] ?? statusColors.planning}`}>
-                    {statusMapping[project.status] ?? project.status ?? '—'}
-                  </span>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium capitalize border whitespace-nowrap ${
- project.priority === 'high' ? 'bg-[var(--pastel-rose)]/10 text-[var(--pastel-rose)] border-[var(--pastel-rose)]/20' :
- project.priority === 'medium' ? 'bg-[var(--pastel-amber)]/10 text-[var(--pastel-amber)] border-[var(--pastel-amber)]/20' :
- 'bg-[var(--pastel-emerald)]/10 text-[var(--pastel-emerald)] border-[var(--pastel-emerald)]/20'
- }`}>
-                    {priorityMapping[project.priority]}
-                  </span>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  {owner ? (
-                    <div className="flex items-center gap-2">
-                      <UserAvatarGroup users={[owner]} size="sm" limit={1} />
-                      <span className="text-[11px] font-bold text-text-muted group-hover:text-foreground transition-colors capitalize tracking-tight">{owner.fullName}</span>
-                    </div>
-                  ) : '-'}
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <span className="text-[11px] font-bold text-text-muted capitalize tracking-tight group-hover:text-foreground transition-colors">
-                    {client ? client.companyName : <span className="text-text-muted/30 italic">No Client</span>}
-                  </span>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[11px] font-bold text-foreground/80 capitalize tracking-tight">
-                      {project.startDate ? format(new Date(project.startDate), "MMM dd") : '-'}
+                    <span className="pr-2 font-bold text-[11px]">
+                      New project
                     </span>
-                    <span className="text-[11px] font-bold text-text-muted capitalize opacity-50">
-                      {project.endDate ? `UNTIL ${format(new Date(project.endDate), "MMM dd, yyyy")}` : '-'}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  {project.budget ? (
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-foreground tracking-tight">
-                        ${project.budget.toLocaleString()}
-                      </span>
-                      <span className="text-[11px] font-bold text-text-muted capitalize">
-                        {project.currency}
-                      </span>
-                    </div>
-                  ) : <span className="text-text-muted/30 italic text-[11px]">-</span>}
-                </td>
-                {/* Time Logged */}
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-1.5">
-                    <FiClock className="w-3 h-3 text-text-muted flex-shrink-0" />
-                    <span className="text-xs font-bold text-foreground tabular-nums">
-                      {totalHours > 0 ? `${totalHours.toFixed(1)}h` : <span className="text-text-muted/30 italic text-[11px]">-</span>}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-3 text-right sticky right-0 z-10 bg-card border-l border-card-border">
-                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    {canModifyProject(project) && (
-                    <>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); startEditing(project); }}
-                      className="p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all"
-                      title="Edit"
-                    >
-                      <FiEdit2 className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(project); }}
-                      className="p-2 rounded-xl bg-danger/5 hover:bg-danger/10 text-text-muted hover:text-danger-text border border-card-border hover:border-danger/20 transition-all"
-                      title="Delete"
-                    >
-                      <FiTrash2 className="w-3 h-3" />
-                    </button>
-                    </>
-                    )}
-                    <div className="p-1.5 bg-foreground/[0.03] border border-card-border text-text-muted rounded-full">
-                      <FiChevronRight className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedIds.includes(project.id) ? 'rotate-90 text-accent-text' : ''}`} />
-                    </div>
-                  </div>
+                  </button>
                 </td>
               </tr>
-              {expandedIds.includes(project.id) && (
-                <tr className="bg-foreground/[0.02]">
-                  <td colSpan={11} className="p-0 border-none">
-                    <div className="sticky left-0 p-6 pl-12 bg-card border-y border-card-border w-full">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-xs font-bold text-text-muted">Tasks ({project.tasks?.length || 0})</h4>
-                        <button 
-                          onClick={() => setAddingTaskId(addingTaskId === project.id ? null : project.id)}
-                          className="flex items-center gap-1 text-[11px] font-bold text-text-muted hover:text-foreground transition-all px-2 py-1 rounded bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border"
-                        >
-                          <FiPlus className="w-3 h-3" />
-                          <span>Add Task</span>
-                        </button>
-                      </div>
 
-                      {addingTaskId === project.id && (
-                        <div className="mb-4 p-4 rounded-xl bg-foreground/[0.03] border border-accent/20 animate-in fade-in slide-in-from-top-2">
-                           <form onSubmit={async (e) => {
-                             // ... rest same ...
-                           }}
-                           className="space-y-4"
-                           >
-                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                               <div className="md:col-span-2">
-                                 <input 
-                                   type="text" 
-                                   name="name" 
-                                   placeholder="Task Name *" 
-                                   required 
-                                   className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06]"
-                                 />
-                               </div>
-                               <div>
-                                 <select 
-                                   name="priority" 
-                                   defaultValue="medium"
-                                   className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06] appearance-none cursor-pointer"
-                                 >
-                                   <option value="low">Low Priority</option>
-                                   <option value="medium">Medium Priority</option>
-                                   <option value="high">High Priority</option>
-                                 </select>
-                               </div>
-                               <div>
-                                 <CustomDatePicker
-                                   value={newTaskDueDate}
-                                   onChange={setNewTaskDueDate}
-                                   name="dueDate"
-                                   placeholder="Due Date"
-                                   className="w-full"
-                                 />
-                               </div>
-                             </div>
-                             <div className="flex items-center gap-4">
-                               <div className="flex-1">
-                                 <textarea 
-                                   name="description" 
-                                   placeholder="Add a description..." 
-                                   rows={1}
-                                   className="w-full bg-foreground/[0.03] border border-card-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:bg-foreground/[0.06] resize-none"
-                                 />
-                               </div>
-                               <div className="flex gap-2">
-                                 <button 
-                                   type="submit" 
-                                   disabled={isSubmitting}
-                                   className="md-btn md-btn-primary md-btn-sm"
-                                 >
-                                   {isSubmitting ? (
-                                     <Spinner className="h-3.5 w-3.5 text-success-text" />
-                                   ) : (
-                                     <FiCheck className="w-4 h-4" />
-                                   )}
-                                   <span>{isSubmitting ? 'Creating...' : 'Create'}</span>
-                                 </button>
-                                 <button type="button" onClick={() => setAddingTaskId(null)} className="px-3 py-2 rounded-lg bg-foreground/[0.03] text-text-muted hover:text-foreground transition-all text-sm border border-card-border">
-                                   <FiX className="w-4 h-4" />
-                                 </button>
-                               </div>
-                             </div>
-                           </form>
-                        </div>
-                      )}
-
-                      {project.tasks && project.tasks.length > 0 ? (
-                        <div className="overflow-x-auto rounded-xl border border-card-border bg-background/50">
-                            <table className="w-full text-left text-sm min-w-[1000px]">
-                                <thead className="bg-foreground/[0.03] text-text-muted font-bold text-[11px]">
-                                    <tr>
-                                        <th className="px-4 py-2">Name</th>
-                                        <th className="px-4 py-2">Description</th>
-                                        <th className="px-4 py-2">Due Date</th>
-                                        <th className="px-4 py-2">Priority</th>
-                                        <th className="px-4 py-2">Assignee</th>
-                                        {/* Project hidden */}
-                                        <th className="px-4 py-2">Status</th>
-                                        <th className="px-4 py-2 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-foreground/5">
-                                    {project.tasks?.map(task => (
-                                        <TaskCard 
-                                            key={task.id} 
-                                            task={task} 
-                                            users={users} 
-                                            projects={projects} 
-                                            updateTask={updateTask} 
-                                            deleteTask={deleteTask} 
-                                            hideProject={true}
-                                        />
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                      ) : (
-                        !addingTaskId && <div className="text-sm text-text-muted italic py-2">No tasks found for this project.</div>
-                      )}
-                    </div>
+              {projects.length === 0 && !isAdding && (
+                <tr>
+                  <td
+                    colSpan={11}
+                    className="px-6 py-12 text-center text-text-muted"
+                  >
+                    No projects yet. Click &quot;New project&quot; to add one.
                   </td>
                 </tr>
               )}
-              </React.Fragment>
-            );
-          })}
-
-          {/* Add New Row */}
-          {isAdding && (
-            <tr className="bg-foreground/[0.02]">
-              <td colSpan={11} className="p-0">
-                <form onSubmit={handleCreate} className="contents">
-                  <table className="w-full">
-                    <tbody>
-                      <tr>
-                        <td className="px-4 py-2 w-[200px]">
-                          <input
-                            ref={newNameRef}
-                            type="text"
-                            name="name"
-                            required
-                            placeholder="Project name"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] placeholder:text-text-muted/30"
-                          />
-                        </td>
-                        <td className="px-4 py-2 w-[100px]">
-                          <input
-                            type="text"
-                            name="key"
-                            placeholder="PROJ-123"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] placeholder:text-text-muted/30"
-                          />
-                        </td>
-                        <td className="px-4 py-2 w-[120px]">
-                          <select
-                            name="status"
-                            defaultValue="planning"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
-                          >
-                            <option value="planning">Planning</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="on_hold">On Hold</option>
-                          </select>
-                        </td>
-                        <td className="px-4 py-2 w-[100px]">
-                          <select
-                            name="priority"
-                            defaultValue="medium"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
-                          >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                          </select>
-                        </td>
-                        <td className="px-4 py-2 w-[120px]">
-                          <select
-                            name="ownerId"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
-                          >
-                            <option value="">None</option>
-                            {users.map(u => (
-                              <option key={u.id} value={u.id}>{u.fullName}</option>
-                            ))}
-                          </select>
-                        </td>
-
-                        <td className="px-4 py-2 w-[120px]">
-                          <select
-                            name="clientId"
-                            className="w-full bg-foreground/[0.03] border border-card-border rounded px-2 py-1 text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06]"
-                          >
-                            <option value="">None</option>
-                            {clients.map(c => (
-                              <option key={c.id} value={c.id}>{c.companyName}</option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="px-4 py-2 w-[110px]">
-                          <CustomDatePicker
-                            value={newProjectValues.startDate}
-                            onChange={(date) => setNewProjectValues(prev => ({ ...prev, startDate: date }))}
-                            name="startDate"
-                            className="w-full"
-                            placeholder="Start"
-                          />
-                        </td>
-                        <td className="px-4 py-2 w-[110px]">
-                          <CustomDatePicker
-                            value={newProjectValues.endDate}
-                            onChange={(date) => setNewProjectValues(prev => ({ ...prev, endDate: date }))}
-                            name="endDate"
-                            className="w-full"
-                            placeholder="End"
-                            minDate={newProjectValues.startDate || undefined}
-                          />
-                        </td>
-                        <td className="px-4 py-2 w-[140px]">
-                          <CustomNumberInput
-                            value={newProjectValues.budget}
-                            onChange={(val) => setNewProjectValues(prev => ({ ...prev, budget: val }))}
-                            name="budget"
-                            className="w-full"
-                            placeholder="0"
-                            min={0}
-                          />
-                        </td>
-                        <td className="px-4 py-2 w-[80px]">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                               type="submit"
-                               disabled={isSubmitting}
-                               className="p-1 rounded hover:bg-success/10 text-success-text transition-colors disabled:opacity-50"
-                               title="Save"
-                             >
-                               {isSubmitting ? (
-                                 <Spinner className="w-3.5 h-3.5 text-success-text" />
-                               ) : (
-                                 <FiCheck className="w-4 h-4" />
-                               )}
-                             </button>
-                            <button
-                              type="button"
-                              onClick={() => setIsAdding(false)}
-                              className="p-1 rounded hover:bg-danger/10 text-danger-text transition-colors"
-                              title="Cancel"
-                            >
-                              <FiX className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </form>
-              </td>
-            </tr>
-          )}
-
-            <tr className="sticky bottom-0 z-10">
-              <td colSpan={10} className="px-4 py-3 sticky left-0">
-                <button
-                  onClick={() => setIsAdding(true)}
-                  className="flex items-center gap-2 p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-foreground/10 text-sm text-text-muted hover:text-foreground transition-all duration-200 group w-fit"
-                >
-                  <div className="p-1 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border rounded-full">
-                    <FiPlus className="w-4 h-4" />
-                  </div>
-                  <span className="pr-2 font-bold text-[11px]">New project</span>
-                </button>
-              </td>
-            </tr>
-
-          {projects.length === 0 && !isAdding && (
-            <tr>
-              <td colSpan={11} className="px-6 py-12 text-center text-text-muted">
-                No projects yet. Click &quot;New project&quot; to add one.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

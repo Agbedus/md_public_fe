@@ -81,14 +81,14 @@ export default function ClientTable({ clients, onEdit, onDelete, canModifyClient
                     <button
                       onClick={() => onEdit(client)}
                       className="p-1.5 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] text-text-muted hover:text-foreground border border-card-border transition-all"
-                      title="Edit"
+                      data-tooltip="Edit" aria-label="Edit"
                     >
                       <FiEdit2 size={14} />
                     </button>
                     <button
                       onClick={() => onDelete(client)}
                       className="p-1.5 rounded-full bg-danger/10 hover:bg-danger/20 text-danger-text hover:text-danger-text border border-card-border hover:border-danger/20 transition-all"
-                      title="Delete"
+                      data-tooltip="Delete" aria-label="Delete"
                     >
                       <FiTrash2 size={14} />
                     </button>

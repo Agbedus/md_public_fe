@@ -10,6 +10,7 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useId,
   useRef,
   useState,
 } from "react";
@@ -20,12 +21,15 @@ import {
   FiCode,
   FiMinus,
   FiMessageSquare,
+  FiBold, FiItalic, FiUnderline, FiAlignLeft, FiAlignCenter, FiAlignRight,
+  FiSearch, FiX, FiCalendar,
 } from "react-icons/fi";
 
 export interface CommandItemProps {
   title: string;
   description: string;
   icon: React.ReactNode;
+  keywords?: string;
   command: (props: { editor: Editor; range: Range }) => void;
 }
 
@@ -45,6 +49,7 @@ export const getSuggestionItems = ({
     },
     {
       title: "Checklist",
+      keywords: "todo task checkbox check box",
       description: "Create a list with checkboxes.",
       icon: <FiCheckSquare size={18} />,
       command: ({ editor, range }) => {
@@ -130,13 +135,55 @@ export const getSuggestionItems = ({
         editor.chain().focus().deleteRange(range).setHorizontalRule().run();
       },
     },
+    ...([
+      { title: "Bold", description: "Emphasize text with bold weight.", icon: <FiBold size={18} />, mark: "bold" },
+      { title: "Italic", description: "Add emphasis with italic text.", icon: <FiItalic size={18} />, mark: "italic" },
+      { title: "Underline", description: "Underline your text.", icon: <FiUnderline size={18} />, mark: "underline" },
+      { title: "Strikethrough", description: "Strike through text.", icon: <span className="line-through">S</span>, mark: "strike" },
+      { title: "Inline Code", description: "Format a short piece of code.", icon: <FiCode size={18} />, mark: "code" },
+    ]).map(({ mark, ...item }) => ({
+      ...item,
+      command: ({ editor, range }: { editor: Editor; range: Range }) => {
+        editor.chain().focus().deleteRange(range).toggleMark(mark).run();
+      },
+    })),
+    ...([
+      { title: "Align Left", value: "left", icon: <FiAlignLeft size={18} /> },
+      { title: "Align Center", value: "center", icon: <FiAlignCenter size={18} /> },
+      { title: "Align Right", value: "right", icon: <FiAlignRight size={18} /> },
+    ]).map(({ value, ...item }) => ({
+      ...item,
+      description: `Align this block to the ${value}.`,
+      command: ({ editor, range }: { editor: Editor; range: Range }) => {
+        editor.chain().focus().deleteRange(range)
+          .updateAttributes("paragraph", { textAlign: value })
+          .updateAttributes("heading", { textAlign: value }).run();
+      },
+    })),
+    {
+      title: "Clear Formatting",
+      description: "Return this block to plain text.",
+      keywords: "reset plain remove format",
+      icon: <FiX size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).clearNodes().unsetAllMarks().run();
+      },
+    },
+    {
+      title: "Today’s Date",
+      description: "Insert today’s date.",
+      keywords: "date today timestamp",
+      icon: <FiCalendar size={18} />,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertContent(new Date().toLocaleDateString(undefined, { dateStyle: "long" })).run();
+      },
+    },
   ];
 
   return items
     .filter((item) =>
-      item.title.toLowerCase().includes(query.trim().toLowerCase()),
-    )
-    .slice(0, 10);
+      `${item.title} ${item.description} ${item.keywords || ""}`.toLowerCase().includes(query.trim().toLowerCase()),
+    );
 };
 
 interface CommandListHandle {
@@ -147,15 +194,19 @@ export const CommandList = forwardRef<
   CommandListHandle,
   SuggestionProps<CommandItemProps>
 >((props, ref) => {
-  const [selection, setSelection] = useState({ query: props.query, index: 0 });
+  const [search, setSearch] = useState({ source: props.query, value: props.query });
+  const query = search.source === props.query ? search.value : props.query;
+  const items = getSuggestionItems({ query });
+  const [selection, setSelection] = useState({ query, index: 0 });
   const selectedIndex =
-    selection.query === props.query
-      ? Math.min(selection.index, props.items.length - 1)
+    selection.query === query
+      ? Math.max(0, Math.min(selection.index, items.length - 1))
       : 0;
   const listRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
 
   const selectItem = (index: number) => {
-    const item = props.items[index];
+    const item = items[index];
     if (item) {
       props.command(item);
     }
@@ -163,15 +214,15 @@ export const CommandList = forwardRef<
 
   const upHandler = () => {
     setSelection({
-      query: props.query,
-      index: (selectedIndex + props.items.length - 1) % props.items.length,
+      query,
+      index: (selectedIndex + items.length - 1) % items.length,
     });
   };
 
   const downHandler = () => {
     setSelection({
-      query: props.query,
-      index: (selectedIndex + 1) % props.items.length,
+      query,
+      index: (selectedIndex + 1) % items.length,
     });
   };
 
@@ -183,11 +234,10 @@ export const CommandList = forwardRef<
     listRef.current
       ?.querySelector('[aria-selected="true"]')
       ?.scrollIntoView({ block: "nearest" });
-  }, [selectedIndex, props.query]);
+  }, [selectedIndex, query]);
 
-  useImperativeHandle(ref, () => ({
-    onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-      if (props.items.length === 0) return false;
+  const onKeyDown = ({ event }: { event: KeyboardEvent | React.KeyboardEvent }) => {
+      if (items.length === 0) return false;
       if (event.key === "ArrowUp") {
         upHandler();
         return true;
@@ -200,44 +250,69 @@ export const CommandList = forwardRef<
         enterHandler();
         return true;
       }
+      if (event.key === "Home" || event.key === "End") {
+        setSelection({ query, index: event.key === "Home" ? 0 : items.length - 1 });
+        return true;
+      }
       return false;
-    },
-  }));
-
-  if (props.items.length === 0) {
-    return (
-      <div className="rounded-xl border border-card-border bg-card p-3 text-xs text-text-muted">
-        No matching command. Press Escape to keep typing.
-      </div>
-    );
-  }
+  };
+  useImperativeHandle(ref, () => ({ onKeyDown }));
 
   return (
     <div
-      ref={listRef}
-      role="listbox"
-      aria-label="Note slash commands"
-      className="w-72 max-w-[calc(100vw-24px)] max-h-[min(320px,50dvh)] overflow-y-auto overscroll-contain md-menu"
+      data-note-editor-controls
+      className="md-menu w-80 max-w-[calc(100vw-24px)] shadow-md"
     >
-      {props.items.map((item: CommandItemProps, index: number) => (
+      <div className="p-1 pb-1.5">
+        <div className="relative">
+          <FiSearch className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-muted" />
+          <input
+            role="combobox"
+            aria-label="Search note commands"
+            aria-autocomplete="list"
+            aria-expanded="true"
+            aria-controls={listId}
+            aria-activedescendant={items.length ? `${listId}-${selectedIndex}` : undefined}
+            value={query}
+            onChange={(event) => setSearch({ source: props.query, value: event.target.value })}
+            onKeyDown={(event) => {
+              if (event.key === "Escape" || event.key === "Tab") {
+                if (event.key === "Escape") event.preventDefault();
+                event.stopPropagation();
+                exitSuggestion(props.editor.view);
+                if (event.key === "Escape") props.editor.commands.focus();
+              } else if (onKeyDown({ event })) event.preventDefault();
+            }}
+            placeholder="Search commands…"
+            className="h-10 w-full border border-card-border bg-input-bg pl-9 pr-3 text-sm text-foreground placeholder:text-text-muted"
+          />
+        </div>
+      </div>
+      <div ref={listRef} id={listId} role="listbox" aria-label="Note slash commands" className="max-h-[min(360px,45dvh)] overflow-y-auto overscroll-contain">
+      {items.map((item: CommandItemProps, index: number) => (
         <button
+          id={`${listId}-${index}`}
           type="button"
           role="option"
+          tabIndex={-1}
           aria-selected={index === selectedIndex}
           onMouseDown={(event) => event.preventDefault()}
-          className={`md-menu-item !px-2 ${index === selectedIndex ? "bg-foreground/[0.06]" : "text-text-secondary"}`}
+          onMouseEnter={() => setSelection({ query, index })}
+          className={`md-menu-item gap-3 ${index === selectedIndex ? "bg-foreground/[0.06]" : "text-text-secondary"}`}
           key={item.title}
           onClick={() => selectItem(index)}
         >
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-foreground/[0.05]">
             {item.icon}
           </div>
-          <div>
+          <div className="min-w-0 py-1">
             <p className="text-sm font-medium">{item.title}</p>
-            <p className="text-[11px] text-text-muted">{item.description}</p>
+            <p className="text-xs leading-snug text-text-muted">{item.description}</p>
           </div>
         </button>
       ))}
+      {items.length === 0 && <p role="status" className="px-3.5 py-4 text-sm text-text-muted">No matching commands.</p>}
+      </div>
     </div>
   );
 });
@@ -251,6 +326,7 @@ export default Extension.create({
       suggestion: {
         char: "/",
         startOfLine: true,
+        allowSpaces: true,
         command: ({
           editor,
           range,
@@ -302,6 +378,7 @@ export const renderItems = () => {
         zIndex: 10000,
         maxWidth: "calc(100vw - 24px)",
         duration: 0,
+        onClickOutside: () => exitSuggestion(props.editor.view),
         arrow: false,
         popperOptions: {
           modifiers: [

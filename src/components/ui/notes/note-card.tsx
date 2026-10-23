@@ -1,669 +1,1010 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
-import { createPortal } from 'react-dom';
-import { toast } from '@/lib/toast';
-import { sanitizeHtml } from '@/lib/sanitize-html';
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
+import { toast } from "@/lib/toast";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import Image from "next/image";
 import type { Note } from "@/types/note";
-import styles from './note-rich-text.module.css';
-import { FiEdit2, FiTrash2, FiFileText, FiCheckSquare, FiBookOpen, FiUsers, FiZap, FiLink, FiCode, FiBookmark, FiEdit3, FiCheckCircle, FiUserPlus, FiLayers, FiClock, FiStar, FiMapPin, FiArchive } from "react-icons/fi";
+import { InlineNoteContent } from "./inline-note-content";
+import { normalizeNoteContent } from "@/lib/note-content";
+import {
+  FiEdit2,
+  FiTrash2,
+  FiFileText,
+  FiCheckSquare,
+  FiBookOpen,
+  FiUsers,
+  FiZap,
+  FiLink,
+  FiCode,
+  FiBookmark,
+  FiEdit3,
+  FiCheckCircle,
+  FiUserPlus,
+  FiLayers,
+  FiClock,
+  FiStar,
+  FiMapPin,
+  FiArchive,
+} from "react-icons/fi";
 import { FiMaximize2, FiMinimize2 } from "react-icons/fi";
 import UserAvatarGroup from "@/components/ui/user-avatar-group";
 import { Portal } from "@/components/ui/portal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsClient } from '@/hooks/use-is-client';
-import { useAdaptiveDropdown } from '@/hooks/use-adaptive-dropdown';
-import { NoteUpdatedTime } from './note-updated-time';
+import { useIsClient } from "@/hooks/use-is-client";
+import { useAdaptiveDropdown } from "@/hooks/use-adaptive-dropdown";
+import { NoteUpdatedTime } from "./note-updated-time";
 
-import type { ActionResult } from '@/types/api';
-import { avatarStyle } from '@/lib/avatar-color';
+import type { ActionResult } from "@/types/api";
+import { avatarStyle } from "@/lib/avatar-color";
 
 interface NoteCardProps {
-    note: Note;
-    onNoteUpdate: (formData: FormData) => Promise<ActionResult> | void;
-    onNoteDelete: (formData: FormData) => Promise<ActionResult> | void;
-    viewMode: 'grid' | 'table';
-    searchQuery?: string;
-    onEdit?: (note: Note) => void;
-    availableUsers?: {id: string, name: string | null, email: string | null, image: string | null}[];
-    isExpanded?: boolean;
-    onToggleExpand?: () => void;
-    /**
-     * Whether the viewer may edit or delete this note. Managers can see notes
-     * they did not write, so this is false for them on other people's notes and
-     * the controls are hidden rather than left to 403.
-     */
-    canModify?: boolean;
+  note: Note;
+  onNoteUpdate: (formData: FormData) => Promise<ActionResult> | void;
+  onNoteDelete: (formData: FormData) => Promise<ActionResult> | void;
+  viewMode: "grid" | "table";
+  searchQuery?: string;
+  isReadingPreview?: boolean;
+  onEdit?: (note: Note) => void;
+  availableUsers?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    image: string | null;
+  }[];
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  /**
+   * Whether the viewer may edit or delete this note. Managers can see notes
+   * they did not write, so this is false for them on other people's notes and
+   * the controls are hidden rather than left to 403.
+   */
+  canModify?: boolean;
 }
 
-
-const noteTypeIcons: Record<Note['type'], React.ElementType> = {
-    note: FiFileText,
-    checklist: FiCheckSquare,
-    todo: FiCheckCircle,
-    journal: FiBookOpen,
-    meeting: FiUsers,
-    idea: FiZap,
-    link: FiLink,
-    code: FiCode,
-    bookmark: FiBookmark,
-    sketch: FiEdit3,
+const noteTypeIcons: Record<Note["type"], React.ElementType> = {
+  note: FiFileText,
+  checklist: FiCheckSquare,
+  todo: FiCheckCircle,
+  journal: FiBookOpen,
+  meeting: FiUsers,
+  idea: FiZap,
+  link: FiLink,
+  code: FiCode,
+  bookmark: FiBookmark,
+  sketch: FiEdit3,
 };
 
-const noteTypeColors: Record<Note['type'], string> = {
-    note: 'text-[var(--pastel-blue)]',
-    checklist: 'text-[var(--pastel-emerald)]',
-    todo: 'text-[var(--pastel-purple)]',
-    journal: 'text-[var(--pastel-amber)]',
-    meeting: 'text-[var(--pastel-indigo)]',
-    idea: 'text-[var(--pastel-rose)]',
-    link: 'text-[var(--pastel-rose)]',
-    code: 'text-[var(--pastel-teal)]',
-    bookmark: 'text-[var(--pastel-amber)]',
-    sketch: 'text-[var(--pastel-teal)]',
+const noteTypeColors: Record<Note["type"], string> = {
+  note: "text-[var(--pastel-blue)]",
+  checklist: "text-[var(--pastel-emerald)]",
+  todo: "text-[var(--pastel-purple)]",
+  journal: "text-[var(--pastel-amber)]",
+  meeting: "text-[var(--pastel-indigo)]",
+  idea: "text-[var(--pastel-rose)]",
+  link: "text-[var(--pastel-rose)]",
+  code: "text-[var(--pastel-teal)]",
+  bookmark: "text-[var(--pastel-amber)]",
+  sketch: "text-[var(--pastel-teal)]",
 };
 
-const formatPriority = (p: Note['priority'] | undefined): string =>
-  p ? p.charAt(0).toUpperCase() + p.slice(1) : '';
+const formatPriority = (p: Note["priority"] | undefined): string =>
+  p ? p.charAt(0).toUpperCase() + p.slice(1) : "";
 
-const escapeSearch = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeSearch = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const TextHighlight: React.FC<{ text: string; highlight: string }> = ({ text, highlight }) => {
-    if (!highlight) {
-        return <>{text}</>;
-    }
-    const parts = text.split(new RegExp(`(${escapeSearch(highlight)})`, 'gi'));
-    return (
-        <>
-            {parts.map((part, i) =>
-                part.toLowerCase() === highlight.toLowerCase() ? (
-                    <mark key={i} className="bg-warning text-black">
-                        {part}
-                    </mark>
-                ) : (
-                    part
-                )
-            )}
-        </>
+const TextHighlight: React.FC<{ text: string; highlight: string }> = ({
+  text,
+  highlight,
+}) => {
+  if (!highlight) {
+    return <>{text}</>;
+  }
+  const parts = text.split(new RegExp(`(${escapeSearch(highlight)})`, "gi"));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === highlight.toLowerCase() ? (
+          <mark key={i} className="bg-warning text-black">
+            {part}
+          </mark>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+};
+
+export default function NoteCard({
+  note,
+  onNoteUpdate,
+  onNoteDelete,
+  viewMode,
+  searchQuery = "",
+  isReadingPreview = false,
+  onEdit,
+  availableUsers = [],
+  isExpanded = false,
+  onToggleExpand,
+  canModify = true,
+}: NoteCardProps) {
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [selectedUser, setSelectedUser] = useState("");
+  const [isSharing, setIsSharing] = useState(false);
+  const [pendingFlag, setPendingFlag] = useState<string | null>(null);
+  const [sharingError, setSharingError] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
+  const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
+    isOpen: showUserDropdown,
+    anchorRef: dropdownRef,
+    dropdownRef: dropdownMenuRef,
+    preferredAlign: "end",
+  });
+
+  const [hoveredOwner, setHoveredOwner] = useState(false);
+  const [ownerCoords, setOwnerCoords] = useState({ top: 0, left: 0 });
+  const ownerRef = useRef<HTMLDivElement>(null);
+  const hasMounted = useIsClient();
+  const checklistProgress = useMemo(() => {
+    if (
+      !hasMounted ||
+      !isReadingPreview ||
+      !["checklist", "todo"].includes(note.type)
+    )
+      return null;
+    const document = new DOMParser().parseFromString(
+      normalizeNoteContent(note.content || ""),
+      "text/html",
     );
-};
+    const items = Array.from(
+      document.querySelectorAll('li[data-type="taskItem"]'),
+    );
+    return items.length
+      ? `${items.filter((item) => item.getAttribute("data-checked") === "true").length} of ${items.length} checked`
+      : null;
+  }, [hasMounted, isReadingPreview, note.type, note.content]);
 
-export default function NoteCard({ note, onNoteUpdate, onNoteDelete, viewMode, searchQuery = '', onEdit, availableUsers = [], isExpanded = false, onToggleExpand, canModify = true }: NoteCardProps) {
-    const [showUserDropdown, setShowUserDropdown] = useState(false);
-    const [selectedUser, setSelectedUser] = useState('');
-    const [isSharing, setIsSharing] = useState(false);
-    const [sharingError, setSharingError] = useState('');
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const dropdownMenuRef = useRef<HTMLDivElement>(null);
-    const { style: dropdownStyle, side: dropdownSide } = useAdaptiveDropdown({
-        isOpen: showUserDropdown,
-        anchorRef: dropdownRef,
-        dropdownRef: dropdownMenuRef,
-        preferredAlign: 'end',
+  const handleOwnerMouseEnter = () => {
+    if (ownerRef.current) {
+      const rect = ownerRef.current.getBoundingClientRect();
+      setOwnerCoords({
+        top: rect.top,
+        left: rect.left + rect.width / 2,
+      });
+      setHoveredOwner(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!showUserDropdown) return;
+    function handleClickOutside(event: PointerEvent) {
+      const target = event.target as Node;
+      if (
+        !dropdownRef.current?.contains(target) &&
+        !dropdownMenuRef.current?.contains(target)
+      ) {
+        setShowUserDropdown(false);
+      }
+    }
+    const frame = requestAnimationFrame(() =>
+      dropdownMenuRef.current
+        ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
+        ?.focus({ preventScroll: true }),
+    );
+    document.addEventListener("pointerdown", handleClickOutside);
+    return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, [showUserDropdown]);
+
+  const toggleSharing = () => {
+    setSelectedUser("");
+    setSharingError("");
+    setShowUserDropdown((open) => !open);
+  };
+
+  const shareMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      setShowUserDropdown(false);
+      dropdownRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    }
+  };
+
+  const handleAddUser = async () => {
+    if (!selectedUser || isSharing) return;
+    setIsSharing(true);
+    setSharingError("");
+    const currentShared = note.shared_with || [];
+    // Map hydrated objects back to IDs for the API
+    const sharedValues = currentShared.map((u) =>
+      typeof u === "string" ? u : u.id,
+    );
+
+    try {
+      if (!sharedValues.includes(selectedUser)) {
+        const newList = [...sharedValues, selectedUser];
+        const fd = new FormData();
+        fd.append("id", String(note.id));
+        fd.append("shared_with", JSON.stringify(newList));
+        const result = await onNoteUpdate(fd);
+        if (result && !result.success) {
+          setSharingError(
+            result.error || "Could not share this note. Please try again.",
+          );
+          return;
+        }
+        toast.success("Note shared");
+      }
+      setShowUserDropdown(false);
+      setSelectedUser("");
+      requestAnimationFrame(() =>
+        dropdownRef.current
+          ?.querySelector<HTMLButtonElement>("button")
+          ?.focus(),
+      );
+    } catch {
+      setSharingError("Could not share this note. Please try again.");
+      toast.error("Could not share this note. Please try again.");
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const priorityBgColorClass = (priority: Note["priority"]) => {
+    switch (priority) {
+      case "high":
+        return "bg-[var(--pastel-rose)]/10";
+      case "medium":
+        return "bg-[var(--pastel-amber)]/10";
+      case "low":
+        return "bg-[var(--pastel-emerald)]/10";
+      default:
+        return "bg-foreground/[0.05]";
+    }
+  };
+
+  const priorityTextColorClass = (priority: Note["priority"]) => {
+    switch (priority) {
+      case "high":
+        return "text-[var(--pastel-rose)]";
+      case "medium":
+        return "text-[var(--pastel-amber)]";
+      case "low":
+        return "text-[var(--pastel-emerald)]";
+      default:
+        return "text-text-muted";
+    }
+  };
+
+  const getNoteTags = () => {
+    if (!note.tags) return [];
+    if (typeof note.tags === "string") {
+      // De-duplicate: the same tag repeated in the stored string would
+      // otherwise render twice and collide on the React key, since the tag
+      // text is the key.
+      return Array.from(
+        new Set(
+          note.tags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean),
+        ),
+      );
+    }
+    return [];
+  };
+  const noteTags = getNoteTags();
+
+  const TypeIcon = noteTypeIcons[note.type] || FiFileText;
+  const typeIconColorClass = noteTypeColors[note.type] || "text-text-muted";
+
+  const renderContent = (content: string, interactive = false) => {
+    const sanitized = sanitizeHtml(normalizeNoteContent(content), {
+      interactiveChecklists: interactive,
     });
+    if (!searchQuery || typeof window === "undefined") {
+      return sanitized;
+    }
 
-    const [hoveredOwner, setHoveredOwner] = useState(false);
-    const [ownerCoords, setOwnerCoords] = useState({ top: 0, left: 0 });
-    const ownerRef = useRef<HTMLDivElement>(null);
-    const hasMounted = useIsClient();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(sanitized, "text/html");
+    const highlightRegex = new RegExp(`(${escapeSearch(searchQuery)})`, "gi");
 
-    const handleOwnerMouseEnter = () => {
-        if (ownerRef.current) {
-            const rect = ownerRef.current.getBoundingClientRect();
-            setOwnerCoords({
-                top: rect.top,
-                left: rect.left + rect.width / 2,
-            });
-            setHoveredOwner(true);
-        }
+    const walk = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || "";
+        const parts = text.split(highlightRegex);
+        if (parts.length === 1) return;
+        const fragment = document.createDocumentFragment();
+        parts.forEach((part, index) => {
+          if (index % 2 === 0) fragment.append(document.createTextNode(part));
+          else {
+            const mark = document.createElement("mark");
+            mark.textContent = part;
+            fragment.append(mark);
+          }
+        });
+        node.parentNode?.replaceChild(fragment, node);
+      } else {
+        Array.from(node.childNodes).forEach(walk);
+      }
     };
 
-    useEffect(() => {
-        if (!showUserDropdown) return;
-        function handleClickOutside(event: PointerEvent) {
-            const target = event.target as Node;
-            if (!dropdownRef.current?.contains(target) && !dropdownMenuRef.current?.contains(target)) {
-                setShowUserDropdown(false);
-            }
-        }
-        const frame = requestAnimationFrame(() => dropdownMenuRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus({ preventScroll: true }));
-        document.addEventListener('pointerdown', handleClickOutside);
-        return () => {
-            cancelAnimationFrame(frame);
-            document.removeEventListener('pointerdown', handleClickOutside);
-        };
-    }, [showUserDropdown]);
+    walk(doc.body);
+    return doc.body.innerHTML;
+  };
 
-    const toggleSharing = () => {
-        setSelectedUser('');
-        setSharingError('');
-        setShowUserDropdown(open => !open);
-    };
+  const saveContent = async (content: string) => {
+    if (!canModify) return false;
+    const formData = new FormData();
+    formData.set("id", String(note.id));
+    formData.set("content", content);
+    const result = await onNoteUpdate(formData);
+    return !result || result.success;
+  };
 
-    const shareMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === 'Escape') {
-            event.preventDefault();
-            event.stopPropagation();
-            setShowUserDropdown(false);
-            dropdownRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
-        }
-    };
-
-    const handleAddUser = async () => {
-        if (!selectedUser || isSharing) return;
-        setIsSharing(true);
-        setSharingError('');
-        const currentShared = note.shared_with || [];
-        // Map hydrated objects back to IDs for the API
-        const sharedValues = currentShared.map(u => typeof u === 'string' ? u : u.id);
-        
-        try {
-            if (!sharedValues.includes(selectedUser)) {
-                const newList = [...sharedValues, selectedUser];
-                const fd = new FormData();
-                fd.append('id', String(note.id));
-                fd.append('shared_with', JSON.stringify(newList));
-                const result = await onNoteUpdate(fd);
-                if (result && !result.success) {
-                    setSharingError(result.error || 'Could not share this note. Please try again.');
-                    return;
-                }
-                toast.success('Note shared');
-            }
-            setShowUserDropdown(false);
-            setSelectedUser('');
-            requestAnimationFrame(() => dropdownRef.current?.querySelector<HTMLButtonElement>('button')?.focus());
-        } catch {
-            setSharingError('Could not share this note. Please try again.');
-            toast.error('Could not share this note. Please try again.');
-        } finally {
-            setIsSharing(false);
-        }
-    };
-
-
-    const priorityBgColorClass = (priority: Note['priority']) => {
-        switch (priority) {
-            case 'high': return 'bg-[var(--pastel-rose)]/10';
-            case 'medium': return 'bg-[var(--pastel-amber)]/10';
-            case 'low': return 'bg-[var(--pastel-emerald)]/10';
-            default: return 'bg-foreground/[0.05]';
-        }
-    };
-    
-    const priorityTextColorClass = (priority: Note['priority']) => {
-        switch (priority) {
-            case 'high': return 'text-[var(--pastel-rose)]';
-            case 'medium': return 'text-[var(--pastel-amber)]';
-            case 'low': return 'text-[var(--pastel-emerald)]';
-            default: return 'text-text-muted';
-        }
-    };
-    
-
-    const getNoteTags = () => {
-        if (!note.tags) return [];
-        if (typeof note.tags === 'string') {
-            // De-duplicate: the same tag repeated in the stored string would
-            // otherwise render twice and collide on the React key, since the tag
-            // text is the key.
-            return Array.from(
-                new Set(note.tags.split(',').map(t => t.trim()).filter(Boolean))
-            );
-        }
-        return [];
-    };
-    const noteTags = getNoteTags();
-    
-    const TypeIcon = noteTypeIcons[note.type] || FiFileText;
-    const typeIconColorClass = noteTypeColors[note.type] || 'text-text-muted';
-
-    const renderContent = (content: string) => {
-        const sanitized = sanitizeHtml(content);
-        if (!searchQuery || typeof window === 'undefined') {
-            return sanitized;
-        }
-
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(sanitized, 'text/html');
-        const highlightRegex = new RegExp(`(${escapeSearch(searchQuery)})`, 'gi');
-
-        const walk = (node: Node) => {
-            if (node.nodeType === Node.TEXT_NODE) {
-                const text = node.textContent || '';
-                const parts = text.split(highlightRegex);
-                if (parts.length === 1) return;
-                const fragment = document.createDocumentFragment();
-                parts.forEach((part, index) => {
-                    if (index % 2 === 0) fragment.append(document.createTextNode(part));
-                    else {
-                        const mark = document.createElement('mark');
-                        mark.textContent = part;
-                        fragment.append(mark);
-                    }
-                });
-                node.parentNode?.replaceChild(fragment, node);
-            } else {
-                Array.from(node.childNodes).forEach(walk);
-            }
-        };
-
-        walk(doc.body);
-        return doc.body.innerHTML;
-    };
-
-    if (viewMode === 'grid') {
+  const quickActions = () => (
+    <div className="flex items-center gap-0.5">
+      {(
+        [
+          {
+            field: "is_pinned",
+            label: "Pin note",
+            icon: FiMapPin,
+            color: "text-accent-text bg-accent/10",
+          },
+          {
+            field: "is_favorite",
+            label: "Favorite note",
+            icon: FiStar,
+            color: "text-warning-text bg-warning/10",
+          },
+          {
+            field: "is_archived",
+            label: "Archive note",
+            icon: FiArchive,
+            color: "text-foreground bg-foreground/[0.08]",
+          },
+        ] as const
+      ).map(({ field, label, icon: Icon, color }) => {
+        const active = note[field] === 1;
+        if (!canModify)
+          return active ? (
+            <Icon key={field} size={13} className={color.split(" ")[0]} />
+          ) : null;
         return (
-            <div className={`bg-card rounded-[32px] p-6 flex flex-col h-full border border-card-border hover:border-foreground/10 transition-all duration-500 hover:scale-[1.01] ${isExpanded ? 'ring-2 ring-accent/30' : ''}`}>
-                <div className="flex justify-between items-start mb-3">
-                    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <h3 className="font-bold text-lg text-foreground tracking-tight truncate">
-                                <TextHighlight text={note.title} highlight={searchQuery} />
-                            </h3>
-                            {note.task_id && (
-                                <FiLayers className="text-purple-400 flex-shrink-0" size={16} title="Associated with a task" />
-                            )}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
-                            <FiClock className="w-3 h-3" />
-                            <NoteUpdatedTime value={note.updated_at || note.created_at} />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                    {onToggleExpand && (
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}
-                            className="text-text-muted hover:text-foreground transition-colors"
-                            title={isExpanded ? "Collapse" : "Expand"}
-                        >
-                            {isExpanded ? <FiMinimize2 size={16} /> : <FiMaximize2 size={16} />}
-                        </button>
-                    )}
-                    {TypeIcon ? (
-                        <TypeIcon className={`${typeIconColorClass || 'text-text-muted'} flex-shrink-0`} size={18} />
-                    ) : (
-                        <div className="w-4 h-4 rounded bg-foreground/[0.05] flex-shrink-0" />
-                    )}
-                    </div>                </div>
+          <button
+            key={field}
+            type="button"
+            aria-label={label}
+            data-tooltip={label}
+            aria-pressed={active}
+            disabled={pendingFlag !== null}
+            onClick={async () => {
+              if (pendingFlag) return;
+              setPendingFlag(field);
+              const fd = new FormData();
+              fd.set("id", String(note.id));
+              fd.set(field, active ? "0" : "1");
+              try {
+                await onNoteUpdate(fd);
+              } catch {
+                toast.error("Could not update the note. Please try again.");
+              } finally {
+                setPendingFlag(null);
+              }
+            }}
+            className={`grid h-8 w-8 place-items-center rounded-full transition-colors disabled:opacity-50 ${active ? color : "text-text-muted hover:bg-foreground/[0.06] hover:text-foreground"}`}
+          >
+            <Icon size={13} />
+          </button>
+        );
+      })}
+    </div>
+  );
 
-                {/* content area now flexes and scrolls internally */}
-                <div className="min-h-0 min-w-0 overflow-y-auto notes-scroll flex-1">
-                    <div className={styles.body} dangerouslySetInnerHTML={{ __html: hasMounted ? renderContent(note.content || '') : '' }} />
+  const noteContent = (compact = false) => (
+    <InlineNoteContent
+      content={note.content || ""}
+      canModify={canModify}
+      compact={compact}
+      renderContent={(content, interactive) =>
+        hasMounted ? renderContent(content, interactive) : ""
+      }
+      onSave={saveContent}
+    />
+  );
+
+  if (viewMode === "grid") {
+    return (
+      <div
+        className={`bg-card rounded-[32px] p-6 flex flex-col h-full border border-card-border hover:border-foreground/10 ${isReadingPreview ? "transition-colors duration-150" : "transition-all duration-500 hover:scale-[1.01]"} ${isExpanded ? "ring-2 ring-accent/30" : ""}`}
+      >
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <h3
+                className={
+                  isReadingPreview
+                    ? "line-clamp-2 break-words text-lg font-semibold leading-snug tracking-tight text-foreground"
+                    : "font-bold text-lg text-foreground tracking-tight truncate"
+                }
+              >
+                <TextHighlight text={note.title} highlight={searchQuery} />
+              </h3>
+              {note.task_id && (
+                <FiLayers
+                  className="text-purple-400 flex-shrink-0"
+                  size={16}
+                  data-tooltip="Associated with a task"
+                />
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
+              <FiClock className="w-3 h-3" />
+              <NoteUpdatedTime value={note.updated_at || note.created_at} />
+              {isReadingPreview && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span className="capitalize">
+                    {checklistProgress || note.type}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {onToggleExpand && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleExpand();
+                }}
+                className="text-text-muted hover:text-foreground transition-colors"
+                data-tooltip={isExpanded ? "Collapse" : "Expand"}
+                aria-label={isExpanded ? "Collapse" : "Expand"}
+              >
+                {isExpanded ? (
+                  <FiMinimize2 size={16} />
+                ) : (
+                  <FiMaximize2 size={16} />
+                )}
+              </button>
+            )}
+            {TypeIcon ? (
+              <TypeIcon
+                className={`${typeIconColorClass || "text-text-muted"} flex-shrink-0`}
+                size={18}
+              />
+            ) : (
+              <div className="w-4 h-4 rounded bg-foreground/[0.05] flex-shrink-0" />
+            )}
+          </div>{" "}
+        </div>
+
+        {/* content area now flexes and scrolls internally */}
+        <div
+          className={`min-h-0 min-w-0 overflow-y-auto notes-scroll flex-1 ${isReadingPreview ? "[&_h1]:text-xl [&_h2]:text-lg [&_h3]:text-base [&_pre]:rounded-2xl [&_pre]:p-4" : ""}`}
+        >
+          {noteContent()}
+        </div>
+
+        <div className="mt-4">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {noteTags.map((tag: string) => (
+              <span
+                key={tag}
+                className="px-2.5 py-1 bg-foreground/[0.03] text-text-secondary text-[11px] font-bold capitalize rounded-lg border border-card-border"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {quickActions()}
+
+              <div className="flex items-center gap-3">
+                <div
+                  ref={ownerRef}
+                  onMouseEnter={handleOwnerMouseEnter}
+                  onMouseLeave={() => setHoveredOwner(false)}
+                  className="relative flex-shrink-0 cursor-pointer"
+                >
+                  {note.owner?.avatar_url || note.owner?.image ? (
+                    <Image
+                      src={(note.owner.avatar_url || note.owner.image)!}
+                      alt={note.owner.full_name || note.owner.name || "Owner"}
+                      width={32}
+                      height={32}
+                      className="rounded-full border-2 border-background ring-2 ring-purple-500/20 object-cover"
+                    />
+                  ) : note.owner?.name || note.owner?.full_name ? (
+                    <div
+                      style={avatarStyle(
+                        (note.owner.full_name || note.owner.name)!,
+                      )}
+                      className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs font-bold border-2 border-background ring-2 ring-purple-500/20"
+                    >
+                      {(note.owner.full_name || note.owner.name)!
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+                  ) : null}
                 </div>
-
-                <div className="mt-4">
-                    <div className="flex flex-wrap gap-2 mb-3">
-                        {noteTags.map((tag: string) => (
-                            <span key={tag} className="px-2.5 py-1 bg-foreground/[0.03] text-text-secondary text-[11px] font-bold capitalize rounded-lg border border-card-border">{tag}</span>
-                        ))}
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5 px-2 py-1 bg-foreground/[0.03] rounded-lg border border-card-border">
-                                {note.is_pinned === 1 && (
-                                    <div className="text-accent-text" title="Pinned">
-                                        <FiMapPin size={12} className="fill-current" />
-                                    </div>
-                                )}
-                                {note.is_favorite === 1 && (
-                                    <div className="text-warning-text" title="Favorite">
-                                        <FiStar size={12} className="fill-current" />
-                                    </div>
-                                )}
-                                {note.is_archived === 1 && (
-                                    <div className="text-text-muted" title="Archived">
-                                        <FiArchive size={12} className="fill-current" />
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <div 
-                                    ref={ownerRef}
-                                    onMouseEnter={handleOwnerMouseEnter}
-                                    onMouseLeave={() => setHoveredOwner(false)}
-                                    className="relative flex-shrink-0 cursor-pointer"
-                                >
-                                    {note.owner?.avatar_url || note.owner?.image ? (
-                                        <Image 
-                                            src={(note.owner.avatar_url || note.owner.image)!} 
-                                            alt={note.owner.full_name || note.owner.name || 'Owner'} 
-                                            width={32} 
-                                            height={32} 
-                                            className="rounded-full border-2 border-background ring-2 ring-purple-500/20 object-cover" 
-                                        />
-                                    ) : note.owner?.name || note.owner?.full_name ? (
-                                        <div 
-                                            style={avatarStyle((note.owner.full_name || note.owner.name)!)} className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs font-bold border-2 border-background ring-2 ring-purple-500/20"
-                                        >
-                                            {(note.owner.full_name || note.owner.name)!.charAt(0).toUpperCase()}
-                                        </div>
-                                    ) : null}
-                                </div>                                
-                                {( (note.shared_with && note.shared_with.length > 0) || isSharing ) && (
-                                    <div className="flex items-center gap-1 border-l border-card-border pl-3">
-                                        {note.shared_with && note.shared_with.length > 0 && (
-                                            <UserAvatarGroup 
-                                                users={note.shared_with.map(u => typeof u === 'string' ? { name: u } : u)} 
-                                                size="sm" 
-                                                limit={3} 
-                                            />
-                                        )}
-                                        {isSharing && (
-                                            <Skeleton className="w-6 h-6 rounded-full" />
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Owner Tooltip */}
-                        {hoveredOwner && note.owner && (
-                            <Portal>
-                                <div 
-                                    style={{
-                                        position: 'fixed',
-                                        top: `${ownerCoords.top - 8}px`,
-                                        left: `${ownerCoords.left}px`,
-                                        transform: 'translate(-50%, -100%)',
-                                    }}
-                                    className="mb-2 w-48 origin-bottom p-3 bg-card border border-card-border rounded-[24px] animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-9 w-9 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
-                                            {note.owner.avatar_url || note.owner.image ? (
-                                                <Image src={note.owner.avatar_url || note.owner.image || ''} alt={note.owner.name || ''} fill className="object-cover" />
-                                            ) : (
-                                                <div style={avatarStyle(note.owner.full_name || note.owner.name)} className="flex h-full w-full items-center justify-center text-[11px] font-semibold">
-                                                    {(note.owner.full_name || note.owner.name || '?').charAt(0).toUpperCase()}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-[11px] font-semibold text-foreground truncate capitalize tracking-tight">{note.owner.full_name || note.owner.name}</p>
-                                            <p className="text-[11px] text-text-muted font-semibold">Owner</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Portal>
+                {((note.shared_with && note.shared_with.length > 0) ||
+                  isSharing) && (
+                  <div className="flex items-center gap-1 border-l border-card-border pl-3">
+                    {note.shared_with && note.shared_with.length > 0 && (
+                      <UserAvatarGroup
+                        users={note.shared_with.map((u) =>
+                          typeof u === "string" ? { name: u } : u,
                         )}
-                        <div className="flex items-center space-x-2">
-                            <div className="relative" ref={dropdownRef}>
-                                <button 
-                                    type="button"
-                                    onClick={toggleSharing}
-                                    aria-expanded={showUserDropdown}
-                                    aria-haspopup="dialog"
-                                    aria-label={`Share note: ${note.title}`}
-                                    disabled={isSharing}
-                                    className={`p-2 rounded-xl transition-all ${isSharing ? 'text-text-muted cursor-not-allowed' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06]'}`}
-                                    title="Share note"
-                                >
-                                    <FiUserPlus size={16} />
-                                </button>
-                                {showUserDropdown && createPortal(
-                                    <div
-                                        role="dialog"
-                                        aria-label={`Share note: ${note.title}`}
-                                        onKeyDown={shareMenuKeyDown}
-                                        ref={dropdownMenuRef}
-                                        style={dropdownStyle}
-                                        data-side={dropdownSide}
-                                        aria-busy={isSharing}
-                                        className="z-[9999] w-64 overflow-y-auto rounded-[24px] border border-card-border bg-card p-3 space-y-3"
-                                    >
-                                        <div>
-                                            <p className="text-[11px] font-semibold text-text-muted mb-2 ml-1">Grant Access</p>
-                                            <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
-                                                {availableUsers.length === 0 && <p className="px-2 py-3 text-xs text-text-muted">No workspace members available to share with.</p>}
-                                                {availableUsers.map(u => (
-                                                    <button
-                                                        key={u.id}
-                                                        type="button"
-                                                        onClick={() => setSelectedUser(u.id)}
-                                                        aria-pressed={selectedUser === u.id}
-                                                        disabled={isSharing}
-                                                        className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border transition-all ${
- selectedUser === u.id 
- ? 'bg-foreground/[0.07] border-accent/30 text-foreground font-bold' 
- : 'bg-transparent border-transparent hover:bg-foreground/[0.04] text-text-secondary hover:text-foreground'
- }`}
-                                                    >
-                                                        <div className="h-6 w-6 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
-                                                            {u.image ? (
-                                                                <Image src={u.image} alt={u.name || ''} fill className="object-cover" />
-                                                            ) : (
-                                                                <div style={avatarStyle(u.name || u.email)} className="flex h-full w-full items-center justify-center text-[11px] font-semibold">
-                                                                    {(u.name || u.email || '?').charAt(0).toUpperCase()}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <p className="text-[11px] font-semibold truncate capitalize tracking-tight">{u.name || u.email?.split('@')[0]}</p>
-                                                            <p className="text-[11px] text-text-muted truncate capitalize">{u.email}</p>
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        {sharingError && <p role="alert" className="text-xs text-danger-text">{sharingError}</p>}
-                                        <button
-                                            type="button"
-                                            onClick={handleAddUser}
-                                            disabled={!selectedUser || isSharing}
-                                            className="md-btn md-btn-primary md-btn-sm w-full"
-                                        >
-                                            {isSharing ? 'Sharing…' : 'Share note'}
-                                        </button>
-                                    </div>, document.body
-                                )}
-                            </div>
-                            {canModify && (
-                                <>
-                                    <button onClick={() => onEdit?.(note)} className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"><FiEdit2 size={16} /></button>
-                                    <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(); fd.append('id', note.id.toString()); await onNoteDelete(fd); }} style={{ display: 'inline' }}>
-                                        <input type="hidden" name="id" value={note.id} />
-                                        <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-danger-text hover:bg-danger/10 transition-all"><FiTrash2 size={16} /></button>
-                                    </form>
-                                </>
-                            )}
-                        </div>
-                        </div>
-                        </div>
-                        </div>
-                        );
-                        }
+                        size="sm"
+                        limit={3}
+                      />
+                    )}
+                    {isSharing && <Skeleton className="w-6 h-6 rounded-full" />}
+                  </div>
+                )}
+              </div>
+            </div>
 
-                        const rowClasses = "border-b border-card-border transition-colors hover:bg-foreground/[0.01]";
-
-                        return (
-                        <tr className={rowClasses}>
-                        <td className="px-6 py-5 text-sm font-bold text-foreground">
-                        <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-foreground/[0.03] rounded-md border border-card-border">
-                            {note.is_pinned === 1 && (
-                                <div className="text-accent-text" title="Pinned">
-                                    <FiMapPin size={10} className="fill-current" />
-                                </div>
-                            )}
-                            {note.is_favorite === 1 && (
-                                <div className="text-warning-text" title="Favorite">
-                                    <FiStar size={10} className="fill-current" />
-                                </div>
-                            )}
-                            {note.is_archived === 1 && (
-                                <div className="text-text-muted" title="Archived">
-                                    <FiArchive size={10} className="fill-current" />
-                                </div>
-                            )}
-                        </div>
-                        <div 
-                            ref={ownerRef}
-                            onMouseEnter={handleOwnerMouseEnter}
-                            onMouseLeave={() => setHoveredOwner(false)}
-                            className="relative flex-shrink-0 cursor-pointer"
-                        >
-                            {note.owner?.avatar_url || note.owner?.image ? (
-                                <Image src={(note.owner.avatar_url || note.owner.image)!} alt={note.owner.full_name || note.owner.name || 'Owner'} width={28} height={28} className="rounded-full border border-card-border object-cover ring-2 ring-foreground/[0.03]" />
-                            ) : note.owner?.name || note.owner?.full_name ? (
-                                <div style={avatarStyle((note.owner.full_name || note.owner.name)!)} className="w-7 h-7 rounded-full bg-foreground/[0.05] text-text-secondary flex items-center justify-center text-[11px] font-semibold border border-card-border">
-                                    {(note.owner.full_name || note.owner.name)!.charAt(0).toUpperCase()}
-                                </div>
-                            ) : null}
-                        </div>
-                        <span className="tracking-tight italic">
-                            <TextHighlight text={note.title} highlight={searchQuery} />
-                        </span>
-                        </div>
-                        {( (note.shared_with && note.shared_with.length > 0) || isSharing ) && (
-                        <div className="flex items-center gap-2 ml-10 shrink-0">
-                            {note.shared_with && note.shared_with.length > 0 && (
-                                <>
-                                    <UserAvatarGroup 
-                                        users={note.shared_with.map(u => typeof u === 'string' ? { name: u } : u)} 
-                                        size="xs" 
-                                        limit={2} 
-                                    />
-                                </>
-                            )}
-                            {isSharing && (
-                                <Skeleton className="w-5 h-5 rounded-full" />
-                            )}
-                        </div>
-                        )}
-                        </div>
-                        </td>
-                        <td className="px-6 py-5 text-xs text-slate-600 dark:text-slate-400 font-medium">
-                        <div className="ql-snow">
-                        <div className={`${styles.body} max-h-20 overflow-hidden`} dangerouslySetInnerHTML={{ __html: hasMounted ? renderContent(note.content || '') : '' }} />
-                        </div>
-                        </td>
-                        <td className="px-6 py-5">
-                        <span className={`px-2.5 py-1 inline-flex text-[11px] font-semibold capitalize rounded-lg border ${priorityBgColorClass(note.priority)} ${priorityTextColorClass(note.priority)} border-current/20`}>
-                        {formatPriority(note.priority)}
-                        </span>
-                        </td>
-                        <td className="px-6 py-5">
-                        <div className="flex flex-wrap gap-1.5">
-                        {noteTags.map((tag: string) => (
-                        <span key={tag} className="px-2.5 py-0.5 bg-foreground/[0.03] text-text-muted text-[11px] font-semibold capitalize rounded-md border border-card-border">{tag}</span>
-                        ))}
-                        {noteTags.length === 0 && <span className="text-text-muted/30 italic text-[11px]">No Tags</span>}
-                        </div>
-                        </td>
-                        <td className="px-6 py-5 text-right space-x-1">
-                        <div className="relative inline-block" ref={dropdownRef}>
-                        <button 
-                        type="button" 
-                        onClick={toggleSharing}
-                        aria-expanded={showUserDropdown}
-                        aria-haspopup="dialog"
-                        aria-label={`Share note: ${note.title}`}
-                        disabled={isSharing}
-                        className={`p-2 rounded-xl transition-all ${isSharing ? 'text-text-muted cursor-not-allowed' : 'text-text-muted hover:text-foreground hover:bg-foreground/[0.06]'}`}
-                        title="Share note"
-                        >
-                        <FiUserPlus size={15} />
-                        </button>
-                        {showUserDropdown && createPortal(
+            {/* Owner Tooltip */}
+            {hoveredOwner && note.owner && (
+              <Portal>
+                <div
+                  style={{
+                    position: "fixed",
+                    top: `${ownerCoords.top - 8}px`,
+                    left: `${ownerCoords.left}px`,
+                    transform: "translate(-50%, -100%)",
+                  }}
+                  className="mb-2 w-48 origin-bottom p-3 bg-card border border-card-border rounded-[24px] animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
+                      {note.owner.avatar_url || note.owner.image ? (
+                        <Image
+                          src={note.owner.avatar_url || note.owner.image || ""}
+                          alt={note.owner.name || ""}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
                         <div
-                            role="dialog"
-                            aria-label={`Share note: ${note.title}`}
-                            onKeyDown={shareMenuKeyDown}
-                            ref={dropdownMenuRef}
-                            style={dropdownStyle}
-                            data-side={dropdownSide}
-                            aria-busy={isSharing}
-                            className="z-[9999] w-64 overflow-y-auto rounded-[24px] border border-card-border bg-card p-3 space-y-3 text-left"
+                          style={avatarStyle(
+                            note.owner.full_name || note.owner.name,
+                          )}
+                          className="flex h-full w-full items-center justify-center text-[11px] font-semibold"
                         >
-                            <div>
-                                <p className="text-[11px] font-semibold text-text-muted mb-2 ml-1">Grant Access</p>
-                                <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
-                                    {availableUsers.length === 0 && <p className="px-2 py-3 text-xs text-text-muted">No workspace members available to share with.</p>}
-                                    {availableUsers.map(u => (
-                                        <button
-                                            key={u.id}
-                                            type="button"
-                                            onClick={() => setSelectedUser(u.id)}
-                                            aria-pressed={selectedUser === u.id}
-                                            disabled={isSharing}
-                                            className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border transition-all ${
- selectedUser === u.id 
- ? 'bg-foreground/[0.07] border-accent/30 text-foreground font-bold' 
- : 'bg-transparent border-transparent hover:bg-foreground/[0.04] text-text-secondary hover:text-foreground'
- }`}
-                                        >
-                                            <div className="h-6 w-6 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
-                                                {u.image ? (
-                                                    <Image src={u.image} alt={u.name || ''} fill className="object-cover" />
-                                                ) : (
-                                                    <div style={avatarStyle(u.name || u.email)} className="flex h-full w-full items-center justify-center text-[11px] font-semibold">
-                                                        {(u.name || u.email || '?').charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-[11px] font-semibold truncate capitalize tracking-tight">{u.name || u.email?.split('@')[0]}</p>
-                                                <p className="text-[11px] text-text-muted truncate capitalize">{u.email}</p>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            {sharingError && <p role="alert" className="text-xs text-danger-text">{sharingError}</p>}
+                          {(note.owner.full_name || note.owner.name || "?")
+                            .charAt(0)
+                            .toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-foreground truncate capitalize tracking-tight">
+                        {note.owner.full_name || note.owner.name}
+                      </p>
+                      <p className="text-[11px] text-text-muted font-semibold">
+                        Owner
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Portal>
+            )}
+            <div className="flex items-center space-x-2">
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={toggleSharing}
+                  aria-expanded={showUserDropdown}
+                  aria-haspopup="dialog"
+                  aria-label={`Share note: ${note.title}`}
+                  disabled={isSharing}
+                  className={`p-2 rounded-xl transition-all ${isSharing ? "text-text-muted cursor-not-allowed" : "text-text-muted hover:text-foreground hover:bg-foreground/[0.06]"}`}
+                  data-tooltip="Share note"
+                >
+                  <FiUserPlus size={16} />
+                </button>
+                {showUserDropdown &&
+                  createPortal(
+                    <div
+                      role="dialog"
+                      aria-label={`Share note: ${note.title}`}
+                      onKeyDown={shareMenuKeyDown}
+                      ref={dropdownMenuRef}
+                      style={dropdownStyle}
+                      data-side={dropdownSide}
+                      aria-busy={isSharing}
+                      className="z-[9999] w-64 overflow-y-auto rounded-[24px] border border-card-border bg-card p-3 space-y-3"
+                    >
+                      <div>
+                        <p className="text-[11px] font-semibold text-text-muted mb-2 ml-1">
+                          Grant Access
+                        </p>
+                        <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
+                          {availableUsers.length === 0 && (
+                            <p className="px-2 py-3 text-xs text-text-muted">
+                              No workspace members available to share with.
+                            </p>
+                          )}
+                          {availableUsers.map((u) => (
                             <button
-                                type="button"
-                                onClick={handleAddUser}
-                                disabled={!selectedUser || isSharing}
-                                className="md-btn md-btn-primary md-btn-sm w-full"
+                              key={u.id}
+                              type="button"
+                              onClick={() => setSelectedUser(u.id)}
+                              aria-pressed={selectedUser === u.id}
+                              disabled={isSharing}
+                              className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border transition-all ${
+                                selectedUser === u.id
+                                  ? "bg-foreground/[0.07] border-accent/30 text-foreground font-bold"
+                                  : "bg-transparent border-transparent hover:bg-foreground/[0.04] text-text-secondary hover:text-foreground"
+                              }`}
                             >
-                                {isSharing ? 'Sharing…' : 'Share note'}
-                            </button>
-                        </div>, document.body
-                        )}
-                        </div>
-                        {canModify && (
-                        <>
-                        <button type="button" onClick={() => onEdit?.(note)} className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"><FiEdit2 size={15} /></button>
-                        <form onSubmit={async (e) => { e.preventDefault(); const fd = new FormData(); fd.append('id', note.id.toString()); await onNoteDelete(fd); }} style={{ display: 'inline' }}>
-                        <input type="hidden" name="id" value={note.id} />
-                        <button type="submit" className="p-2 rounded-xl text-text-muted hover:text-danger-text hover:bg-danger/10 transition-all"><FiTrash2 size={15} /></button>
-                        </form>
-                        </>
-                        )}
-                        </td>
-                        {/* Owner Tooltip for Table */}
-                        {hoveredOwner && note.owner && (
-                        <Portal>
-                        <div 
-                        style={{
-                            position: 'fixed',
-                            top: `${ownerCoords.top - 8}px`,
-                            left: `${ownerCoords.left}px`,
-                            transform: 'translate(-50%, -100%)',
-                        }}
-                        className="mb-2 w-48 origin-bottom p-3 bg-card border border-card-border rounded-[24px] animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
-                        >
-                        <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
-                                {note.owner.avatar_url || note.owner.image ? (
-                                    <Image src={note.owner.avatar_url || note.owner.image || ''} alt={note.owner.name || ''} fill className="object-cover" />
+                              <div className="h-6 w-6 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
+                                {u.image ? (
+                                  <Image
+                                    src={u.image}
+                                    alt={u.name || ""}
+                                    fill
+                                    className="object-cover"
+                                  />
                                 ) : (
-                                    <div style={avatarStyle(note.owner.full_name || note.owner.name)} className="flex h-full w-full items-center justify-center text-[11px] font-semibold">
-                                        {(note.owner.full_name || note.owner.name || '?').charAt(0).toUpperCase()}
-                                    </div>
+                                  <div
+                                    style={avatarStyle(u.name || u.email)}
+                                    className="flex h-full w-full items-center justify-center text-[11px] font-semibold"
+                                  >
+                                    {(u.name || u.email || "?")
+                                      .charAt(0)
+                                      .toUpperCase()}
+                                  </div>
                                 )}
-                            </div>
-                            <div className="min-w-0 text-left">
-                                <p className="text-[11px] font-semibold text-foreground truncate capitalize tracking-tight">{note.owner.full_name || note.owner.name}</p>
-                                <p className="text-[11px] text-text-muted font-semibold">Owner</p>
-                            </div>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[11px] font-semibold truncate capitalize tracking-tight">
+                                  {u.name || u.email?.split("@")[0]}
+                                </p>
+                                <p className="text-[11px] text-text-muted truncate capitalize">
+                                  {u.email}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
                         </div>
+                      </div>
+                      {sharingError && (
+                        <p role="alert" className="text-xs text-danger-text">
+                          {sharingError}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleAddUser}
+                        disabled={!selectedUser || isSharing}
+                        className="md-btn md-btn-primary md-btn-sm w-full"
+                      >
+                        {isSharing ? "Sharing…" : "Share note"}
+                      </button>
+                    </div>,
+                    document.body,
+                  )}
+              </div>
+              {canModify && (
+                <>
+                  <button
+                    onClick={() => onEdit?.(note)}
+                    className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
+                  >
+                    <FiEdit2 size={16} />
+                  </button>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const fd = new FormData();
+                      fd.append("id", note.id.toString());
+                      await onNoteDelete(fd);
+                    }}
+                    style={{ display: "inline" }}
+                  >
+                    <input type="hidden" name="id" value={note.id} />
+                    <button
+                      type="submit"
+                      className="p-2 rounded-xl text-text-muted hover:text-danger-text hover:bg-danger/10 transition-all"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const rowClasses =
+    "border-b border-card-border transition-colors hover:bg-foreground/[0.01]";
+
+  return (
+    <tr className={rowClasses}>
+      <td className="px-6 py-5 text-sm font-bold text-foreground">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-foreground/[0.03] rounded-md border border-card-border">
+              {note.is_pinned === 1 && (
+                <div className="text-accent-text" data-tooltip="Pinned">
+                  <FiMapPin size={10} className="fill-current" />
+                </div>
+              )}
+              {note.is_favorite === 1 && (
+                <div className="text-warning-text" data-tooltip="Favorite">
+                  <FiStar size={10} className="fill-current" />
+                </div>
+              )}
+              {note.is_archived === 1 && (
+                <div className="text-text-muted" data-tooltip="Archived">
+                  <FiArchive size={10} className="fill-current" />
+                </div>
+              )}
+            </div>
+            <div
+              ref={ownerRef}
+              onMouseEnter={handleOwnerMouseEnter}
+              onMouseLeave={() => setHoveredOwner(false)}
+              className="relative flex-shrink-0 cursor-pointer"
+            >
+              {note.owner?.avatar_url || note.owner?.image ? (
+                <Image
+                  src={(note.owner.avatar_url || note.owner.image)!}
+                  alt={note.owner.full_name || note.owner.name || "Owner"}
+                  width={28}
+                  height={28}
+                  className="rounded-full border border-card-border object-cover ring-2 ring-foreground/[0.03]"
+                />
+              ) : note.owner?.name || note.owner?.full_name ? (
+                <div
+                  style={avatarStyle(
+                    (note.owner.full_name || note.owner.name)!,
+                  )}
+                  className="w-7 h-7 rounded-full bg-foreground/[0.05] text-text-secondary flex items-center justify-center text-[11px] font-semibold border border-card-border"
+                >
+                  {(note.owner.full_name || note.owner.name)!
+                    .charAt(0)
+                    .toUpperCase()}
+                </div>
+              ) : null}
+            </div>
+            <span className="tracking-tight italic">
+              <TextHighlight text={note.title} highlight={searchQuery} />
+            </span>
+          </div>
+          {((note.shared_with && note.shared_with.length > 0) || isSharing) && (
+            <div className="flex items-center gap-2 ml-10 shrink-0">
+              {note.shared_with && note.shared_with.length > 0 && (
+                <>
+                  <UserAvatarGroup
+                    users={note.shared_with.map((u) =>
+                      typeof u === "string" ? { name: u } : u,
+                    )}
+                    size="xs"
+                    limit={2}
+                  />
+                </>
+              )}
+              {isSharing && <Skeleton className="w-5 h-5 rounded-full" />}
+            </div>
+          )}
+        </div>
+      </td>
+      <td className="px-6 py-5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+        <div className="ql-snow">{noteContent(true)}</div>
+      </td>
+      <td className="px-6 py-5">
+        <span
+          className={`px-2.5 py-1 inline-flex text-[11px] font-semibold capitalize rounded-lg border ${priorityBgColorClass(note.priority)} ${priorityTextColorClass(note.priority)} border-current/20`}
+        >
+          {formatPriority(note.priority)}
+        </span>
+      </td>
+      <td className="px-6 py-5">
+        <div className="flex flex-wrap gap-1.5">
+          {noteTags.map((tag: string) => (
+            <span
+              key={tag}
+              className="px-2.5 py-0.5 bg-foreground/[0.03] text-text-muted text-[11px] font-semibold capitalize rounded-md border border-card-border"
+            >
+              {tag}
+            </span>
+          ))}
+          {noteTags.length === 0 && (
+            <span className="text-text-muted/30 italic text-[11px]">
+              No Tags
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="px-6 py-5 text-right space-x-1">
+        <div className="inline-flex align-middle">{quickActions()}</div>
+        <div className="relative inline-block" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={toggleSharing}
+            aria-expanded={showUserDropdown}
+            aria-haspopup="dialog"
+            aria-label={`Share note: ${note.title}`}
+            disabled={isSharing}
+            className={`p-2 rounded-xl transition-all ${isSharing ? "text-text-muted cursor-not-allowed" : "text-text-muted hover:text-foreground hover:bg-foreground/[0.06]"}`}
+            data-tooltip="Share note"
+          >
+            <FiUserPlus size={15} />
+          </button>
+          {showUserDropdown &&
+            createPortal(
+              <div
+                role="dialog"
+                aria-label={`Share note: ${note.title}`}
+                onKeyDown={shareMenuKeyDown}
+                ref={dropdownMenuRef}
+                style={dropdownStyle}
+                data-side={dropdownSide}
+                aria-busy={isSharing}
+                className="z-[9999] w-64 overflow-y-auto rounded-[24px] border border-card-border bg-card p-3 space-y-3 text-left"
+              >
+                <div>
+                  <p className="text-[11px] font-semibold text-text-muted mb-2 ml-1">
+                    Grant Access
+                  </p>
+                  <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
+                    {availableUsers.length === 0 && (
+                      <p className="px-2 py-3 text-xs text-text-muted">
+                        No workspace members available to share with.
+                      </p>
+                    )}
+                    {availableUsers.map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => setSelectedUser(u.id)}
+                        aria-pressed={selectedUser === u.id}
+                        disabled={isSharing}
+                        className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border transition-all ${
+                          selectedUser === u.id
+                            ? "bg-foreground/[0.07] border-accent/30 text-foreground font-bold"
+                            : "bg-transparent border-transparent hover:bg-foreground/[0.04] text-text-secondary hover:text-foreground"
+                        }`}
+                      >
+                        <div className="h-6 w-6 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
+                          {u.image ? (
+                            <Image
+                              src={u.image}
+                              alt={u.name || ""}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div
+                              style={avatarStyle(u.name || u.email)}
+                              className="flex h-full w-full items-center justify-center text-[11px] font-semibold"
+                            >
+                              {(u.name || u.email || "?")
+                                .charAt(0)
+                                .toUpperCase()}
+                            </div>
+                          )}
                         </div>
-                        </Portal>
-                        )}
-                        </tr>
-                        );
-                        }
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-semibold truncate capitalize tracking-tight">
+                            {u.name || u.email?.split("@")[0]}
+                          </p>
+                          <p className="text-[11px] text-text-muted truncate capitalize">
+                            {u.email}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {sharingError && (
+                  <p role="alert" className="text-xs text-danger-text">
+                    {sharingError}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleAddUser}
+                  disabled={!selectedUser || isSharing}
+                  className="md-btn md-btn-primary md-btn-sm w-full"
+                >
+                  {isSharing ? "Sharing…" : "Share note"}
+                </button>
+              </div>,
+              document.body,
+            )}
+        </div>
+        {canModify && (
+          <>
+            <button
+              type="button"
+              onClick={() => onEdit?.(note)}
+              className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
+            >
+              <FiEdit2 size={15} />
+            </button>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const fd = new FormData();
+                fd.append("id", note.id.toString());
+                await onNoteDelete(fd);
+              }}
+              style={{ display: "inline" }}
+            >
+              <input type="hidden" name="id" value={note.id} />
+              <button
+                type="submit"
+                className="p-2 rounded-xl text-text-muted hover:text-danger-text hover:bg-danger/10 transition-all"
+              >
+                <FiTrash2 size={15} />
+              </button>
+            </form>
+          </>
+        )}
+      </td>
+      {/* Owner Tooltip for Table */}
+      {hoveredOwner && note.owner && (
+        <Portal>
+          <div
+            style={{
+              position: "fixed",
+              top: `${ownerCoords.top - 8}px`,
+              left: `${ownerCoords.left}px`,
+              transform: "translate(-50%, -100%)",
+            }}
+            className="mb-2 w-48 origin-bottom p-3 bg-card border border-card-border rounded-[24px] animate-in fade-in zoom-in-95 duration-150 ease-out motion-reduce:animate-none z-[9999]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-foreground/[0.03] flex-shrink-0 relative overflow-hidden ring-1 ring-card-border">
+                {note.owner.avatar_url || note.owner.image ? (
+                  <Image
+                    src={note.owner.avatar_url || note.owner.image || ""}
+                    alt={note.owner.name || ""}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div
+                    style={avatarStyle(note.owner.full_name || note.owner.name)}
+                    className="flex h-full w-full items-center justify-center text-[11px] font-semibold"
+                  >
+                    {(note.owner.full_name || note.owner.name || "?")
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 text-left">
+                <p className="text-[11px] font-semibold text-foreground truncate capitalize tracking-tight">
+                  {note.owner.full_name || note.owner.name}
+                </p>
+                <p className="text-[11px] text-text-muted font-semibold">
+                  Owner
+                </p>
+              </div>
+            </div>
+          </div>
+        </Portal>
+      )}
+    </tr>
+  );
+}

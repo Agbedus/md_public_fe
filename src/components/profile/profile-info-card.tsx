@@ -143,7 +143,7 @@ export function ProfileInfoCard({
             type="button"
             onClick={() => fileRef.current?.click()}
             className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-full overflow-hidden border-4 border-foreground/5 group"
-            title="Change photo"
+            data-tooltip="Change photo" aria-label="Change photo"
           >
             {shownAvatar ? (
               <Image src={shownAvatar} alt={displayName} fill className="object-cover" />

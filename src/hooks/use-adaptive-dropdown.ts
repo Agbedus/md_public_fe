@@ -15,6 +15,7 @@ interface AdaptiveDropdownOptions {
   gap?: number;
   viewportPadding?: number;
   matchAnchorWidth?: boolean;
+  minWidth?: number;
 }
 
 interface DropdownPosition {
@@ -37,6 +38,7 @@ export function useAdaptiveDropdown({
   gap = 8,
   viewportPadding = 16,
   matchAnchorWidth = false,
+  minWidth = 0,
 }: AdaptiveDropdownOptions): DropdownPosition {
   const [position, setPosition] = useState<DropdownPosition>({
     side: preferredSide,
@@ -65,8 +67,8 @@ export function useAdaptiveDropdown({
     const viewportBottom = viewportTop + viewportHeight;
     const maxViewportWidth = Math.max(0, viewportWidth - viewportPadding * 2);
     const measuredWidth = matchAnchorWidth
-      ? anchorRect.width
-      : Math.max(dropdown.scrollWidth, dropdown.offsetWidth);
+      ? Math.max(anchorRect.width, minWidth)
+      : Math.max(dropdown.scrollWidth, dropdown.offsetWidth, minWidth);
     const naturalWidth = Math.min(measuredWidth, maxViewportWidth);
     const naturalHeight = Math.max(dropdown.scrollHeight, dropdown.offsetHeight);
     const spaceBelow = Math.max(0, viewportBottom - anchorRect.bottom - gap - viewportPadding);
@@ -141,7 +143,7 @@ export function useAdaptiveDropdown({
         visibility: 'visible',
       },
     });
-  }, [anchorRef, dropdownRef, gap, matchAnchorWidth, preferredAlign, preferredSide, viewportPadding]);
+  }, [anchorRef, dropdownRef, gap, matchAnchorWidth, minWidth, preferredAlign, preferredSide, viewportPadding]);
 
   useLayoutEffect(() => {
     if (!isOpen) return;

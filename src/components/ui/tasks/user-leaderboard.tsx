@@ -70,7 +70,7 @@ export function UserLeaderboard({ tasks, users, selectedUserId, onSelectUser }: 
             key={user.id}
             aria-pressed={String(selectedUserId ?? '') === String(user.id)}
             onClick={() => onSelectUser(String(selectedUserId ?? '') === String(user.id) ? null : user)}
-            title={`Filter tasks for ${user.fullName || user.email}`}
+            data-tooltip={`Filter tasks for ${user.fullName || user.email}`} aria-label={`Filter tasks for ${user.fullName || user.email}`}
             className={`group flex min-h-11 min-w-[140px] flex-shrink-0 items-center gap-3 rounded-xl border px-3 py-2 text-left transition-[transform,color,background-color,border-color] duration-150 hover:bg-foreground/[0.05] hover:border-foreground/10 active:scale-[0.98] lg:min-w-0 lg:rounded-2xl lg:px-6 lg:py-4 ${
  String(selectedUserId ?? '') === String(user.id)
  ? 'border-accent/40 bg-accent/10 ring-1 ring-accent/20'

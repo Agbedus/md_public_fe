@@ -1,19 +1,23 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiMaximize2, FiChevronDown, FiSquare, FiWifi, FiWifiOff } from 'react-icons/fi';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { FiMaximize2, FiChevronDown, FiWifi, FiWifiOff } from 'react-icons/fi';
 import { useRouter, usePathname } from 'next/navigation';
 import ChatBubble from './ChatBubble';
+import ChatInput from './ChatInput';
+import { AssistantSuggestions } from './assistant-suggestions';
 import PipMascot from './pip-mascot';
 import { useOrgPath } from '@/hooks/use-org-slug';
 import { usePipMemory } from '@/hooks/use-pip-memory';
 import { useDashboard } from '@/components/ui/dashboard-layout';
+import { readPipStream } from '@/lib/pip-stream';
 
 interface Message {
   id?: number | string;
   text: string;
   isUser: boolean;
+  isReport?: boolean;
 }
 
 const PIP_VARIANTS = ['classic', 'smart', 'sleepy', 'cool', 'shocked', 'spicy', 'lovely', 'cyber'] as const;
@@ -36,7 +40,11 @@ export default function AssistantOrb() {
   const [hasHydratedMemory, setHasHydratedMemory] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [input, setInput] = useState('');
+  const reduceMotion = useReducedMotion();
+  const [draft, setDraft] = useState('');
+  const followOutput = useRef(true);
+  const mobileBottomRef = useRef<HTMLDivElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
   const [greetingIdx, setGreetingIdx] = useState(0);
   const [typedText, setTypedText] = useState('');
   const [typingDone, setTypingDone] = useState(false);
@@ -102,6 +110,7 @@ export default function AssistantOrb() {
     const frame = window.requestAnimationFrame(() => {
       setTypedText('');
       setTypingDone(false);
+      if (reduceMotion) { setTypedText(greeting); setTypingDone(true); return; }
 
       if (typingRef.current) clearInterval(typingRef.current);
       typingRef.current = setInterval(() => {
@@ -119,24 +128,45 @@ export default function AssistantOrb() {
       window.cancelAnimationFrame(frame);
       if (typingRef.current) clearInterval(typingRef.current);
     };
-  }, [greetingIdx]);
+  }, [greetingIdx, reduceMotion]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setPipVariantIdx(prev => (prev + 1) % PIP_VARIANTS.length);
-    }, 4000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+    if (!followOutput.current) return;
+    for (const marker of [bottomRef.current, mobileBottomRef.current]) {
+      if (marker?.offsetParent && marker.parentElement) marker.parentElement.scrollTop = marker.parentElement.scrollHeight;
+    }
+  }, [messages, isLoading, isFocused, isMobileOpen]);
 
   useEffect(() => {
     if (isMobileOpen) {
       setTimeout(() => inputRef.current?.focus(), 350);
     }
   }, [isMobileOpen]);
+
+  useEffect(() => {
+    if (!isFocused && !isMobileOpen) return;
+    const keydown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (event.key === 'Escape') {
+        setIsFocused(false);
+        setIsMobileOpen(false);
+      }
+      if (event.key !== 'Tab' || !isMobileOpen || !mobilePanelRef.current?.contains(event.target as Node)) return;
+      const controls = Array.from(mobilePanelRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not([type="hidden"]), textarea, a[href], [tabindex="0"]')).filter((node) => node.getClientRects().length > 0);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => document.removeEventListener('keydown', keydown);
+  }, [isFocused, isMobileOpen]);
 
   // Internet connectivity: the collapsed chat bubble doubles as the offline
   // indicator. When the connection drops, the bubble turns red with a message;
@@ -179,17 +209,22 @@ export default function AssistantOrb() {
       abortRef.current = null;
     }
     setIsLoading(false);
+    setMessages((previous) => previous.filter((message) => message.isUser || message.text.trim()));
   }, []);
 
   const handleSendMessage = useCallback(async (text: string) => {
+    if (abortRef.current || !text.trim()) return;
+    followOutput.current = true;
+    setHasHydratedMemory(true);
     const history = toApiHistory();
-    const userMsg: Message = { text, isUser: true, id: Date.now() };
+    const interactionId = crypto.randomUUID();
+    const userMsg: Message = { text, isUser: true, id: `user-${interactionId}` };
     setMessages(prev => [...prev, userMsg]);
     remember(userMsg);
     setIsLoading(true);
     setHasError(false);
 
-    const aiMsgId = Date.now() + 1;
+    const aiMsgId = `assistant-${interactionId}`;
     setMessages(prev => [...prev, { text: '', isUser: false, id: aiMsgId }]);
 
     const controller = new AbortController();
@@ -206,60 +241,27 @@ export default function AssistantOrb() {
       if (!response.ok) {
         const bodyText = await response.text();
         let errorMsg = 'Failed to fetch response';
-        try { const errData = JSON.parse(bodyText); errorMsg = errData.error || errorMsg; } catch { errorMsg = bodyText || errorMsg; }
+        try { const errData = JSON.parse(bodyText); errorMsg = typeof errData.error === 'string' ? errData.error : errData.error?.message || errorMsg; } catch { errorMsg = bodyText || errorMsg; }
         throw new Error(errorMsg);
       }
 
-      if (!response.body) return;
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let accumulated = '';
-
-      while (!done) {
-        if (controller.signal.aborted) {
-          reader.cancel();
-          break;
-        }
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        accumulated += decoder.decode(value, { stream: !done });
-        setMessages(prev =>
-          prev.map(msg => (msg.id === aiMsgId ? { ...msg, text: accumulated } : msg))
-        );
-      }
-      if (!controller.signal.aborted && accumulated.trim()) {
-        remember({ id: aiMsgId, text: accumulated, isUser: false });
-      }
+      const result = await readPipStream(response, controller.signal, (text, isReport) => {
+        setMessages((previous) => previous.map((message) => message.id === aiMsgId ? { ...message, text, isReport } : message));
+      });
+      if (!controller.signal.aborted) remember({ id: aiMsgId, text: result.text, isUser: false, isReport: result.isReport });
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') return;
       const errString = error instanceof Error ? error.message : 'Unknown error';
       setHasError(true);
       setTimeout(() => setHasError(false), 5000);
-      setMessages(prev => [
-        ...prev,
-        { text: `Sorry, I encountered an error: ${errString}`, isUser: false, id: Date.now() + 2 },
-      ]);
+      setMessages((previous) => previous.map((message) => message.id === aiMsgId ? { ...message, text: `I couldn’t complete that request. ${errString}` } : message));
     } finally {
-      setIsLoading(false);
-      abortRef.current = null;
+      if (abortRef.current === controller) {
+        setIsLoading(false);
+        abortRef.current = null;
+      }
     }
   }, [remember, toApiHistory]);
-
-  const handleSend = () => {
-    const text = input.trim();
-    if (!text) return;
-    handleSendMessage(text);
-    setInput('');
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
 
   const handleOpenFullPage = () => {
     // No handoff needed — the full page hydrates from the same shared
@@ -269,9 +271,11 @@ export default function AssistantOrb() {
 
   const handleCloseChat = () => {
     setIsFocused(false);
+    setIsMobileOpen(false);
   };
 
   const openChat = useCallback(() => {
+    followOutput.current = true;
     setIsFocused(true);
     setTimeout(() => inputRef.current?.focus(), 150);
   }, []);
@@ -306,6 +310,36 @@ export default function AssistantOrb() {
   const bubbleTailBg =
     offline ? 'border-l-danger' : recovered ? 'border-l-success' : 'border-l-background';
 
+  const panelHeader = () => (
+    <div className="flex shrink-0 items-center justify-between gap-3 border-b border-card-border px-4 py-3">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="sm" errorMessage={hasError ? 'Connection error' : undefined} />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">Pip</p>
+          <p role="status" className="mt-0.5 flex items-center gap-1.5 text-xs text-text-muted">
+            <span className={`h-1.5 w-1.5 rounded-full ${offline || hasError ? 'bg-danger' : isLoading ? 'bg-accent' : 'bg-success'}`} />
+            {offline ? 'Offline' : hasError ? 'Try again' : isLoading ? 'Working on it…' : 'Your workspace assistant'}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        <button type="button" onClick={handleOpenFullPage} aria-label="Open full assistant" data-tooltip="Open full assistant"
+          className="grid h-10 w-10 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.96]"><FiMaximize2 className="h-4 w-4" /></button>
+        <button type="button" onClick={handleCloseChat} aria-label="Minimize assistant" data-tooltip="Minimize"
+          className="grid h-10 w-10 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.96]"><FiChevronDown className="h-4 w-4" /></button>
+      </div>
+    </div>
+  );
+  const emptyConversation = () => (
+    <div className="flex flex-col gap-3 py-2">
+      <div className="px-1">
+        <h2 className="text-lg font-semibold tracking-tight text-foreground">A hand with your day?</h2>
+        <p className="mt-2 text-sm leading-relaxed text-text-muted">Tasks, notes, and a little more clarity.</p>
+      </div>
+      <AssistantSuggestions compact onSelect={handleSendMessage} disabled={isLoading || offline} />
+    </div>
+  );
+
   if (isOnAssistantPage) return null;
 
   return (
@@ -331,114 +365,33 @@ export default function AssistantOrb() {
         <AnimatePresence>
           {isFocused && (
             <motion.div
-              initial={{ opacity: 0, y: 24, scale: 0.94 }}
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 24, scale: 0.94 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
               transition={{ type: 'spring', damping: 26, stiffness: 320 }}
               style={{ transformOrigin: 'bottom right' }}
-              className="relative w-[min(28rem,calc(100vw_-_3rem))] max-h-[78vh] flex flex-col bg-card border border-card-border rounded-2xl shadow-2xl overflow-hidden"
+              role="dialog" aria-label="Pip assistant"
+              className={`relative flex w-[min(28rem,calc(100vw_-_3rem))] flex-col overflow-hidden rounded-[28px] border border-card-border bg-card shadow-xl ${messages.length === 0 ? 'h-auto max-h-[calc(100dvh-7rem)]' : 'h-[min(32rem,calc(100dvh-7rem))]'}`}
             >
               {/* Header */}
-              <div className="relative flex items-center justify-between px-5 py-4 border-b border-card-border shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="relative shrink-0">
-                    <div className="absolute inset-0 bg-accent/20 blur-lg rounded-full scale-125" />
-                    <motion.div
-                      key={pipVariantIdx}
-                      initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="relative"
-                    >
-                      <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="sm" errorMessage={hasError ? 'Connection error' : undefined} />
-                    </motion.div>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">
-                    {isLoading ? 'Pip is thinking...' : 'AI Assistant'}
-                  </span>
-                  {isLoading && (
-                    <span className="flex gap-1 ml-1">
-                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={handleOpenFullPage}
-                    className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
-                    title="Open full screen"
-                  >
-                    <FiMaximize2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={handleCloseChat}
-                    className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
-                    title="Minimize"
-                  >
-                    <FiChevronDown className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              {panelHeader()}
 
               {/* Messages */}
-              <div className="flex-1 min-h-[10rem] overflow-y-auto px-4 py-4 space-y-3 scrollbar-hide">
+              <div onScroll={(event) => { const node = event.currentTarget; followOutput.current = node.scrollHeight - node.scrollTop - node.clientHeight < 80; }}
+                className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-3">
                 {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 py-6 text-center">
-                    <PipMascot variant={PIP_VARIANTS[pipVariantIdx]} status="idle" size="md" />
-                    <p className="text-sm text-text-muted max-w-[16rem] font-medium">
-                      {typedText}
-                      {!typingDone && <span className="animate-pulse">|</span>}
-                    </p>
-                  </div>
+                  emptyConversation()
                 ) : (
                   messages.map(msg => (
-                    <ChatBubble key={msg.id} message={msg} />
+                    <ChatBubble key={msg.id} message={msg} compact activity={isLoading && msg.id === messages[messages.length - 1]?.id ? (msg.text ? "writing" : "thinking") : undefined} />
                   ))
                 )}
                 <div ref={bottomRef} />
               </div>
 
               {/* Input */}
-              <div className="px-4 pb-4 pt-3 border-t border-card-border shrink-0">
-                <div className="relative rounded-3xl bg-foreground/[0.045] border border-card-border  transition-colors overflow-hidden">
-                  <div className="flex items-end gap-2 px-4 py-3.5 relative z-10">
-                    <textarea
-                      ref={inputRef}
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Ask me anything..."
-                      rows={1}
-                      className="flex-1 bg-transparent text-[15px] text-foreground placeholder:text-text-muted resize-none focus:outline-none scrollbar-hide font-medium leading-relaxed"
-                      style={{ minHeight: '30px', maxHeight: '140px' }}
-                    />
-                    {isLoading ? (
-                      <button
-                        onClick={handleStop}
-                        className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 shrink-0"
-                        aria-label="Stop generating"
-                        title="Stop generating"
-                      >
-                        <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                          <FiSquare className="w-4 h-4 text-danger-text fill-current" />
-                        </span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleSend}
-                        disabled={!input.trim()}
-                        className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0"
-                        aria-label="Send"
-                      >
-                        <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                          <FiSend className="w-4 h-4" />
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                </div>
+              <div className="shrink-0 border-t border-card-border bg-card p-3">
+                <ChatInput compact value={draft} onValueChange={setDraft} inputRef={inputRef} onSendMessage={handleSendMessage} isLoading={isLoading} onStop={handleStop} />
               </div>
             </motion.div>
           )}
@@ -459,7 +412,7 @@ export default function AssistantOrb() {
                     a separate element floating nearby. It is vertically centred with the
                     mascot and has a fixed height so it never changes size as text loads. */}
                 <motion.div
-                  animate={{ y: [0, -6, 0] }}
+                  animate={reduceMotion ? undefined : { y: [0, -3, 0] }}
                   transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
                   className="relative"
                   onMouseEnter={() => setBubbleHovered(true)}
@@ -482,8 +435,8 @@ export default function AssistantOrb() {
                         exit={{ opacity: 0, scale: 0.85, x: 6 }}
                         transition={{ type: 'spring', damping: 22, stiffness: 320 }}
                         style={{ transformOrigin: 'right center' }}
-                        className={`absolute right-[80%] top-1/2 -translate-y-1/2 w-max max-w-[13.5rem] h-11 flex items-center text-left px-3.5 rounded-xl border shadow-lg text-xs font-medium transition-colors ${bubbleVariantClasses}`}
-                        title="Open chat"
+                        className={`absolute right-[calc(100%_+_12px)] top-1/2 -translate-y-1/2 w-max max-w-[13.5rem] h-11 flex items-center text-left px-3.5 rounded-xl border shadow-lg text-xs font-medium transition-colors ${bubbleVariantClasses}`}
+                        data-tooltip="Open chat" aria-label="Open chat"
                       >
                         <span className="flex items-center gap-2 min-w-0">
                           {connectivityVariant !== 'normal' && (
@@ -514,8 +467,8 @@ export default function AssistantOrb() {
                     )}
                     <motion.div
                       key={pipVariantIdx}
-                      initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       transition={{ duration: 0.35 }}
                     >
                       <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="md" errorMessage={hasError ? 'Connection error' : undefined} />
@@ -537,9 +490,9 @@ export default function AssistantOrb() {
     <div className="md:hidden">
       {/* Floating trigger button */}
       {!isMobileOpen && (
-        <div className="fixed right-5 z-50" style={{ bottom: 'calc(4rem + 12px)' }}>
+        <div className="fixed right-5 z-50" style={{ bottom: 'calc(4rem + 12px + env(safe-area-inset-bottom))' }}>
           <button
-            onClick={() => setIsMobileOpen(true)}
+            onClick={() => { followOutput.current = true; setIsMobileOpen(true); }}
             className="flex items-center justify-center relative active:scale-95 transition-transform"
             aria-label="Open AI Assistant"
           >
@@ -583,105 +536,33 @@ export default function AssistantOrb() {
               onClick={() => setIsMobileOpen(false)}
             />
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
+              initial={reduceMotion ? { opacity: 0 } : { y: '100%' }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 right-0 z-50 flex flex-col bg-card border-t border-card-border rounded-t-2xl shadow-xl"
-              style={{ bottom: '64px', maxHeight: '75vh' }}
+              ref={mobilePanelRef}
+              role="dialog" aria-modal="true" aria-label="Pip assistant"
+              className={`fixed inset-x-2 bottom-2 z-50 flex flex-col overflow-hidden rounded-[28px] border border-card-border bg-card shadow-xl ${messages.length === 0 ? 'h-auto max-h-[calc(100dvh-1rem)]' : 'h-[min(34rem,calc(100dvh-1rem))]'}`}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 shrink-0">
-                <div className="flex items-center gap-2">
-                  <motion.div
-                    key={pipVariantIdx}
-                    initial={{ opacity: 0, scale: 0.6, rotate: -10 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="sm" errorMessage={hasError ? 'Connection error' : undefined} />
-                  </motion.div>
-                  <span className="text-sm font-medium text-foreground">
-                    {isLoading ? 'Pip is thinking...' : 'AI Assistant'}
-                  </span>
-                  {isLoading && (
-                    <span className="flex gap-1 ml-1">
-                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 rounded-full bg-foreground/60 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={handleOpenFullPage}
-                    className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
-                    title="Open full screen"
-                  >
-                    <FiMaximize2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsMobileOpen(false)}
-                    className="p-2 rounded-xl text-text-muted hover:text-foreground hover:bg-foreground/[0.06] transition-all"
-                    title="Close"
-                  >
-                    <FiChevronDown className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              {panelHeader()}
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 min-h-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div onScroll={(event) => { const node = event.currentTarget; followOutput.current = node.scrollHeight - node.scrollTop - node.clientHeight < 80; }}
+                className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-3" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-24">
-                    <p className="text-sm text-text-muted">Ask Pip anything...</p>
-                  </div>
+                  emptyConversation()
                 ) : (
                   messages.map(msg => (
-                    <ChatBubble key={msg.id} message={msg} />
+                    <ChatBubble key={msg.id} message={msg} compact activity={isLoading && msg.id === messages[messages.length - 1]?.id ? (msg.text ? "writing" : "thinking") : undefined} />
                   ))
                 )}
-                <div ref={bottomRef} />
+                <div ref={mobileBottomRef} />
               </div>
 
               {/* Input */}
-              <div className="px-4 py-3 shrink-0 border-t border-card-border">
-                <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-foreground/[0.05] border border-card-border">
-                  <textarea
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={isLoading ? 'Pip is responding...' : 'Ask me anything...'}
-                    disabled={isLoading}
-                    rows={1}
-                    className="flex-1 bg-transparent text-sm text-foreground placeholder:text-text-muted resize-none focus:outline-none disabled:opacity-40"
-                    style={{ minHeight: '20px', maxHeight: '80px' }}
-                  />
-                  {isLoading ? (
-                    <button
-                      onClick={handleStop}
-                      className="group flex items-center gap-1.5 p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 shrink-0 text-[10px] font-bold"
-                      aria-label="Stop generating"
-                    >
-                      <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                        <FiSquare className="w-3 h-3 text-danger-text fill-current" />
-                      </span>
-                      <span className="hidden sm:inline pr-0.5">Stop</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleSend}
-                      disabled={!input.trim()}
-                      className="group flex items-center justify-center p-1.5 rounded-xl bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border text-text-muted hover:text-foreground transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none shrink-0"
-                      aria-label="Send"
-                    >
-                        <span className="p-1 rounded-lg bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors">
-                          <FiSend className="w-3.5 h-3.5" />
-                        </span>
-                    </button>
-                  )}
-                </div>
+              <div className="shrink-0 border-t border-card-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <ChatInput compact value={draft} onValueChange={setDraft} inputRef={inputRef} onSendMessage={handleSendMessage} isLoading={isLoading} onStop={handleStop} />
               </div>
             </motion.div>
           </>

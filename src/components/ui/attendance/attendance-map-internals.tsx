@@ -60,7 +60,7 @@ function MapActionControls({ userLocation, officeLocation }: { userLocation: [nu
             <div>
                 <button 
                     onClick={(e) => { e.preventDefault(); handleResetNorth(); }}
-                    title="Centre on me"
+                    data-tooltip="Centre on me" aria-label="Centre on me"
                     className={buttonClass}
                 >
                     <CompassDial />
@@ -71,7 +71,7 @@ function MapActionControls({ userLocation, officeLocation }: { userLocation: [nu
             <div>
                 <button 
                     onClick={(e) => { e.preventDefault(); handleRecenter(); }}
-                    title="Fit office and me"
+                    data-tooltip="Fit office and me" aria-label="Fit office and me"
                     className={buttonClass}
                 >
                     <FiNavigation size={17} className="rotate-45" />
@@ -82,14 +82,14 @@ function MapActionControls({ userLocation, officeLocation }: { userLocation: [nu
             <div className="flex flex-col overflow-hidden rounded-full border border-card-border bg-background">
                 <button 
                     onClick={(e) => { e.preventDefault(); map.zoomIn(); }}
-                    title="Zoom in"
+                    data-tooltip="Zoom in" aria-label="Zoom in"
                     className={`${buttonClass} !border-0 !bg-transparent`}
                 >
                     <FiPlus size={17} />
                 </button>
                 <button 
                     onClick={(e) => { e.preventDefault(); map.zoomOut(); }}
-                    title="Zoom out"
+                    data-tooltip="Zoom out" aria-label="Zoom out"
                     className={`${buttonClass} !border-0 !bg-transparent`}
                 >
                     <FiMinus size={17} />

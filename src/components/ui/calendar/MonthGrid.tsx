@@ -1,24 +1,32 @@
 "use client";
 import React, { useMemo } from "react";
-import { FiCheckCircle, FiBriefcase, FiX, FiCalendar, FiClock, FiMapPin, FiSun } from "react-icons/fi";
-import { 
-  addDays, 
-  eachDayOfInterval, 
-  endOfMonth, 
-  endOfWeek, 
-  format, 
-  isSameDay, 
-  isSameMonth, 
-  startOfMonth, 
-  startOfWeek, 
-  isWithinInterval, 
-  startOfDay, 
+import {
+  FiCheckCircle,
+  FiBriefcase,
+  FiX,
+  FiCalendar,
+  FiClock,
+  FiMapPin,
+  FiSun,
+} from "react-icons/fi";
+import {
+  addDays,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameDay,
+  isSameMonth,
+  startOfMonth,
+  startOfWeek,
+  isWithinInterval,
+  startOfDay,
   endOfDay,
-  differenceInDays
+  differenceInDays,
 } from "date-fns";
 import type { CalendarEvent } from "@/types/calendar";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
 type UICalendarEvent = CalendarEvent;
@@ -32,93 +40,206 @@ interface MonthGridProps {
 }
 
 const COLOR_PALETTE = [
-    { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
-    { bg: 'bg-success/10 dark:bg-success/60', border: 'border-success', text: 'text-success-text dark:text-success-text' },
-    { bg: 'bg-danger/10 dark:bg-danger/60', border: 'border-danger', text: 'text-danger-text dark:text-danger-text' },
-    { bg: 'bg-warning/10 dark:bg-warning/60', border: 'border-warning', text: 'text-warning-text dark:text-warning-text' },
-    { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
-    { bg: 'bg-purple-50 dark:bg-purple-950/60', border: 'border-purple-500', text: 'text-purple-600 dark:text-purple-300' },
-    { bg: 'bg-fuchsia-50 dark:bg-fuchsia-950/60', border: 'border-fuchsia-500', text: 'text-fuchsia-600 dark:text-fuchsia-300' },
-    { bg: 'bg-teal-50 dark:bg-teal-950/60', border: 'border-teal-500', text: 'text-teal-600 dark:text-teal-300' },
-    { bg: 'bg-priority-high/10 dark:bg-priority-high/60', border: 'border-priority-high', text: 'text-priority-high-text dark:text-priority-high-text' },
-    { bg: 'bg-accent/10 dark:bg-accent/60', border: 'border-accent', text: 'text-accent-text dark:text-accent-text' },
-    { bg: 'bg-lime-50 dark:bg-lime-950/60', border: 'border-lime-500', text: 'text-lime-600 dark:text-lime-300' },
-    { bg: 'bg-pink-50 dark:bg-pink-950/60', border: 'border-pink-500', text: 'text-pink-600 dark:text-pink-300' },
+  {
+    bg: "bg-accent/10 dark:bg-accent/10",
+    border: "border-accent",
+    text: "text-accent-text dark:text-accent-text",
+  },
+  {
+    bg: "bg-success/10 dark:bg-success/10",
+    border: "border-success",
+    text: "text-success-text dark:text-success-text",
+  },
+  {
+    bg: "bg-danger/10 dark:bg-danger/10",
+    border: "border-danger",
+    text: "text-danger-text dark:text-danger-text",
+  },
+  {
+    bg: "bg-warning/10 dark:bg-warning/10",
+    border: "border-warning",
+    text: "text-warning-text dark:text-warning-text",
+  },
+  {
+    bg: "bg-accent/10 dark:bg-accent/10",
+    border: "border-accent",
+    text: "text-accent-text dark:text-accent-text",
+  },
+  {
+    bg: "bg-purple-50 dark:bg-purple-950/60",
+    border: "border-purple-500",
+    text: "text-purple-600 dark:text-purple-300",
+  },
+  {
+    bg: "bg-fuchsia-50 dark:bg-fuchsia-950/60",
+    border: "border-fuchsia-500",
+    text: "text-fuchsia-600 dark:text-fuchsia-300",
+  },
+  {
+    bg: "bg-teal-50 dark:bg-teal-950/60",
+    border: "border-teal-500",
+    text: "text-teal-600 dark:text-teal-300",
+  },
+  {
+    bg: "bg-priority-high/10 dark:bg-priority-high/10",
+    border: "border-priority-high",
+    text: "text-priority-high-text dark:text-priority-high-text",
+  },
+  {
+    bg: "bg-accent/10 dark:bg-accent/10",
+    border: "border-accent",
+    text: "text-accent-text dark:text-accent-text",
+  },
+  {
+    bg: "bg-lime-50 dark:bg-lime-950/60",
+    border: "border-lime-500",
+    text: "text-lime-600 dark:text-lime-300",
+  },
+  {
+    bg: "bg-pink-50 dark:bg-pink-950/60",
+    border: "border-pink-500",
+    text: "text-pink-600 dark:text-pink-300",
+  },
 ];
 
 function getColorForId(id: string) {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-        hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = Math.abs(hash) % COLOR_PALETTE.length;
-    return COLOR_PALETTE[index];
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % COLOR_PALETTE.length;
+  return COLOR_PALETTE[index];
 }
 
 function privacyClasses(p?: CalendarEvent["privacy"]) {
   switch (p) {
     case "public":
-      return { dot: "bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]", border: "border-success/30", text: "text-success-text dark:text-success-text", bg: "bg-success/5" };
+      return {
+        dot: "bg-success ",
+        border: "border-success/30",
+        text: "text-success-text dark:text-success-text",
+        bg: "bg-success/5",
+      };
     case "private":
-      return { dot: "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]", border: "border-warning/30", text: "text-warning-text dark:text-warning-text", bg: "bg-warning/5" };
+      return {
+        dot: "bg-warning ",
+        border: "border-warning/30",
+        text: "text-warning-text dark:text-warning-text",
+        bg: "bg-warning/5",
+      };
     case "confidential":
-      return { dot: "bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-danger/30", text: "text-danger-text dark:text-danger-text", bg: "bg-danger/5" };
+      return {
+        dot: "bg-danger ",
+        border: "border-danger/30",
+        text: "text-danger-text dark:text-danger-text",
+        bg: "bg-danger/5",
+      };
     default:
-      return { dot: "bg-slate-400", border: "border-card-border", text: "text-text-secondary", bg: "bg-slate-500/5" };
+      return {
+        dot: "bg-slate-400",
+        border: "border-card-border",
+        text: "text-text-secondary",
+        bg: "bg-slate-500/5",
+      };
   }
 }
 
 function taskClasses(status?: string) {
   switch (status) {
     case "completed":
-      return { dot: "", border: "border-success/30", text: "text-success-text dark:text-success-text", bg: "bg-success/5" };
+      return {
+        dot: "",
+        border: "border-success/30",
+        text: "text-success-text dark:text-success-text",
+        bg: "bg-success/5",
+      };
     case "in_progress":
-      return { dot: "", border: "border-warning/30", text: "text-warning-text dark:text-warning-text", bg: "bg-warning/5" };
+      return {
+        dot: "",
+        border: "border-warning/30",
+        text: "text-warning-text dark:text-warning-text",
+        bg: "bg-warning/5",
+      };
     default:
-      return { dot: "", border: "border-accent/30", text: "text-accent-text dark:text-accent-text", bg: "bg-accent/5" };
+      return {
+        dot: "",
+        border: "border-accent/30",
+        text: "text-accent-text dark:text-accent-text",
+        bg: "bg-accent/5",
+      };
   }
 }
 
 function timeOffClasses(status?: string) {
   switch (status) {
     case "approved":
-      return { dot: "bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]", border: "border-success/30", text: "text-success-text dark:text-success-text", bg: "bg-success/5" };
+      return {
+        dot: "bg-success ",
+        border: "border-success/30",
+        text: "text-success-text dark:text-success-text",
+        bg: "bg-success/5",
+      };
     case "rejected":
-      return { dot: "bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]", border: "border-danger/30", text: "text-danger-text dark:text-danger-text", bg: "bg-danger/5" };
+      return {
+        dot: "bg-danger ",
+        border: "border-danger/30",
+        text: "text-danger-text dark:text-danger-text",
+        bg: "bg-danger/5",
+      };
     case "pending":
     default:
-      return { dot: "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]", border: "border-warning/30", text: "text-warning-text dark:text-warning-text", bg: "bg-warning/5" };
+      return {
+        dot: "bg-warning ",
+        border: "border-warning/30",
+        text: "text-warning-text dark:text-warning-text",
+        bg: "bg-warning/5",
+      };
   }
 }
 
-export default function MonthGrid({ date, events = [], onSelectDate, onEventClick }: MonthGridProps) {
+export default function MonthGrid({
+  date,
+  events = [],
+  onSelectDate,
+  onEventClick,
+}: MonthGridProps) {
+  const reduceMotion = useReducedMotion();
   const { gridStart, gridEnd, monthStart } = useMemo(() => {
     const start = startOfMonth(date);
     const end = endOfMonth(start);
     return {
       monthStart: start,
       gridStart: startOfWeek(start, { weekStartsOn: 1 }),
-      gridEnd: endOfWeek(end, { weekStartsOn: 1 })
+      gridEnd: endOfWeek(end, { weekStartsOn: 1 }),
     };
   }, [date]);
 
-  const days = useMemo(() => eachDayOfInterval({ start: gridStart, end: gridEnd }), [gridStart, gridEnd]);
-  
+  const days = useMemo(
+    () => eachDayOfInterval({ start: gridStart, end: gridEnd }),
+    [gridStart, gridEnd],
+  );
+
   // Group days into weeks for spanning calculations
   const weeks = useMemo(() => {
     const w = [];
     for (let i = 0; i < days.length; i += 7) {
-        w.push(days.slice(i, i + 7));
+      w.push(days.slice(i, i + 7));
     }
     return w;
   }, [days]);
 
-  const [popupData, setPopupData] = React.useState<{ date: Date, events: UICalendarEvent[] } | null>(null);
+  const [popupData, setPopupData] = React.useState<{
+    date: Date;
+    events: UICalendarEvent[];
+  } | null>(null);
   const popupRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target as Node)
+      ) {
         setPopupData(null);
       }
     }
@@ -132,8 +253,14 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
         {/* Weekday headers */}
         <div className="grid grid-cols-7 border-b border-card-border bg-foreground/[0.03]">
           {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="px-4 py-3 text-center text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
-              {format(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), i), "EEE")}
+            <div
+              key={i}
+              className="px-4 py-3 text-center text-[10px] font-black text-text-muted uppercase tracking-[0.2em]"
+            >
+              {format(
+                addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), i),
+                "EEE",
+              )}
             </div>
           ))}
         </div>
@@ -145,211 +272,311 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
             const weekEndDay = week[6];
 
             // Events that span this week (Gantt style)
-            const spanningEvents = events.filter(e => {
-                if (!e.isProject && !e.isTimeOff) return false;
-                const s = startOfDay(new Date(e.start));
-                const endVal = e.end ? new Date(e.end) : s;
-                const ed = endOfDay(endVal);
-                return (s <= weekEndDay && ed >= weekStartDay);
+            const spanningEvents = events.filter((e) => {
+              if (!e.isProject && !e.isTimeOff) return false;
+              const s = startOfDay(new Date(e.start));
+              const endVal = e.end ? new Date(e.end) : s;
+              const ed = endOfDay(endVal);
+              return s <= weekEndDay && ed >= weekStartDay;
             });
 
             return (
-              <div key={weekIdx} className="grid grid-cols-7 relative min-h-[140px] border-b border-card-border last:border-0">
+              <div
+                key={weekIdx}
+                className="grid grid-cols-7 relative min-h-[140px] border-b border-card-border last:border-0"
+              >
                 {/* Background Cells */}
                 {week.map((d) => {
-                    const isCurrentMonth = isSameMonth(d, monthStart);
-                    const isToday = isSameDay(d, new Date());
-                    
-                    // Filter normal events for this day
-                    const dayEvents = events.filter((e) => {
-                        if (e.isProject || e.isTimeOff) return false;
-                        const s = startOfDay(new Date(e.start));
-                        const endVal = e.end ? new Date(e.end) : s;
-                        const end = endOfDay(endVal);
-                        return isWithinInterval(d, { start: s, end: end });
-                    });
+                  const isCurrentMonth = isSameMonth(d, monthStart);
+                  const isToday = isSameDay(d, new Date());
+                  const isSelected = isSameDay(d, date);
 
-                    return (
-                        <div
-                            key={d.toISOString()}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => onSelectDate?.(d)}
-                            className={`relative p-2 text-left transition-colors border-r border-card-border last:border-r-0 group/cell ${
-                                !isCurrentMonth ? "bg-background/30 opacity-50" : "bg-background/50"
-                            } hover:bg-blue-50 dark:hover:bg-white/[0.06] flex flex-col`}
-                        >
-                            <div className="flex items-center justify-between mb-2 relative z-10">
-                                <span 
-                                    className={`
+                  // Filter normal events for this day
+                  const dayEvents = events.filter((e) => {
+                    if (e.isProject || e.isTimeOff) return false;
+                    const s = startOfDay(new Date(e.start));
+                    const endVal = e.end ? new Date(e.end) : s;
+                    const end = endOfDay(endVal);
+                    return isWithinInterval(d, { start: s, end: end });
+                  });
+
+                  return (
+                    <div
+                      key={d.toISOString()}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onSelectDate?.(d)}
+                      aria-label={format(d, "EEEE, MMMM d, yyyy")}
+                      aria-current={isToday ? "date" : undefined}
+                      onKeyDown={(event) => {
+                        if (
+                          event.target === event.currentTarget &&
+                          (event.key === "Enter" || event.key === " ")
+                        ) {
+                          event.preventDefault();
+                          onSelectDate?.(d);
+                        }
+                      }}
+                      className={`relative p-2 text-left transition-colors border-r border-card-border last:border-r-0 group/cell ${
+                        isSelected
+                          ? "bg-accent/[0.04] ring-1 ring-inset ring-accent/30"
+                          : !isCurrentMonth
+                            ? "bg-background/30 opacity-50"
+                            : "bg-background/50"
+                      } hover:bg-foreground/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50 flex flex-col`}
+                    >
+                      <div className="flex items-center justify-between mb-2 relative z-10">
+                        <span
+                          className={`
                                         flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold
-                                        ${isToday ? "bg-accent text-on-accent" : "text-(--text-muted)"}
+                                        ${isSelected ? "bg-ink text-on-ink" : isToday ? "bg-accent/10 text-accent-text" : "text-text-muted"}
                                     `}
-                                >
-                                    {format(d, "d")}
-                                </span>
-                            </div>
+                        >
+                          {format(d, "d")}
+                        </span>
+                      </div>
 
-                            {/* Spacing for spanning bars (reserved area at the top of cell) */}
-                            <div className="h-14 mb-1 pointer-events-none" />
+                      {/* Spacing for spanning bars (reserved area at the top of cell) */}
+                        <div className="mb-1 pointer-events-none" style={{ height: Math.min(spanningEvents.length, 3) * 30 }} />
 
-                            {/* Day Events (Tasks, etc) */}
-                            <div className="space-y-1 relative z-10 flex-1 overflow-hidden">
-                                {dayEvents.slice(0, 2).map((e) => {
-                                    const isTask = e.isTask;
-                                    const isStart = isSameDay(d, new Date(e.start));
-                                    if (!isStart) return null;
+                      {/* Day Events (Tasks, etc) */}
+                      <div className="space-y-1 relative z-10 flex-1 overflow-hidden">
+                        {dayEvents.slice(0, 2).map((e) => {
+                          const isTask = e.isTask;
 
-                                    const c = isTask ? taskClasses(e.taskStatus) : privacyClasses(e.privacy);
-                                    
-                                    return (
-                                        <Tooltip key={e.id} content={
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-1.5">
-                                                    {isTask ? (
-                                                        <FiCheckCircle className={`h-3 w-3 ${c.text}`} />
-                                                    ) : (
-                                                        <span className={`h-2 w-2 rounded-full ${c.dot}`} />
-                                                    )}
-                                                    <span className={`text-[10px] font-black uppercase tracking-widest ${c.text}`}>
-                                                        {isTask ? 'Task' : 'Event'}
-                                                    </span>
-                                                    {e.taskPriority && (
-                                                        <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${c.bg} ${c.text}`}>
-                                                            {e.taskPriority}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-tight">{e.title}</p>
-                                                <div className="flex items-center gap-3 text-[10px] text-zinc-500 dark:text-zinc-400">
-                                                    <span className="flex items-center gap-1">
-                                                        <FiCalendar className="h-3 w-3" />
-                                                        {format(new Date(e.start), 'MMM d')}
-                                                    </span>
-                                                    {!e.allDay && (
-                                                        <span className="flex items-center gap-1">
-                                                            <FiClock className="h-3 w-3" />
-                                                            {format(new Date(e.start), 'h:mm a')}
-                                                        </span>
-                                                    )}
-                                                    {e.location && (
-                                                        <span className="flex items-center gap-1">
-                                                            <FiMapPin className="h-3 w-3" />
-                                                            {e.location}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        }>
-                                            <div
-                                                role="button"
-                                                onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e); }}
-                                                className={`group truncate text-[10px] px-2 py-0.5 rounded-full border ${c.border} bg-foreground/[0.05] hover:bg-foreground/[0.1] flex items-center gap-1.5 w-full transition-colors cursor-pointer`}
-                                            >
-                                                {isTask ? (
-                                                    <FiCheckCircle className={`h-2.5 w-2.5 ${c.text}`} />
-                                                ) : (
-                                                    <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} />
-                                                )}
-                                                <span className={`font-bold uppercase tracking-tight ${c.text} flex-1 min-w-0`}>{e.title}</span>
-                                            </div>
-                                        </Tooltip>
-                                    );
-                                })}
-                                {dayEvents.length > 2 && (
-                                    <div 
-                                        onClick={(ev) => { ev.stopPropagation(); setPopupData({ date: d, events: dayEvents }); }}
-                                        className="text-[9px] font-bold text-text-secondary uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-card-border transition-colors cursor-pointer text-center leading-tight w-full"
+                          const c = isTask
+                            ? taskClasses(e.taskStatus)
+                            : privacyClasses(e.privacy);
+
+                          return (
+                            <Tooltip
+                              key={e.id}
+                              content={
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-1.5">
+                                    {isTask ? (
+                                      <FiCheckCircle
+                                        className={`h-3 w-3 ${c.text}`}
+                                      />
+                                    ) : (
+                                      <span
+                                        className={`h-2 w-2 rounded-full ${c.dot}`}
+                                      />
+                                    )}
+                                    <span
+                                      className={`text-[10px] font-black uppercase tracking-widest ${c.text}`}
                                     >
-                                        + {dayEvents.length - 2} more
-                                    </div>
+                                      {isTask ? "Task" : "Event"}
+                                    </span>
+                                    {e.taskPriority && (
+                                      <span
+                                        className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${c.bg} ${c.text}`}
+                                      >
+                                        {e.taskPriority}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-tight">
+                                    {e.title}
+                                  </p>
+                                  <div className="flex items-center gap-3 text-[10px] text-zinc-500 dark:text-zinc-400">
+                                    <span className="flex items-center gap-1">
+                                      <FiCalendar className="h-3 w-3" />
+                                      {format(new Date(e.start), "MMM d")}
+                                    </span>
+                                    {!e.allDay && (
+                                      <span className="flex items-center gap-1">
+                                        <FiClock className="h-3 w-3" />
+                                        {format(new Date(e.start), "h:mm a")}
+                                      </span>
+                                    )}
+                                    {e.location && (
+                                      <span className="flex items-center gap-1">
+                                        <FiMapPin className="h-3 w-3" />
+                                        {e.location}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              }
+                            >
+                              <div
+                                role="button"
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  onEventClick?.(e);
+                                }}
+                                className={`group truncate text-[10px] px-2 py-0.5 rounded-full border ${c.border} bg-foreground/[0.05] hover:bg-foreground/[0.1] flex items-center gap-1.5 w-full transition-colors cursor-pointer`}
+                                tabIndex={0}
+                                onKeyDown={(event) => {
+                                  if (
+                                    event.target === event.currentTarget &&
+                                    (event.key === "Enter" || event.key === " ")
+                                  ) {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    event.currentTarget.click();
+                                  }
+                                }}
+                              >
+                                {isTask ? (
+                                  <FiCheckCircle
+                                    className={`h-2.5 w-2.5 ${c.text}`}
+                                  />
+                                ) : (
+                                  <span
+                                    className={`h-1.5 w-1.5 rounded-full ${c.dot}`}
+                                  />
                                 )}
-                            </div>
-                        </div>
-                    );
+                                <span
+                                  className={`font-medium tracking-normal ${c.text} flex-1 min-w-0`}
+                                >
+                                  {e.title}
+                                </span>
+                              </div>
+                            </Tooltip>
+                          );
+                        })}
+                        {dayEvents.length > 2 && (
+                          <div
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              setPopupData({ date: d, events: dayEvents });
+                            }}
+                            className="text-[9px] font-bold text-text-secondary uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-foreground/[0.04] hover:bg-foreground/[0.08] border border-card-border transition-colors cursor-pointer text-center leading-tight w-full"
+                          >
+                            + {dayEvents.length - 2} more
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
                 })}
 
                 {/* Spanning Bars Layer (Absolute Overlay) */}
                 <div className="absolute top-10 left-0 right-0 pointer-events-none px-1">
-                    <div className="flex flex-col gap-1.5">
-                        {spanningEvents.slice(0, 3).map((e) => {
-                            const eStart = startOfDay(new Date(e.start));
-                            const eEndVal = e.end ? new Date(e.end) : eStart;
-                            const eEnd = endOfDay(eEndVal);
+                  <div className="grid grid-cols-7 gap-y-1.5">
+                    {spanningEvents.slice(0, 3).map((e, lane) => {
+                      const eStart = startOfDay(new Date(e.start));
+                      const eEndVal = e.end ? new Date(e.end) : eStart;
+                      const eEnd = endOfDay(eEndVal);
 
-                            // Calculate relative offsets within this week (0-6)
-                            const startOffset = Math.max(0, differenceInDays(eStart, weekStartDay));
-                            const endOffset = Math.min(6, differenceInDays(eEnd, weekStartDay));
-                            const duration = endOffset - startOffset + 1;
+                      // Calculate relative offsets within this week (0-6)
+                      const startOffset = Math.max(
+                        0,
+                        differenceInDays(eStart, weekStartDay),
+                      );
+                      const endOffset = Math.min(
+                        6,
+                        differenceInDays(eEnd, weekStartDay),
+                      );
+                      const duration = endOffset - startOffset + 1;
 
-                            const barColor = getColorForId(e.id);
-                            const isStarting = isWithinInterval(eStart, { start: weekStartDay, end: weekEndDay });
-                            const isEnding = isWithinInterval(eEnd, { start: weekStartDay, end: weekEndDay });
+                      const barColor = getColorForId(e.id);
+                      const isStarting = isWithinInterval(eStart, {
+                        start: weekStartDay,
+                        end: weekEndDay,
+                      });
+                      const isEnding = isWithinInterval(eEnd, {
+                        start: weekStartDay,
+                        end: weekEndDay,
+                      });
 
-                            const displayTitle = e.isProject 
-                                ? e.title.replace('[PROJ] ', '') 
-                                : e.title.includes('—') ? e.title.split('—')[1]?.trim() : e.title;
+                      const displayTitle = e.isProject
+                        ? e.title.replace("[PROJ] ", "")
+                        : e.title.includes("—")
+                          ? e.title.split("—")[1]?.trim()
+                          : e.title;
 
-                            return (
-                                <div 
-                                    key={e.id}
-                                    style={{ 
-                                        gridColumn: `${startOffset + 1} / span ${duration}`,
-                                        marginLeft: isStarting ? '4px' : '0px',
-                                        marginRight: isEnding ? '4px' : '0px',
-                                        width: 'auto'
-                                    }}
-                                    className="relative h-6"
-                                >
-                                    <Tooltip content={
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-1.5">
-                                                {e.isProject ? (
-                                                    <FiBriefcase className={`h-3 w-3 ${barColor.text}`} />
-                                                ) : e.isTimeOff ? (
-                                                    <FiSun className={`h-3 w-3 ${barColor.text}`} />
-                                                ) : (
-                                                    <FiCalendar className={`h-3 w-3 ${barColor.text}`} />
-                                                )}
-                                                <span className={`text-[10px] font-black uppercase tracking-widest ${barColor.text}`}>
-                                                    {e.isProject ? 'Project' : e.isTimeOff ? 'Time Off' : 'Event'}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-tight">{displayTitle}</p>
-                                            <div className="flex items-center gap-3 text-[10px] text-zinc-500 dark:text-zinc-400">
-                                                <span className="flex items-center gap-1">
-                                                    <FiCalendar className="h-3 w-3" />
-                                                    {format(eStart, 'MMM d')} - {format(eEnd, 'MMM d')}
-                                                </span>
-                                                {e.location && (
-                                                    <span className="flex items-center gap-1">
-                                                        <FiMapPin className="h-3 w-3" />
-                                                        {e.location}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    }>
-                                        <div 
-                                            onClick={(ev) => { ev.stopPropagation(); onEventClick?.(e); }}
-                                            className={`
+                      return (
+                        <div
+                          key={e.id}
+                          style={{
+                            gridColumn: `${startOffset + 1} / span ${duration}`,
+                            gridRow: lane + 1,
+                            marginLeft: isStarting ? "4px" : "0px",
+                            marginRight: isEnding ? "4px" : "0px",
+                            width: "auto",
+                          }}
+                          className="relative h-6"
+                        >
+                          <Tooltip
+                            content={
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-1.5">
+                                  {e.isProject ? (
+                                    <FiBriefcase
+                                      className={`h-3 w-3 ${barColor.text}`}
+                                    />
+                                  ) : e.isTimeOff ? (
+                                    <FiSun
+                                      className={`h-3 w-3 ${barColor.text}`}
+                                    />
+                                  ) : (
+                                    <FiCalendar
+                                      className={`h-3 w-3 ${barColor.text}`}
+                                    />
+                                  )}
+                                  <span
+                                    className={`text-[10px] font-black uppercase tracking-widest ${barColor.text}`}
+                                  >
+                                    {e.isProject
+                                      ? "Project"
+                                      : e.isTimeOff
+                                        ? "Time Off"
+                                        : "Event"}
+                                  </span>
+                                </div>
+                                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 leading-tight">
+                                  {displayTitle}
+                                </p>
+                                <div className="flex items-center gap-3 text-[10px] text-zinc-500 dark:text-zinc-400">
+                                  <span className="flex items-center gap-1">
+                                    <FiCalendar className="h-3 w-3" />
+                                    {format(eStart, "MMM d")} -{" "}
+                                    {format(eEnd, "MMM d")}
+                                  </span>
+                                  {e.location && (
+                                    <span className="flex items-center gap-1">
+                                      <FiMapPin className="h-3 w-3" />
+                                      {e.location}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            }
+                          >
+                            <div
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                onEventClick?.(e);
+                              }}
+                              className={`
                                                 pointer-events-auto h-full px-2 flex items-center gap-2 rounded-full border  cursor-pointer transition-all hover:brightness-110 active:scale-[0.98]
                                                 ${barColor.bg} ${barColor.border}
-                                                ${!isStarting ? 'rounded-l-none border-l-0' : ''}
-                                                ${!isEnding ? 'rounded-r-none border-r-0' : ''}
+                                                ${!isStarting ? "rounded-l-none border-l-0" : ""}
+                                                ${!isEnding ? "rounded-r-none border-r-0" : ""}
                                             `}
-                                        >
-                                            {e.isProject && isStarting && <FiBriefcase className="w-2.5 h-2.5 flex-shrink-0 text-foreground" />}
-                                            {e.isTimeOff && isStarting && <span className="text-[10px] flex-shrink-0">🌴</span>}
-                                            <span className={`text-[9px] font-black uppercase tracking-wider truncate ${barColor.text}`}>
-                                                {displayTitle}
-                                            </span>
-                                        </div>
-                                    </Tooltip>
-                                </div>
-                            );
-                        })}
-                    </div>
+                            >
+                              {e.isProject && isStarting && (
+                                <FiBriefcase className="w-2.5 h-2.5 flex-shrink-0 text-foreground" />
+                              )}
+                              {e.isTimeOff && isStarting && (
+                                <span className="text-[10px] flex-shrink-0">
+                                  🌴
+                                </span>
+                              )}
+                              <span
+                                className={`text-[9px] font-black uppercase tracking-wider truncate ${barColor.text}`}
+                              >
+                                {displayTitle}
+                              </span>
+                            </div>
+                          </Tooltip>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             );
@@ -363,17 +590,25 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
           <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
             <motion.div
               ref={popupRef}
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.98 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.99 }}
+              transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
               className="w-full max-w-md bg-card border border-card-border rounded-3xl p-6 pointer-events-auto flex flex-col gap-4 overflow-hidden max-h-[80vh]"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-foreground text-xl font-black tracking-tight">{format(popupData.date, "MMMM d, yyyy")}</h3>
-                  <p className="text-text-secondary text-xs font-bold uppercase tracking-widest mt-1">{popupData.events.length} Items Today</p>
+                  <h3 className="text-foreground text-xl font-black tracking-tight">
+                    {format(popupData.date, "MMMM d, yyyy")}
+                  </h3>
+                  <p className="text-text-secondary text-xs font-bold uppercase tracking-widest mt-1">
+                    {popupData.events.length} Items Today
+                  </p>
                 </div>
-                <button onClick={() => setPopupData(null)} className="p-2 hover:bg-foreground/[0.05] text-(--text-muted) hover:text-foreground transition-colors rounded-full">
+                <button
+                  onClick={() => setPopupData(null)}
+                  className="p-2 hover:bg-foreground/[0.05] text-(--text-muted) hover:text-foreground transition-colors rounded-full"
+                >
                   <FiX className="w-5 h-5" />
                 </button>
               </div>
@@ -381,27 +616,41 @@ export default function MonthGrid({ date, events = [], onSelectDate, onEventClic
               <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3">
                 {popupData.events.map((e) => {
                   const isTask = e.isTask;
-                  const c = isTask ? taskClasses(e.taskStatus) : privacyClasses(e.privacy);
-                  
+                  const c = isTask
+                    ? taskClasses(e.taskStatus)
+                    : privacyClasses(e.privacy);
+
                   return (
                     <div
                       key={e.id}
-                      onClick={() => { onEventClick?.(e); setPopupData(null); }}
+                      onClick={() => {
+                        onEventClick?.(e);
+                        setPopupData(null);
+                      }}
                       className={`bg-foreground/[0.05] border border-card-border rounded-full px-3 py-2 hover:bg-foreground/[0.1] transition-all cursor-pointer group/card active:scale-[0.98] w-full`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-1.5 rounded-full ${c.bg} border ${c.border.replace('/50', '/20')} ${c.text}`}>
-                          {isTask ? <FiCheckCircle className="w-3.5 h-3.5" /> : <FiCalendar className="w-3.5 h-3.5" />}
+                        <div
+                          className={`p-1.5 rounded-full ${c.bg} border ${c.border.replace("/50", "/20")} ${c.text}`}
+                        >
+                          {isTask ? (
+                            <FiCheckCircle className="w-3.5 h-3.5" />
+                          ) : (
+                            <FiCalendar className="w-3.5 h-3.5" />
+                          )}
                         </div>
-                        
+
                         <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                              <h4 className="text-foreground font-bold text-xs group-hover/card:text-accent-text transition-colors uppercase tracking-tight truncate">{e.title}</h4>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1">
-                                      <FiClock className="w-2.5 h-2.5" /> {format(new Date(e.start), 'h:mm a')}
-                                  </span>
-                              </div>
+                            <h4 className="text-foreground font-bold text-xs group-hover/card:text-accent-text transition-colors uppercase tracking-tight truncate">
+                              {e.title}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[9px] font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1">
+                                <FiClock className="w-2.5 h-2.5" />{" "}
+                                {format(new Date(e.start), "h:mm a")}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>

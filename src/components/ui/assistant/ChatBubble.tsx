@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { FiDownload, FiCopy } from 'react-icons/fi';
 import { toast } from '@/lib/toast';
 import PipMascot from './pip-mascot';
@@ -24,12 +24,13 @@ interface ChatBubbleProps {
     isReport?: boolean;
   };
   activity?: PipActivity;
+  compact?: boolean;
 }
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity }) => {
+const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity, compact = false }) => {
+  const reduceMotion = useReducedMotion();
   const [copied, setCopied] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
-  const isLoading = !message.text && !message.isUser;
 
   const getCleanText = () => message.text.replace(/__WIDGET__[\s\S]*?__WIDGET__/g, '').trim();
 
@@ -112,7 +113,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity }) => {
 
   const isLong = message.text && message.text.length > 300;
 
-  const parts = message.text ? message.text.split(/(__WIDGET__[\s\S]*?__WIDGET__)/g) : [];
+  let visibleText = message.text.replace(/__REPORT__/g, '');
+  const widgetMarkers = visibleText.match(/__WIDGET__/g) || [];
+  if (!message.isUser && widgetMarkers.length % 2 !== 0) visibleText = visibleText.slice(0, visibleText.lastIndexOf('__WIDGET__'));
+  const parts = visibleText ? visibleText.split(/(__WIDGET__[\s\S]*?__WIDGET__)/g) : [];
 
   const renderWidget = (widgetToken: string) => {
     try {
@@ -167,14 +171,12 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity }) => {
 
   if (!message.text && !message.isUser) {
     return (
-      <div className="flex justify-start mb-3 items-start gap-3">
-        <div className="shrink-0 mt-1">
-          <PipMascot variant="smart" status={activity === 'thinking' || activity === 'analyzing' ? 'thinking' : 'idle'} size="sm" />
-        </div>
+      <div className="flex min-w-0 items-start gap-3">
+        {!compact && <div className="shrink-0"><PipMascot variant="smart" status={activity === 'thinking' || activity === 'analyzing' ? 'thinking' : 'idle'} size="sm" /></div>}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex min-h-14 items-center rounded-2xl rounded-bl-md border border-card-border bg-card px-4 py-3"
+          className="flex min-h-11 min-w-0 items-center rounded-2xl bg-foreground/[0.03] px-3 py-2"
         >
           <PipStatusIndicator activity={activity || 'thinking'} />
         </motion.div>
@@ -183,22 +185,21 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity }) => {
   }
 
   return (
-    <div className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-3 items-start gap-3`}>
-      {!message.isUser && (
+    <div className={`flex min-w-0 items-start gap-3 ${message.isUser ? 'justify-end' : 'justify-start'}`}>
+      {!message.isUser && !compact && (
         <div className="shrink-0 mt-1">
           <PipMascot variant="smart" status="idle" size="sm" />
         </div>
       )}
       <motion.div
-        layoutId={message.id ? `bubble-${message.id}` : undefined}
-        initial={{ opacity: 0, scale: 0.9, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
         className={`
-          max-w-2xl px-5 py-4 overflow-hidden relative
+          relative min-w-0 [overflow-wrap:anywhere]
           ${message.isUser
-            ? 'bg-accent text-on-accent rounded-2xl rounded-br-md'
-            : 'bg-card text-foreground rounded-2xl rounded-bl-md border border-card-border'
+            ? `max-w-[88%] rounded-3xl rounded-br-lg bg-accent/10 text-foreground ${compact ? 'px-3.5 py-2.5' : 'px-5 py-3.5'}`
+            : 'flex-1 pt-1 text-foreground'
           }
         `}
       >
@@ -213,7 +214,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity }) => {
             return <React.Fragment key={i}>{renderWidget(part)}</React.Fragment>;
           }
           return (
-            <div key={i} className={`prose prose-sm max-w-none ${message.isUser ? 'prose-invert' : 'dark:prose-invert'} prose-p:leading-relaxed prose-pre:bg-foreground/[0.05] prose-pre:border prose-pre:border-card-border prose-pre:text-foreground prose-code:text-accent-text prose-a:text-accent-text`}>
+            <div key={i} className={`prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-p:leading-relaxed prose-table:block prose-table:overflow-x-auto prose-pre:overflow-x-auto prose-pre:bg-foreground/[0.05] prose-pre:border prose-pre:border-card-border prose-pre:text-foreground prose-code:text-accent-text prose-a:text-accent-text`}>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {part}
               </ReactMarkdown>
@@ -221,24 +222,26 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, activity }) => {
           );
         })}
 
-        {!message.isUser && (isLong || message.isReport) && (
+        {!message.isUser && message.text && activity !== 'writing' && activity !== 'thinking' && activity !== 'analyzing' && (
+
           <div className="mt-3 space-y-2">
-            <p className="text-[10px] text-text-muted/60 italic font-medium">
-              This response is not saved — download or copy it to keep a record.
-            </p>
+            {(isLong || message.isReport) && <p className="text-[11px] text-text-muted">Keep a copy for later.</p>}
             <div className="flex items-center gap-2">
-              <button
+              {(isLong || message.isReport) && <button
+                type="button"
                 onClick={message.isReport ? handleDownloadPdf : handleDownload}
                 disabled={isDownloadingPdf}
                 aria-busy={isDownloadingPdf}
-                className="flex min-h-11 items-center gap-2 rounded-full border border-card-border bg-foreground/[0.05] px-3 py-2 text-[10px] font-bold capitalize text-text-muted transition-all hover:border-accent/30 hover:text-accent-text disabled:cursor-wait disabled:opacity-60"
+                className="flex min-h-9 items-center gap-2 rounded-full px-3 py-2 text-xs font-medium text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.97] disabled:cursor-wait disabled:opacity-60"
               >
                 {isDownloadingPdf ? <Spinner className="h-3.5 w-3.5" /> : <FiDownload className="h-3.5 w-3.5" />}
                 {message.isReport ? (isDownloadingPdf ? 'Preparing PDF' : 'Download PDF') : 'Download .md'}
-              </button>
+              </button>}
               <button
+                type="button"
+                aria-label={copied ? 'Response copied' : 'Copy response'}
                 onClick={handleCopy}
-                className="flex min-h-11 items-center gap-2 rounded-full border border-card-border bg-foreground/[0.05] px-3 py-2 text-[10px] font-bold capitalize text-text-muted transition-all hover:border-accent/30 hover:text-accent-text"
+                className="flex min-h-9 items-center gap-2 rounded-full px-3 py-2 text-xs font-medium text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:scale-[0.97]"
               >
                 <FiCopy className="w-3 h-3" />
                 {copied ? "Copied!" : "Copy"}

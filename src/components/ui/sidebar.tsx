@@ -243,7 +243,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
               className={`${contentVisibilityClass} ml-auto`}
               role="status"
               aria-label={isAttendanceLive ? "Clocked in" : isAttendanceRecorded ? "Attendance recorded today" : "No attendance recorded today"}
-              title={isAttendanceLive ? "Clocked in" : isAttendanceRecorded ? "Attendance recorded today" : "No attendance recorded today"}
+              data-tooltip={isAttendanceLive ? "Clocked in" : isAttendanceRecorded ? "Attendance recorded today" : "No attendance recorded today"}
             >
               {/* Same 20px circle as the count badges, so the column lines up. */}
               <span className={`relative grid h-5 w-5 place-items-center rounded-full ${isAttendanceRecorded ? "bg-accent/15" : "bg-foreground/[0.05]"}`}>
@@ -280,7 +280,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
             whileHover={{ scale: 1.05, transition: spring }}
             whileTap={{ scale: 0.93, transition: springTap }}
             className="flex items-center cursor-pointer group/logo"
-            title={isExpandedDesktop ? "Collapse Sidebar" : "Expand Sidebar"}
+            data-tooltip={isExpandedDesktop ? "Collapse Sidebar" : "Expand Sidebar"} aria-label={isExpandedDesktop ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             <div className="w-10 h-10 p-1 flex items-center justify-center shrink-0">
               <Image
@@ -474,7 +474,7 @@ const Sidebar = ({ user, organizations, currentOrgId, orgSlug }: SidebarProps) =
               <Link
                 href={orgSlug ? `/${orgSlug}/settings` : "/settings"}
                 data-tour="settings"
-                title="Settings"
+                data-tooltip="Settings"
                 aria-label="Settings"
                 className="group/settings flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
               >

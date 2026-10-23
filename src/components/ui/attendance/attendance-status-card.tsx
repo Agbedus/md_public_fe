@@ -204,7 +204,7 @@ export default function AttendanceStatusCard({ record: initialRecord, defaultExp
                         onClick={handleClockIn}
                         disabled={isLoading}
                         aria-busy={clockInPhase !== 'idle'}
-                        title={busyLabel ?? 'Clock in'}
+                        data-tooltip={busyLabel ?? 'Clock in'} aria-label={busyLabel ?? 'Clock in'}
                         className="md-btn md-btn-primary md-btn-sm shrink-0 disabled:cursor-wait"
                     >
                         <span className="hidden sm:inline">{busyLabel ?? 'Clock in'}</span>
@@ -241,7 +241,7 @@ export default function AttendanceStatusCard({ record: initialRecord, defaultExp
                                 onClick={handleConfirmClockOut}
                                 disabled={isLoading}
                                 className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-danger text-on-danger transition-transform active:scale-95"
-                                title="Confirm override"
+                                data-tooltip="Confirm override"
                                 aria-label="Confirm clock out"
                             >
                                 <FiCheck className="h-4 w-4" />
@@ -250,7 +250,7 @@ export default function AttendanceStatusCard({ record: initialRecord, defaultExp
                                 type="button"
                                 onClick={() => { setShowConfirm(false); setConfirmReason(null); }}
                                 className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground/[0.06] text-text-muted transition-colors hover:text-foreground active:scale-95"
-                                title="Cancel"
+                                data-tooltip="Cancel"
                                 aria-label="Cancel clock out"
                             >
                                 <FiX className="h-4 w-4" />
@@ -335,7 +335,7 @@ export default function AttendanceStatusCard({ record: initialRecord, defaultExp
                                     type="button"
                                     onClick={refreshLocation}
                                     disabled={isLoading}
-                                    title="Refresh your GPS location"
+                                    data-tooltip="Refresh your GPS location" aria-label="Refresh your GPS location"
                                     className={`${pill} ${isPolling || isLoading ? 'bg-accent/12 text-accent-text' : 'bg-foreground/[0.05] text-text-secondary hover:text-foreground'}`}
                                 >
                                     <FiTarget className={`h-3.5 w-3.5 ${isLoading ? 'animate-pulse' : ''}`} /> Sync location

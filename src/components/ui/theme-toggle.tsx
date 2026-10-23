@@ -42,7 +42,7 @@ export function ThemeToggle({
         whileHover={{ scale: 1.07, transition: spring }}
         whileTap={{ scale: 0.88, rotate: -12, transition: springTap }}
         className="relative grid h-9 w-9 place-items-center rounded-full bg-foreground/[0.05] hover:bg-foreground/[0.09] transition-colors duration-200 group overflow-hidden"
-        title={`Switch theme (currently ${getLabel()})`}
+        data-tooltip={`Switch theme (currently ${getLabel()})`} aria-label={`Switch theme (currently ${getLabel()})`}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -70,7 +70,7 @@ export function ThemeToggle({
         hover:bg-foreground/[0.03] text-(--text-muted) hover:text-foreground group relative
         ${collapsed ? 'justify-center px-0' : 'justify-start'}
       `}
-      title={`Switch theme (currently ${getLabel()})`}
+      data-tooltip={`Switch theme (currently ${getLabel()})`} aria-label={`Switch theme (currently ${getLabel()})`}
     >
       <div className={`flex-shrink-0 text-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12`}>
         {getIcon()}

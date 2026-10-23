@@ -42,7 +42,7 @@ function stripSavedBackgrounds(el: Element): void {
  * Returns an empty string on the server: it relies on `DOMParser`, so callers
  * should render it only after mount to avoid a hydration mismatch.
  */
-export function sanitizeHtml(html: string): string {
+export function sanitizeHtml(html: string, { interactiveChecklists = false }: { interactiveChecklists?: boolean } = {}): string {
     if (!html) return '';
     if (typeof window === 'undefined' || typeof DOMParser === 'undefined') return '';
 
@@ -70,9 +70,9 @@ export function sanitizeHtml(html: string): string {
             }
         }
 
-        // Checklists in read-only cards must not appear to save local toggles.
+        // Only a surface with a save handler may expose interactive checkboxes.
         if (el.tagName === 'INPUT' && el.getAttribute('type') === 'checkbox') {
-            el.setAttribute('disabled', '');
+            el.toggleAttribute('disabled', !interactiveChecklists || !el.matches('li[data-type="taskItem"] > label > input'));
         }
         stripSavedBackgrounds(el);
     }

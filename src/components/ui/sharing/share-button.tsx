@@ -409,7 +409,7 @@ export function ShareButton({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-label={label}
-        title={isCollapsed ? label : undefined}
+        data-tooltip={isCollapsed ? label : undefined}
         className={`${triggerClass} ${className}`}
       >
         <FiShare2 className="h-4 w-4 shrink-0" aria-hidden="true" />

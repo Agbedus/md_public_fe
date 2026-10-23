@@ -1,5 +1,6 @@
 'use client';
 
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import React, { useState } from 'react';
 import { createTask } from '@/app/(dashboard)/[orgSlug]/tasks/actions';
 import { CustomDatePicker } from '@/components/ui/inputs/custom-date-picker';
@@ -93,31 +94,27 @@ export default function TaskForm({ onSuccess }: { onSuccess: () => void }) {
 
         <div>
           <label className="block text-sm font-medium mb-1 text-foreground">Priority</label>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all h-[42px]"
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
+          <CustomSelect
+            label="Priority"
+            value={String(priority)}
+            onChange={(value) => setPriority(value)}
+            options={[{ value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }]}
+            className="w-full"
+            triggerClassName="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all h-[42px]"
+          />
         </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium mb-1 text-foreground">Status</label>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all h-[42px]"
-        >
-          <option value="TODO">To Do</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="QA">QA</option>
-          <option value="REVIEW">Review</option>
-          <option value="DONE">Done</option>
-        </select>
+        <CustomSelect
+          label="Status"
+          value={String(status)}
+          onChange={(value) => setStatus(value)}
+          options={[{ value: "TODO", label: "To Do" }, { value: "IN_PROGRESS", label: "In Progress" }, { value: "QA", label: "QA" }, { value: "REVIEW", label: "Review" }, { value: "DONE", label: "Done" }]}
+          className="w-full"
+          triggerClassName="w-full p-2 rounded-md border border-card-border bg-foreground/[0.03] text-foreground placeholder:text-text-muted focus:outline-none focus:bg-foreground/[0.06] transition-all h-[42px]"
+        />
       </div>
 
       <div className="flex items-center gap-6 py-2">

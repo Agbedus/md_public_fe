@@ -1,6 +1,20 @@
 "use client";
+import {
+  FormWizard,
+  FormStep,
+  FormStepHeader,
+  FormStepNavigation,
+} from "@/components/ui/form-wizard";
 import React, { useEffect, useState } from "react";
-import { FiBell, FiX, FiCheck, FiClock, FiCalendar, FiMapPin, FiPlus } from "react-icons/fi";
+import {
+  FiBell,
+  FiX,
+  FiCheck,
+  FiClock,
+  FiCalendar,
+  FiMapPin,
+  FiPlus,
+} from "react-icons/fi";
 import { createEvent } from "@/app/(dashboard)/[orgSlug]/calendar/actions";
 import type { CalendarEvent, EventReminder } from "@/types/calendar";
 import { Tooltip } from "@/components/ui/Tooltip";
@@ -9,7 +23,7 @@ import { CustomNumberInput } from "@/components/ui/inputs/custom-number-input";
 import { format } from "date-fns";
 import { toast } from "@/lib/toast";
 
-import { BusyIcon } from '@/components/ui/busy-icon';
+import { BusyIcon } from "@/components/ui/busy-icon";
 interface EventModalProps {
   open: boolean;
   initialStart?: Date | null;
@@ -18,7 +32,13 @@ interface EventModalProps {
   onOptimisticAdd?: (event: CalendarEvent) => void;
 }
 
-export default function EventModal({ open, initialStart, onClose, onCreated, onOptimisticAdd }: EventModalProps) {
+export default function EventModal({
+  open,
+  initialStart,
+  onClose,
+  onCreated,
+  onOptimisticAdd,
+}: EventModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [allDay, setAllDay] = useState(false);
@@ -27,21 +47,27 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
   const [location, setLocation] = useState("");
   const [organizer, setOrganizer] = useState("");
   const [attendees, setAttendees] = useState(""); // comma separated
-  const [status, setStatus] = useState<"tentative"|"confirmed"|"cancelled">("tentative");
-  const [privacy, setPrivacy] = useState<"public"|"private"|"confidential">("public");
-  const [recurrence, setRecurrence] = useState<"none"|"daily"|"weekly"|"monthly"|"yearly">("none");
+  const [status, setStatus] = useState<"tentative" | "confirmed" | "cancelled">(
+    "tentative",
+  );
+  const [privacy, setPrivacy] = useState<"public" | "private" | "confidential">(
+    "public",
+  );
+  const [recurrence, setRecurrence] = useState<
+    "none" | "daily" | "weekly" | "monthly" | "yearly"
+  >("none");
   const [reminders, setReminders] = useState<EventReminder[]>([]);
   const [color, setColor] = useState("#6366f1");
-  
+
   const [rDays, setRDays] = useState(0);
   const [rHours, setRHours] = useState(0);
   const [rMinutes, setRMinutes] = useState(0);
-  
+
   const [submitting, setSubmitting] = useState(false);
 
   // Helpers
   function toLocalISOString(date: Date) {
-    const pad = (n: number) => n.toString().padStart(2, '0');
+    const pad = (n: number) => n.toString().padStart(2, "0");
     const year = date.getFullYear();
     const month = pad(date.getMonth() + 1);
     const day = pad(date.getDate());
@@ -62,7 +88,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
     if (open) {
       const base = initialStart ?? new Date();
       const startLocal = toLocalISOString(base);
-      const endBase = new Date(base.getTime() + 60*60*1000); // Default 1 hour duration
+      const endBase = new Date(base.getTime() + 60 * 60 * 1000); // Default 1 hour duration
       const endLocal = toLocalISOString(endBase);
       const frame = window.requestAnimationFrame(() => {
         setTitle("");
@@ -106,42 +132,56 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
 
     // Optimistic Update
     const newEvent: CalendarEvent = {
-        id: Math.random().toString(36).substr(2, 9), // Temp ID
-        title: title || "Untitled Event",
-        description: description || undefined,
-        start: new Date(start).toISOString(),
-        end: new Date(end).toISOString(),
-        allDay: allDay,
-        location: location || undefined,
-        organizer: organizer || undefined,
-        attendees: attendees ? attendees.split(",").map(s => s.trim()).filter(Boolean) : [],
-        status: status,
-        privacy: privacy,
-        recurrence: recurrence,
-        reminders: reminders,
-        color: color,
-        userId: "me", // Placeholder
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      id: Math.random().toString(36).substr(2, 9), // Temp ID
+      title: title || "Untitled Event",
+      description: description || undefined,
+      start: new Date(start).toISOString(),
+      end: new Date(end).toISOString(),
+      allDay: allDay,
+      location: location || undefined,
+      organizer: organizer || undefined,
+      attendees: attendees
+        ? attendees
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
+      status: status,
+      privacy: privacy,
+      recurrence: recurrence,
+      reminders: reminders,
+      color: color,
+      userId: "me", // Placeholder
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     onOptimisticAdd?.(newEvent);
     onClose(); // Close immediately for snappy feel
 
     try {
       const formData = new FormData();
-      formData.append('title', title || "Untitled Event");
-      if (description) formData.append('description', description);
-      formData.append('start', new Date(start).toISOString());
-      formData.append('end', new Date(end).toISOString());
-      formData.append('allDay', String(allDay));
-      if (location) formData.append('location', location);
-      if (organizer) formData.append('organizer', organizer);
-      if (attendees) formData.append('attendees', JSON.stringify(attendees.split(",").map((s) => s.trim()).filter(Boolean)));
-      if (status) formData.append('status', status);
-      if (privacy) formData.append('privacy', privacy);
-      if (recurrence) formData.append('recurrence', recurrence);
-      formData.append('reminders', JSON.stringify(reminders));
-      formData.append('color', color);
+      formData.append("title", title || "Untitled Event");
+      if (description) formData.append("description", description);
+      formData.append("start", new Date(start).toISOString());
+      formData.append("end", new Date(end).toISOString());
+      formData.append("allDay", String(allDay));
+      if (location) formData.append("location", location);
+      if (organizer) formData.append("organizer", organizer);
+      if (attendees)
+        formData.append(
+          "attendees",
+          JSON.stringify(
+            attendees
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+          ),
+        );
+      if (status) formData.append("status", status);
+      if (privacy) formData.append("privacy", privacy);
+      if (recurrence) formData.append("recurrence", recurrence);
+      formData.append("reminders", JSON.stringify(reminders));
+      formData.append("color", color);
 
       const result = await createEvent(formData);
       if (result && !result.success) {
@@ -150,7 +190,7 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
         await onCreated();
         return;
       }
-      
+
       await onCreated();
       toast.success(`Event created — ${newEvent.title}`);
       // onClose called optimistically
@@ -178,334 +218,472 @@ export default function EventModal({ open, initialStart, onClose, onCreated, onO
       aria-labelledby="create-event-title"
     >
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md transition-opacity"
         onClick={onClose}
       />
 
       <div className="relative flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-3xl border border-card-border bg-background shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] md:max-h-[90vh] md:max-w-3xl md:rounded-[28px]">
-        {/* Header */}
-        <div className="flex flex-none items-center justify-between border-b border-card-border bg-card px-4 py-4 sm:px-6 md:px-8 md:py-5">
-          <div id="create-event-title" className="text-foreground font-semibold tracking-tight text-lg italic">Add event</div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center hover:bg-foreground/[0.05] text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border rounded-full"
-            aria-label="Close"
-          >
-            <FiX className="h-5 w-5" />
-          </button>
-        </div>
+        <FormWizard
+          formId="create-event-form"
+          steps={["When & where", "People & visibility", "Details & reminders"]}
+          busy={submitting}
+          validateStep={(step) =>
+            step === 0 &&
+            (!start ||
+              !end ||
+              !Number.isFinite(new Date(start).getTime()) ||
+              !Number.isFinite(new Date(end).getTime()) ||
+              (allDay
+                ? new Date(end) < new Date(start)
+                : new Date(end) <= new Date(start)))
+              ? "Choose valid start and end dates. The end must follow the start."
+              : null
+          }
+          className="flex min-h-0 max-h-[inherit] flex-1 flex-col overflow-hidden"
+        >
+          {/* Header */}
+          <div className="flex flex-none items-center justify-between border-b border-card-border bg-card px-4 py-4 sm:px-6 md:px-8 md:py-5">
+            <div
+              id="create-event-title"
+              className="text-foreground font-semibold tracking-tight text-lg italic"
+            >
+              Add event
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-9 w-9 items-center justify-center hover:bg-foreground/[0.05] text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border rounded-full"
+              aria-label="Close"
+            >
+              <FiX className="h-5 w-5" />
+            </button>
+          </div>
 
-        {/* Scrollable Form Body */}
-        <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-            <form id="create-event-form" onSubmit={handleSubmit} className="space-y-8">
-            {/* All-day toggle at top */}
-            <div className="flex items-center justify-between gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
-                <div className="flex items-center gap-3">
+          {/* Scrollable Form Body */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+            <form
+              id="create-event-form"
+              onSubmit={handleSubmit}
+              className="space-y-8"
+            >
+              <FormStepHeader />
+              <FormStep index={0}>
+                {/* All-day toggle at top */}
+                <div className="flex items-center justify-between gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
+                  <div className="flex items-center gap-3">
                     <div className="p-2 bg-foreground/[0.06] rounded-full">
-                        <FiCalendar className="text-foreground/60 w-4 h-4" />
+                      <FiCalendar className="text-foreground/60 w-4 h-4" />
                     </div>
                     <span className="text-xs font-semibold text-text-muted">
-                        Temporal Mode
+                      Schedule
                     </span>
-                </div>
-                <button
-                type="button"
-                id="allday"
-                onClick={() => handleAllDayChange(!allDay)}
-                aria-pressed={allDay}
-                className={`relative inline-flex h-10 items-center rounded-full border p-1 transition-all duration-300 ${
- allDay ? "bg-foreground/[0.08] border-foreground/20" : "bg-background border-card-border"
- }`}
-                >
-                <span
-                    className={`inline-flex items-center px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
- allDay ? "bg-foreground/[0.12] text-foreground" : "bg-transparent text-text-muted"
- }`}
-                >
-                    Full Duration
-                </span>
-                <span
-                    className={`inline-flex items-center px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
- !allDay ? "bg-background text-foreground shadow-sm border border-card-border" : "bg-transparent text-text-muted"
- }`}
-                >
-                    Precision
-                </span>
-                </button>
-            </div>
-
-            {/* Primary fields */}
-            <div className="space-y-6">
-                <div>
-                <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Task name</label>
-                <input
-                    value={title}
-                    onChange={(e)=>setTitle(e.target.value)}
-                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
-                    placeholder="Operational designation..."
-                    required
-                />
+                  </div>
+                  <button
+                    type="button"
+                    id="allday"
+                    onClick={() => handleAllDayChange(!allDay)}
+                    aria-pressed={allDay}
+                    className={`relative inline-flex h-10 items-center rounded-full border p-1 transition-all duration-300 ${
+                      allDay
+                        ? "bg-foreground/[0.08] border-foreground/20"
+                        : "bg-background border-card-border"
+                    }`}
+                  >
+                    <span
+                      className={`inline-flex items-center px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
+                        allDay
+                          ? "bg-foreground/[0.12] text-foreground"
+                          : "bg-transparent text-text-muted"
+                      }`}
+                    >
+                      All day
+                    </span>
+                    <span
+                      className={`inline-flex items-center px-4 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
+                        !allDay
+                          ? "bg-background text-foreground shadow-sm border border-card-border"
+                          : "bg-transparent text-text-muted"
+                      }`}
+                    >
+                      Set times
+                    </span>
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
-                    <FiClock className="text-accent-text" /> Commencement
+                {/* Primary fields */}
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                      Event name
                     </label>
-                    <CustomDatePicker
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
+                      placeholder="Event name"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
+                        <FiClock className="text-accent-text" /> Starts
+                      </label>
+                      <CustomDatePicker
                         value={start}
                         onChange={(date) => {
-                            if (date) {
-                                setStart(allDay ? format(date, "yyyy-MM-dd") : format(date, "yyyy-MM-dd'T'HH:mm"));
-                            }
+                          if (date) {
+                            setStart(
+                              allDay
+                                ? format(date, "yyyy-MM-dd")
+                                : format(date, "yyyy-MM-dd'T'HH:mm"),
+                            );
+                          }
                         }}
                         enableTime={!allDay}
                         className="w-full"
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
-                    <FiClock className="text-accent-text" /> Termination
-                    </label>
-                    <CustomDatePicker
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
+                        <FiClock className="text-accent-text" /> Ends
+                      </label>
+                      <CustomDatePicker
                         value={end}
                         onChange={(date) => {
-                            if (date) {
-                                setEnd(allDay ? format(date, "yyyy-MM-dd") : format(date, "yyyy-MM-dd'T'HH:mm"));
-                            }
+                          if (date) {
+                            setEnd(
+                              allDay
+                                ? format(date, "yyyy-MM-dd")
+                                : format(date, "yyyy-MM-dd'T'HH:mm"),
+                            );
+                          }
                         }}
                         enableTime={!allDay}
                         className="w-full"
                         minDate={start ? new Date(start) : undefined}
-                    />
-                </div>
-                </div>
+                      />
+                    </div>
+                  </div>
 
-                <div>
-                <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
-                    <FiMapPin className="text-accent-text" /> Office location
-                </label>
-                <input
-                    value={location}
-                    onChange={(e)=>setLocation(e.target.value)}
-                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
-                    placeholder="Physical or virtual deployment zone"
-                />
-                </div>
-            </div>
-
-            {/* Advanced options */}
-            <div className="space-y-6 pt-4">
-                <div className="flex items-center gap-4">
-                    <span className="text-xs font-semibold text-text-muted whitespace-nowrap">Additional details</span>
-                    <div className="h-px w-full bg-foreground/[0.05]" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Assigned to</label>
+                  <div>
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1 flex items-center gap-1.5">
+                      <FiMapPin className="text-accent-text" /> Location
+                    </label>
                     <input
-                        value={organizer}
-                        onChange={(e)=>setOrganizer(e.target.value)}
-                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
-                        placeholder="Command authority"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
+                      placeholder="Address or meeting link"
                     />
+                  </div>
+                </div>
+
+                {/* Advanced options */}
+              </FormStep>
+              <FormStep index={1}>
+                <div className="space-y-6 pt-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-semibold text-text-muted whitespace-nowrap">
+                      Additional details
+                    </span>
+                    <div className="h-px w-full bg-foreground/[0.05]" />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                        Organizer
+                      </label>
+                      <input
+                        value={organizer}
+                        onChange={(e) => setOrganizer(e.target.value)}
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
+                        placeholder="Organizer name"
+                      />
                     </div>
 
                     <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Assigned Personnel</label>
-                    <input
+                      <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                        Attendees
+                      </label>
+                      <input
                         value={attendees}
-                        onChange={(e)=>setAttendees(e.target.value)}
+                        onChange={(e) => setAttendees(e.target.value)}
                         className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
-                        placeholder="Authorized identifiers (comma separated)"
-                    />
+                        placeholder="Names or emails, separated by commas"
+                      />
                     </div>
 
                     <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Status</label>
-                    <div className="flex flex-wrap gap-2">
-                        {([
-                        { v: "tentative", label: "Tentative" },
-                        { v: "confirmed", label: "Confirmed" },
-                        { v: "cancelled", label: "Aborted" },
-                        ] as const).map((opt) => (
-                        <button
+                      <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                        Status
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {(
+                          [
+                            { v: "tentative", label: "Tentative" },
+                            { v: "confirmed", label: "Confirmed" },
+                            { v: "cancelled", label: "Aborted" },
+                          ] as const
+                        ).map((opt) => (
+                          <button
                             type="button"
                             key={opt.v}
                             onClick={() => setStatus(opt.v)}
                             className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all duration-300 ${
- status === opt.v
- ? "border-accent/60 bg-accent/10 text-accent-text dark:text-accent-text"
- : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
- }`}
-                        >
+                              status === opt.v
+                                ? "border-accent/60 bg-accent/10 text-accent-text dark:text-accent-text"
+                                : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
+                            }`}
+                          >
                             {opt.label}
-                        </button>
+                          </button>
                         ))}
-                    </div>
+                      </div>
                     </div>
 
                     <div>
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Security Classification</label>
-                    <div className="flex flex-wrap gap-2">
-                        {([
-                        { v: "public", label: "Public", color: "border-success/30 text-success-text dark:text-success-text bg-success/10" },
-                        { v: "private", label: "Private", color: "border-warning/30 text-warning-text dark:text-warning-text bg-warning/10" },
-                        { v: "confidential", label: "Restricted", color: "border-danger/30 text-danger-text dark:text-danger-text bg-danger/10" },
-                        ] as const).map((opt) => (
-                        <button
+                      <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                        Visibility
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {(
+                          [
+                            {
+                              v: "public",
+                              label: "Public",
+                              color:
+                                "border-success/30 text-success-text dark:text-success-text bg-success/10",
+                            },
+                            {
+                              v: "private",
+                              label: "Private",
+                              color:
+                                "border-warning/30 text-warning-text dark:text-warning-text bg-warning/10",
+                            },
+                            {
+                              v: "confidential",
+                              label: "Restricted",
+                              color:
+                                "border-danger/30 text-danger-text dark:text-danger-text bg-danger/10",
+                            },
+                          ] as const
+                        ).map((opt) => (
+                          <button
                             type="button"
                             key={opt.v}
                             onClick={() => setPrivacy(opt.v)}
                             className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-full border transition-all duration-300 ${
-                            privacy === opt.v
+                              privacy === opt.v
                                 ? `${opt.color}`
                                 : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
                             }`}
-                        >
+                          >
                             {opt.label}
-                        </button>
+                          </button>
                         ))}
+                      </div>
                     </div>
-                    </div>
-
-                    <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Repeat</label>
+                  </div>
+                </div>
+              </FormStep>
+              <FormStep index={2}>
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                      Repeat
+                    </label>
                     <div className="flex flex-wrap gap-2">
-                        {([
-                        { v: "none", label: "Static" },
-                        { v: "daily", label: "Daily" },
-                        { v: "weekly", label: "Weekly" },
-                        { v: "monthly", label: "Monthly" },
-                        { v: "yearly", label: "Annual" },
-                        ] as const).map((opt) => (
+                      {(
+                        [
+                          { v: "none", label: "Static" },
+                          { v: "daily", label: "Daily" },
+                          { v: "weekly", label: "Weekly" },
+                          { v: "monthly", label: "Monthly" },
+                          { v: "yearly", label: "Annual" },
+                        ] as const
+                      ).map((opt) => (
                         <button
-                            type="button"
-                            key={opt.v}
-                            onClick={() => setRecurrence(opt.v)}
-                            className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all duration-300 ${
- recurrence === opt.v
- ? "border-accent/60 bg-accent/10 text-accent-text dark:text-accent-text"
- : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
- }`}
+                          type="button"
+                          key={opt.v}
+                          onClick={() => setRecurrence(opt.v)}
+                          className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all duration-300 ${
+                            recurrence === opt.v
+                              ? "border-accent/60 bg-accent/10 text-accent-text dark:text-accent-text"
+                              : "border-card-border bg-foreground/[0.03] text-text-muted hover:border-foreground/10 hover:text-foreground"
+                          }`}
                         >
-                            {opt.label}
+                          {opt.label}
                         </button>
-                        ))}
+                      ))}
                     </div>
-                    </div>
+                  </div>
 
-                    <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Chromatic Designation</label>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                      Event color
+                    </label>
                     <div className="flex flex-wrap gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
-                        {(["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4"] as const).map((c) => (
+                      {(
+                        [
+                          "#6366f1",
+                          "#10b981",
+                          "#f59e0b",
+                          "#ef4444",
+                          "#8b5cf6",
+                          "#ec4899",
+                          "#06b6d4",
+                        ] as const
+                      ).map((c) => (
                         <button
-                            type="button"
-                            key={c}
-                            onClick={() => setColor(c)}
-                            className={`h-6 w-6 rounded-full border-2 transition-all duration-500 ${
- color === c ? "border-foreground scale-110 shadow-lg" : "border-transparent opacity-40 hover:opacity-100 hover:scale-110"
- }`}
-                            style={{ backgroundColor: c }}
+                          type="button"
+                          key={c}
+                          onClick={() => setColor(c)}
+                          className={`h-6 w-6 rounded-full border-2 transition-all duration-500 ${
+                            color === c
+                              ? "border-foreground scale-110 shadow-lg"
+                              : "border-transparent opacity-40 hover:opacity-100 hover:scale-110"
+                          }`}
+                          style={{ backgroundColor: c }}
                         />
-                        ))}
+                      ))}
                     </div>
-                    </div>
+                  </div>
 
-                    <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Summary</label>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                      Summary
+                    </label>
                     <textarea
-                        value={description}
-                        onChange={(e)=>setDescription(e.target.value)}
-                        className="w-full min-h-32 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold resize-none custom-scrollbar"
-                        placeholder="What is this event about?"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full min-h-32 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold resize-none custom-scrollbar"
+                      placeholder="What is this event about?"
                     />
-                    </div>
+                  </div>
 
-                    <div className="md:col-span-2">
+                  <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-text-muted mb-3 ml-1 flex items-center gap-1.5">
-                        <FiBell className="text-accent-text" /> Proactive Notifications
+                      <FiBell className="text-accent-text" /> Reminders
                     </label>
                     <div className="flex flex-wrap gap-2 mb-4">
-                        {reminders.map((r, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-semibold rounded-full border border-card-border bg-foreground/[0.06] text-text-secondary shadow-sm">
-                             {r.days > 0 && `${r.days}D `}
-                             {r.hours > 0 && `${r.hours}H `}
-                             {r.minutes > 0 && `${r.minutes}M `}
-                             Lead Time
-                            <button type="button" onClick={() => setReminders((prev) => prev.filter((_, i) => i !== idx))} className="ml-1 p-0.5 hover:bg-foreground/[0.12] rounded-full transition-all">
+                      {reminders.map((r, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-semibold rounded-full border border-card-border bg-foreground/[0.06] text-text-secondary shadow-sm"
+                        >
+                          {r.days > 0 && `${r.days}D `}
+                          {r.hours > 0 && `${r.hours}H `}
+                          {r.minutes > 0 && `${r.minutes}M `}
+                          before the event
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setReminders((prev) =>
+                                prev.filter((_, i) => i !== idx),
+                              )
+                            }
+                            className="ml-1 p-0.5 hover:bg-foreground/[0.12] rounded-full transition-all"
+                          >
                             <FiX className="h-3 w-3" />
-                            </button>
+                          </button>
                         </span>
-                        ))}
-                        {reminders.length === 0 && <p className="text-xs font-semibold text-text-muted/30 italic ml-1">No alerts configured</p>}
+                      ))}
+                      {reminders.length === 0 && (
+                        <p className="text-xs font-semibold text-text-muted/30 italic ml-1">
+                          No alerts configured
+                        </p>
+                      )}
                     </div>
-                    
+
                     <div className="flex flex-wrap items-end gap-3 p-5 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl">
-                        <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Days</label>
-                            <CustomNumberInput
-                                value={rDays}
-                                onChange={(val) => setRDays(Number(val) || 0)}
-                                min={0}
-                            />
-                        </div>
-                        <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Hours</label>
-                            <CustomNumberInput
-                                value={rHours}
-                                onChange={(val) => setRHours(Number(val) || 0)}
-                                min={0}
-                                max={23}
-                            />
-                        </div>
-                        <div className="flex-1 min-w-[70px]">
-                            <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Mins</label>
-                            <CustomNumberInput
-                                value={rMinutes}
-                                onChange={(val) => setRMinutes(Number(val) || 0)}
-                                min={0}
-                                max={59}
-                            />
-                        </div>
-                        <button
+                      <div className="flex-1 min-w-[70px]">
+                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                          Days
+                        </label>
+                        <CustomNumberInput
+                          value={rDays}
+                          onChange={(val) => setRDays(Number(val) || 0)}
+                          min={0}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-[70px]">
+                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                          Hours
+                        </label>
+                        <CustomNumberInput
+                          value={rHours}
+                          onChange={(val) => setRHours(Number(val) || 0)}
+                          min={0}
+                          max={23}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-[70px]">
+                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                          Mins
+                        </label>
+                        <CustomNumberInput
+                          value={rMinutes}
+                          onChange={(val) => setRMinutes(Number(val) || 0)}
+                          min={0}
+                          max={59}
+                        />
+                      </div>
+                      <button
                         type="button"
                         onClick={() => {
-                            if (rDays === 0 && rHours === 0 && rMinutes === 0) return;
-                            setReminders((prev) => [...prev, { days: rDays, hours: rHours, minutes: rMinutes }]);
-                            setRDays(0); setRHours(0); setRMinutes(0);
+                          if (rDays === 0 && rHours === 0 && rMinutes === 0)
+                            return;
+                          setReminders((prev) => [
+                            ...prev,
+                            { days: rDays, hours: rHours, minutes: rMinutes },
+                          ]);
+                          setRDays(0);
+                          setRHours(0);
+                          setRMinutes(0);
                         }}
                         className="h-11 px-5 inline-flex items-center gap-2 text-xs font-semibold rounded-full bg-foreground/10 text-foreground border border-card-border hover:bg-foreground/[0.15] transition-all active:scale-95 shadow-sm"
-                        >
-                        <FiPlus className="h-4 w-4" /> Add Protocol
-                        </button>
+                      >
+                        <FiPlus className="h-4 w-4" /> Add reminder
+                      </button>
                     </div>
-                    </div>
+                  </div>
                 </div>
-                </div>
+              </FormStep>
             </form>
-        </div>
+          </div>
 
-        {/* Fixed Footer */}
-        <div className="flex-none flex items-center justify-end gap-3 p-6 border-t border-card-border bg-background">
-              <button
-                type="button"
-                onClick={onClose}
-                className="md-btn md-btn-secondary">
-                Cancel
-              </button>
-            
+          {/* Fixed Footer */}
+          <div className="flex-none flex items-center justify-end gap-3 p-6 border-t border-card-border bg-background">
+            <button
+              type="button"
+              onClick={onClose}
+              className="md-btn md-btn-secondary"
+            >
+              Cancel
+            </button>
+
+            <FormStepNavigation>
               <button
                 type="submit"
                 form="create-event-form"
                 disabled={submitting}
-                className="md-btn md-btn-primary">
-                Create event <span className="md-btn-chip"><BusyIcon state={submitting ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
+                className="md-btn md-btn-primary"
+              >
+                Create event{" "}
+                <span className="md-btn-chip">
+                  <BusyIcon
+                    state={submitting ? "loading" : "idle"}
+                    icon={<FiCheck />}
+                  />
+                </span>
               </button>
-        </div>
+            </FormStepNavigation>
+          </div>
+        </FormWizard>
       </div>
     </div>
   );

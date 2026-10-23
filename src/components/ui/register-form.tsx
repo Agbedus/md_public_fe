@@ -1,5 +1,6 @@
 'use client';
 
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { register } from '@/app/lib/actions';
 import { FiUser, FiMail, FiLock, FiArrowRight, FiArrowLeft, FiEye, FiEyeOff, FiBriefcase, FiLink, FiCheck, FiGlobe, FiPhone, FiXCircle, FiMessageSquare } from 'react-icons/fi';
@@ -621,7 +622,7 @@ export default function RegisterForm({
                         type="button"
                         onClick={() => phone.trim() && setOtpChannel('sms')}
                         disabled={!phone.trim()}
-                        title={!phone.trim() ? 'Add a phone number to receive your code by SMS' : undefined}
+                        data-tooltip={!phone.trim() ? 'Add a phone number to receive your code by SMS' : undefined} aria-label={!phone.trim() ? 'Add a phone number to receive your code by SMS' : undefined}
                         className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                           effectiveOtpChannel === 'sms' ? 'bg-card text-foreground shadow-sm border border-card-border' : 'text-text-muted hover:text-foreground'
                         }`}
@@ -765,17 +766,17 @@ export default function RegisterForm({
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                               <FiBriefcase className="h-4 w-4 text-text-muted" />
                             </div>
-                            <select
-                              className="block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] appearance-none cursor-pointer border-card-border"
+                            <CustomSelect
+                              label="Industry"
                               id="orgIndustry"
-                              value={orgIndustry}
-                              onChange={(e) => setOrgIndustry(e.target.value)}
-                            >
-                              <option value="">Industry</option>
-                              {INDUSTRIES.map((ind) => (
-                                <option key={ind} value={ind}>{ind}</option>
-                              ))}
-                            </select>
+                              value={String(orgIndustry)}
+                              onChange={(value) => setOrgIndustry(value)}
+                              options={[{ value: "", label: "Industry" }, ...(INDUSTRIES.map((ind) => (
+                              ({ value: String(ind), label: String(ind ?? '') })
+                              )))]}
+                              className="w-full"
+                              triggerClassName="w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] border-card-border"
+                            />
                           </div>
                         </div>
 
@@ -784,17 +785,17 @@ export default function RegisterForm({
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                               <FiUser className="h-4 w-4 text-text-muted" />
                             </div>
-                            <select
-                              className="block w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] appearance-none cursor-pointer border-card-border"
+                            <CustomSelect
+                              label="Company size"
                               id="orgCompanySize"
-                              value={orgCompanySize}
-                              onChange={(e) => setOrgCompanySize(e.target.value)}
-                            >
-                              <option value="">Company size</option>
-                              {COMPANY_SIZES.map((s) => (
-                                <option key={s} value={s}>{s} employees</option>
-                              ))}
-                            </select>
+                              value={String(orgCompanySize)}
+                              onChange={(value) => setOrgCompanySize(value)}
+                              options={[{ value: "", label: "Company size" }, ...(COMPANY_SIZES.map((s) => (
+                              ({ value: String(s), label: String(s ?? '') + " employees" })
+                              )))]}
+                              className="w-full"
+                              triggerClassName="w-full pl-12 pr-3.5 py-3 bg-foreground/[0.03] border rounded-xl text-[15px] text-foreground focus:outline-none focus:bg-foreground/[0.06] transition-all [font-size:max(16px,inherit)] border-card-border"
+                            />
                           </div>
                         </div>
                       </div>

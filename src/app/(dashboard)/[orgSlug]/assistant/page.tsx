@@ -5,10 +5,12 @@ import ChatBubble from "@/components/ui/assistant/ChatBubble";
 import ChatInput from "@/components/ui/assistant/ChatInput";
 import PipMascot from "@/components/ui/assistant/pip-mascot";
 import type { PipActivity } from "@/components/ui/assistant/pip-status-indicator";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiMessageSquare, FiList, FiTrendingUp, FiCalendar } from "react-icons/fi";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { FiArrowDown } from "react-icons/fi";
+import { AssistantSuggestions } from "@/components/ui/assistant/assistant-suggestions";
 import { useDashboard } from "@/components/ui/dashboard-layout";
 import { usePipMemory } from "@/hooks/use-pip-memory";
+import { readPipStream } from "@/lib/pip-stream";
 
 const PIP_VARIANTS = ['classic', 'smart', 'sleepy', 'cool', 'shocked', 'spicy', 'lovely', 'cyber'] as const;
 
@@ -23,7 +25,6 @@ interface AssistantErrorPayload {
   message?: string;
 }
 
-const PIP_ERROR_MARKER = '__PIP_ERROR__';
 const DEFAULT_PIP_ERROR = 'Pip couldn’t connect right now. Please try again in a moment.';
 
 function cleanAssistantError(payload: unknown): string {
@@ -39,6 +40,9 @@ function cleanAssistantError(payload: unknown): string {
 export default function AssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showJump, setShowJump] = useState(false);
+  const followOutput = useRef(true);
+  const reduceMotion = useReducedMotion();
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [pipActivity, setPipActivity] = useState<PipActivity>('ready');
@@ -78,7 +82,9 @@ export default function AssistantPage() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({ behavior: isLoading ? 'auto' : 'smooth', block: 'end' });
+      if (followOutput.current && containerRef.current) {
+        containerRef.current.scrollTo({ top: containerRef.current.scrollHeight, behavior: 'auto' });
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, [messages, isLoading]);
@@ -91,9 +97,14 @@ export default function AssistantPage() {
     setIsLoading(false);
     setPipActivity('ready');
     setActiveResponseId(null);
+    setMessages((previous) => previous.filter((message) => message.isUser || message.text.trim()));
   };
 
   const handleSendMessage = async (text: string) => {
+    if (abortRef.current || !text.trim()) return;
+    followOutput.current = true;
+    setShowJump(false);
+    setHasHydratedMemory(true);
     localStorage.setItem('md_pip_used', 'true');
     const isReport = /monthly report|monthly summary|end-of-month|generate.*report/i.test(text);
     setHasError(false);
@@ -114,7 +125,6 @@ export default function AssistantPage() {
     const controller = new AbortController();
     abortRef.current = controller;
     let didFail = false;
-    let hasStartedWriting = false;
 
     try {
       const response = await fetch("/api/assistant", {
@@ -129,78 +139,11 @@ export default function AssistantPage() {
         throw new Error(cleanAssistantError(errorPayload));
       }
 
-      if (!response.body) return;
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedText = "";
-      let reportMarkerFound = false;
-      let protocolBuffer = '';
-
-      const appendAssistantText = (textChunk: string) => {
-        if (!textChunk) return;
-        let nextText = accumulatedText + textChunk;
-
-        if (!reportMarkerFound && nextText.includes("__REPORT__")) {
-          reportMarkerFound = true;
-          setPipActivity('writing');
-          const markerIdx = nextText.indexOf("__REPORT__");
-          nextText = nextText.slice(markerIdx + "__REPORT__".length);
-          setMessages((prev) =>
-            prev.map((msg) => (msg.id === aiMessageId ? { ...msg, isReport: true } : msg))
-          );
-        }
-        accumulatedText = nextText;
-        setMessages((prev) =>
-          prev.map((msg) => (msg.id === aiMessageId ? { ...msg, text: accumulatedText } : msg))
-        );
-      };
-
-      while (true) {
-        if (controller.signal.aborted) {
-          await reader.cancel();
-          break;
-        }
-        const { value, done: doneReading } = await reader.read();
-        if (doneReading) {
-          decoder.decode();
-          break;
-        }
-        const chunk = decoder.decode(value, { stream: true });
-        if (chunk && !hasStartedWriting) {
-          hasStartedWriting = true;
-          setPipActivity('writing');
-        }
-        protocolBuffer += chunk;
-        const errorStart = protocolBuffer.indexOf(PIP_ERROR_MARKER);
-        if (errorStart >= 0) {
-          appendAssistantText(protocolBuffer.slice(0, errorStart));
-          protocolBuffer = protocolBuffer.slice(errorStart);
-          const payloadStart = PIP_ERROR_MARKER.length;
-          const errorEnd = protocolBuffer.indexOf(PIP_ERROR_MARKER, payloadStart);
-          if (errorEnd < 0) continue;
-          const payloadText = protocolBuffer.slice(payloadStart, errorEnd);
-          const payload = JSON.parse(payloadText) as AssistantErrorPayload;
-          throw new Error(typeof payload.message === 'string' && payload.message.trim() ? payload.message : DEFAULT_PIP_ERROR);
-        }
-
-        let retainedLength = 0;
-        const maxPrefix = Math.min(PIP_ERROR_MARKER.length - 1, protocolBuffer.length);
-        for (let length = maxPrefix; length > 0; length -= 1) {
-          if (protocolBuffer.endsWith(PIP_ERROR_MARKER.slice(0, length))) {
-            retainedLength = length;
-            break;
-          }
-        }
-        const safeLength = protocolBuffer.length - retainedLength;
-        appendAssistantText(protocolBuffer.slice(0, safeLength));
-        protocolBuffer = protocolBuffer.slice(safeLength);
-      }
-      if (protocolBuffer.startsWith(PIP_ERROR_MARKER)) throw new Error(DEFAULT_PIP_ERROR);
-      appendAssistantText(protocolBuffer);
-      if (!controller.signal.aborted && accumulatedText.trim()) {
-        remember({ id: aiMessageId, text: accumulatedText, isUser: false, isReport: reportMarkerFound });
-      }
+      const result = await readPipStream(response, controller.signal, (text, isReport) => {
+        setPipActivity('writing');
+        setMessages((previous) => previous.map((message) => message.id === aiMessageId ? { ...message, text, isReport } : message));
+      });
+      if (!controller.signal.aborted) remember({ id: aiMessageId, text: result.text, isUser: false, isReport: result.isReport });
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       const errString = error instanceof Error && error.message ? error.message : DEFAULT_PIP_ERROR;
@@ -214,107 +157,70 @@ export default function AssistantPage() {
           : msg
       )));
     } finally {
-      setIsLoading(false);
-      if (!didFail) setPipActivity('ready');
-      setActiveResponseId(null);
-      abortRef.current = null;
+      if (abortRef.current === controller) {
+        setIsLoading(false);
+        if (!didFail) setPipActivity('ready');
+        setActiveResponseId(null);
+        abortRef.current = null;
+      }
     }
   };
 
-  const quickActions = [
-    { icon: FiList, title: "Show my tasks", desc: "View pending and active tasks", action: "Show me my pending tasks" },
-    { icon: FiTrendingUp, title: "Productivity stats", desc: "Get an overview of your progress", action: "Show my productivity stats" },
-    { icon: FiMessageSquare, title: "Summarize notes", desc: "Condense your recent thoughts", action: "Summarize my recent notes" },
-    { icon: FiCalendar, title: "Monthly report", desc: "Generate a full monthly summary", action: "Generate my monthly report" },
-  ];
-
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden bg-background">
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-background">
       {/* ── Header — Fixed at the top ── */}
-      <div className="z-20 flex flex-shrink-0 items-center border-b border-card-border bg-background px-3 py-3 sm:px-4 md:px-6 md:py-4">
-        <div className="flex items-center gap-3">
-            <motion.div
-              key={hasError ? 'error' : pipVariantIdx}
-              initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <PipMascot
-                variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]}
-                status={pipActivity === 'thinking' || pipActivity === 'analyzing' ? 'thinking' : hasError ? 'error' : 'idle'}
-                size="sm"
-                errorMessage={hasError ? errorMessage : undefined}
-              />
-            </motion.div>
-          <div>
-            <h1 className="text-lg font-bold text-foreground leading-none">Pip AI</h1>
-            <p className="text-[10px] text-text-muted capitalize font-bold mt-1">Your assistant</p>
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-card-border px-4 py-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <PipMascot variant={hasError ? 'sleepy' : PIP_VARIANTS[pipVariantIdx]} status={isLoading ? 'thinking' : hasError ? 'error' : 'idle'} size="sm" errorMessage={hasError ? errorMessage : undefined} />
+          <div className="min-w-0">
+            <h1 className="text-base font-semibold tracking-tight text-foreground">Pip</h1>
+            <p className="mt-0.5 text-xs text-text-muted">Your workspace assistant</p>
           </div>
         </div>
+        <span role="status" className="inline-flex items-center gap-2 rounded-full border border-card-border px-3 py-1.5 text-xs text-text-muted">
+          <span className={`h-1.5 w-1.5 rounded-full ${hasError ? 'bg-danger' : isLoading ? 'bg-accent' : 'bg-success'}`} />
+          {hasError ? 'Try again' : pipActivity === 'writing' ? 'Writing…' : isLoading ? 'Thinking…' : 'Ready'}
+        </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-hide relative" ref={containerRef}>
-        <div className="flex min-h-full flex-col justify-end px-3 pb-4 pt-4 sm:px-4 md:pb-36 md:pt-6">
-          {messages.length === 0 ? (
-            <div className="mx-auto flex max-w-5xl flex-col items-center justify-center space-y-5 py-5 text-center md:space-y-6 md:py-10">
-                <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", bounce: 0.5 }}
-                >
-                  <PipMascot variant="smart" status="idle" size="lg" />
-                </motion.div>
-
-                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
-                <h1 className="text-2xl md:text-4xl font-bold text-foreground mb-2 tracking-tight">Hey, what can I help with?</h1>
-                <p className="text-text-muted text-sm md:text-lg max-w-lg mx-auto font-medium">
-                    Ask me anything — tasks, notes, reports, or just chat.
-                </p>
-                </motion.div>
-
-                {/* Quick action cards */}
-                <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="mx-auto mt-2 grid w-full max-w-4xl grid-cols-2 gap-2 sm:gap-3 md:mt-4 md:grid-cols-4"
-                >
-                {quickActions.map((item, idx) => (
-                    <button
-                    key={idx}
-                    onClick={() => handleSendMessage(item.action)}
-                    className="group flex min-h-32 flex-col items-start rounded-full border border-card-border bg-card p-3 text-left transition-all hover:border-foreground/20 hover:bg-foreground/[0.03] active:scale-[0.98] sm:p-4 md:p-5"
-                    >
-                    <div className="p-2.5 bg-foreground/[0.04] border border-card-border text-text-muted group-hover:text-foreground group-hover:border-foreground/20 rounded-xl mb-3 transition-colors">
-                        <item.icon className="w-5 h-5" />
-                    </div>
-                    <h3 className="text-sm font-bold text-foreground mb-1 capitalize">{item.title}</h3>
-                    <p className="hidden text-xs text-text-muted sm:block">{item.desc}</p>
-                    </button>
-                ))}
-                </motion.div>
+      <div
+        ref={containerRef}
+        onScroll={(event) => {
+          const node = event.currentTarget;
+          const nearBottom = node.scrollHeight - node.scrollTop - node.clientHeight < 96;
+          followOutput.current = nearBottom;
+          setShowJump(!nearBottom);
+        }}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
+        {messages.length === 0 ? (
+          <motion.div initial={reduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+            className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center px-5 py-10 sm:px-8 sm:py-14">
+            <div className="mb-8">
+              <span className="mb-5 inline-flex rounded-full bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent-text">A little clarity for your day</span>
+              <h2 className="max-w-xl text-3xl font-semibold leading-tight tracking-tight text-foreground sm:text-4xl">What can we make easier?</h2>
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-text-muted">Find a task, connect your notes, or turn this month’s work into a clear report.</p>
             </div>
-          ) : (
-            <div className="max-w-4xl mx-auto w-full space-y-4">
-                <AnimatePresence initial={false}>
-                {messages.map((msg) => (
-                    <ChatBubble
-                      key={msg.id}
-                      message={msg}
-                      activity={msg.id === activeResponseId ? pipActivity : undefined}
-                    />
-                ))}
-                </AnimatePresence>
-                <div ref={bottomRef} />
-            </div>
-          )}
-        </div>
+            {/* Quick action cards */}
+            <AssistantSuggestions onSelect={handleSendMessage} disabled={isLoading} />
+          </motion.div>
+        ) : (
+          <div className="mx-auto w-full max-w-3xl space-y-7 px-4 py-6 sm:px-6 sm:py-8">
+            <AnimatePresence initial={false}>
+              {messages.map((msg) => <ChatBubble key={msg.id} message={msg} activity={msg.id === activeResponseId ? pipActivity : undefined} />)}
+            </AnimatePresence>
+            <div ref={bottomRef} />
+          </div>
+        )}
+      </div>
 
-        {/* ── Input bar (sticky at bottom) ── */}
-        <div className="sticky bottom-0 z-10 bg-background pt-5 md:pt-8">
-            <div className="mx-auto w-full max-w-4xl px-3 sm:px-4">
-                <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onStop={handleStop} />
-            </div>
+      {/* ── Input bar (sticky at bottom) ── */}
+      <div className="relative shrink-0 bg-background px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-5">
+        {showJump && <button type="button" aria-label="Jump to latest message" data-tooltip="Jump to latest"
+          onClick={() => { followOutput.current = true; setShowJump(false); containerRef.current?.scrollTo({ top: containerRef.current.scrollHeight, behavior: reduceMotion ? 'auto' : 'smooth' }); }}
+          className="absolute -top-12 left-1/2 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full border border-card-border bg-card text-foreground shadow-md transition-colors hover:bg-input-bg"><FiArrowDown /></button>}
+        <div className="mx-auto w-full max-w-3xl">
+          <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} onStop={handleStop} />
         </div>
       </div>
 

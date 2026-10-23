@@ -275,7 +275,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                             placeholder="https://..."
                         />
                     ) : (
-                        <span className="truncate max-w-[150px] block opacity-50" title={user.avatarUrl || ''}>{user.avatarUrl || '-'}</span>
+                        <span className="truncate max-w-[150px] block opacity-50" data-tooltip={user.avatarUrl || ''}>{user.avatarUrl || '-'}</span>
                     )}
                   </td>
 
@@ -330,14 +330,14 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                                 <button
                                     onClick={saveUser}
                                     className="p-1.5 rounded-full hover:bg-success/10 text-success-text hover:text-success-text transition-colors"
-                                    title="Save"
+                                    data-tooltip="Save" aria-label="Save"
                                 >
                                     <FiCheck className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={cancelEditing}
                                     className="p-1.5 rounded-full hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors"
-                                    title="Cancel"
+                                    data-tooltip="Cancel" aria-label="Cancel"
                                 >
                                     <FiX className="w-4 h-4" />
                                 </button>
@@ -348,7 +348,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                                  <button
                                     onClick={() => startEditing(user)}
                                     className="p-1.5 rounded-full hover:bg-foreground/[0.06] text-text-muted hover:text-foreground transition-colors"
-                                    title="Edit"
+                                    data-tooltip="Edit" aria-label="Edit"
                                 >
                                     <FiEdit2 className="w-4 h-4" />
                                 </button>
@@ -357,7 +357,7 @@ export default function UsersPageClient({ initialUsers, currentUser, timeOffRequ
                                 <button
                                     onClick={() => handleDelete(user)}
                                     className="p-1.5 rounded-full hover:bg-danger/10 text-text-muted hover:text-danger-text transition-colors"
-                                    title="Delete"
+                                    data-tooltip="Delete" aria-label="Delete"
                                 >
                                     <FiTrash2 className="w-4 h-4" />
                                 </button>

@@ -1,4 +1,5 @@
 "use client";
+import { CollectionToolbar } from "@/components/ui/collection-toolbar";
 
 import React, { useState } from "react";
 import { Client } from "@/types/client";
@@ -36,7 +37,7 @@ import type { PermissionSubjectProps } from "@/lib/permission-subject";
 
 import ClientsLoading from "@/app/(dashboard)/[orgSlug]/clients/loading";
 
-import { TabPill } from '@/components/ui/tab-pill';
+import { TabPill } from "@/components/ui/tab-pill";
 interface ClientsPageClientProps {
   initialClients?: Client[];
   subject?: PermissionSubjectProps | null;
@@ -189,45 +190,55 @@ export default function ClientsPageClient({
         )}
       </div>
 
-      <div className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10 overflow-x-auto pb-2 scrollbar-hide">
-        <div className="relative w-full lg:w-96 group">
-          <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--accent)] transition-colors" />
-          <input
-            type="text"
-            placeholder="Search clients..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-11 pl-10 pr-4 bg-white dark:bg-white/[0.03] border border-card-border rounded-xl focus:outline-none text-foreground placeholder:text-text-muted/50 transition-all text-sm"
-          />
-        </div>
-
-        <div className="flex bg-foreground/[0.05] p-1 rounded-full h-9 lg:h-11 flex-shrink-0">
-          <button
-            onClick={() => setViewMode("grid")}
-            className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
-            title="Grid view"
-          >
-            {viewMode === "grid" && (
-              <TabPill className="tab-pill-on bg-ink" />
-            )}
-            <span className="relative z-10">
-              <FiGrid className="w-5 h-5" />
-            </span>
-          </button>
-          <button
-            onClick={() => setViewMode("table")}
-            className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
-            title="Table view"
-          >
-            {viewMode === "table" && (
-              <TabPill className="tab-pill-on bg-ink" />
-            )}
-            <span className="relative z-10">
-              <FiList className="w-5 h-5" />
-            </span>
-          </button>
-        </div>
-      </div>
+      <CollectionToolbar
+        label="Client controls"
+        className="mb-5"
+        search={
+          <div className="relative w-full group">
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--accent)] transition-colors" />
+            <input
+              type="text"
+              placeholder="Search clients..."
+              aria-label="Search clients"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-11 pl-10 pr-4 bg-white dark:bg-white/[0.03] border border-card-border rounded-full focus:outline-none text-foreground placeholder:text-text-muted/50 transition-all text-sm"
+            />
+          </div>
+        }
+        tools={
+          <>
+            <div className="flex bg-foreground/[0.05] p-1 rounded-full h-11 flex-shrink-0">
+              <button
+                onClick={() => setViewMode("grid")}
+                className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full min-w-9 px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+                data-tooltip="Grid view"
+                aria-label="Grid view"
+              >
+                {viewMode === "grid" && (
+                  <TabPill className="tab-pill-on bg-ink" />
+                )}
+                <span className="relative z-10">
+                  <FiGrid className="w-5 h-5" />
+                </span>
+              </button>
+              <button
+                onClick={() => setViewMode("table")}
+                className="relative isolate has-[.tab-pill-on]:!text-on-ink flex items-center justify-center h-full min-w-9 px-2 rounded-full text-text-muted hover:text-foreground transition-colors duration-200"
+                data-tooltip="Table view"
+                aria-label="Table view"
+              >
+                {viewMode === "table" && (
+                  <TabPill className="tab-pill-on bg-ink" />
+                )}
+                <span className="relative z-10">
+                  <FiList className="w-5 h-5" />
+                </span>
+              </button>
+            </div>
+          </>
+        }
+      />
 
       {viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -278,7 +289,10 @@ export default function ClientsPageClient({
                 <FiX size={20} />
               </button>
             </div>
-            <form action={handleCreate} className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
+            <form
+              action={handleCreate}
+              className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8"
+            >
               <div>
                 <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
                   Company name *
@@ -329,14 +343,16 @@ export default function ClientsPageClient({
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
                   className="px-6 py-2.5 rounded-full text-[11px] font-semibold capitalize text-text-secondary hover:text-foreground bg-white dark:bg-white/[0.03] hover:bg-foreground/[0.06] border border-card-border transition-all"
-                  title="Cancel"
+                  data-tooltip="Cancel"
+                  aria-label="Cancel"
                 >
                   Abort
                 </button>
                 <button
                   type="submit"
                   className="md-btn md-btn-primary md-btn-sm"
-                  title="Create Client"
+                  data-tooltip="Create Client"
+                  aria-label="Create Client"
                 >
                   <FiCheck className="w-4 h-4" />
                   Add client
@@ -366,7 +382,10 @@ export default function ClientsPageClient({
                 <FiX size={20} />
               </button>
             </div>
-            <form action={handleUpdate} className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8">
+            <form
+              action={handleUpdate}
+              className="space-y-5 p-4 sm:p-6 md:space-y-6 md:p-8"
+            >
               <div>
                 <label className="block text-[10px] font-semibold text-text-muted capitalize mb-1.5 ml-1">
                   Company name *
@@ -417,14 +436,16 @@ export default function ClientsPageClient({
                   type="button"
                   onClick={() => setEditingClient(null)}
                   className="md-btn md-btn-secondary md-btn-sm"
-                  title="Cancel"
+                  data-tooltip="Cancel"
+                  aria-label="Cancel"
                 >
                   Discard
                 </button>
                 <button
                   type="submit"
                   className="md-btn md-btn-primary md-btn-sm"
-                  title="Save Changes"
+                  data-tooltip="Save Changes"
+                  aria-label="Save Changes"
                 >
                   <FiCheck className="w-4 h-4" />
                   Save changes

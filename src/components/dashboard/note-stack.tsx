@@ -154,14 +154,14 @@ export function NoteStack({ notes }: { notes: Note[] }) {
           <button 
             onClick={(e) => { e.stopPropagation(); prevNote(); }}
             className="w-8 h-8 rounded-full bg-background border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-success hover:text-on-success hover:border-success transition-all active:scale-90"
-            title="Previous Note"
+            data-tooltip="Previous Note" aria-label="Previous Note"
           >
             <FiChevronUp className="text-lg" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); nextNote(); }}
             className="w-8 h-8 rounded-full bg-background border border-card-border text-(--text-muted) flex items-center justify-center hover:bg-success hover:text-on-success hover:border-success transition-all active:scale-90"
-            title="Next Note"
+            data-tooltip="Next Note" aria-label="Next Note"
           >
             <FiChevronDown className="text-lg" />
           </button>

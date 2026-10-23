@@ -1,5 +1,6 @@
 'use client';
 
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import { useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -181,9 +182,15 @@ export default function NotificationsPage() {
               </label>
               <label>
                 <span className="sr-only">Filter by category</span>
-                <select value={category} onChange={(event) => setCategory(event.target.value as Category)} className="h-11 max-w-32 rounded-md border border-card-border bg-input-bg px-2.5 text-xs text-foreground outline-none md:h-9">
-                  {categories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-                </select>
+                <CustomSelect
+                  label="Filter by category"
+                  value={String(category)}
+                  onChange={(value) => setCategory(value as Category)}
+                  options={[...(categories.map((item) => ({ value: String(item.value), label: String(item.label ?? '') })))]}
+                  size="sm"
+                  className="!w-auto min-w-32 max-w-52"
+                  triggerClassName="h-11 max-w-32 rounded-md border border-card-border bg-input-bg px-2.5 text-xs text-foreground outline-none md:h-9"
+                />
               </label>
             </div>
           </div>

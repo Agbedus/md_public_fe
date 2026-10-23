@@ -44,7 +44,7 @@ export default function ReportWidget({ title, data }: ReportWidgetProps) {
   ];
 
   return (
-    <div className="bg-card rounded-xl border border-card-border overflow-hidden my-3">
+    <div className="bg-card rounded-2xl border border-card-border overflow-hidden my-3">
       <div className="bg-foreground/[0.03] p-4 border-b border-card-border">
         <h4 className="font-bold text-foreground text-lg">{title}</h4>
         <p className="text-xs text-text-muted font-medium mt-0.5">
@@ -54,12 +54,12 @@ export default function ReportWidget({ title, data }: ReportWidgetProps) {
       <div className="p-4 space-y-4">
         {sections.map((section, si) => (
           <div key={si}>
-            <h5 className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">{section.label}</h5>
-            <div className="grid grid-cols-3 gap-2">
+            <h5 className="text-xs font-medium text-text-muted mb-2">{section.label}</h5>
+            <div className="grid grid-cols-2 gap-3">
               {section.stats.map((stat, idx) => (
-                <div key={idx} className="bg-foreground/[0.03] rounded-lg p-2.5">
-                  <div className={`text-lg font-bold ${stat.color}`}>{stat.value}</div>
-                  <div className="text-[10px] text-text-muted font-bold uppercase tracking-wider mt-0.5">{stat.label}</div>
+                <div key={idx} className="bg-foreground/[0.03] rounded-xl p-2.5">
+                  <div className={`text-xl font-semibold tabular-nums ${stat.color}`}>{stat.value}</div>
+                  <div className="text-xs leading-relaxed text-text-muted font-medium mt-0.5">{stat.label}</div>
                 </div>
               ))}
             </div>

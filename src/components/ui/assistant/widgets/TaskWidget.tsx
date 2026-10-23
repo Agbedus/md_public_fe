@@ -1,5 +1,8 @@
+"use client";
+
 import type { Task } from "@/types/task";
 import Link from "next/link";
+import { useOrgPath } from "@/hooks/use-org-slug";
 import { useState } from "react";
 
 interface TaskWidgetProps {
@@ -20,6 +23,7 @@ const priorityConfig: Record<string, { label: string; color: string }> = {
 };
 
 export default function TaskWidget({ task }: TaskWidgetProps) {
+  const orgPath = useOrgPath();
   const [renderedAt] = useState(() => Date.now());
   const status = statusConfig[task.status] ?? { label: task.status, color: "text-text-muted", bg: "bg-zinc-400/10" };
   const priority = priorityConfig[task.priority] ?? { label: task.priority, color: "text-text-muted" };
@@ -37,11 +41,11 @@ export default function TaskWidget({ task }: TaskWidgetProps) {
   const isOverdue = task.dueDate && new Date(task.dueDate).getTime() < renderedAt;
 
   return (
-    <div className="bg-foreground/[0.03] border border-card-border rounded-xl hover:bg-foreground/[0.06] hover:border-accent/20 transition-all px-4 py-3">
+    <div className="bg-foreground/[0.03] border border-card-border rounded-2xl hover:bg-foreground/[0.06] hover:border-accent/20 transition-colors px-4 py-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <h4 className="font-bold text-[11px] uppercase tracking-wider text-foreground mb-2 truncate">
+          <h4 className="text-sm font-semibold text-foreground mb-2 truncate">
             {task.name}
           </h4>
 
@@ -51,21 +55,21 @@ export default function TaskWidget({ task }: TaskWidgetProps) {
 
           {/* Badges */}
           <div className="flex flex-wrap gap-1.5">
-            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${status.bg} ${status.color}`}>
+            <span className={`px-2 py-0.5 rounded-lg text-[11px] font-medium ${status.bg} ${status.color}`}>
               {status.label}
             </span>
-            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-foreground/[0.03] border border-card-border ${priority.color}`}>
+            <span className={`px-2 py-0.5 rounded-lg text-[11px] font-medium bg-foreground/[0.03] border border-card-border ${priority.color}`}>
               {priority.label}
             </span>
-            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-foreground/[0.03] border border-card-border ${isOverdue ? "text-danger-text" : "text-text-muted"}`}>
+            <span className={`px-2 py-0.5 rounded-lg text-[11px] font-medium bg-foreground/[0.03] border border-card-border ${isOverdue ? "text-danger-text" : "text-text-muted"}`}>
               {formatDate(task.dueDate)}
             </span>
           </div>
         </div>
 
         <Link
-          href={`/tasks?id=${task.id}`}
-          className="text-[11px] font-bold uppercase tracking-wider text-accent-text hover:text-accent-text whitespace-nowrap flex-shrink-0 transition-colors"
+          href={orgPath(`/tasks?id=${task.id}`)}
+          className="inline-flex min-h-9 shrink-0 items-center rounded-full px-2 text-xs font-medium text-accent-text transition-colors hover:bg-accent/10"
         >
           View →
         </Link>

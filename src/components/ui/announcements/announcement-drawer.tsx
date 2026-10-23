@@ -156,7 +156,7 @@ export const AnnouncementDrawer = () => {
                               void handleDelete(announcement.id, announcement.title);
                             }}
                             className="absolute top-5 right-5 p-2 text-text-muted hover:text-danger-text hover:bg-danger/10 rounded-full transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-danger/20"
-                            title="Delete Announcement"
+                            data-tooltip="Delete Announcement" aria-label="Delete Announcement"
                           >
                             <FiTrash2 size={14} />
                           </button>
@@ -206,7 +206,7 @@ export const AnnouncementDrawer = () => {
               <button
                 onClick={() => setIsAdminFormOpen(true)}
                 className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-foreground/[0.03] hover:bg-foreground/[0.06] border border-card-border hover:border-[var(--warning)]/30 text-xs text-text-muted hover:text-foreground transition-all duration-300 group"
-                title="Post New Announcement"
+                data-tooltip="Post New Announcement" aria-label="Post New Announcement"
               >
                 <div className="p-1.5 bg-foreground/[0.03] group-hover:bg-foreground/[0.06] transition-colors border border-card-border rounded-full">
                   <FiPlus className="w-3.5 h-3.5 text-[var(--warning)]" />

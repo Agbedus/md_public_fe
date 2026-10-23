@@ -141,12 +141,13 @@ interface KanbanCardProps {
   canManage?: boolean;
   isSelected?: boolean;
   justMoved?: boolean;
+  isRemoving?: boolean;
   onSelect?: (id: string) => void;
 }
 
-const iconButton = "grid h-7 w-7 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground";
+const iconButton = "hover-scale grid h-8 w-8 place-items-center rounded-full text-text-muted transition-colors hover:bg-foreground/[0.06] hover:text-foreground";
 
-export default function KanbanCard({ task, users, user: currentUser, projects, onMove, onDelete, canManage, isSelected = false, justMoved = false, onSelect }: KanbanCardProps) {
+export default function KanbanCard({ task, users, user: currentUser, projects, onMove, onDelete, canManage, isSelected = false, justMoved = false, isRemoving = false, onSelect }: KanbanCardProps) {
   const { startTimer, activeTask } = useTaskTimer();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(task.id) });
   const { prev, next } = neighbours(task);
@@ -171,7 +172,8 @@ export default function KanbanCard({ task, users, user: currentUser, projects, o
           type="button"
           onClick={(e) => { e.stopPropagation(); void onDelete(task); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={`${iconButton} hover:!bg-danger/10 hover:!text-danger-text ${reveal}`}
+          disabled={isRemoving}
+          className={`${iconButton} hover:!bg-danger/10 hover:!text-danger-text disabled:cursor-wait ${reveal}`}
           aria-label={`Delete ${task.name}`}
         >
           <FiTrash2 className="h-3.5 w-3.5" />
@@ -183,12 +185,12 @@ export default function KanbanCard({ task, users, user: currentUser, projects, o
   const footerActions = (
     <div className={`flex items-center transition-opacity ${reveal}`}>
       {prev && (
-        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); void onMove(task, prev); }} className={iconButton} title={`Move to ${statusMapping[prev]}`} aria-label={`Move to ${statusMapping[prev]}`}>
+        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); void onMove(task, prev); }} className={iconButton} data-tooltip={`Move to ${statusMapping[prev]}`} aria-label={`Move to ${statusMapping[prev]}`}>
           <FiChevronLeft className="h-4 w-4" />
         </button>
       )}
       {next && (
-        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); void onMove(task, next); }} className={iconButton} title={`Move to ${statusMapping[next]}`} aria-label={`Move to ${statusMapping[next]}`}>
+        <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); void onMove(task, next); }} className={iconButton} data-tooltip={`Move to ${statusMapping[next]}`} aria-label={`Move to ${statusMapping[next]}`}>
           <FiChevronRight className="h-4 w-4" />
         </button>
       )}
@@ -210,8 +212,8 @@ export default function KanbanCard({ task, users, user: currentUser, projects, o
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect?.(String(task.id)); }
       }}
-      className={`group relative cursor-pointer touch-manipulation rounded-[22px] outline-none transition-[box-shadow,opacity] duration-200 active:cursor-grabbing ${
-        isDragging ? "opacity-35" : ""
+      className={`group relative cursor-pointer touch-manipulation rounded-[22px] outline-none transition-[box-shadow,opacity] duration-200 motion-reduce:transition-none active:cursor-grabbing ${
+        isDragging ? "opacity-35" : isRemoving ? "opacity-40" : ""
       } ${isSelected ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-foreground/10 focus-visible:ring-2 focus-visible:ring-accent/60"}`}
     >
       <KanbanCardBody task={task} users={users} projects={projects} justMoved={justMoved} actions={actions} footerActions={footerActions} />

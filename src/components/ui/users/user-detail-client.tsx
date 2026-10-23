@@ -378,7 +378,7 @@ export default function UserDetailClient({
                                                                 onClick={() => handleApprove(req.id)}
                                                                 disabled={actionLoading === req.id}
                                                                 className="p-1.5 rounded-full bg-success/10 hover:bg-success/20 text-success-text border border-success/20 transition-all disabled:opacity-50"
-                                                                title="Approve"
+                                                                data-tooltip="Approve" aria-label="Approve"
                                                             >
                                                                 {actionLoading === req.id ? (
                                                                     <Spinner className="w-3.5 h-3.5 text-success-text" />
@@ -390,7 +390,7 @@ export default function UserDetailClient({
                                                                 onClick={() => handleReject(req.id)}
                                                                 disabled={actionLoading === req.id}
                                                                 className="p-1.5 rounded-full bg-danger/10 hover:bg-danger/20 text-danger-text border border-danger/20 transition-all disabled:opacity-50"
-                                                                title="Reject"
+                                                                data-tooltip="Reject" aria-label="Reject"
                                                             >
                                                                 <FiX className="w-3.5 h-3.5" />
                                                             </button>

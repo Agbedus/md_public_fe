@@ -406,7 +406,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
               onMouseEnter={() => setIsAnnHovered(true)}
               onMouseLeave={() => setIsAnnHovered(false)}
               className="group relative flex min-h-11 min-w-11 items-center justify-center rounded-full bg-foreground/[0.04] p-2 text-text-muted transition-colors hover:bg-foreground/[0.05] hover:text-foreground active:bg-foreground/[0.08] md:p-2.5"
-              title="Announcements"
+              data-tooltip="Announcements" aria-label="Announcements"
             >
               <FiMessageSquare className={`text-xl group-hover:text-[var(--pastel-yellow)] transition-colors ${isAnnouncementsOpen ? 'text-[var(--pastel-yellow)]' : 'text-text-muted'}`} />
               {announcementUnreadCount > 0 && (
@@ -457,7 +457,7 @@ const TopNav = ({ user, orgSlug, organizations = [], currentOrgId }: TopNavProps
           </div>
 
           <div className="hidden gap-2 xl:flex">
-            <button className="p-2.5 text-text-muted hover:text-foreground transition-colors bg-foreground/[0.04] rounded-full hover:bg-foreground/[0.07] dark:hover:bg-white/[0.06] hover-scale active:scale-[0.93]" title="Help & Support">
+            <button className="p-2.5 text-text-muted hover:text-foreground transition-colors bg-foreground/[0.04] rounded-full hover:bg-foreground/[0.07] dark:hover:bg-white/[0.06] hover-scale active:scale-[0.93]" data-tooltip="Help & Support" aria-label="Help & Support">
               <FiHelpCircle className="text-xl" />
             </button>
           </div>

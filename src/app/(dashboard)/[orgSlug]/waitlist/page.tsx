@@ -1,5 +1,6 @@
 'use client';
 
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import React, { useState, useMemo } from 'react';
 import { FiSearch, FiFilter, FiCalendar, FiUser, FiUsers, FiMail, FiArrowUpRight } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -138,37 +139,29 @@ export default function WaitlistPage() {
                         />
                     </div>
 
-                    <div className="relative group flex-shrink-0">
-                        <div className="h-9 lg:h-11 w-9 lg:w-44 bg-foreground/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
-                            <FiFilter className="text-text-muted group-hover:text-accent-text transition-colors w-3.5 h-3.5 lg:absolute lg:left-3.5 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
-                            <select
-                                value={filterRole}
-                                onChange={e => setFilterRole(e.target.value)}
-                                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-10 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:capitalize appearance-none focus:outline-none"
-                            >
-                                <option value="">All roles</option>
-                                {uniqueRoles.map(role => (
-                                    <option key={role} value={role}>{role}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                    <CustomSelect
+                      label="Filter by role"
+                      value={String(filterRole)}
+                      onChange={(value) => setFilterRole(value)}
+                      options={[{ value: "", label: "All roles" }, ...(uniqueRoles.map(role => (
+                      ({ value: String(role), label: String(role ?? '') })
+                      )))]}
+                      icon={<FiFilter className="h-3.5 w-3.5" />}
+                      className="!w-auto min-w-36 max-w-64 flex-shrink-0"
+                      triggerClassName="rounded-full text-xs text-text-muted"
+                    />
 
-                    <div className="relative group flex-shrink-0">
-                        <div className="h-9 lg:h-11 w-9 lg:w-48 bg-foreground/[0.03] border border-card-border rounded-full flex items-center justify-center lg:justify-start lg:pl-3 relative overflow-hidden focus-within:bg-foreground/[0.06] transition-all">
-                            <FiCalendar className="text-text-muted group-hover:text-accent-text transition-colors w-3.5 h-3.5 lg:absolute lg:left-3.5 lg:top-1/2 lg:-translate-y-1/2 lg:z-10" />
-                            <select
-                                value={filterSource}
-                                onChange={e => setFilterSource(e.target.value)}
-                                className="absolute inset-0 opacity-0 lg:opacity-100 lg:static lg:bg-transparent lg:border-none lg:pl-10 lg:pr-4 lg:w-full lg:h-full text-text-muted cursor-pointer lg:text-[11px] lg:font-bold lg:capitalize appearance-none focus:outline-none"
-                            >
-                                <option value="">All sources</option>
-                                {uniqueSources.map(source => (
-                                    <option key={source} value={source}>{source}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                    <CustomSelect
+                      label="Filter by source"
+                      value={String(filterSource)}
+                      onChange={(value) => setFilterSource(value)}
+                      options={[{ value: "", label: "All sources" }, ...(uniqueSources.map(source => (
+                      ({ value: String(source), label: String(source ?? '') })
+                      )))]}
+                      icon={<FiCalendar className="h-3.5 w-3.5" />}
+                      className="!w-auto min-w-36 max-w-64 flex-shrink-0"
+                      triggerClassName="rounded-full text-xs text-text-muted"
+                    />
                 </div>
             </div>
 

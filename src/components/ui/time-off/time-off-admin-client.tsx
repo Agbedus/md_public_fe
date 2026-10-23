@@ -333,7 +333,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                                 onClick={e => { e.stopPropagation(); handleApprove(req.id); }}
                                                                 disabled={actionLoading?.id === req.id}
                                                                 className="grid h-9 w-9 place-items-center bg-success/10 hover:bg-success/20 text-success-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
-                                                                title="Approve"
+                                                                data-tooltip="Approve" aria-label="Approve"
                                                             >
                                                                 {actionLoading?.id === req.id && actionLoading.type === 'approve' ? (
                                                                     <Spinner className="h-4 w-4" />
@@ -345,7 +345,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                                 onClick={e => { e.stopPropagation(); handleReject(req.id); }}
                                                                 disabled={actionLoading?.id === req.id}
                                                                 className="grid h-9 w-9 place-items-center bg-danger/10 hover:bg-danger/20 text-danger-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
-                                                                title="Reject"
+                                                                data-tooltip="Reject" aria-label="Reject"
                                                             >
                                                                 {actionLoading?.id === req.id && actionLoading.type === 'reject' ? <Spinner className="h-4 w-4" /> : <FiX className="w-3.5 h-3.5" />}
                                                             </button>
@@ -355,7 +355,7 @@ export default function TimeOffAdminClient({ initialRequests, users }: TimeOffAd
                                                         onClick={e => { e.stopPropagation(); handleDelete(req.id); }}
                                                         disabled={actionLoading?.id === req.id}
                                                         className="grid h-9 w-9 place-items-center hover:bg-danger/10 text-text-muted hover:text-danger-text transition-[transform,opacity,background-color] duration-150 active:scale-[0.96] disabled:cursor-wait disabled:opacity-50 rounded-full"
-                                                        title="Delete"
+                                                        data-tooltip="Delete" aria-label="Delete"
                                                     >
                                                         {actionLoading?.id === req.id && actionLoading.type === 'delete' ? <Spinner className="h-4 w-4" /> : <FiTrash2 className="w-3.5 h-3.5" />}
                                                     </button>

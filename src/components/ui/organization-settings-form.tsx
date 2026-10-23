@@ -1,22 +1,38 @@
 "use client";
+import {
+  FormWizard,
+  FormStep,
+  FormStepHeader,
+  FormStepNavigation,
+} from "@/components/ui/form-wizard";
 
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { FiBriefcase, FiBell, FiCheck, FiGlobe, FiCopy, FiCamera } from "react-icons/fi";
+import {
+  FiBriefcase,
+  FiBell,
+  FiCheck,
+  FiGlobe,
+  FiCopy,
+  FiCamera,
+} from "react-icons/fi";
 import { toast } from "@/lib/toast";
 import { Toggle } from "@/components/ui/inputs/toggle";
 import { updateOrganizationSettings } from "@/lib/org-actions";
 import { uploadOrganizationLogo } from "@/app/(dashboard)/[orgSlug]/settings/actions";
 import type { OrganizationSettings } from "@/types/organization";
 
-import { Spinner } from '@/components/ui/busy-icon';
+import { Spinner } from "@/components/ui/busy-icon";
 interface OrganizationSettingsFormProps {
   organization: OrganizationSettings;
 }
 
-const inputClass = "w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all";
-const labelClass = "block text-[10px] font-bold text-text-muted capitalize mb-1.5 ml-0.5";
+const inputClass =
+  "w-full px-3 py-2 rounded-lg bg-foreground/[0.03] border border-card-border text-foreground text-sm focus:outline-none focus:bg-foreground/[0.06] transition-all";
+const labelClass =
+  "block text-[10px] font-bold text-text-muted capitalize mb-1.5 ml-0.5";
 
 /** Neutral icon chip — dark/gray with a plain foreground-colored icon, matching
  *  the treatment applied to the "My settings" tab; no per-section color coding. */
@@ -40,8 +56,12 @@ function SectionCard({
           {icon}
         </div>
         <div className="min-w-0">
-          <h2 className="text-sm font-bold text-foreground capitalize">{title}</h2>
-          <p className="text-[10px] text-text-muted font-bold capitalize mt-0.5">{subtitle}</p>
+          <h2 className="text-sm font-bold text-foreground capitalize">
+            {title}
+          </h2>
+          <p className="text-[10px] text-text-muted font-bold capitalize mt-0.5">
+            {subtitle}
+          </p>
         </div>
       </div>
       {children}
@@ -51,12 +71,22 @@ function SectionCard({
 
 type ProfileFields = Pick<
   OrganizationSettings,
-  "name" | "description" | "industry" | "company_size" | "website" | "address" | "country" | "timezone" | "is_public"
+  | "name"
+  | "description"
+  | "industry"
+  | "company_size"
+  | "website"
+  | "address"
+  | "country"
+  | "timezone"
+  | "is_public"
 >;
 
 const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "500+"];
 
-export default function OrganizationSettingsForm({ organization }: OrganizationSettingsFormProps) {
+export default function OrganizationSettingsForm({
+  organization,
+}: OrganizationSettingsFormProps) {
   const reduceMotion = useReducedMotion();
 
   const [fields, setFields] = useState<ProfileFields>({
@@ -73,7 +103,9 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
   const [savedFields, setSavedFields] = useState<ProfileFields>(fields);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [smsEnabled, setSmsEnabled] = useState(organization.sms_notifications_enabled);
+  const [smsEnabled, setSmsEnabled] = useState(
+    organization.sms_notifications_enabled,
+  );
   const [isSmsSaving, setIsSmsSaving] = useState(false);
 
   const [logoUrl, setLogoUrl] = useState(organization.logo_url);
@@ -82,7 +114,10 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
 
   const isDirty = JSON.stringify(fields) !== JSON.stringify(savedFields);
 
-  const updateField = <K extends keyof ProfileFields>(key: K, value: ProfileFields[K]) => {
+  const updateField = <K extends keyof ProfileFields>(
+    key: K,
+    value: ProfileFields[K],
+  ) => {
     setFields((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -110,13 +145,19 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
     setSmsEnabled(next);
     setIsSmsSaving(true);
     try {
-      const result = await updateOrganizationSettings(organization.id, { sms_notifications_enabled: next });
+      const result = await updateOrganizationSettings(organization.id, {
+        sms_notifications_enabled: next,
+      });
       if (!result.success) {
         setSmsEnabled(previous);
         toast.error(result.error || "Couldn't update SMS notifications.");
         return;
       }
-      toast.success(next ? "Organization SMS notifications on" : "Organization SMS notifications off");
+      toast.success(
+        next
+          ? "Organization SMS notifications on"
+          : "Organization SMS notifications off",
+      );
     } catch {
       setSmsEnabled(previous);
       toast.error("Couldn't update SMS notifications.");
@@ -174,211 +215,284 @@ export default function OrganizationSettingsForm({ organization }: OrganizationS
       };
 
   return (
-    <form onSubmit={handleSave} className="space-y-5">
-
-      {/* Organization profile */}
-      <motion.div {...fadeUp}>
-        <SectionCard
-          icon={<FiBriefcase size={16} />}
-          title="Organization profile"
-          subtitle="Shared across everyone in this workspace"
-        >
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => logoInputRef.current?.click()}
-                disabled={isLogoSaving}
-                className="relative w-16 h-16 rounded-full overflow-hidden border border-card-border bg-foreground/[0.04] shrink-0 group disabled:cursor-wait"
-                title="Change logo"
-              >
-                {logoUrl ? (
-                  <Image src={logoUrl} alt={fields.name} fill className="object-cover" />
-                ) : (
-                  <span className="w-full h-full flex items-center justify-center text-foreground/40 text-xl font-bold capitalize">
-                    {fields.name.charAt(0) || "?"}
-                  </span>
-                )}
-                <span className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                  {isLogoSaving ? (
-                    <Spinner className="h-4 w-4 text-white" />
-                  ) : (
-                    <FiCamera size={16} />
-                  )}
-                </span>
-              </button>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground">Logo</p>
-                <p className="text-xs text-text-muted">PNG, JPG, GIF or WebP, up to 5 MB</p>
+    <FormWizard
+      formId="organization-settings-form"
+      steps={["Profile", "Company details", "Preferences"]}
+      busy={isSaving || isLogoSaving || isSmsSaving}
+    >
+      <form
+        id="organization-settings-form"
+        onSubmit={handleSave}
+        className="space-y-5"
+      >
+        <FormStepHeader />
+        {/* Organization profile */}
+        <FormStep index={0}>
+          <motion.div {...fadeUp}>
+            <SectionCard
+              icon={<FiBriefcase size={16} />}
+              title="Organization profile"
+              subtitle="Shared across everyone in this workspace"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isLogoSaving}
+                    className="relative w-16 h-16 rounded-full overflow-hidden border border-card-border bg-foreground/[0.04] shrink-0 group disabled:cursor-wait"
+                    data-tooltip="Change logo"
+                    aria-label="Change logo"
+                  >
+                    {logoUrl ? (
+                      <Image
+                        src={logoUrl}
+                        alt={fields.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="w-full h-full flex items-center justify-center text-foreground/40 text-xl font-bold capitalize">
+                        {fields.name.charAt(0) || "?"}
+                      </span>
+                    )}
+                    <span className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                      {isLogoSaving ? (
+                        <Spinner className="h-4 w-4 text-white" />
+                      ) : (
+                        <FiCamera size={16} />
+                      )}
+                    </span>
+                  </button>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">Logo</p>
+                    <p className="text-xs text-text-muted">
+                      PNG, JPG, GIF or WebP, up to 5 MB
+                    </p>
+                  </div>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoPick}
+                    className="hidden"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Name</label>
+                  <input
+                    type="text"
+                    value={fields.name}
+                    onChange={(e) => updateField("name", e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Description</label>
+                  <textarea
+                    rows={2}
+                    value={fields.description ?? ""}
+                    onChange={(e) => updateField("description", e.target.value)}
+                    className={`${inputClass} resize-none`}
+                    placeholder="What this workspace is for"
+                  />
+                </div>
               </div>
-              <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoPick} className="hidden" />
-            </div>
-            <div>
-              <label className={labelClass}>Name</label>
-              <input
-                type="text"
-                value={fields.name}
-                onChange={(e) => updateField("name", e.target.value)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Description</label>
-              <textarea
-                rows={2}
-                value={fields.description ?? ""}
-                onChange={(e) => updateField("description", e.target.value)}
-                className={`${inputClass} resize-none`}
-                placeholder="What this workspace is for"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClass}>Industry</label>
-                <input
-                  type="text"
-                  value={fields.industry ?? ""}
-                  onChange={(e) => updateField("industry", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g. Software"
-                />
+            </SectionCard>
+          </motion.div>
+        </FormStep>
+        <FormStep index={1}>
+          <motion.div {...fadeUp}>
+            <SectionCard
+              icon={<FiBriefcase size={16} />}
+              title="Company details"
+              subtitle="Business information and location"
+            >
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Industry</label>
+                    <input
+                      type="text"
+                      value={fields.industry ?? ""}
+                      onChange={(e) => updateField("industry", e.target.value)}
+                      className={inputClass}
+                      placeholder="e.g. Software"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Company size</label>
+                    <CustomSelect
+                      label="Company size"
+                      value={String(fields.company_size ?? "")}
+                      onChange={(value) =>
+                        updateField("company_size", value || null)
+                      }
+                      options={[
+                        { value: "", label: "Not set" },
+                        ...COMPANY_SIZES.map((size) => ({
+                          value: String(size),
+                          label: String(size ?? ""),
+                        })),
+                      ]}
+                      className="w-full"
+                      triggerClassName={inputClass}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Website</label>
+                    <input
+                      type="text"
+                      value={fields.website ?? ""}
+                      onChange={(e) => updateField("website", e.target.value)}
+                      className={inputClass}
+                      placeholder="https://"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Country</label>
+                    <input
+                      type="text"
+                      value={fields.country ?? ""}
+                      onChange={(e) => updateField("country", e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Address</label>
+                    <input
+                      type="text"
+                      value={fields.address ?? ""}
+                      onChange={(e) => updateField("address", e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Timezone</label>
+                    <input
+                      type="text"
+                      value={fields.timezone ?? ""}
+                      onChange={(e) => updateField("timezone", e.target.value)}
+                      className={inputClass}
+                      placeholder="e.g. America/New_York"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className={labelClass}>Company size</label>
-                <select
-                  value={fields.company_size ?? ""}
-                  onChange={(e) => updateField("company_size", e.target.value || null)}
-                  className={inputClass}
-                >
-                  <option value="">Not set</option>
-                  {COMPANY_SIZES.map((size) => (
-                    <option key={size} value={size}>{size}</option>
-                  ))}
-                </select>
+            </SectionCard>
+          </motion.div>
+        </FormStep>
+        <FormStep index={2}>
+          <motion.div {...fadeUp}>
+            <SectionCard
+              icon={<FiBriefcase size={16} />}
+              title="Workspace preferences"
+              subtitle="Discoverability and invitations"
+            >
+              <div className="space-y-4">
+                <div className="pt-4 border-t border-card-border space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-0.5 min-w-0">
+                      <label className="text-sm font-medium text-foreground">
+                        Discoverable
+                      </label>
+                      <p className="text-xs text-text-muted">
+                        List this organization publicly so people can find and
+                        request to join
+                      </p>
+                    </div>
+                    <Toggle
+                      label="Discoverable"
+                      isChecked={fields.is_public}
+                      onChange={(next) => updateField("is_public", next)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-4 text-xs text-text-muted bg-foreground/[0.03] border border-card-border rounded-xl px-3 py-2.5">
+                    <span className="flex items-center gap-2 min-w-0">
+                      <FiGlobe className="shrink-0" size={13} />
+                      Invite code:{" "}
+                      <span className="text-foreground font-medium font-numbers">
+                        {organization.invite_code}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={copyInviteCode}
+                      className="shrink-0 flex items-center gap-1.5 text-foreground hover:text-success-text transition-colors"
+                    >
+                      <FiCopy size={13} />
+                      Copy
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClass}>Website</label>
-                <input
-                  type="text"
-                  value={fields.website ?? ""}
-                  onChange={(e) => updateField("website", e.target.value)}
-                  className={inputClass}
-                  placeholder="https://"
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Country</label>
-                <input
-                  type="text"
-                  value={fields.country ?? ""}
-                  onChange={(e) => updateField("country", e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClass}>Address</label>
-                <input
-                  type="text"
-                  value={fields.address ?? ""}
-                  onChange={(e) => updateField("address", e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Timezone</label>
-                <input
-                  type="text"
-                  value={fields.timezone ?? ""}
-                  onChange={(e) => updateField("timezone", e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g. America/New_York"
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-card-border space-y-3">
+            </SectionCard>
+          </motion.div>
+          {/* Notifications */}
+          <motion.div
+            {...fadeUp}
+            transition={{
+              ...fadeUp.transition,
+              delay: reduceMotion ? 0 : 0.05,
+            }}
+          >
+            <SectionCard
+              icon={<FiBell size={16} />}
+              title="Notifications"
+              subtitle="Workspace-wide switches"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-0.5 min-w-0">
-                  <label className="text-sm font-medium text-foreground">Discoverable</label>
-                  <p className="text-xs text-text-muted">List this organization publicly so people can find and request to join</p>
+                  <label className="text-sm font-medium text-foreground">
+                    SMS notifications
+                  </label>
+                  <p className="text-xs text-text-muted">
+                    Master switch for this organization. When off, no one here
+                    receives SMS regardless of their personal setting.
+                  </p>
                 </div>
                 <Toggle
-                  label="Discoverable"
-                  isChecked={fields.is_public}
-                  onChange={(next) => updateField("is_public", next)}
+                  label="Organization SMS notifications"
+                  isChecked={smsEnabled}
+                  onChange={handleSmsToggle}
+                  isDisabled={isSmsSaving}
                 />
               </div>
-              <div className="flex items-center justify-between gap-4 text-xs text-text-muted bg-foreground/[0.03] border border-card-border rounded-xl px-3 py-2.5">
-                <span className="flex items-center gap-2 min-w-0">
-                  <FiGlobe className="shrink-0" size={13} />
-                  Invite code: <span className="text-foreground font-medium font-numbers">{organization.invite_code}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={copyInviteCode}
-                  className="shrink-0 flex items-center gap-1.5 text-foreground hover:text-success-text transition-colors"
-                >
-                  <FiCopy size={13} />
-                  Copy
-                </button>
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-      </motion.div>
+            </SectionCard>
+          </motion.div>
+        </FormStep>
 
-      {/* Notifications */}
-      <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: reduceMotion ? 0 : 0.05 }}>
-        <SectionCard
-          icon={<FiBell size={16} />}
-          title="Notifications"
-          subtitle="Workspace-wide switches"
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div className="space-y-0.5 min-w-0">
-              <label className="text-sm font-medium text-foreground">SMS notifications</label>
-              <p className="text-xs text-text-muted">
-                Master switch for this organization. When off, no one here receives SMS regardless of their personal setting.
-              </p>
-            </div>
-            <Toggle
-              label="Organization SMS notifications"
-              isChecked={smsEnabled}
-              onChange={handleSmsToggle}
-              isDisabled={isSmsSaving}
-            />
-          </div>
-        </SectionCard>
-      </motion.div>
-
-      {/* SAVE BAR */}
-      <div className="flex items-center justify-between gap-4 pt-1">
-        <span className="flex items-center gap-1.5 text-[10px] font-bold capitalize text-text-muted">
-          {isDirty ? "Unsaved changes" : "All changes saved"}
-        </span>
-        <button
-          type="submit"
-          disabled={isSaving || !isDirty}
-          aria-busy={isSaving}
-          className="md-btn md-btn-primary"
-        >
-          {isSaving ? (
-            <>
-              <Spinner className="h-3 w-3 text-success-text" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <FiCheck size={13} />
-              Save changes
-            </>
-          )}
-        </button>
-      </div>
-    </form>
+        {/* SAVE BAR */}
+        <div className="flex items-center justify-between gap-4 pt-1">
+          <span className="flex items-center gap-1.5 text-[10px] font-bold capitalize text-text-muted">
+            {isDirty ? "Unsaved changes" : "All changes saved"}
+          </span>
+          <FormStepNavigation>
+            <button
+              type="submit"
+              disabled={isSaving || !isDirty}
+              aria-busy={isSaving}
+              className="md-btn md-btn-primary"
+            >
+              {isSaving ? (
+                <>
+                  <Spinner className="h-3 w-3 text-success-text" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <FiCheck size={13} />
+                  Save changes
+                </>
+              )}
+            </button>
+          </FormStepNavigation>
+        </div>
+      </form>
+    </FormWizard>
   );
 }

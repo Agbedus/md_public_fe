@@ -12,6 +12,8 @@ interface CustomDatePickerProps {
   placeholder?: string;
   enableTime?: boolean;
   className?: string;
+  triggerClassName?: string;
+  matchTriggerWidth?: boolean;
   minDate?: Date;
   maxDate?: Date;
   disabled?: boolean;
@@ -25,6 +27,8 @@ export function CustomDatePicker({
   placeholder = 'Select date',
   enableTime = false,
   className = '',
+  triggerClassName = '',
+  matchTriggerWidth = false,
   minDate,
   maxDate,
   disabled = false,
@@ -41,6 +45,7 @@ export function CustomDatePicker({
     preferredSide: 'bottom',
     preferredAlign: 'start',
     gap: 4,
+    matchAnchorWidth: matchTriggerWidth,
   });
 
   // Local state for navigation (independent of selected date)
@@ -151,10 +156,10 @@ export function CustomDatePicker({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {name && <input type="hidden" name={name} value={hiddenValue} />}
+      {name && <input type="hidden" name={name} form={form} value={hiddenValue} disabled={disabled} />}
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-full border border-card-border bg-input-bg px-3 py-2 text-sm text-foreground transition-colors focus:outline-none ${disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-foreground/10 hover:bg-card'}`}
+        className={`flex w-full cursor-pointer items-center justify-between gap-2 rounded-full border border-card-border bg-input-bg px-3 py-2 text-sm text-foreground transition-colors focus:outline-none ${disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-foreground/10 hover:bg-card'} ${triggerClassName}`}
       >
         <div className="flex items-center gap-2 truncate flex-1">
           <FiCalendar className="text-text-muted w-4 h-4 shrink-0" />

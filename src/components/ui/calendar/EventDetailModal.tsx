@@ -1,20 +1,46 @@
 "use client";
+import {
+  FormWizard,
+  FormStep,
+  FormStepHeader,
+  FormStepNavigation,
+} from "@/components/ui/form-wizard";
+import { CustomSelect } from "@/components/ui/inputs/custom-select";
 import React, { useState, useEffect } from "react";
 import type { CalendarEvent, EventReminder } from "@/types/calendar";
 import { format } from "date-fns";
-import { 
-  FiX, FiCalendar, FiMapPin, FiUsers, FiEdit2, FiTrash2, 
-  FiGlobe, FiLock, FiBell, FiPlus, FiCheck, FiFlag, FiTrello, FiCheckCircle, FiDollarSign, FiSun, FiClock, FiCoffee
+import {
+  FiX,
+  FiCalendar,
+  FiMapPin,
+  FiUsers,
+  FiEdit2,
+  FiTrash2,
+  FiGlobe,
+  FiLock,
+  FiBell,
+  FiPlus,
+  FiCheck,
+  FiFlag,
+  FiTrello,
+  FiCheckCircle,
+  FiDollarSign,
+  FiSun,
+  FiClock,
+  FiCoffee,
 } from "react-icons/fi";
-import { updateEvent, deleteEvent } from "@/app/(dashboard)/[orgSlug]/calendar/actions";
+import {
+  updateEvent,
+  deleteEvent,
+} from "@/app/(dashboard)/[orgSlug]/calendar/actions";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { CustomDatePicker } from "@/components/ui/inputs/custom-date-picker";
 import { CustomNumberInput } from "@/components/ui/inputs/custom-number-input";
 import { useConfirm } from "@/providers/confirmation-provider";
 import { toast } from "@/lib/toast";
-import { avatarStyle } from '@/lib/avatar-color';
+import { avatarStyle } from "@/lib/avatar-color";
 
-import { BusyIcon } from '@/components/ui/busy-icon';
+import { BusyIcon } from "@/components/ui/busy-icon";
 interface Props {
   event: CalendarEvent | null;
   open: boolean;
@@ -29,14 +55,14 @@ interface Props {
   canModify?: boolean;
 }
 
-export default function EventDetailModal({ 
-  event, 
-  open, 
-  onClose, 
+export default function EventDetailModal({
+  event,
+  open,
+  onClose,
   onUpdated,
   onOptimisticUpdate,
   onOptimisticDelete,
-  canModify = true
+  canModify = true,
 }: Props) {
   const confirm = useConfirm();
   const [isEditing, setIsEditing] = useState(false);
@@ -51,9 +77,15 @@ export default function EventDetailModal({
   const [location, setLocation] = useState("");
   const [organizer, setOrganizer] = useState("");
   const [attendees, setAttendees] = useState("");
-  const [status, setStatus] = useState<"tentative"|"confirmed"|"cancelled">("confirmed");
-  const [privacy, setPrivacy] = useState<"public"|"private"|"confidential">("public");
-  const [recurrence, setRecurrence] = useState<"none"|"daily"|"weekly"|"monthly"|"yearly">("none");
+  const [status, setStatus] = useState<"tentative" | "confirmed" | "cancelled">(
+    "confirmed",
+  );
+  const [privacy, setPrivacy] = useState<"public" | "private" | "confidential">(
+    "public",
+  );
+  const [recurrence, setRecurrence] = useState<
+    "none" | "daily" | "weekly" | "monthly" | "yearly"
+  >("none");
   const [reminders, setReminders] = useState<EventReminder[]>([]);
   const [color, setColor] = useState("#6366f1");
 
@@ -64,7 +96,7 @@ export default function EventDetailModal({
 
   // Helper functions
   function toLocalISOString(date: Date) {
-    const pad = (n: number) => n.toString().padStart(2, '0');
+    const pad = (n: number) => n.toString().padStart(2, "0");
     const year = date.getFullYear();
     const month = pad(date.getMonth() + 1);
     const day = pad(date.getDate());
@@ -87,12 +119,12 @@ export default function EventDetailModal({
       let nextStart = "";
       let nextEnd = "";
       try {
-          const s = new Date(event.start);
-          const e = new Date(event.end);
-          if(!isNaN(s.getTime())) nextStart = toLocalISOString(s);
-          if(!isNaN(e.getTime())) nextEnd = toLocalISOString(e);
+        const s = new Date(event.start);
+        const e = new Date(event.end);
+        if (!isNaN(s.getTime())) nextStart = toLocalISOString(s);
+        if (!isNaN(e.getTime())) nextEnd = toLocalISOString(e);
       } catch (e) {
-          console.error("Invalid dates", e);
+        console.error("Invalid dates", e);
       }
       const frame = window.requestAnimationFrame(() => {
         setIsEditing(false); // Start in view mode
@@ -125,13 +157,13 @@ export default function EventDetailModal({
     }
   };
 
-
   if (!open || !event) return null;
 
   // Projects, tasks and time-off are derived rows the calendar renders but does
   // not own, so they were already read-only here. An event the viewer lacks
   // permission on is locked the same way, reusing the existing disabled styling.
-  const isLocked = event.isProject || event.isTask || event.isTimeOff || !canModify;
+  const isLocked =
+    event.isProject || event.isTask || event.isTimeOff || !canModify;
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
@@ -140,41 +172,52 @@ export default function EventDetailModal({
 
     // Optimistic Update
     const updatedEvent: CalendarEvent = {
-        ...event,
-        title,
-        description: description || undefined,
-        start: new Date(start).toISOString(),
-        end: new Date(end).toISOString(),
-        allDay,
-        location: location || undefined,
-        organizer: organizer || undefined,
-        attendees: attendees.split(",").map(s => s.trim()).filter(Boolean),
-        status,
-        privacy,
-        recurrence,
-        reminders,
-        color,
-        updatedAt: new Date().toISOString()
+      ...event,
+      title,
+      description: description || undefined,
+      start: new Date(start).toISOString(),
+      end: new Date(end).toISOString(),
+      allDay,
+      location: location || undefined,
+      organizer: organizer || undefined,
+      attendees: attendees
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      status,
+      privacy,
+      recurrence,
+      reminders,
+      color,
+      updatedAt: new Date().toISOString(),
     };
     onOptimisticUpdate?.(updatedEvent);
     onClose();
 
     try {
       const formData = new FormData();
-      formData.append('id', String(event.id));
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('start', new Date(start).toISOString());
-      formData.append('end', new Date(end).toISOString());
-      formData.append('allDay', String(allDay));
-      formData.append('location', location);
-      formData.append('organizer', organizer);
-      formData.append('attendees', JSON.stringify(attendees.split(",").map(s => s.trim()).filter(Boolean)));
-      formData.append('status', status);
-      formData.append('privacy', privacy);
-      formData.append('recurrence', recurrence);
-      formData.append('reminders', JSON.stringify(reminders));
-      formData.append('color', color);
+      formData.append("id", String(event.id));
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("start", new Date(start).toISOString());
+      formData.append("end", new Date(end).toISOString());
+      formData.append("allDay", String(allDay));
+      formData.append("location", location);
+      formData.append("organizer", organizer);
+      formData.append(
+        "attendees",
+        JSON.stringify(
+          attendees
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
+        ),
+      );
+      formData.append("status", status);
+      formData.append("privacy", privacy);
+      formData.append("recurrence", recurrence);
+      formData.append("reminders", JSON.stringify(reminders));
+      formData.append("color", color);
 
       const res = await updateEvent(formData);
       if (res && !res.success) {
@@ -195,10 +238,10 @@ export default function EventDetailModal({
 
   async function handleDelete() {
     const confirmed = await confirm({
-      title: 'Delete Event',
+      title: "Delete Event",
       message: `Are you sure you want to delete "${event?.title}"? This action cannot be undone.`,
-      confirmText: 'Delete Event',
-      type: 'danger'
+      confirmText: "Delete Event",
+      type: "danger",
     });
 
     if (!confirmed) return;
@@ -211,9 +254,9 @@ export default function EventDetailModal({
     try {
       const res = await deleteEvent(event.id);
       if (res && !res.success) {
-         toast.error(res.error || "Failed to delete event");
-         await onUpdated();
-         return;
+        toast.error(res.error || "Failed to delete event");
+        await onUpdated();
+        return;
       }
       await onUpdated();
       toast.success(`Event deleted — ${event.title}`);
@@ -240,58 +283,88 @@ export default function EventDetailModal({
       aria-modal="true"
     >
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-md transition-opacity"
         onClick={onClose}
       />
 
-      <div className="relative flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-3xl border border-card-border bg-background shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] md:max-h-[90vh] md:max-w-3xl md:rounded-[28px]">
-        {/* Header */}
-        <div className="flex flex-none items-center justify-between border-b border-card-border bg-card px-4 py-4 sm:px-6 md:px-8 md:py-5">
-          <div className="text-foreground font-semibold tracking-tightest truncate pr-4 text-lg italic">
-            {isEditing ? "Refine Objective" : event.title.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim()}
+      <div className="animate-in fade-in zoom-in-95 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:animate-none relative flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-3xl border border-card-border bg-background shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] md:max-h-[90vh] md:max-w-3xl md:rounded-[28px]">
+        <FormWizard
+          formId="edit-event-form"
+          steps={["When & where", "People & visibility", "Details & reminders"]}
+          busy={submitting}
+          key={`${event.id}-${isEditing}`}
+          enabled={isEditing}
+          validateStep={(step) =>
+            step === 0 &&
+            (!start ||
+              !end ||
+              !Number.isFinite(new Date(start).getTime()) ||
+              !Number.isFinite(new Date(end).getTime()) ||
+              (allDay
+                ? new Date(end) < new Date(start)
+                : new Date(end) <= new Date(start)))
+              ? "Choose valid start and end dates. The end must follow the start."
+              : null
+          }
+          className="flex min-h-0 max-h-[inherit] flex-1 flex-col overflow-hidden"
+        >
+          {/* Header */}
+          <div className="flex flex-none items-center justify-between border-b border-card-border bg-card px-4 py-4 sm:px-6 md:px-8 md:py-5">
+            <div className="text-foreground font-semibold tracking-tightest truncate pr-4 text-lg italic">
+              {isEditing
+                ? "Edit event"
+                : event.title.replace(/[\u{1F300}-\u{1F9FF}]/gu, "").trim()}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-9 w-9 items-center justify-center hover:bg-foreground/[0.05] text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border rounded-full"
+            >
+              <FiX className="h-5 w-5" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center hover:bg-foreground/[0.05] text-text-secondary hover:text-foreground transition-all border border-transparent hover:border-card-border rounded-full"
-          >
-            <FiX className="h-5 w-5" />
-          </button>
-        </div>
 
-        {/* Scrollable Content */}
-        <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-          
-          {/* View Mode */}
-          {!isEditing && (
-            <div className="space-y-8">
-              <div className="flex flex-col gap-6">
-                 {/* Timing */}
-                 <div className="flex items-start gap-4">
+          {/* Scrollable Content */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+            {/* View Mode */}
+            {!isEditing && (
+              <div className="space-y-8">
+                <div className="flex flex-col gap-6">
+                  {/* Timing */}
+                  <div className="flex items-start gap-4">
                     <div className="mt-1 h-10 w-10 bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text dark:text-accent-text shrink-0 shadow-sm rounded-full">
                       <FiCalendar className="h-5 w-5" />
                     </div>
                     <div className="space-y-1">
-                        <div className="text-lg font-semibold text-foreground tracking-tightest italic">
-                            {event.allDay ? (
-                                <span>{format(new Date(event.start), "EEEE, MMMM d, yyyy")}</span>
-                            ) : (
-                                <span>
-                                    {format(new Date(event.start), "EEEE, MMMM d")} • {format(new Date(event.start), "h:mm a")} - {format(new Date(event.end), "h:mm a")}
-                                </span>
+                      <div className="text-lg font-semibold text-foreground tracking-tightest italic">
+                        {event.allDay ? (
+                          <span>
+                            {format(
+                              new Date(event.start),
+                              "EEEE, MMMM d, yyyy",
                             )}
-                        </div>
-                        <div className="text-xs text-text-muted font-semibold flex items-center gap-2">
-                            {event.allDay ? "Full Duration Active" : "Precision Timing Active"}
-                            {event.recurrence && event.recurrence !== 'none' && (
-                                <span className="text-accent-text dark:text-accent-text font-semibold bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">
-                                    Protocol: {event.recurrence}
-                                </span>
-                            )}
-                        </div>
+                          </span>
+                        ) : (
+                          <span>
+                            {format(new Date(event.start), "EEEE, MMMM d")} •{" "}
+                            {format(new Date(event.start), "h:mm a")} -{" "}
+                            {format(new Date(event.end), "h:mm a")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-text-muted font-semibold flex items-center gap-2">
+                        {event.allDay
+                          ? "Full Duration Active"
+                          : "Precision Timing Active"}
+                        {event.recurrence && event.recurrence !== "none" && (
+                          <span className="text-accent-text dark:text-accent-text font-semibold bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">
+                            Protocol: {event.recurrence}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                 </div>
+                  </div>
 
                   {/* Time Off Specific Details */}
                   {event.isTimeOff && (
@@ -302,23 +375,31 @@ export default function EventDetailModal({
                             <FiCoffee className="w-3.5 h-3.5" /> Exemption Type
                           </div>
                           <div className="text-sm font-semibold text-foreground">
-                            {event.timeOffType || 'Vacation'}
+                            {event.timeOffType || "Vacation"}
                           </div>
                         </div>
                         <div className="p-4 bg-warning/5 border border-warning/10 rounded-2xl">
                           <div className="text-xs font-semibold text-warning-text dark:text-warning-text mb-2 flex items-center gap-1.5">
-                            {event.timeOffStatus === 'approved' ? <FiCheckCircle className="w-3.5 h-3.5 text-success-text" /> : <FiClock className="w-3.5 h-3.5 text-warning-text" />} Operational Status
+                            {event.timeOffStatus === "approved" ? (
+                              <FiCheckCircle className="w-3.5 h-3.5 text-success-text" />
+                            ) : (
+                              <FiClock className="w-3.5 h-3.5 text-warning-text" />
+                            )}{" "}
+                            Operational Status
                           </div>
-                          <div className={`text-sm font-semibold ${event.timeOffStatus === 'approved' ? 'text-success-text dark:text-success-text' : 'text-warning-text dark:text-warning-text'}`}>
-                            {event.timeOffStatus || 'Pending'}
+                          <div
+                            className={`text-sm font-semibold ${event.timeOffStatus === "approved" ? "text-success-text dark:text-success-text" : "text-warning-text dark:text-warning-text"}`}
+                          >
+                            {event.timeOffStatus || "Pending"}
                           </div>
                         </div>
                       </div>
-                      
+
                       {event.timeOffJustification && (
                         <div className="p-6 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl">
                           <div className="text-xs font-semibold text-text-muted mb-3 flex items-center gap-1.5">
-                            <FiEdit2 className="w-3.5 h-3.5" /> Operational Justification
+                            <FiEdit2 className="w-3.5 h-3.5" /> Operational
+                            Justification
                           </div>
                           <div className="text-sm text-foreground leading-relaxed italic font-bold">
                             &ldquo;{event.timeOffJustification}&rdquo;
@@ -334,18 +415,23 @@ export default function EventDetailModal({
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                         <div className="p-4 bg-accent/5 border border-accent/10 rounded-2xl">
                           <div className="text-xs font-semibold text-accent-text dark:text-accent-text mb-2 flex items-center gap-1.5">
-                            <FiTrello className="w-3.5 h-3.5" /> Mission Key / Client
+                            <FiTrello className="w-3.5 h-3.5" /> Mission Key /
+                            Client
                           </div>
                           <div className="text-sm font-semibold text-foreground">
-                            {event.projectKey || 'N/A'} {event.projectClient ? `• ${event.projectClient}` : ''}
+                            {event.projectKey || "N/A"}{" "}
+                            {event.projectClient
+                              ? `• ${event.projectClient}`
+                              : ""}
                           </div>
                         </div>
                         <div className="p-4 bg-accent/5 border border-accent/10 rounded-2xl">
                           <div className="text-xs font-semibold text-accent-text dark:text-accent-text mb-2 flex items-center gap-1.5">
-                            <FiFlag className="w-3.5 h-3.5 text-danger-text" /> Strategic Priority
+                            <FiFlag className="w-3.5 h-3.5 text-danger-text" />{" "}
+                            Strategic Priority
                           </div>
                           <div className="text-sm font-semibold text-foreground">
-                            {event.projectPriority || 'Medium'}
+                            {event.projectPriority || "Medium"}
                           </div>
                         </div>
                       </div>
@@ -353,7 +439,8 @@ export default function EventDetailModal({
                       {event.projectBudget && (
                         <div className="p-4 bg-success/5 border border-success/10 rounded-2xl flex items-center justify-between">
                           <div className="text-xs font-semibold text-success-text dark:text-success-text flex items-center gap-1.5">
-                            <FiDollarSign className="w-3.5 h-3.5" /> Allocated Capital
+                            <FiDollarSign className="w-3.5 h-3.5" /> Allocated
+                            Capital
                           </div>
                           <div className="text-lg font-semibold text-success-text dark:text-success-text tracking-tighter tabular-nums">
                             ${event.projectBudget.toLocaleString()}
@@ -369,39 +456,52 @@ export default function EventDetailModal({
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                         <div className="p-4 bg-accent/5 border border-accent/10 rounded-2xl">
                           <div className="text-xs font-semibold text-accent-text dark:text-accent-text mb-2 flex items-center gap-1.5">
-                            <FiCheckCircle className="w-3.5 h-3.5 text-accent-text" /> Operational State
+                            <FiCheckCircle className="w-3.5 h-3.5 text-accent-text" />{" "}
+                            Operational State
                           </div>
                           <div className="text-sm font-semibold text-foreground">
-                            {event.taskStatus || 'Todo'}
+                            {event.taskStatus || "Todo"}
                           </div>
                         </div>
                         <div className="p-4 bg-accent/5 border border-accent/10 rounded-2xl">
                           <div className="text-xs font-semibold text-accent-text dark:text-accent-text mb-2 flex items-center gap-1.5">
-                            <FiFlag className="w-3.5 h-3.5 text-danger-text" /> Strategic Priority
+                            <FiFlag className="w-3.5 h-3.5 text-danger-text" />{" "}
+                            Strategic Priority
                           </div>
                           <div className="text-sm font-semibold text-foreground">
-                            {event.taskPriority || 'Medium'}
+                            {event.taskPriority || "Medium"}
                           </div>
                         </div>
                       </div>
 
-                      {event.taskAssignees && event.taskAssignees.length > 0 && (
-                        <div className="p-5 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl">
-                          <div className="text-xs font-semibold text-text-muted mb-4 flex items-center gap-1.5">
-                            <FiUsers className="w-3.5 h-3.5" /> Assigned Personnel
+                      {event.taskAssignees &&
+                        event.taskAssignees.length > 0 && (
+                          <div className="p-5 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl">
+                            <div className="text-xs font-semibold text-text-muted mb-4 flex items-center gap-1.5">
+                              <FiUsers className="w-3.5 h-3.5" /> Assigned
+                              Personnel
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                              {event.taskAssignees.map((u, i) => (
+                                <div
+                                  key={i}
+                                  className="flex items-center gap-2.5 px-3 py-1.5 bg-background rounded-full border border-card-border shadow-sm"
+                                >
+                                  <div
+                                    style={avatarStyle(u.fullName)}
+                                    className="h-5 w-5 bg-accent rounded-full flex items-center justify-center text-xs font-semibold text-on-accent"
+                                  >
+                                    {u.fullName?.charAt(0) ||
+                                      u.email?.charAt(0)}
+                                  </div>
+                                  <span className="text-[11px] text-foreground font-bold tracking-tight">
+                                    {u.fullName || u.email}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-3">
-                             {event.taskAssignees.map((u, i) => (
-                               <div key={i} className="flex items-center gap-2.5 px-3 py-1.5 bg-background rounded-full border border-card-border shadow-sm">
-                                 <div style={avatarStyle(u.fullName)} className="h-5 w-5 bg-accent rounded-full flex items-center justify-center text-xs font-semibold text-on-accent">
-                                   {u.fullName?.charAt(0) || u.email?.charAt(0)}
-                                 </div>
-                                 <span className="text-[11px] text-foreground font-bold tracking-tight">{u.fullName || u.email}</span>
-                               </div>
-                             ))}
-                          </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   )}
 
@@ -409,362 +509,487 @@ export default function EventDetailModal({
                     <>
                       {/* Location */}
                       {event.location && (
-                          <div className="flex items-start gap-4">
-                              <div className="mt-1 h-10 w-10 bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text dark:text-accent-text shrink-0 shadow-sm rounded-full">
-                                <FiMapPin className="h-5 w-5" />
-                              </div>
-                              <div className="space-y-1">
-                                  <div className="text-lg font-semibold text-foreground tracking-tight">{event.location}</div>
-                                  <div className="text-xs text-text-muted font-semibold">Office location</div>
-                              </div>
+                        <div className="flex items-start gap-4">
+                          <div className="mt-1 h-10 w-10 bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text dark:text-accent-text shrink-0 shadow-sm rounded-full">
+                            <FiMapPin className="h-5 w-5" />
                           </div>
+                          <div className="space-y-1">
+                            <div className="text-lg font-semibold text-foreground tracking-tight">
+                              {event.location}
+                            </div>
+                            <div className="text-xs text-text-muted font-semibold">
+                              Office location
+                            </div>
+                          </div>
+                        </div>
                       )}
 
                       {/* Attendees */}
                       {event.attendees && event.attendees.length > 0 && (
-                          <div className="flex items-start gap-4">
-                              <div className="mt-1 h-10 w-10 bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text dark:text-accent-text shrink-0 shadow-sm rounded-full">
-                                <FiUsers className="h-5 w-5" />
-                              </div>
-                              <div className="space-y-3 flex-1 min-w-0">
-                                  <div className="flex flex-wrap gap-2">
-                                      {event.attendees.map((email, idx) => (
-                                          <span key={idx} className="px-3 py-1 text-[11px] font-bold bg-foreground/[0.03] text-foreground rounded-full border border-card-border tracking-tight">
-                                              {email.trim()}
-                                          </span>
-                                      ))}
-                                  </div>
-                                  <div className="text-xs text-text-muted font-semibold">Assigned Personnel</div>
-                              </div>
+                        <div className="flex items-start gap-4">
+                          <div className="mt-1 h-10 w-10 bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text dark:text-accent-text shrink-0 shadow-sm rounded-full">
+                            <FiUsers className="h-5 w-5" />
                           </div>
+                          <div className="space-y-3 flex-1 min-w-0">
+                            <div className="flex flex-wrap gap-2">
+                              {event.attendees.map((email, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-3 py-1 text-[11px] font-bold bg-foreground/[0.03] text-foreground rounded-full border border-card-border tracking-tight"
+                                >
+                                  {email.trim()}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="text-xs text-text-muted font-semibold">
+                              Assigned Personnel
+                            </div>
+                          </div>
+                        </div>
                       )}
 
                       {/* Description */}
                       {event.description && (
-                          <div className="bg-foreground/[0.02] rounded-[2rem] border border-card-border p-6 mt-4">
-                              <div className="text-xs font-semibold text-text-muted mb-3 flex items-center gap-2">
-                                  <FiEdit2 className="h-3.5 w-3.5" /> Summary
-                              </div>
-                              <div className="text-sm text-foreground font-bold whitespace-pre-wrap leading-relaxed italic opacity-80 tracking-tight">
-                                  &ldquo;{event.description}&rdquo;
-                              </div>
+                        <div className="bg-foreground/[0.02] rounded-[2rem] border border-card-border p-6 mt-4">
+                          <div className="text-xs font-semibold text-text-muted mb-3 flex items-center gap-2">
+                            <FiEdit2 className="h-3.5 w-3.5" /> Summary
                           </div>
+                          <div className="text-sm text-foreground font-bold whitespace-pre-wrap leading-relaxed italic opacity-80 tracking-tight">
+                            &ldquo;{event.description}&rdquo;
+                          </div>
+                        </div>
                       )}
-                      
+
                       {/* Metadata Badge Row */}
                       <div className="flex flex-wrap gap-3 mt-6 border-t border-card-border pt-8">
-                          <div className={`px-4 py-2 rounded-full text-xs font-semibold border inline-flex items-center gap-2 shadow-sm ${
- event.status === 'confirmed' ? 'bg-success/10 border-success/30 text-success-text dark:text-success-text' :
- event.status === 'cancelled' ? 'bg-danger/10 border-danger/30 text-danger-text dark:text-danger-text' :
- 'bg-warning/10 border-warning/30 text-warning-text dark:text-warning-text'
- }`}>
-                              <div className={`h-2 w-2 rounded-full ${
- event.status === 'confirmed' ? 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
- event.status === 'cancelled' ? 'bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]' :
- 'bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]'
- }`} />
-                              {event.status || 'Tentative'}
-                          </div>
-                          
-                          <div className="px-4 py-2 rounded-full text-xs font-semibold bg-foreground/[0.03] border border-card-border text-text-secondary inline-flex items-center gap-2 shadow-sm">
-                              {event.privacy === 'private' ? <FiLock className="h-3.5 w-3.5" /> : <FiGlobe className="h-3.5 w-3.5" />}
-                              Security: {event.privacy || 'Public'}
-                          </div>
+                        <div
+                          className={`px-4 py-2 rounded-full text-xs font-semibold border inline-flex items-center gap-2 shadow-sm ${
+                            event.status === "confirmed"
+                              ? "bg-success/10 border-success/30 text-success-text dark:text-success-text"
+                              : event.status === "cancelled"
+                                ? "bg-danger/10 border-danger/30 text-danger-text dark:text-danger-text"
+                                : "bg-warning/10 border-warning/30 text-warning-text dark:text-warning-text"
+                          }`}
+                        >
+                          <div
+                            className={`h-2 w-2 rounded-full ${
+                              event.status === "confirmed"
+                                ? "bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                                : event.status === "cancelled"
+                                  ? "bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]"
+                                  : "bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                            }`}
+                          />
+                          {event.status || "Tentative"}
+                        </div>
 
-                          <div className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-foreground/[0.03] border border-card-border text-text-secondary shadow-sm">
-                              <div className="h-2.5 w-2.5 rounded-full ring-2 ring-background shadow-sm" style={{backgroundColor: event.color || '#6366f1'}} />
-                              Chromatic
-                          </div>
+                        <div className="px-4 py-2 rounded-full text-xs font-semibold bg-foreground/[0.03] border border-card-border text-text-secondary inline-flex items-center gap-2 shadow-sm">
+                          {event.privacy === "private" ? (
+                            <FiLock className="h-3.5 w-3.5" />
+                          ) : (
+                            <FiGlobe className="h-3.5 w-3.5" />
+                          )}
+                          Security: {event.privacy || "Public"}
+                        </div>
+
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-foreground/[0.03] border border-card-border text-text-secondary shadow-sm">
+                          <div
+                            className="h-2.5 w-2.5 rounded-full ring-2 ring-background shadow-sm"
+                            style={{
+                              backgroundColor: event.color || "#6366f1",
+                            }}
+                          />
+                          Chromatic
+                        </div>
                       </div>
                     </>
                   )}
-              </div>
-            </div>
-          )}
-
-          {/* Edit Mode Form */}
-          {isEditing && (
-            <form id="edit-event-form" onSubmit={handleUpdate} className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-                <div className="space-y-2">
-                  <label className="block text-xs font-semibold text-text-muted ml-1">Task name</label>
-                  <input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
-                    placeholder="Operational designation..."
-                    required
-                  />
                 </div>
-                
-                <div className="flex items-center gap-4 py-1">
+              </div>
+            )}
+
+            {/* Edit Mode Form */}
+            {isEditing && (
+              <form
+                id="edit-event-form"
+                onSubmit={handleUpdate}
+                className="space-y-8 animate-in fade-in zoom-in-95 duration-300"
+              >
+                <FormStepHeader />
+                <FormStep index={0}>
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-text-muted ml-1">
+                      Event name
+                    </label>
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
+                      placeholder="Event name"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-4 py-1">
                     <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white dark:bg-white/[0.03] border border-card-border hover:bg-foreground/[0.05] transition-all cursor-pointer group">
-                      <input 
-                        type="checkbox" 
-                        id="edit-allday" 
-                        checked={allDay} 
+                      <input
+                        type="checkbox"
+                        id="edit-allday"
+                        checked={allDay}
                         onChange={(e) => handleAllDayChange(e.target.checked)}
                         className="rounded-md border-card-border bg-background text-accent-text focus:ring-accent/30 focus:ring-offset-0 h-4 w-4 transition-all"
                       />
-                      <label htmlFor="edit-allday" className="text-xs font-semibold text-text-muted group-hover:text-foreground cursor-pointer select-none transition-colors">Temporal Mode: Full Duration</label>
-                   </div>
-                </div>
+                      <label
+                        htmlFor="edit-allday"
+                        className="text-xs font-semibold text-text-muted group-hover:text-foreground cursor-pointer select-none transition-colors"
+                      >
+                        All-day event
+                      </label>
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
                     <div className="space-y-2">
-                        <label className="block text-xs font-semibold text-text-muted ml-1">Commencement</label>
-                        <CustomDatePicker
-                            value={start}
-                            onChange={(date) => {
-                                if (date) {
-                                    setStart(allDay ? format(date, "yyyy-MM-dd") : format(date, "yyyy-MM-dd'T'HH:mm"));
-                                }
-                            }}
-                            enableTime={!allDay}
-                            className="w-full"
-                        />
+                      <label className="block text-xs font-semibold text-text-muted ml-1">
+                        Starts
+                      </label>
+                      <CustomDatePicker
+                        value={start}
+                        onChange={(date) => {
+                          if (date) {
+                            setStart(
+                              allDay
+                                ? format(date, "yyyy-MM-dd")
+                                : format(date, "yyyy-MM-dd'T'HH:mm"),
+                            );
+                          }
+                        }}
+                        enableTime={!allDay}
+                        className="w-full"
+                      />
                     </div>
                     <div className="space-y-2">
-                        <label className="block text-xs font-semibold text-text-muted ml-1">Termination</label>
-                        <CustomDatePicker
-                            value={end}
-                            onChange={(date) => {
-                                if (date) {
-                                    setEnd(allDay ? format(date, "yyyy-MM-dd") : format(date, "yyyy-MM-dd'T'HH:mm"));
-                                }
-                            }}
-                            enableTime={!allDay}
-                            className="w-full"
-                            minDate={start ? new Date(start) : undefined}
-                        />
+                      <label className="block text-xs font-semibold text-text-muted ml-1">
+                        Ends
+                      </label>
+                      <CustomDatePicker
+                        value={end}
+                        onChange={(date) => {
+                          if (date) {
+                            setEnd(
+                              allDay
+                                ? format(date, "yyyy-MM-dd")
+                                : format(date, "yyyy-MM-dd'T'HH:mm"),
+                            );
+                          }
+                        }}
+                        enableTime={!allDay}
+                        className="w-full"
+                        minDate={start ? new Date(start) : undefined}
+                      />
                     </div>
-                </div>
+                  </div>
 
-                <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-text-muted ml-1">Office location</label>
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-text-muted ml-1">
+                      Location
+                    </label>
                     <input
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
+                      placeholder="Address or meeting link"
+                    />
+                  </div>
+                </FormStep>
+                <FormStep index={1}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-text-muted ml-1">
+                        Organizer
+                      </label>
+                      <input
+                        value={organizer}
+                        onChange={(e) => setOrganizer(e.target.value)}
                         className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
-                        placeholder="Deployment zone..."
+                        placeholder="Host name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-text-muted ml-1">
+                        Attendees
+                      </label>
+                      <input
+                        value={attendees}
+                        onChange={(e) => setAttendees(e.target.value)}
+                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
+                        placeholder="Names or emails, separated by commas"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-text-muted ml-1">
+                        Status
+                      </label>
+                      <CustomSelect
+                        label="Status"
+                        value={String(status)}
+                        onChange={(value) => setStatus(value as typeof status)}
+                        options={[
+                          { value: "tentative", label: "Tentative" },
+                          { value: "confirmed", label: "Confirmed" },
+                          { value: "cancelled", label: "Cancelled" },
+                        ]}
+                        className="w-full"
+                        triggerClassName="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-text-muted ml-1">
+                        Repeat
+                      </label>
+                      <CustomSelect
+                        label="Repeat"
+                        value={String(recurrence)}
+                        onChange={(value) =>
+                          setRecurrence(value as typeof recurrence)
+                        }
+                        options={[
+                          { value: "none", label: "Static" },
+                          { value: "daily", label: "Daily" },
+                          { value: "weekly", label: "Weekly" },
+                          { value: "monthly", label: "Monthly" },
+                          { value: "yearly", label: "Annual" },
+                        ]}
+                        className="w-full"
+                        triggerClassName="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-text-muted ml-1">
+                      Visibility
+                    </label>
+                    <CustomSelect
+                      label="Visibility"
+                      value={String(privacy)}
+                      onChange={(value) => setPrivacy(value as typeof privacy)}
+                      options={[
+                        { value: "public", label: "Public" },
+                        { value: "private", label: "Private" },
+                        { value: "confidential", label: "Restricted" },
+                      ]}
+                      className="w-full"
+                      triggerClassName="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none font-bold"
                     />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="block text-xs font-semibold text-text-muted ml-1">Assigned to</label>
-                        <input
-                            value={organizer}
-                            onChange={(e) => setOrganizer(e.target.value)}
-                            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
-                            placeholder="Host name"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="block text-xs font-semibold text-text-muted ml-1">Assigned Personnel</label>
-                        <input
-                            value={attendees}
-                            onChange={(e) => setAttendees(e.target.value)}
-                            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold"
-                            placeholder="Authorized IDs..."
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
-                     <div className="space-y-2">
-                        <label className="block text-xs font-semibold text-text-muted ml-1">Status</label>
-                        <select 
-                            value={status} 
-                            onChange={(e) => setStatus(e.target.value as any)}
-                            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none font-bold appearance-none cursor-pointer"
-                        >
-                            <option value="tentative" className="bg-background">Tentative</option>
-                            <option value="confirmed" className="bg-background">Confirmed</option>
-                            <option value="cancelled" className="bg-background">Cancelled</option>
-                        </select>
-                     </div>
-                     <div className="space-y-2">
-                        <label className="block text-xs font-semibold text-text-muted ml-1">Repeat</label>
-                        <select 
-                            value={recurrence} 
-                            onChange={(e) => setRecurrence(e.target.value as any)}
-                            className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none font-bold appearance-none cursor-pointer"
-                        >
-                            <option value="none" className="bg-background">Static</option>
-                            <option value="daily" className="bg-background">Daily</option>
-                            <option value="weekly" className="bg-background">Weekly</option>
-                            <option value="monthly" className="bg-background">Monthly</option>
-                            <option value="yearly" className="bg-background">Annual</option>
-                        </select>
-                     </div>
-                </div>
-                
-                 <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-text-muted ml-1">Security Classification</label>
-                    <select 
-                        value={privacy} 
-                        onChange={(e) => setPrivacy(e.target.value as any)}
-                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground focus:outline-none font-bold appearance-none cursor-pointer"
-                    >
-                        <option value="public" className="bg-background">Public</option>
-                        <option value="private" className="bg-background">Private</option>
-                        <option value="confidential" className="bg-background">Restricted</option>
-                    </select>
-                 </div>
-
-                <div className="space-y-3">
-                    <label className="block text-xs font-semibold text-text-muted ml-1">Chromatic Designation</label>
+                  </div>
+                </FormStep>
+                <FormStep index={2}>
+                  <div className="space-y-3">
+                    <label className="block text-xs font-semibold text-text-muted ml-1">
+                      Event color
+                    </label>
                     <div className="flex flex-wrap gap-3 p-4 bg-white dark:bg-white/[0.03] rounded-2xl border border-card-border">
-                        {(["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4"] as const).map((c) => (
+                      {(
+                        [
+                          "#6366f1",
+                          "#10b981",
+                          "#f59e0b",
+                          "#ef4444",
+                          "#8b5cf6",
+                          "#ec4899",
+                          "#06b6d4",
+                        ] as const
+                      ).map((c) => (
                         <button
-                            type="button"
-                            key={c}
-                            onClick={() => setColor(c)}
-                            className={`h-6 w-6 rounded-full border-2 transition-all duration-500 ${
- color === c ? "border-foreground scale-110 shadow-lg" : "border-transparent opacity-40 hover:opacity-100 hover:scale-110"
- }`}
-                            style={{ backgroundColor: c }}
+                          type="button"
+                          key={c}
+                          onClick={() => setColor(c)}
+                          className={`h-6 w-6 rounded-full border-2 transition-all duration-500 ${
+                            color === c
+                              ? "border-foreground scale-110 shadow-lg"
+                              : "border-transparent opacity-40 hover:opacity-100 hover:scale-110"
+                          }`}
+                          style={{ backgroundColor: c }}
                         />
-                        ))}
+                      ))}
                     </div>
-                </div>
+                  </div>
 
-                <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-text-muted ml-1">Summary</label>
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-text-muted ml-1">
+                      Summary
+                    </label>
                     <textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold resize-none custom-scrollbar min-h-[100px]"
-                        placeholder="Add a note..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl px-5 py-3 text-sm text-foreground placeholder:text-text-muted/50 focus:outline-none transition-all font-bold resize-none custom-scrollbar min-h-[100px]"
+                      placeholder="Add a note..."
                     />
-                </div>
+                  </div>
 
-                <div className="space-y-4">
+                  <div className="space-y-4">
                     <label className="block text-xs font-semibold text-text-muted ml-1 flex items-center gap-2">
-                        <FiBell className="text-accent-text" /> Proactive Notifications
+                      <FiBell className="text-accent-text" /> Reminders
                     </label>
                     <div className="flex flex-wrap gap-2 mb-2">
-                        {reminders.map((r, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full border border-accent/30 bg-accent/10 text-accent-text dark:text-accent-text shadow-sm">
-                            {r.days > 0 && `${r.days}D `}
-                            {r.hours > 0 && `${r.hours}H `}
-                            {r.minutes > 0 && `${r.minutes}M `}
-                            Lead Time
-                            <button type="button" onClick={() => setReminders((prev) => prev.filter((_, i) => i !== idx))} className="ml-1 p-0.5 hover:bg-accent/20 rounded-full transition-all">
-                             <FiX className="h-3 w-3" />
-                            </button>
+                      {reminders.map((r, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full border border-accent/30 bg-accent/10 text-accent-text dark:text-accent-text shadow-sm"
+                        >
+                          {r.days > 0 && `${r.days}D `}
+                          {r.hours > 0 && `${r.hours}H `}
+                          {r.minutes > 0 && `${r.minutes}M `}
+                          before the event
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setReminders((prev) =>
+                                prev.filter((_, i) => i !== idx),
+                              )
+                            }
+                            className="ml-1 p-0.5 hover:bg-accent/20 rounded-full transition-all"
+                          >
+                            <FiX className="h-3 w-3" />
+                          </button>
                         </span>
-                        ))}
+                      ))}
                     </div>
-                    
+
                     <div className="flex flex-wrap items-end gap-3 p-5 bg-white dark:bg-white/[0.03] border border-card-border rounded-2xl shadow-sm">
-                        <div className="flex-1 min-w-[60px]">
-                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Days</label>
+                      <div className="flex-1 min-w-[60px]">
+                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                          Days
+                        </label>
                         <CustomNumberInput
-                            value={rDays}
-                            onChange={(val) => setRDays(Number(val) || 0)}
-                            min={0}
+                          value={rDays}
+                          onChange={(val) => setRDays(Number(val) || 0)}
+                          min={0}
                         />
-                        </div>
-                        <div className="flex-1 min-w-[60px]">
-                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Hrs</label>
+                      </div>
+                      <div className="flex-1 min-w-[60px]">
+                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                          Hrs
+                        </label>
                         <CustomNumberInput
-                            value={rHours}
-                            onChange={(val) => setRHours(Number(val) || 0)}
-                            min={0}
-                            max={23}
+                          value={rHours}
+                          onChange={(val) => setRHours(Number(val) || 0)}
+                          min={0}
+                          max={23}
                         />
-                        </div>
-                        <div className="flex-1 min-w-[60px]">
-                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">Mins</label>
+                      </div>
+                      <div className="flex-1 min-w-[60px]">
+                        <label className="block text-xs font-semibold text-text-muted mb-2 ml-1">
+                          Mins
+                        </label>
                         <CustomNumberInput
-                            value={rMinutes}
-                            onChange={(val) => setRMinutes(Number(val) || 0)}
-                            min={0}
-                            max={59}
+                          value={rMinutes}
+                          onChange={(val) => setRMinutes(Number(val) || 0)}
+                          min={0}
+                          max={59}
                         />
-                        </div>
-                        <button
+                      </div>
+                      <button
                         type="button"
                         onClick={() => {
-                            if (rDays === 0 && rHours === 0 && rMinutes === 0) return;
-                            setReminders((prev) => [...prev, { days: rDays, hours: rHours, minutes: rMinutes }]);
-                            setRDays(0); setRHours(0); setRMinutes(0);
+                          if (rDays === 0 && rHours === 0 && rMinutes === 0)
+                            return;
+                          setReminders((prev) => [
+                            ...prev,
+                            { days: rDays, hours: rHours, minutes: rMinutes },
+                          ]);
+                          setRDays(0);
+                          setRHours(0);
+                          setRMinutes(0);
                         }}
                         className="h-11 px-5 inline-flex items-center gap-2 text-xs font-semibold rounded-full bg-foreground/10 text-foreground border border-card-border hover:bg-foreground/[0.15] transition-all active:scale-95 shadow-sm"
-                        >
-                        <FiPlus className="h-4 w-4" /> Add Alert
-                        </button>
+                      >
+                        <FiPlus className="h-4 w-4" /> Add reminder
+                      </button>
                     </div>
-                </div>
-            </form>
-          )}
-
-        </div>
-
-        {/* Footer Actions */}
-        <div className="flex-none p-6 border-t border-card-border bg-white dark:bg-white/[0.03] flex items-center justify-between">
-            {isEditing ? (
-                <>
-                    <button
-                        type="button"
-                        onClick={handleDelete}
-                        className="px-4 py-2.5 rounded-full bg-danger/10 border border-danger/20 text-danger-text dark:text-danger-text text-xs font-semibold hover:bg-danger/20 transition-all flex items-center gap-2 shadow-sm"
-                    >
-                        <FiTrash2 className="h-4 w-4" />
-                        Terminate
-                    </button>
-                    
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setIsEditing(false)}
-                            className="md-btn md-btn-secondary">
-                Cancel
-                        </button>
-                        
-                        <button
-                            type="submit"
-                            form="edit-event-form"
-                            disabled={submitting}
-                            className="md-btn md-btn-primary">
-                Save changes <span className="md-btn-chip"><BusyIcon state={submitting ? 'loading' : 'idle'} icon={<FiCheck />} /></span>
-                        </button>
-                    </div>
-                </>
-            ) : (
-                <>
-                    <button
-                        type="button"
-                        onClick={handleDelete}
-                        disabled={isLocked}
-                        className={`px-4 py-2.5 rounded-full text-xs font-semibold border flex items-center gap-2 transition-all shadow-sm ${
- (isLocked) 
- ? 'opacity-20 bg-foreground/[0.03] border-card-border text-text-muted cursor-not-allowed grayscale' 
- : 'bg-danger/10 border-danger/20 text-danger-text dark:text-danger-text hover:bg-danger/20'
- }`}
-                    >
-                        <FiTrash2 className="h-4 w-4" />
-                        Terminate
-                    </button>
-                    
-                    <button
-                        type="button"
-                        onClick={() => setIsEditing(true)}
-                        disabled={isLocked}
-                        className={`px-6 py-2.5 rounded-full text-[11px] font-semibold border transition-all flex items-center gap-2 shadow-sm ${
- (isLocked)
- ? 'bg-foreground/[0.02] border-card-border text-text-muted cursor-not-allowed'
- : 'bg-foreground/[0.08] border-card-border text-foreground hover:bg-foreground/[0.12]'
- }`}
-                    >
-                        <FiEdit2 className="h-4 w-4" />
-                        { (isLocked) ? "Locked Record" : "Edit task" }
-                    </button>
-                </>
+                  </div>
+                </FormStep>
+              </form>
             )}
-        </div>
+          </div>
 
+          {/* Footer Actions */}
+          <div className="flex-none p-6 border-t border-card-border bg-white dark:bg-white/[0.03] flex items-center justify-between">
+            {isEditing ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="px-4 py-2.5 rounded-full bg-danger/10 border border-danger/20 text-danger-text dark:text-danger-text text-xs font-semibold hover:bg-danger/20 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <FiTrash2 className="h-4 w-4" />
+                  Terminate
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="md-btn md-btn-secondary"
+                  >
+                    Cancel
+                  </button>
+
+                  <FormStepNavigation>
+                    <button
+                      type="submit"
+                      form="edit-event-form"
+                      disabled={submitting}
+                      className="md-btn md-btn-primary"
+                    >
+                      Save changes{" "}
+                      <span className="md-btn-chip">
+                        <BusyIcon
+                          state={submitting ? "loading" : "idle"}
+                          icon={<FiCheck />}
+                        />
+                      </span>
+                    </button>
+                  </FormStepNavigation>
+                </div>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isLocked}
+                  className={`px-4 py-2.5 rounded-full text-xs font-semibold border flex items-center gap-2 transition-all shadow-sm ${
+                    isLocked
+                      ? "opacity-20 bg-foreground/[0.03] border-card-border text-text-muted cursor-not-allowed grayscale"
+                      : "bg-danger/10 border-danger/20 text-danger-text dark:text-danger-text hover:bg-danger/20"
+                  }`}
+                >
+                  <FiTrash2 className="h-4 w-4" />
+                  Terminate
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  disabled={isLocked}
+                  className={`px-6 py-2.5 rounded-full text-[11px] font-semibold border transition-all flex items-center gap-2 shadow-sm ${
+                    isLocked
+                      ? "bg-foreground/[0.02] border-card-border text-text-muted cursor-not-allowed"
+                      : "bg-foreground/[0.08] border-card-border text-foreground hover:bg-foreground/[0.12]"
+                  }`}
+                >
+                  <FiEdit2 className="h-4 w-4" />
+                  {isLocked ? "Locked Record" : "Edit event"}
+                </button>
+              </>
+            )}
+          </div>
+        </FormWizard>
       </div>
     </div>
   );
