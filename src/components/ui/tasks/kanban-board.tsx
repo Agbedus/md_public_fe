@@ -295,8 +295,8 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
   const activeTask = findTask(activeId);
 
   return (
-    <div>
-      <p className="mb-3 hidden items-center gap-3 px-1 text-xs text-text-muted md:flex">
+    <div data-kanban-board className="flex h-[calc(100dvh-13rem)] min-h-[440px] flex-col md:h-[calc(100dvh-11rem)]">
+      <p className="mb-3 hidden shrink-0 items-center gap-3 px-1 text-xs text-text-muted md:flex">
         <span>Click to select</span>
         <span aria-hidden="true">·</span>
         <span>Hold to drag</span>
@@ -308,9 +308,8 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
         </span>
       </p>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setActiveId(null)}>
-        {/* A fixed-height board, like the attendance map: lanes fill it and
-            scroll inside, so long columns never stretch the page. */}
-        <div ref={boardRef} onPointerDown={onBoardPointerDown} className="h-[calc(100dvh-13rem)] min-h-[440px] overflow-x-auto pb-2 md:h-[calc(100dvh-11rem)]">
+        {/* Lanes fill the available space and scroll independently. */}
+        <div ref={boardRef} onPointerDown={onBoardPointerDown} className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2">
           <div className="flex h-full min-w-max items-stretch gap-3">
             {columns.map((col) => (
               <Column

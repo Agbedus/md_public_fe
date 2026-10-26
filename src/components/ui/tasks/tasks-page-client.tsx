@@ -984,6 +984,7 @@ export default function TasksPageClient({
 
   return (
     <div
+      data-task-board-viewport={!embedded && viewMode === "kanban" ? "" : undefined}
       className={
         embedded
           ? "md-zen w-full min-w-0"

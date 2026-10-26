@@ -84,14 +84,14 @@ export default function DashboardLayout({
 
               {/* Main Content Area */}
               <div 
-                className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] relative
+                className={`flex-1 flex flex-col min-h-0 min-w-0 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] relative
                   ${isMobileExpanded ? 'md:translate-x-0 translate-x-24' : 'translate-x-0'}
                 `}
               >
                 {topnav}
                 <div
                   data-dashboard-scroll
-                  className={`w-full flex-1 overscroll-y-contain ${hideContentScroll ? 'overflow-hidden' : 'overflow-y-auto'} pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-28`}
+                  className={`w-full min-h-0 flex-1 overscroll-y-contain ${hideContentScroll ? 'overflow-hidden' : 'overflow-y-auto'} pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-28`}
                 >
                   {children}
                 </div>

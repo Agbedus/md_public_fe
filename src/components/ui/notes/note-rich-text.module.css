@@ -34,7 +34,7 @@
 .body li[data-type="taskItem"] > label { position: relative; display: inline-flex; align-items: center; flex: 0 0 1.125rem; height: 1.6em; margin: 0; padding: 0; user-select: none; }
 .body li[data-type="taskItem"] input {
   appearance: none; display: block; flex-shrink: 0; width: 1.125rem; height: 1.125rem; margin: 0;
-  border: 1.5px solid color-mix(in srgb, var(--foreground) 32%, transparent); border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--foreground) 32%, transparent); border-radius: 5px;
   background: var(--card-bg); cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease;
 }
 .body li[data-type="taskItem"] input:checked { background: var(--accent); border-color: var(--accent); }
