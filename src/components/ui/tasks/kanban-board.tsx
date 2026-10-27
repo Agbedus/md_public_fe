@@ -73,7 +73,7 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
         outline: isOver ? `1.5px dashed color-mix(in oklab, ${color} 55%, transparent)` : undefined,
         outlineOffset: -6,
       }}
-      className="flex h-full min-h-0 w-[300px] shrink-0 flex-col rounded-[28px] p-2 transition-[background-color] duration-200"
+      className="flex h-full min-h-0 w-[300px] min-w-0 shrink-0 flex-col rounded-[28px] p-2 transition-[background-color] duration-200"
     >
       <header className="flex shrink-0 items-center gap-2.5 px-3 pb-2 pt-2.5">
         <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
@@ -82,8 +82,8 @@ function Column({ col, items, users, user, projects, columns, onMove, onDelete, 
       </header>
 
       <SortableContext items={items.map((t) => String(t.id))} strategy={verticalListSortingStrategy}>
-        {/* Each lane scrolls on its own; the page and the board stay put. */}
-        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain rounded-[22px] p-0.5">
+        {/* Lanes scroll vertically; sideways gestures continue to the board. */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-[22px] p-0.5">
           {items.map((task) => (
             <KanbanCard
               key={task.id}
@@ -295,7 +295,7 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
   const activeTask = findTask(activeId);
 
   return (
-    <div data-kanban-board className="flex h-[calc(100dvh-13rem)] min-h-[440px] flex-col md:h-[calc(100dvh-11rem)]">
+    <div data-kanban-board className="flex h-[calc(100dvh-13rem)] min-h-[440px] min-w-0 max-w-full flex-col overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2 md:h-[calc(100dvh-11rem)]">
       <p className="mb-3 hidden shrink-0 items-center gap-3 px-1 text-xs text-text-muted md:flex">
         <span>Click to select</span>
         <span aria-hidden="true">·</span>
@@ -308,8 +308,8 @@ export default function KanbanBoard({ tasks = [], users, user, projects, updateT
         </span>
       </p>
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setActiveId(null)}>
-        {/* Lanes fill the available space and scroll independently. */}
-        <div ref={boardRef} onPointerDown={onBoardPointerDown} className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-2">
+        {/* The outer board owns horizontal scrolling for every column. */}
+        <div ref={boardRef} onPointerDown={onBoardPointerDown} className="min-h-0 min-w-max flex-1">
           <div className="flex h-full min-w-max items-stretch gap-3">
             {columns.map((col) => (
               <Column
