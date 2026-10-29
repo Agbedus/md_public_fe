@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, Sector } from 'recharts';
+import type { PieSectorShapeProps } from 'recharts';
 
 import { ChartEmpty } from './chart-empty';
 
@@ -12,6 +13,21 @@ const PRIORITY_COLORS: Record<string, string> = {
   'Medium Priority': 'var(--pastel-amber)',
   'Low Priority': 'var(--success)',
 };
+
+function RoundedAllocationSector(props: PieSectorShapeProps) {
+  const { innerRadius, outerRadius, startAngle, endAngle } = props;
+  const halfAngle = Math.min(Math.abs(endAngle - startAngle), 180) * Math.PI / 360;
+  const sine = Math.sin(halfAngle);
+  // Fit both corner pairs inside the actual slice. Forcing a full-radius
+  // corner on a tiny slice makes Recharts draw an off-track circle instead.
+  const cornerRadius = Math.max(0, Math.min(
+    10,
+    (outerRadius - innerRadius) / 2,
+    outerRadius * sine / (1 + sine) * 0.95,
+    sine < 1 ? innerRadius * sine / (1 - sine) * 0.95 : 10,
+  ));
+  return <Sector {...props} cornerRadius={cornerRadius} forceCornerRadius={false} />;
+}
 
 const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: number }> }) => {
   if (!data.some((d) => d.value > 0)) {
@@ -37,7 +53,7 @@ const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: numb
           outerRadius={80}
           paddingAngle={4}
           cornerRadius={10}
-          shape={<Sector cornerRadius={10} forceCornerRadius />}
+          shape={RoundedAllocationSector}
           dataKey="value"
           labelLine={false}
           stroke="none"
