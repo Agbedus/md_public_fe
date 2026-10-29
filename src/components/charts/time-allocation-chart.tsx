@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, Sector } from 'recharts';
 
 import { ChartEmpty } from './chart-empty';
 
@@ -19,7 +19,7 @@ const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: numb
   }
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <PieChart>
         <Tooltip
           contentStyle={{
@@ -37,6 +37,7 @@ const TimeAllocationChart = ({ data }: { data: Array<{ name: string; value: numb
           outerRadius={80}
           paddingAngle={4}
           cornerRadius={10}
+          shape={<Sector cornerRadius={10} forceCornerRadius />}
           dataKey="value"
           labelLine={false}
           stroke="none"
