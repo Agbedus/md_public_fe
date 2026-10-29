@@ -59,6 +59,7 @@ export default function AttendanceStatusCard({ record: initialRecord, defaultExp
         location,
         officeLocation,
         autoCheckStatus,
+        autoCheckMessage,
     } = useLocation();
     
     const { mutate: globalMutate } = useSWRConfig();
@@ -119,19 +120,19 @@ export default function AttendanceStatusCard({ record: initialRecord, defaultExp
     const autoCheckCopy = {
         permission_required: {
             title: 'Auto clock-in needs location access',
-            detail: 'Allow GPS so checks can run throughout the clock-in window.',
+            detail: 'Allow location access so checks can run throughout the clock-in window.',
         },
         monitoring: {
             title: 'Auto clock-in is monitoring',
-            detail: 'Your location is checked every minute during the clock-in window.',
+            detail: autoCheckMessage || 'Keep MyndDesk open. Location checks run every minute during the clock-in window.',
         },
         checking: {
             title: 'Checking your office location',
             detail: 'Confirming continuous presence for automatic clock-in.',
         },
         waiting_for_signal: {
-            title: 'Waiting for a reliable GPS signal',
-            detail: 'Checks will continue automatically when location becomes available.',
+            title: 'Waiting for location confirmation',
+            detail: autoCheckMessage || 'Checks will continue automatically when location becomes available.',
         },
     } as const;
 

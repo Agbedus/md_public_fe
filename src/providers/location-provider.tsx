@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, startTransition } from 'react';
 import { useSWRConfig } from 'swr';
 import { updateLocation, getOfficeLocations, clockOutManual } from '@/app/(dashboard)/[orgSlug]/attendance/actions';
+import { getAccuratePosition, locationErrorMessage } from '@/lib/browser-location';
 import { getDistanceInMeters } from '@/lib/distance-utils';
 import { toast } from '@/lib/toast';
 import type { PresenceState, AttendanceState, AttendancePolicy, OfficeLocation, AttendanceRecord } from '@/types/attendance';
@@ -45,52 +46,12 @@ interface LocationContextType {
     location: { latitude: number; longitude: number; accuracy: number | null } | null;
     officeLocation: { latitude: number; longitude: number } | null;
     autoCheckStatus: AutoCheckStatus;
+    autoCheckMessage: string | null;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 
-
-function getAccuratePosition(timeoutMs = 15000, desiredAccuracy = 35): Promise<GeolocationPosition> {
-    return new Promise((resolve, reject) => {
-        let watchId: number;
-        let bestPosition: GeolocationPosition | null = null;
-        let timeoutId: NodeJS.Timeout;
-
-        const cleanup = () => {
-            navigator.geolocation.clearWatch(watchId);
-            clearTimeout(timeoutId);
-        };
-
-        watchId = navigator.geolocation.watchPosition(
-            (pos) => {
-                if (!bestPosition || pos.coords.accuracy < bestPosition.coords.accuracy) {
-                    bestPosition = pos;
-                }
-                if (pos.coords.accuracy <= desiredAccuracy) {
-                    cleanup();
-                    resolve(pos);
-                }
-            },
-            (err) => {
-                if (!bestPosition) {
-                    cleanup();
-                    reject(err);
-                }
-            },
-            { enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs }
-        );
-
-        timeoutId = setTimeout(() => {
-            cleanup();
-            if (bestPosition) {
-                resolve(bestPosition);
-            } else {
-                reject(new Error("Timeout waiting for location"));
-            }
-        }, timeoutMs);
-    });
-}
 
 export function LocationProvider({ 
     children,
@@ -150,36 +111,6 @@ export function LocationProvider({
         }
     }, [trackingStorageKey]);
 
-    const requestPermission = useCallback(async (): Promise<boolean> => {
-        if (!navigator.geolocation) {
-            setPermissionState('unsupported');
-            setIsSupported(false);
-            toast.error('Geolocation is not supported by your browser.');
-            return false;
-        }
-
-        return new Promise((resolve) => {
-            navigator.geolocation.getCurrentPosition(
-                () => {
-                    setPermissionState('granted');
-                    setPermissionError(null);
-                    resolve(true);
-                },
-                (error) => {
-                    if (error.code === error.PERMISSION_DENIED) {
-                        setPermissionState('denied');
-                        setPermissionError('Location permission denied. Please allow location access in your browser site settings.');
-                        toast.error('Location permission denied. Please allow location access in browser site settings.');
-                    } else {
-                        toast.error(`Location error: ${error.message}`);
-                    }
-                    resolve(false);
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        });
-    }, []);
-
     // Policy-aligned initial presence: if clocked in but no presence_state on the initial record,
     // assume IN_OFFICE since the backend auto-clocks in when IN_OFFICE is first confirmed.
     const deriveInitialPresence = (record: AttendanceRecord | null | undefined): PresenceState | null => {
@@ -207,10 +138,38 @@ export function LocationProvider({
     const isInitializedRef = useRef(false);
     const [isPolling, setIsPolling] = useState(false);
     const [lastPulse, setLastPulse] = useState<Date | null>(null);
+    const [autoCheckMessage, setAutoCheckMessage] = useState<string | null>(null);
     const [policyClock, setPolicyClock] = useState(() => new Date());
     const [autoCheckActivityStatus, setAutoCheckActivityStatus] = useState<
         'monitoring' | 'checking' | 'waiting_for_signal'
     >('monitoring');
+
+    const requestPermission = useCallback(async (): Promise<boolean> => {
+        if (!navigator.geolocation) {
+            setPermissionState('unsupported');
+            setIsSupported(false);
+            toast.error('Geolocation is not supported by your browser.');
+            return false;
+        }
+
+        try {
+            const position = await getAccuratePosition(15000, Infinity);
+            setPermissionState('granted');
+            setPermissionError(null);
+            const { latitude, longitude, accuracy } = position.coords;
+            setLocation({ latitude, longitude, accuracy });
+            setLastPulse(new Date());
+            return true;
+        } catch (error) {
+            const message = locationErrorMessage(error);
+            if (typeof error === 'object' && error !== null && 'code' in error && error.code === 1) {
+                setPermissionState('denied');
+                setPermissionError(message);
+            }
+            toast.error(message);
+            return false;
+        }
+    }, []);
 
     // ── Local Presence Derivation ──
     const presenceState = useMemo(() => {
@@ -345,6 +304,31 @@ export function LocationProvider({
     }, [syncConfiguration, checkPermission, trackingStorageKey]);
 
 
+    useEffect(() => {
+        let refreshing = false;
+        let lastRefresh = Date.now();
+        const refreshConfiguration = async () => {
+            if (refreshing || document.visibilityState !== 'visible'
+                || Date.now() - lastRefresh < 60000) return;
+            refreshing = true;
+            lastRefresh = Date.now();
+            try { await syncConfiguration(true); }
+            finally { refreshing = false; }
+        };
+        const reconnect = () => { lastRefresh = 0; void refreshConfiguration(); };
+        const refreshWhenVisible = () => { void refreshConfiguration(); };
+        const timer = window.setInterval(refreshWhenVisible, SYNC_THROTTLE_MS);
+        window.addEventListener('focus', refreshWhenVisible);
+        window.addEventListener('online', reconnect);
+        document.addEventListener('visibilitychange', refreshWhenVisible);
+        return () => {
+            window.clearInterval(timer);
+            window.removeEventListener('focus', refreshWhenVisible);
+            window.removeEventListener('online', reconnect);
+            document.removeEventListener('visibilitychange', refreshWhenVisible);
+        };
+    }, [syncConfiguration]);
+
     const handlePositionUpdate = useCallback(async (
         position: GeolocationPosition,
         forceSync = false,
@@ -372,6 +356,7 @@ export function LocationProvider({
         
         if (!activeOffice) return false;
 
+        setOfficeLocationState({ latitude: activeOffice.latitude, longitude: activeOffice.longitude });
         let localPresence: PresenceState = 'OUT_OF_OFFICE';
         if (minDistance <= activeOffice.in_office_radius_meters) {
             localPresence = 'IN_OFFICE';
@@ -413,7 +398,7 @@ export function LocationProvider({
                     setAttendanceState(newAtt);
                     
                     // Sync presence state (confirming local guess)
-                    if (backendPres && backendPres !== localPresence) {
+                    if (backendPres) {
                         presenceStateRef.current = backendPres;
                         setConfirmedPresenceState(backendPres);
                     }
@@ -421,6 +406,13 @@ export function LocationProvider({
                     setClockInTime(result.record.clock_in_at || result.record.clock_in || null);
                     setClockOutTime(result.record.clock_out_at || result.record.clock_out || null);
                     setLastUpdate(new Date());
+                    if (forceSync) {
+                        setAutoCheckMessage(newAtt === 'CLOCKED_IN' ? null
+                            : newAtt === 'CLOCKED_OUT' ? 'Today’s attendance is closed. Automatic checks cannot reopen it.'
+                            : backendPres === 'IN_OFFICE'
+                                ? 'Office presence confirmed. Waiting for the configured clock-in delay and policy checks.'
+                                : 'Location received. The server has not confirmed office presence yet; checks will continue.');
+                    }
                     
                     mutate(workspaceCacheKey('my-attendance-today', workspaceScope));
                     if (prevAtt !== newAtt || (stateChanged && backendPres !== prevPres)) {
@@ -433,9 +425,11 @@ export function LocationProvider({
                     suppressSyncToastRef.current = false;
                     return true;
                 }
+                if (forceSync) setAutoCheckMessage(result.error || 'Attendance could not be confirmed. Checks will retry automatically.');
                 console.warn('Attendance location sync was rejected:', result.error);
                 return false;
             } catch (err) {
+                if (forceSync) setAutoCheckMessage('Unable to reach attendance services. Checks will retry when the connection recovers.');
                 console.error('Backend sync failed:', err);
                 return false;
             } finally {
@@ -599,33 +593,22 @@ export function LocationProvider({
 
         autoCheckRequestInFlightRef.current = true;
         setAutoCheckActivityStatus('checking');
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setPermissionState('granted');
-                setPermissionError(null);
-                void handlePositionUpdate(position, true).then((didSync) => {
-                    setAutoCheckActivityStatus(
-                        didSync ? 'monitoring' : 'waiting_for_signal',
-                    );
-                }).finally(() => {
-                    autoCheckRequestInFlightRef.current = false;
-                });
-            },
-            (error) => {
-                autoCheckRequestInFlightRef.current = false;
-                if (error.code === error.PERMISSION_DENIED) {
-                    setPermissionState('denied');
-                    setPermissionError('Location access is blocked in your browser settings.');
-                    return;
-                }
-                setAutoCheckActivityStatus('waiting_for_signal');
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 20000,
-                maximumAge: 60000,
-            },
-        );
+        setAutoCheckMessage(null);
+        void getAccuratePosition().then(async (position) => {
+            setPermissionState('granted');
+            setPermissionError(null);
+            const didSync = await handlePositionUpdate(position, true);
+            setAutoCheckActivityStatus(didSync ? 'monitoring' : 'waiting_for_signal');
+        }).catch((error: unknown) => {
+            setAutoCheckMessage(locationErrorMessage(error));
+            if (typeof error === 'object' && error !== null && 'code' in error && error.code === 1) {
+                setPermissionState('denied');
+                setPermissionError(locationErrorMessage(error));
+            }
+            setAutoCheckActivityStatus('waiting_for_signal');
+        }).finally(() => {
+            autoCheckRequestInFlightRef.current = false;
+        });
     }, [activeAutoClockInPolicy, handlePositionUpdate]);
 
     // Automatic clock-in needs periodic evidence of continuous presence. Run
@@ -693,15 +676,19 @@ export function LocationProvider({
                 toast.error('Geolocation not supported');
                 return;
             }
-            toast.loading("Acquiring accurate GPS signal...", { id: 'gps-lock' });
+            toast.loading("Finding your location...", { id: 'gps-lock' });
             try {
                 const position = await getAccuratePosition(15000, 35);
                 toast.dismiss('gps-lock');
                 const { latitude, longitude, accuracy } = position.coords;
                 
+                setLocation({ latitude, longitude, accuracy });
+                setLastPulse(new Date());
+                setPermissionState('granted');
+                setPermissionError(null);
                 // Manual Accuracy Gate: Lenient up to 100m for intended actions
                 if (accuracy > 100) {
-                    toast.error('GPS signal too unstable for secure clock-in.');
+                    toast.error(`Location uncertainty is ±${Math.round(accuracy)}m. Enable Wi-Fi and Location Services, then retry.`);
                     return;
                 }
 
@@ -722,7 +709,7 @@ export function LocationProvider({
                 }
 
                 if (validOfficeId === null) {
-                    toast.error('Not strictly in the office geofence.');
+                    toast.error('This location is outside the office boundary. Refresh your location and try again.');
                     return;
                 }
 
@@ -764,6 +751,7 @@ export function LocationProvider({
                     const actualClockIn = result.record.clock_in_at || result.record.clock_in || null;
                     setClockInTime(actualClockIn);
                     setClockOutTime(result.record.clock_out_at || result.record.clock_out || null);
+                    setLastUpdate(new Date());
                     
                     mutate(workspaceCacheKey('my-attendance-today', workspaceScope));
                     mutate(workspaceCacheKey('team-attendance-today', workspaceScope));
@@ -778,13 +766,18 @@ export function LocationProvider({
                 }
             } catch (error) {
                 toast.dismiss('gps-lock');
-                toast.error('GPS error or timeout.');
+                if (typeof error === 'object' && error !== null && 'code' in error && error.code === 1) {
+                    setPermissionState('denied');
+                    setPermissionError(locationErrorMessage(error));
+                }
+                toast.error(locationErrorMessage(error));
             }
         } catch {
             toast.error('An unexpected error occurred while clocking in.');
         } finally {
             setIsLoading(false);
             setClockInPhase('idle');
+            suppressSyncToastRef.current = false;
         }
     }, [mutate, workspaceScope]);
 
@@ -865,29 +858,22 @@ export function LocationProvider({
 
     const refreshLocation = useCallback(async () => {
         setIsLoading(true);
-        toast.loading("Acquiring high-precision GPS...", { id: 'gps-sync' });
+        toast.loading('Finding your location...', { id: 'gps-sync' });
         try {
-            const position = await getAccuratePosition(15000, 35);
+            const position = await getAccuratePosition();
+            setPermissionState('granted');
+            setPermissionError(null);
+            const synced = await handlePositionUpdate(position, true);
             toast.dismiss('gps-sync');
-            const { latitude, longitude, accuracy } = position.coords;
-            setLocation({ latitude, longitude, accuracy });
-            
-            // Sync with backend
-            const offices = officesRef.current;
-            const resolvedId = offices.length > 0 ? offices[0].id : undefined;
-            await updateLocation(latitude, longitude, accuracy, resolvedId);
-            
-            setLastUpdate(new Date());
-            mutate(workspaceCacheKey('my-attendance-today', workspaceScope));
-            mutate(workspaceCacheKey('team-attendance-today', workspaceScope));
-            toast.success('Position Synchronized');
-        } catch (err) {
+            if (synced) toast.success('Location synchronized');
+            else toast.error('Location received, but attendance could not be synchronized. Please try again.');
+        } catch (error) {
             toast.dismiss('gps-sync');
-            toast.error('Sync Timeout — poor signal');
+            toast.error(locationErrorMessage(error));
         } finally {
             setIsLoading(false);
         }
-    }, [mutate, workspaceScope]);
+    }, [handlePositionUpdate]);
 
     const contextValue = React.useMemo(() => ({
         isTracking,
@@ -911,6 +897,7 @@ export function LocationProvider({
         location,
         officeLocation: officeLocationState,
         autoCheckStatus,
+        autoCheckMessage,
     }), [
         isTracking,
         isSupported,
@@ -933,6 +920,7 @@ export function LocationProvider({
         location,
         officeLocationState,
         autoCheckStatus,
+        autoCheckMessage,
     ]);
 
     return (

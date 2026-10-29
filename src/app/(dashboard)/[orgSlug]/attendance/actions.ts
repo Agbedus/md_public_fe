@@ -185,7 +185,12 @@ export async function updateLocation(
             if (forbiddenMsg) return { success: false, error: forbiddenMsg };
             const errorText = await res.text();
             console.error("updateLocation:", res.status, errorText);
-            return { success: false, error: `API Error ${res.status}: ${errorText}` };
+            let message = 'Attendance could not be updated. Please try again.';
+            try {
+                const body = JSON.parse(errorText);
+                if (typeof body.detail === 'string') message = body.detail;
+            } catch { /* Keep a readable message for non-JSON failures. */ }
+            return { success: false, error: message };
         }
 
         const data = await res.json();
